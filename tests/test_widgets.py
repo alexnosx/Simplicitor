@@ -177,3 +177,11 @@ def test_main_window_opens_settings_dialog(qtbot, tmp_path) -> None:
     qtbot.addWidget(window)
     # Verify the signal is connected (settings_requested → _open_settings)
     assert window._top_bar.settings_requested is not None
+
+
+def test_main_window_creates_ollama_thread(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    assert hasattr(window, "_ollama_thread")
+    assert hasattr(window, "_ollama_worker")
