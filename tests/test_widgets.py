@@ -65,3 +65,33 @@ def test_create_panel_emits_generate_requested(qtbot, tmp_path) -> None:
     with qtbot.waitSignal(panel.generate_requested, timeout=1000) as blocker:
         panel._generate_btn.click()
     assert blocker.args[2] == "test prompt"  # (file_type, save_path, prompt)
+
+
+from app.widgets.edit_panel import EditPanel
+
+
+def test_edit_panel_instantiates(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+
+
+def test_edit_panel_save_button_disabled_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert not panel._save_btn.isEnabled()
+
+
+def test_edit_panel_prompt_empty_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert panel._prompt_edit.toPlainText() == ""
+
+
+def test_edit_panel_file_list_empty_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert panel._file_list.count() == 0
