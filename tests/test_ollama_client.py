@@ -1,6 +1,5 @@
 # tests/test_ollama_client.py
 # TDD tests for the Phase 2 OllamaClient REST implementation.
-import unittest
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -196,6 +195,14 @@ class TestGetRunningModel:
         except OllamaConnectionError:
             pass
 
+    @patch("app.services.ollama_client.requests.get")
+    def test_get_running_model_raises_on_timeout(self, mock_get: MagicMock) -> None:
+        import pytest
+        mock_get.side_effect = requests.Timeout()
+        client = OllamaClient(BASE_URL)
+        with pytest.raises(OllamaConnectionError):
+            client.get_running_model()
+
 
 # ---------------------------------------------------------------------------
 # get_model_info
@@ -332,7 +339,7 @@ class TestGenerate:
     def test_sends_format_when_provided(self, mock_post: MagicMock) -> None:
         mock_post.return_value = _mock_response(200, {"response": "ok"})
         fmt = {"type": "object", "properties": {}}
-        OllamaClient(BASE_URL).generate("llama3", "p", "s", format=fmt)
+        OllamaClient(BASE_URL).generate("llama3", "p", "s", output_format=fmt)
         body = mock_post.call_args[1]["json"]
         assert body["format"] == fmt
 

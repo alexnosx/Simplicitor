@@ -4,7 +4,13 @@ from dataclasses import dataclass, field
 
 import requests
 
-from app.config.defaults import OLLAMA_TIMEOUT_S
+from app.config.defaults import (
+    OLLAMA_GENERATE_ENDPOINT,
+    OLLAMA_PS_ENDPOINT,
+    OLLAMA_SHOW_ENDPOINT,
+    OLLAMA_TAGS_ENDPOINT,
+    OLLAMA_TIMEOUT_S,
+)
 
 
 class OllamaConnectionError(Exception):
@@ -56,7 +62,7 @@ class OllamaClient:
         any exception is caught and results in ``False``.
         """
         try:
-            response = requests.get(f"{self._base_url}/api/tags", timeout=3)
+            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}", timeout=3)
             return response.status_code == 200
         except Exception:
             return False
@@ -75,11 +81,12 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.get(f"{self._base_url}/api/tags")
+            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}")
+            response.raise_for_status()
             models = response.json()["models"]
             return [m["name"] for m in models]
         except requests.RequestException as exc:
-            raise OllamaConnectionError(str(exc)) from exc
+            raise OllamaConnectionError(f"Could not reach Ollama at {self._base_url}: {exc}") from exc
 
     def get_running_model(self) -> str:
         """Return the name of the currently loaded model from ``/api/ps``.
@@ -91,11 +98,12 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.get(f"{self._base_url}/api/ps")
+            response = requests.get(f"{self._base_url}{OLLAMA_PS_ENDPOINT}")
+            response.raise_for_status()
             models = response.json()["models"]
             return models[0]["name"] if models else ""
         except requests.RequestException as exc:
-            raise OllamaConnectionError(str(exc)) from exc
+            raise OllamaConnectionError(f"Could not reach Ollama at {self._base_url}: {exc}") from exc
 
     def get_model_info(self, name: str) -> dict:
         """Return the raw info dict for a model via ``POST /api/show``.
@@ -110,10 +118,11 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.post(f"{self._base_url}/api/show", json={"name": name})
+            response = requests.post(f"{self._base_url}{OLLAMA_SHOW_ENDPOINT}", json={"name": name})
+            response.raise_for_status()
             return response.json()
         except requests.RequestException as exc:
-            raise OllamaConnectionError(str(exc)) from exc
+            raise OllamaConnectionError(f"Could not reach Ollama at {self._base_url}: {exc}") from exc
 
     def get_model_params(self, model_name: str) -> int:
         """Return the parameter count for a model.
@@ -157,7 +166,7 @@ class OllamaClient:
         model: str,
         prompt: str,
         system: str,
-        format: dict | None = None,
+        output_format: dict | None = None,
     ) -> str:
         """Send a generation request to ``/api/generate`` and return the response text.
 
@@ -165,7 +174,7 @@ class OllamaClient:
             model: The Ollama model name to use.
             prompt: The user prompt text.
             system: The system message text.
-            format: Optional JSON schema dict passed as Ollama's ``format`` parameter.
+            output_format: Optional JSON schema dict passed as Ollama's ``format`` parameter.
 
         Returns:
             The ``"response"`` field from the Ollama API JSON reply.
@@ -181,12 +190,12 @@ class OllamaClient:
             "system": system,
             "stream": False,
         }
-        if format is not None:
-            body["format"] = format
+        if output_format is not None:
+            body["format"] = output_format
 
         try:
             response = requests.post(
-                f"{self._base_url}/api/generate",
+                f"{self._base_url}{OLLAMA_GENERATE_ENDPOINT}",
                 json=body,
                 timeout=OLLAMA_TIMEOUT_S,
             )
