@@ -80,8 +80,11 @@ class OllamaWorker(QObject):
         ``False``), also emits ``model_params_ready`` with the parameter count
         of the running model.
 
-        Any exception is caught, treated as a disconnection, and logged at
-        WARNING level — this method never raises.
+        Any exception from check_connection, get_models, or get_running_model
+        is caught, treated as a disconnection, and logged at WARNING level.
+        A separate inner try/except guards get_model_params so a failure there
+        does not incorrectly emit disconnected after the connection was
+        established — this method never raises.
         """
         try:
             is_connected = self._client.check_connection()
@@ -92,8 +95,12 @@ class OllamaWorker(QObject):
 
                 if not self._was_connected:
                     # Transition: disconnected → connected
-                    param_count: int = self._client.get_model_params(running_model)
-                    self.model_params_ready.emit(running_model, param_count)
+                    try:
+                        param_count: int = self._client.get_model_params(running_model)
+                        self.model_params_ready.emit(running_model, param_count)
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning("Could not fetch model params: %s", exc)
+                        # Still connected — banner stays hidden, no crash
 
                 self._was_connected = True
                 self.connected.emit(models, running_model)

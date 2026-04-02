@@ -185,3 +185,4 @@ def test_main_window_creates_ollama_thread(qtbot, tmp_path) -> None:
     qtbot.addWidget(window)
     assert hasattr(window, "_ollama_thread")
     assert hasattr(window, "_ollama_worker")
+    assert window._ollama_worker.thread() is window._ollama_thread

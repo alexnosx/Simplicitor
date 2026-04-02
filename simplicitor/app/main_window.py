@@ -2,6 +2,7 @@
 import logging
 
 from PySide6.QtCore import Qt, QThread
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow, QSplitter, QVBoxLayout, QWidget
 
 from app.config.defaults import (
@@ -83,6 +84,7 @@ class MainWindow(QMainWindow):
 
     def _start_ollama_worker(self) -> None:
         """Create the OllamaWorker, move it to a background QThread, and start polling."""
+        # TODO: ASSUMPTION — URL uses default; Phase 5 can add settings-driven URL
         self._ollama_client = OllamaClient(OLLAMA_BASE_URL)
         self._ollama_thread = QThread(self)
         self._ollama_worker = OllamaWorker(self._ollama_client)
@@ -128,9 +130,11 @@ class MainWindow(QMainWindow):
 
     # ── Window lifecycle ──────────────────────────────────────────────────────
 
-    def closeEvent(self, event) -> None:  # type: ignore[override]
+    def closeEvent(self, event: QCloseEvent) -> None:
         """Gracefully stop the background Ollama worker before closing."""
-        self._ollama_worker.stop()
-        self._ollama_thread.quit()
-        self._ollama_thread.wait(2000)  # 2-second timeout
+        if hasattr(self, "_ollama_worker"):
+            self._ollama_worker.stop()
+        if hasattr(self, "_ollama_thread"):
+            self._ollama_thread.quit()
+            self._ollama_thread.wait(2000)
         super().closeEvent(event)

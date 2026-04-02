@@ -16,8 +16,9 @@ def _make_worker(qtbot, *, connected: bool = False, models: list[str] | None = N
                  running_model: str = "", param_count: int = 0) -> OllamaWorker:
     """Return an OllamaWorker with a fully mocked OllamaClient.
 
-    OllamaWorker is a QObject (not a QWidget), so we cannot use qtbot.addWidget.
-    We register a finalizer via qtbot.waitSignal-compatible teardown instead.
+    OllamaWorker is a plain QObject (not a QWidget) and is never moved to a
+    real thread here, so qtbot.addWidget is not applicable.  Python's GC
+    handles cleanup when the worker goes out of scope at the end of each test.
     """
     client = MagicMock(spec=OllamaClient)
     client.check_connection.return_value = connected
