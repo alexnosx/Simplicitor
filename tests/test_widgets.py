@@ -12,9 +12,33 @@ def test_top_bar_instantiates(qtbot) -> None:
 def test_top_bar_has_title(qtbot) -> None:
     bar = TopBar()
     qtbot.addWidget(bar)
-    # The title label exists and displays the app name
     assert hasattr(bar, "_title_label")
     assert bar._title_label.text() == "Simplicitor"
+
+
+def test_top_bar_starts_disconnected(qtbot) -> None:
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    assert bar.current_model() == ""
+    assert not bar._model_combo.isEnabled()
+
+
+def test_top_bar_set_connected_populates_models(qtbot) -> None:
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    bar.set_connected(["llama3:8b", "mistral:7b"], "llama3:8b")
+    assert bar.current_model() == "llama3:8b"
+    assert bar._model_combo.isEnabled()
+    assert bar._model_combo.count() == 2
+
+
+def test_top_bar_set_disconnected_clears_models(qtbot) -> None:
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    bar.set_connected(["llama3:8b"], "llama3:8b")
+    bar.set_disconnected()
+    assert bar.current_model() == ""
+    assert not bar._model_combo.isEnabled()
 
 
 def test_top_bar_settings_signal_emits(qtbot) -> None:
