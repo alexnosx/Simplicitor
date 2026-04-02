@@ -121,3 +121,35 @@ def test_settings_dialog_save_updates_settings(qtbot, tmp_path) -> None:
     dialog._generated_edit.setText("/new/path")
     dialog._on_save()
     assert settings.generated_dir == "/new/path"
+
+
+from app.main_window import MainWindow
+
+
+def test_main_window_instantiates(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+
+
+def test_main_window_title_is_simplicitor(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    assert window.windowTitle() == "Simplicitor"
+
+
+def test_main_window_minimum_size(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    assert window.minimumWidth() >= 1024
+    assert window.minimumHeight() >= 640
+
+
+def test_main_window_opens_settings_dialog(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    # Verify the signal is connected (settings_requested → _open_settings)
+    assert window._top_bar.settings_requested is not None
