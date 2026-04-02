@@ -107,6 +107,7 @@ class TopBar(QWidget):
         self._model_combo.setEnabled(False)
         self._model_combo.blockSignals(True)
         self._model_combo.clear()
+        self._model_combo.setPlaceholderText("No model selected")
         self._model_combo.blockSignals(False)
 
     def current_model(self) -> str:
