@@ -1,5 +1,6 @@
 # tests/test_ollama_client.py
 # TDD tests for the Phase 2 OllamaClient REST implementation.
+import pytest
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -23,6 +24,10 @@ def _mock_response(status_code: int = 200, json_data: dict | None = None) -> Mag
     mock = MagicMock()
     mock.status_code = status_code
     mock.json.return_value = json_data or {}
+    if status_code >= 400:
+        mock.raise_for_status.side_effect = requests.HTTPError(response=mock)
+    else:
+        mock.raise_for_status.return_value = None
     return mock
 
 
@@ -143,20 +148,14 @@ class TestGetModels:
     @patch("app.services.ollama_client.requests.get", side_effect=requests.ConnectionError)
     def test_raises_connection_error_on_network_failure(self, _mock_get: MagicMock) -> None:
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaConnectionError):
             client.get_models()
-            assert False, "Expected OllamaConnectionError"
-        except OllamaConnectionError:
-            pass
 
     @patch("app.services.ollama_client.requests.get", side_effect=requests.Timeout)
     def test_raises_connection_error_on_timeout(self, _mock_get: MagicMock) -> None:
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaConnectionError):
             client.get_models()
-            assert False, "Expected OllamaConnectionError"
-        except OllamaConnectionError:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -189,15 +188,11 @@ class TestGetRunningModel:
     @patch("app.services.ollama_client.requests.get", side_effect=requests.ConnectionError)
     def test_raises_connection_error_on_network_failure(self, _mock_get: MagicMock) -> None:
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaConnectionError):
             client.get_running_model()
-            assert False, "Expected OllamaConnectionError"
-        except OllamaConnectionError:
-            pass
 
     @patch("app.services.ollama_client.requests.get")
     def test_get_running_model_raises_on_timeout(self, mock_get: MagicMock) -> None:
-        import pytest
         mock_get.side_effect = requests.Timeout()
         client = OllamaClient(BASE_URL)
         with pytest.raises(OllamaConnectionError):
@@ -234,11 +229,8 @@ class TestGetModelInfo:
     @patch("app.services.ollama_client.requests.post", side_effect=requests.ConnectionError)
     def test_raises_connection_error(self, _mock_post: MagicMock) -> None:
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaConnectionError):
             client.get_model_info("llama3")
-            assert False, "Expected OllamaConnectionError"
-        except OllamaConnectionError:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -346,37 +338,25 @@ class TestGenerate:
     @patch("app.services.ollama_client.requests.post", side_effect=requests.ConnectionError)
     def test_raises_connection_error_on_network_failure(self, _mock_post: MagicMock) -> None:
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaConnectionError):
             client.generate("llama3", "p", "s")
-            assert False, "Expected OllamaConnectionError"
-        except OllamaConnectionError:
-            pass
 
     @patch("app.services.ollama_client.requests.post")
     def test_raises_generation_error_on_non_200(self, mock_post: MagicMock) -> None:
         mock_post.return_value = _mock_response(500, {"error": "model error"})
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaGenerationError):
             client.generate("llama3", "p", "s")
-            assert False, "Expected OllamaGenerationError"
-        except OllamaGenerationError:
-            pass
 
     @patch("app.services.ollama_client.requests.post")
     def test_raises_generation_error_when_response_key_missing(self, mock_post: MagicMock) -> None:
         mock_post.return_value = _mock_response(200, {"no_response_key": True})
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaGenerationError):
             client.generate("llama3", "p", "s")
-            assert False, "Expected OllamaGenerationError"
-        except OllamaGenerationError:
-            pass
 
     @patch("app.services.ollama_client.requests.post", side_effect=requests.Timeout)
     def test_raises_connection_error_on_timeout(self, _mock_post: MagicMock) -> None:
         client = OllamaClient(BASE_URL)
-        try:
+        with pytest.raises(OllamaConnectionError):
             client.generate("llama3", "p", "s")
-            assert False, "Expected OllamaConnectionError"
-        except OllamaConnectionError:
-            pass

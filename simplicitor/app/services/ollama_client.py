@@ -81,7 +81,7 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}")
+            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}", timeout=OLLAMA_TIMEOUT_S)
             response.raise_for_status()
             models = response.json()["models"]
             return [m["name"] for m in models]
@@ -98,7 +98,7 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.get(f"{self._base_url}{OLLAMA_PS_ENDPOINT}")
+            response = requests.get(f"{self._base_url}{OLLAMA_PS_ENDPOINT}", timeout=OLLAMA_TIMEOUT_S)
             response.raise_for_status()
             models = response.json()["models"]
             return models[0]["name"] if models else ""
@@ -118,7 +118,7 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.post(f"{self._base_url}{OLLAMA_SHOW_ENDPOINT}", json={"name": name})
+            response = requests.post(f"{self._base_url}{OLLAMA_SHOW_ENDPOINT}", json={"name": name}, timeout=OLLAMA_TIMEOUT_S)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as exc:
