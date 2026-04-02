@@ -95,3 +95,29 @@ def test_edit_panel_file_list_empty_by_default(qtbot, tmp_path) -> None:
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
     assert panel._file_list.count() == 0
+
+
+from app.widgets.settings_dialog import SettingsDialog
+
+
+def test_settings_dialog_instantiates(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+
+def test_settings_dialog_shows_current_paths(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    settings.set("generated_dir", "/my/generated")
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+    assert dialog._generated_edit.text() == "/my/generated"
+
+
+def test_settings_dialog_save_updates_settings(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+    dialog._generated_edit.setText("/new/path")
+    dialog._on_save()
+    assert settings.generated_dir == "/new/path"
