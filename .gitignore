@@ -7,3 +7,14 @@ dist/
 build/
 .venv/
 venv/
+
+# Application logs and output
+logs/
+*.log
+
+# Nuitka build artifacts
+.nuitka/
+*.nuitka-*.tmp
+
+# Environment files
+.env
