@@ -13,9 +13,11 @@ def make_worker(
     save_path: str = "/tmp/out.docx",
     prompt: str = "Write something",
     model: str = "llama3",
+    client=None,
 ) -> GenerateWorker:
-    client = MagicMock()
-    client.generate.return_value = '{"title": "T", "sections": []}'
+    if client is None:
+        client = MagicMock()
+        client.generate.return_value = '{"title": "T", "sections": []}'
     return GenerateWorker(
         file_type=file_type,
         save_path=save_path,

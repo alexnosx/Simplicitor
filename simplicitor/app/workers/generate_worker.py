@@ -107,10 +107,23 @@ class GenerateWorker(QObject):
             try:
                 llm_response2 = self._client.generate(self.model, simplified, system_prompt)
                 result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
-            except Exception as retry_exc:
-                logger.error("Retry also failed: %s", retry_exc)
-                self.failed.emit("Could not generate file. Please try a simpler prompt.")
+            except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
+                logger.error("Retry Ollama call failed: %s", retry_exc)
+                self.failed.emit("AI generation failed after retry. Please check Ollama is running.")
                 return
+            except FileGenerationError as retry_exc:
+                logger.error("Retry also produced unparseable response: %s", retry_exc)
+                self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
+                return
+            except OSError as retry_exc:
+                logger.error("Retry file write failed: %s", retry_exc)
+                self.failed.emit(
+                    f"Could not save file to {self.save_path}. "
+                    "Check the folder exists and you have write permission."
+                )
+                return
+            self.completed.emit(str(result_path))
+            return
         except OSError as exc:
             logger.error("File write failed: %s", exc)
             self.failed.emit(
