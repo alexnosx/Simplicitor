@@ -30,6 +30,11 @@ OLLAMA_POLL_INTERVAL_MS = 5000
 OLLAMA_TIMEOUT_S = 60
 SMALL_MODEL_PARAM_THRESHOLD = 7_000_000_000
 
+# ── PowerPoint layout indices (standard Blank template) ──────────────────────
+PPTX_LAYOUT_TITLE_SLIDE = 0       # "Title Slide" layout
+PPTX_LAYOUT_TITLE_CONTENT = 1     # "Title and Content" layout
+PPTX_LAYOUT_SECTION_HEADER = 2    # "Section Header" layout
+
 # ── UI Limits ─────────────────────────────────────────────────────────────────
 WINDOW_MIN_WIDTH = 1024
 WINDOW_MIN_HEIGHT = 640

@@ -1,10 +1,13 @@
 # simplicitor/app/generators/word_generator.py
 # Phase 3: Word document generator
+import logging
 from pathlib import Path
 
 from docx import Document
 from docx.shared import Pt
 from docx.oxml.ns import qn
+
+logger = logging.getLogger(__name__)
 
 
 class WordGenerator:
@@ -25,7 +28,6 @@ class WordGenerator:
             OSError: On disk write failure.
         """
         output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         doc = Document()
 
@@ -52,7 +54,12 @@ class WordGenerator:
             elif section_type == "table":
                 self._add_table_section(doc, content)
 
-        doc.save(str(output_path))
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            doc.save(str(output_path))
+        except OSError as exc:
+            logger.error("Failed to write %s: %s", output_path, exc)
+            raise
         return output_path
 
     def _add_text_section(self, doc: Document, content: str) -> None:
@@ -112,5 +119,4 @@ class WordGenerator:
         for row_idx, row_data in enumerate(data_rows):
             table_row = table.rows[row_idx + 1]
             for col_idx, cell_text in enumerate(row_data):
-                if col_idx < num_cols:
-                    table_row.cells[col_idx].text = cell_text
+                table_row.cells[col_idx].text = cell_text

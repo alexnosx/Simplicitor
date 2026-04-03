@@ -1,15 +1,18 @@
 # simplicitor/app/generators/pptx_generator.py
 # Phase 3: PowerPoint generator
+import logging
 from pathlib import Path
 
 from pptx import Presentation
 from pptx.util import Pt
 
+from app.config.defaults import (
+    PPTX_LAYOUT_TITLE_SLIDE,
+    PPTX_LAYOUT_TITLE_CONTENT,
+    PPTX_LAYOUT_SECTION_HEADER,
+)
 
-# Standard layout indices for the default Blank template
-_LAYOUT_TITLE_SLIDE = 0      # "Title Slide" — title + subtitle placeholders
-_LAYOUT_TITLE_CONTENT = 1    # "Title and Content" — title + body placeholder
-_LAYOUT_SECTION_HEADER = 2   # "Section Header" — title (+ text) placeholder
+logger = logging.getLogger(__name__)
 
 
 class PptxGenerator:
@@ -30,9 +33,9 @@ class PptxGenerator:
             OSError: On disk write failure.
         """
         output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         prs = Presentation()
+        prs.core_properties.title = parsed.get("title", "")
 
         for slide_data in parsed.get("slides", []):
             slide_type = slide_data.get("type", "content")
@@ -47,12 +50,17 @@ class PptxGenerator:
                 # Default to content layout
                 self._add_content_slide(prs, slide_title, bullets)
 
-        prs.save(str(output_path))
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            prs.save(str(output_path))
+        except OSError as exc:
+            logger.error("Failed to write %s: %s", output_path, exc)
+            raise
         return output_path
 
     def _add_title_slide(self, prs: Presentation, title: str, bullets: list[str]) -> None:
         """Add a title-slide (layout 0) with a title and optional subtitle."""
-        layout = prs.slide_layouts[_LAYOUT_TITLE_SLIDE]
+        layout = prs.slide_layouts[PPTX_LAYOUT_TITLE_SLIDE]
         slide = prs.slides.add_slide(layout)
 
         # Placeholder index 0 = title, index 1 = subtitle
@@ -67,7 +75,7 @@ class PptxGenerator:
 
     def _add_section_slide(self, prs: Presentation, title: str) -> None:
         """Add a section-header slide (layout 2) with a title only."""
-        layout = prs.slide_layouts[_LAYOUT_SECTION_HEADER]
+        layout = prs.slide_layouts[PPTX_LAYOUT_SECTION_HEADER]
         slide = prs.slides.add_slide(layout)
 
         if slide.placeholders:
@@ -78,12 +86,12 @@ class PptxGenerator:
         self, prs: Presentation, title: str, bullets: list[str]
     ) -> None:
         """Add a title-and-content slide (layout 1) with a title and bullet list."""
-        layout = prs.slide_layouts[_LAYOUT_TITLE_CONTENT]
+        layout = prs.slide_layouts[PPTX_LAYOUT_TITLE_CONTENT]
         slide = prs.slides.add_slide(layout)
 
         # Set title (placeholder idx 0)
-        title_ph = slide.placeholders[0]
-        title_ph.text = title
+        if slide.placeholders:
+            slide.placeholders[0].text = title
 
         # Set bullet content (placeholder idx 1)
         if len(slide.placeholders) > 1:

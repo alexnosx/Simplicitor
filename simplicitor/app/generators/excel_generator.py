@@ -1,10 +1,14 @@
 # simplicitor/app/generators/excel_generator.py
 # Phase 3: Excel spreadsheet generator
+import logging
 from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
+
+logger = logging.getLogger(__name__)
 
 
 class ExcelGenerator:
@@ -26,7 +30,6 @@ class ExcelGenerator:
             OSError: On disk write failure.
         """
         output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         wb = Workbook()
         ws = wb.active
@@ -57,7 +60,12 @@ class ExcelGenerator:
         # Auto-fit column widths
         self._auto_fit_columns(ws)
 
-        wb.save(str(output_path))
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            wb.save(str(output_path))
+        except OSError as exc:
+            logger.error("Failed to write %s: %s", output_path, exc)
+            raise
         return output_path
 
     def _coerce_value(self, value: object) -> object:
@@ -76,7 +84,7 @@ class ExcelGenerator:
             pass
         return value
 
-    def _auto_fit_columns(self, ws) -> None:
+    def _auto_fit_columns(self, ws: Worksheet) -> None:
         """Set each column's width to max content length + 2 for readability."""
         column_widths: dict[str, int] = {}
         for row in ws.iter_rows():
