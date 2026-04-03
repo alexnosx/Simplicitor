@@ -24,6 +24,7 @@ class CreatePanel(QWidget):
     """
 
     generate_requested = Signal(str, str, str)  # file_type, save_path, prompt
+    retry_requested = Signal()
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -105,6 +106,42 @@ class CreatePanel(QWidget):
         self._status_label.setWordWrap(True)
         layout.addWidget(self._status_label)
 
+        # Disconnected message (shown when Ollama not available)
+        self._disconnected_widget = QWidget()
+        disconnected_layout = QVBoxLayout(self._disconnected_widget)
+        disconnected_layout.setContentsMargins(0, 8, 0, 0)
+        disconnected_layout.setSpacing(6)
+
+        self._disconnected_label = QLabel(
+            "Simplicitor cannot find your AI engine.\nPlease start Ollama and click Retry."
+        )
+        self._disconnected_label.setFont(body_font)
+        self._disconnected_label.setWordWrap(True)
+        self._disconnected_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._retry_btn = QPushButton("Retry")
+        self._retry_btn.setObjectName("retry_btn")
+        self._retry_btn.setFont(body_font)
+        self._retry_btn.setFixedHeight(32)
+        self._retry_btn.setFixedWidth(80)
+
+        retry_row = QHBoxLayout()
+        retry_row.addStretch()
+        retry_row.addWidget(self._retry_btn)
+        retry_row.addStretch()
+
+        self._ollama_link = QLabel('<a href="https://ollama.com">How to start Ollama</a>')
+        self._ollama_link.setFont(body_font)
+        self._ollama_link.setOpenExternalLinks(True)
+        self._ollama_link.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        disconnected_layout.addWidget(self._disconnected_label)
+        disconnected_layout.addLayout(retry_row)
+        disconnected_layout.addWidget(self._ollama_link)
+
+        layout.addWidget(self._disconnected_widget)
+        self._disconnected_widget.setVisible(True)
+
         layout.addStretch()
 
     def _apply_styles(self) -> None:
@@ -118,6 +155,9 @@ class CreatePanel(QWidget):
             f"border-radius: {BORDER_RADIUS_PX}px; font-weight: 600; }}"
             f"QPushButton#generate_btn:disabled {{ background-color: {DISABLED_COLOR}; }}"
             f"QPushButton#generate_btn:hover:enabled {{ background-color: #1D4ED8; }}"
+            f"QPushButton#retry_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
+            f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
+            f"QPushButton#retry_btn:hover {{ background-color: #D1D5DB; }}"
         )
 
     def _connect_signals(self) -> None:
@@ -125,6 +165,7 @@ class CreatePanel(QWidget):
         self._browse_btn.clicked.connect(self._browse_save_dir)
         self._prompt_edit.textChanged.connect(self._on_prompt_changed)
         self._generate_btn.clicked.connect(self._on_generate_clicked)
+        self._retry_btn.clicked.connect(self.retry_requested)
 
     # ── Private handlers ──────────────────────────────────────────────────────
 
@@ -158,8 +199,13 @@ class CreatePanel(QWidget):
     # ── Public API ────────────────────────────────────────────────────────────
 
     def set_ollama_connected(self, connected: bool) -> None:
-        """Enable or disable Generate based on Ollama connectivity (Phase 2)."""
+        """Enable or disable Generate based on Ollama connectivity (Phase 2).
+
+        Args:
+            connected: True when Ollama is reachable; False otherwise.
+        """
         self._generate_btn.setEnabled(connected)
+        self._disconnected_widget.setVisible(not connected)
 
     def set_generating(self, in_progress: bool) -> None:
         """Show or hide generation progress state (Phase 3)."""

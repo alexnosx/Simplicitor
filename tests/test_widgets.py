@@ -147,7 +147,99 @@ def test_settings_dialog_save_updates_settings(qtbot, tmp_path) -> None:
     assert settings.generated_dir == "/new/path"
 
 
+from app.widgets.capability_banner import CapabilityBanner
+
+
+def test_capability_banner_hidden_by_default(qtbot) -> None:
+    banner = CapabilityBanner()
+    qtbot.addWidget(banner)
+    assert not banner.isVisible()
+
+
+def test_capability_banner_show_banner(qtbot) -> None:
+    banner = CapabilityBanner()
+    qtbot.addWidget(banner)
+    banner.show_banner()
+    assert banner.isVisible()
+
+
+def test_capability_banner_dismiss_hides(qtbot) -> None:
+    banner = CapabilityBanner()
+    qtbot.addWidget(banner)
+    banner.show_banner()
+    with qtbot.waitSignal(banner.dismissed, timeout=1000):
+        banner._dismiss_btn.click()
+    assert not banner.isVisible()
+    assert banner.is_dismissed()
+
+
+def test_capability_banner_show_resets_dismissed(qtbot) -> None:
+    banner = CapabilityBanner()
+    qtbot.addWidget(banner)
+    banner.show_banner()
+    banner._dismiss_btn.click()
+    assert banner.is_dismissed()
+    banner.show_banner()
+    assert not banner.is_dismissed()
+
+
+def test_create_panel_shows_disconnected_message(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    # Starts disconnected — message should be visible
+    assert panel._disconnected_widget.isVisible()
+
+
+def test_create_panel_retry_signal(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    with qtbot.waitSignal(panel.retry_requested, timeout=1000):
+        panel._retry_btn.click()
+
+
+def test_create_panel_connected_hides_message(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    assert not panel._disconnected_widget.isVisible()
+    assert panel._generate_btn.isEnabled()
+
+
+def test_edit_panel_shows_disconnected_message(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert panel._disconnected_widget.isVisible()
+
+
+def test_edit_panel_retry_signal(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    with qtbot.waitSignal(panel.retry_requested, timeout=1000):
+        panel._retry_btn.click()
+
+
+def test_edit_panel_connected_hides_message(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    assert not panel._disconnected_widget.isVisible()
+
+
 from app.main_window import MainWindow
+
+
+def test_main_window_has_capability_banner(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    assert hasattr(window, "_capability_banner")
+    assert not window._capability_banner.isVisible()
 
 
 def test_main_window_instantiates(qtbot, tmp_path) -> None:

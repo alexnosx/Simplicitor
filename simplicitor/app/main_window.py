@@ -7,10 +7,11 @@ from PySide6.QtWidgets import QMainWindow, QSplitter, QVBoxLayout, QWidget
 
 from app.config.defaults import (
     APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
-    WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH,
+    WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, SMALL_MODEL_PARAM_THRESHOLD,
 )
 from app.config.settings import Settings
 from app.services.ollama_client import OllamaClient
+from app.widgets.capability_banner import CapabilityBanner
 from app.widgets.create_panel import CreatePanel
 from app.widgets.edit_panel import EditPanel
 from app.widgets.settings_dialog import SettingsDialog
@@ -56,6 +57,10 @@ class MainWindow(QMainWindow):
         self._top_bar = TopBar()
         self._top_bar.setFixedHeight(48)
         root_layout.addWidget(self._top_bar)
+
+        # Capability banner (hidden by default; shown when model has < 7B params)
+        self._capability_banner = CapabilityBanner()
+        root_layout.addWidget(self._capability_banner)
 
         # Two-panel horizontal splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -105,6 +110,24 @@ class MainWindow(QMainWindow):
             lambda: self._create_panel.set_ollama_connected(False)
         )
 
+        # Connectivity → EditPanel
+        self._ollama_worker.connected.connect(
+            lambda models, _: self._edit_panel.set_ollama_connected(True)
+        )
+        self._ollama_worker.disconnected.connect(
+            lambda: self._edit_panel.set_ollama_connected(False)
+        )
+
+        # Model params → capability banner
+        self._ollama_worker.model_params_ready.connect(self._on_model_params_ready)
+
+        # Retry buttons → immediate poll
+        self._create_panel.retry_requested.connect(self._ollama_worker.retry_now)
+        self._edit_panel.retry_requested.connect(self._ollama_worker.retry_now)
+
+        # Capability banner dismiss
+        self._capability_banner.dismissed.connect(self._on_banner_dismissed)
+
         # Model selection tracking
         self._current_model: str = ""
         self._top_bar.model_changed.connect(self._on_model_changed)
@@ -121,6 +144,23 @@ class MainWindow(QMainWindow):
         """
         self._current_model = model
         logger.debug("Model changed to: %s", model)
+
+    def _on_model_params_ready(self, model_name: str, param_count: int) -> None:
+        """Show the capability banner when the active model has fewer than 7B parameters.
+
+        Args:
+            model_name: The name of the currently active Ollama model.
+            param_count: Approximate parameter count reported by Ollama for the model.
+        """
+        if 0 < param_count < SMALL_MODEL_PARAM_THRESHOLD:
+            self._capability_banner.show_banner()
+        else:
+            self._capability_banner.hide_banner()
+        logger.debug("Model params ready: %s (%d params)", model_name, param_count)
+
+    def _on_banner_dismissed(self) -> None:
+        """Handle the user dismissing the capability banner."""
+        logger.debug("Capability banner dismissed by user")
 
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
