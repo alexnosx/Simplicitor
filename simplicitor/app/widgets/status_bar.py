@@ -89,15 +89,27 @@ class TopBar(QWidget):
     # ── Public API ────────────────────────────────────────────────────────────
 
     def set_connected(self, models: list[str], current_model: str = "") -> None:
-        """Switch to connected state and populate the model dropdown."""
+        """Switch to connected state.
+
+        Populates the model dropdown with the currently running model only.
+        If no model is loaded (current_model is empty), the dropdown is cleared
+        and disabled — the user cannot select a ghost model.
+
+        Args:
+            models: Full list of installed model names (retained for future use).
+            current_model: The model currently loaded in Ollama, or "" if none.
+        """
         self._status_dot.setStyleSheet(f"color: {SUCCESS_COLOR};")
         self._status_text.setText("Connected")
-        self._model_combo.setEnabled(True)
         self._model_combo.blockSignals(True)
         self._model_combo.clear()
-        self._model_combo.addItems(models)
-        if current_model and current_model in models:
+        if current_model:
+            self._model_combo.addItem(current_model)
             self._model_combo.setCurrentText(current_model)
+            self._model_combo.setEnabled(True)
+        else:
+            self._model_combo.setPlaceholderText("No model selected")
+            self._model_combo.setEnabled(False)
         self._model_combo.blockSignals(False)
 
     def set_disconnected(self) -> None:

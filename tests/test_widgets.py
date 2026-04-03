@@ -29,13 +29,31 @@ def test_top_bar_starts_disconnected(qtbot) -> None:
     assert not bar._model_combo.isEnabled()
 
 
-def test_top_bar_set_connected_populates_models(qtbot) -> None:
+def test_top_bar_set_connected_with_running_model(qtbot) -> None:
     bar = TopBar()
     qtbot.addWidget(bar)
     bar.set_connected(["llama3:8b", "mistral:7b"], "llama3:8b")
     assert bar.current_model() == "llama3:8b"
     assert bar._model_combo.isEnabled()
-    assert bar._model_combo.count() == 2
+    assert bar._model_combo.count() == 1  # only the running model
+
+
+def test_top_bar_set_connected_no_running_model_clears_combo(qtbot) -> None:
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    bar.set_connected(["llama3:8b", "mistral:7b"], "")  # installed but nothing running
+    assert bar.current_model() == ""
+    assert bar._model_combo.count() == 0
+    assert not bar._model_combo.isEnabled()
+
+
+def test_top_bar_model_changed_not_emitted_when_no_running_model(qtbot) -> None:
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    signals_received = []
+    bar.model_changed.connect(signals_received.append)
+    bar.set_connected(["llama3:8b"], "")
+    assert signals_received == []
 
 
 def test_top_bar_set_disconnected_clears_models(qtbot) -> None:
