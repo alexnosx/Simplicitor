@@ -171,6 +171,11 @@ class TestParseWordResponse:
         with pytest.raises(ParseError):
             LlmResponseParser().parse_word_response(_json(bad))
 
+    def test_parse_word_invalid_section_type_raises(self) -> None:
+        data = {"title": "T", "sections": [{"heading": "H", "content": "C", "type": "invalid"}]}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_word_response(json.dumps(data))
+
 
 # ---------------------------------------------------------------------------
 # parse_excel_response — happy path
@@ -250,6 +255,11 @@ class TestParseExcelResponse:
             LlmResponseParser().parse_excel_response("not json at all")
         assert exc_info.value.details != ""
 
+    def test_parse_excel_non_string_header_raises(self) -> None:
+        data = {"sheet_name": "S", "headers": ["col1", 42], "rows": [], "formulas": []}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_excel_response(json.dumps(data))
+
 
 # ---------------------------------------------------------------------------
 # parse_pptx_response — happy path
@@ -321,6 +331,11 @@ class TestParsePptxResponse:
         with pytest.raises(ParseError) as exc_info:
             LlmResponseParser().parse_pptx_response("%%% garbage %%%")
         assert exc_info.value.details != ""
+
+    def test_parse_pptx_invalid_slide_type_raises(self) -> None:
+        data = {"title": "T", "slides": [{"title": "S", "bullets": [], "type": "bad"}]}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_pptx_response(json.dumps(data))
 
 
 # ---------------------------------------------------------------------------

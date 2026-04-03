@@ -110,6 +110,11 @@ class LlmResponseParser:
             # Default missing type to "text"
             if "type" not in section:
                 section["type"] = "text"
+            if section["type"] not in self._WORD_SECTION_TYPES:
+                raise ParseError(
+                    f"Invalid section type '{section['type']}'; must be one of {sorted(self._WORD_SECTION_TYPES)}",
+                    details=f"section index {idx}",
+                )
 
         return data
 
@@ -151,6 +156,11 @@ class LlmResponseParser:
             raise ParseError(
                 f"Excel response 'headers' must be a list, "
                 f"got {type(data['headers']).__name__}"
+            )
+        if not all(isinstance(h, str) for h in data["headers"]):
+            raise ParseError(
+                "headers must be a list of strings",
+                details=f"headers={data['headers']!r}",
             )
         if not isinstance(data["rows"], list):
             raise ParseError(
@@ -225,6 +235,11 @@ class LlmResponseParser:
             # Default missing type to "content"
             if "type" not in slide:
                 slide["type"] = "content"
+            if slide["type"] not in self._PPTX_SLIDE_TYPES:
+                raise ParseError(
+                    f"Invalid slide type '{slide['type']}'; must be one of {sorted(self._PPTX_SLIDE_TYPES)}",
+                    details=f"slide index {idx}",
+                )
 
         return data
 
