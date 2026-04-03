@@ -95,12 +95,13 @@ class OllamaWorker(QObject):
 
                 if not self._was_connected:
                     # Transition: disconnected → connected
-                    try:
-                        param_count: int = self._client.get_model_params(running_model)
-                        self.model_params_ready.emit(running_model, param_count)
-                    except Exception as exc:  # noqa: BLE001
-                        logger.warning("Could not fetch model params: %s", exc)
-                        # Still connected — banner stays hidden, no crash
+                    if running_model:  # only fetch params if a model is actually running
+                        try:
+                            param_count: int = self._client.get_model_params(running_model)
+                            self.model_params_ready.emit(running_model, param_count)
+                        except Exception as exc:  # noqa: BLE001
+                            logger.warning("Could not fetch model params: %s", exc)
+                    # If no model running, skip — banner stays hidden (param_count implicitly 0)
 
                 self._was_connected = True
                 self.connected.emit(models, running_model)

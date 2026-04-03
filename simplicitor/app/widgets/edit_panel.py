@@ -11,6 +11,7 @@ from app.config.defaults import (
     MAX_PROMPT_CHARS, PANEL_BG_COLOR, PRIMARY_ACCENT_COLOR, BORDER_COLOR,
     BODY_TEXT_COLOR, DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
     HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
+    SUCCESS_COLOR, ERROR_COLOR,
 )
 from app.config.settings import Settings
 
@@ -200,7 +201,7 @@ class EditPanel(QWidget):
 
     def show_status(self, message: str, is_error: bool = False) -> None:
         """Show a status message below the Save button."""
-        color = "#DC2626" if is_error else "#16A34A"
+        color = ERROR_COLOR if is_error else SUCCESS_COLOR
         self._status_label.setStyleSheet(f"color: {color};")
         self._status_label.setText(message)
         self._status_label.setVisible(True)

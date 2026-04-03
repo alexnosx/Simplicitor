@@ -12,6 +12,7 @@ from app.config.defaults import (
     PANEL_BG_COLOR, PRIMARY_ACCENT_COLOR, BORDER_COLOR, BODY_TEXT_COLOR,
     DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
     HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
+    SUCCESS_COLOR, ERROR_COLOR,
 )
 from app.config.settings import Settings
 
@@ -30,6 +31,7 @@ class CreatePanel(QWidget):
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._settings = settings
+        self._ollama_connected: bool = False
         self._build_ui()
         self._apply_styles()
         self._connect_signals()
@@ -37,7 +39,6 @@ class CreatePanel(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        self._ollama_connected: bool = False
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(10)
@@ -220,7 +221,7 @@ class CreatePanel(QWidget):
 
     def show_status(self, message: str, is_error: bool = False) -> None:
         """Show a status message below the Generate button."""
-        color = "#DC2626" if is_error else "#16A34A"
+        color = ERROR_COLOR if is_error else SUCCESS_COLOR
         self._status_label.setStyleSheet(f"color: {color};")
         self._status_label.setText(message)
         self._status_label.setVisible(True)

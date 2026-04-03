@@ -147,16 +147,18 @@ class MainWindow(QMainWindow):
         logger.debug("Model changed to: %s", model)
 
     def _on_model_params_ready(self, model_name: str, param_count: int) -> None:
-        """Show the capability banner when the active model has fewer than 7B parameters.
+        """Show capability banner if model has fewer than SMALL_MODEL_PARAM_THRESHOLD params.
 
         Args:
             model_name: The name of the currently active Ollama model.
             param_count: Approximate parameter count reported by Ollama for the model.
         """
+        # Keep _current_model in sync with what the worker reports as running
+        if model_name:
+            self._current_model = model_name
         if 0 < param_count < SMALL_MODEL_PARAM_THRESHOLD:
             if model_name != self._banner_dismissed_for:
                 self._capability_banner.show_banner()
-            # If same model and user dismissed, keep it hidden
         else:
             self._capability_banner.hide_banner()
         logger.debug("Model params ready: %s (%d params)", model_name, param_count)
