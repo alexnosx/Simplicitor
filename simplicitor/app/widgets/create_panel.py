@@ -11,6 +11,7 @@ from app.config.defaults import (
     GENERATE_FILE_TYPES, PROMPT_PLACEHOLDERS, MAX_PROMPT_CHARS,
     PANEL_BG_COLOR, PRIMARY_ACCENT_COLOR, BORDER_COLOR, BODY_TEXT_COLOR,
     DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
+    HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
 )
 from app.config.settings import Settings
 
@@ -36,6 +37,7 @@ class CreatePanel(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
+        self._ollama_connected: bool = False
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(10)
@@ -154,10 +156,10 @@ class CreatePanel(QWidget):
             f"QPushButton#generate_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "
             f"border-radius: {BORDER_RADIUS_PX}px; font-weight: 600; }}"
             f"QPushButton#generate_btn:disabled {{ background-color: {DISABLED_COLOR}; }}"
-            f"QPushButton#generate_btn:hover:enabled {{ background-color: #1D4ED8; }}"
+            f"QPushButton#generate_btn:hover:enabled {{ background-color: {HOVER_ACCENT_COLOR}; }}"
             f"QPushButton#retry_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
             f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
-            f"QPushButton#retry_btn:hover {{ background-color: #D1D5DB; }}"
+            f"QPushButton#retry_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
         )
 
     def _connect_signals(self) -> None:
@@ -204,12 +206,16 @@ class CreatePanel(QWidget):
         Args:
             connected: True when Ollama is reachable; False otherwise.
         """
+        self._ollama_connected = connected
         self._generate_btn.setEnabled(connected)
         self._disconnected_widget.setVisible(not connected)
 
     def set_generating(self, in_progress: bool) -> None:
         """Show or hide generation progress state (Phase 3)."""
-        self._generate_btn.setEnabled(not in_progress)
+        if not in_progress:
+            self._generate_btn.setEnabled(self._ollama_connected)
+        else:
+            self._generate_btn.setEnabled(False)
         self._generate_btn.setText("Generating…" if in_progress else "Generate")
 
     def show_status(self, message: str, is_error: bool = False) -> None:

@@ -11,6 +11,8 @@ DISABLED_COLOR = "#9CA3AF"
 BORDER_COLOR = "#E5E7EB"
 INFO_BANNER_BG_COLOR = "#EFF6FF"
 WHITE = "#FFFFFF"
+HOVER_ACCENT_COLOR = "#1D4ED8"    # darker blue for button hover
+BORDER_HOVER_COLOR = "#D1D5DB"    # darker grey for border hover
 
 # ── Typography ────────────────────────────────────────────────────────────────
 APP_FONT_FAMILY = "Segoe UI"

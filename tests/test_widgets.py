@@ -2,6 +2,12 @@
 # conftest.py sets QT_QPA_PLATFORM=offscreen for headless rendering
 import pytest
 from app.widgets.status_bar import TopBar
+from app.widgets.create_panel import CreatePanel
+from app.widgets.edit_panel import EditPanel
+from app.widgets.settings_dialog import SettingsDialog
+from app.widgets.capability_banner import CapabilityBanner
+from app.main_window import MainWindow
+from app.config.settings import Settings
 
 
 def test_top_bar_instantiates(qtbot) -> None:
@@ -48,10 +54,6 @@ def test_top_bar_settings_signal_emits(qtbot) -> None:
         bar._settings_btn.click()
 
 
-from app.widgets.create_panel import CreatePanel
-from app.config.settings import Settings
-
-
 def test_create_panel_instantiates(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = CreatePanel(settings)
@@ -91,9 +93,6 @@ def test_create_panel_emits_generate_requested(qtbot, tmp_path) -> None:
     assert blocker.args[2] == "test prompt"  # (file_type, save_path, prompt)
 
 
-from app.widgets.edit_panel import EditPanel
-
-
 def test_edit_panel_instantiates(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = EditPanel(settings)
@@ -121,9 +120,6 @@ def test_edit_panel_file_list_empty_by_default(qtbot, tmp_path) -> None:
     assert panel._file_list.count() == 0
 
 
-from app.widgets.settings_dialog import SettingsDialog
-
-
 def test_settings_dialog_instantiates(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     dialog = SettingsDialog(settings)
@@ -145,9 +141,6 @@ def test_settings_dialog_save_updates_settings(qtbot, tmp_path) -> None:
     dialog._generated_edit.setText("/new/path")
     dialog._on_save()
     assert settings.generated_dir == "/new/path"
-
-
-from app.widgets.capability_banner import CapabilityBanner
 
 
 def test_capability_banner_hidden_by_default(qtbot) -> None:
@@ -231,9 +224,6 @@ def test_edit_panel_connected_hides_message(qtbot, tmp_path) -> None:
     assert not panel._disconnected_widget.isVisible()
 
 
-from app.main_window import MainWindow
-
-
 def test_main_window_has_capability_banner(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
@@ -278,3 +268,35 @@ def test_main_window_creates_ollama_thread(qtbot, tmp_path) -> None:
     assert hasattr(window, "_ollama_thread")
     assert hasattr(window, "_ollama_worker")
     assert window._ollama_worker.thread() is window._ollama_thread
+
+
+def test_main_window_banner_shows_for_small_model(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    # 3B params < 7B threshold → banner should show
+    window._on_model_params_ready("small-model:3b", 3_000_000_000)
+    assert window._capability_banner.isVisible()
+
+
+def test_main_window_banner_hidden_for_large_model(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    # 13B params > 7B threshold → banner should stay hidden
+    window._on_model_params_ready("large-model:13b", 13_000_000_000)
+    assert not window._capability_banner.isVisible()
+
+
+def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._current_model = "small-model:3b"
+    window._on_model_params_ready("small-model:3b", 3_000_000_000)
+    assert window._capability_banner.isVisible()
+    # User dismisses
+    window._capability_banner._dismiss_btn.click()
+    # Same model signals again — banner should stay hidden
+    window._on_model_params_ready("small-model:3b", 3_000_000_000)
+    assert not window._capability_banner.isVisible()

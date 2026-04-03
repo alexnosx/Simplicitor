@@ -10,6 +10,7 @@ from app.config.defaults import (
     APP_FONT_FAMILY, FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
     MAX_PROMPT_CHARS, PANEL_BG_COLOR, PRIMARY_ACCENT_COLOR, BORDER_COLOR,
     BODY_TEXT_COLOR, DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
+    HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
 )
 from app.config.settings import Settings
 
@@ -160,10 +161,10 @@ class EditPanel(QWidget):
             f"QPushButton#save_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "
             f"border-radius: {BORDER_RADIUS_PX}px; font-weight: 600; }}"
             f"QPushButton#save_btn:disabled {{ background-color: {DISABLED_COLOR}; }}"
-            f"QPushButton#save_btn:hover:enabled {{ background-color: #1D4ED8; }}"
+            f"QPushButton#save_btn:hover:enabled {{ background-color: {HOVER_ACCENT_COLOR}; }}"
             f"QPushButton#retry_btn_edit {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
             f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
-            f"QPushButton#retry_btn_edit:hover {{ background-color: #D1D5DB; }}"
+            f"QPushButton#retry_btn_edit:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
         )
 
     def _connect_signals(self) -> None:

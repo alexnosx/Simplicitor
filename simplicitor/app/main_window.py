@@ -130,6 +130,7 @@ class MainWindow(QMainWindow):
 
         # Model selection tracking
         self._current_model: str = ""
+        self._banner_dismissed_for: str = ""
         self._top_bar.model_changed.connect(self._on_model_changed)
 
         self._ollama_thread.start()
@@ -153,14 +154,17 @@ class MainWindow(QMainWindow):
             param_count: Approximate parameter count reported by Ollama for the model.
         """
         if 0 < param_count < SMALL_MODEL_PARAM_THRESHOLD:
-            self._capability_banner.show_banner()
+            if model_name != self._banner_dismissed_for:
+                self._capability_banner.show_banner()
+            # If same model and user dismissed, keep it hidden
         else:
             self._capability_banner.hide_banner()
         logger.debug("Model params ready: %s (%d params)", model_name, param_count)
 
     def _on_banner_dismissed(self) -> None:
-        """Handle the user dismissing the capability banner."""
-        logger.debug("Capability banner dismissed by user")
+        """Record which model the user dismissed the banner for."""
+        self._banner_dismissed_for = self._current_model
+        logger.debug("Capability banner dismissed for model: %s", self._current_model)
 
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
