@@ -176,6 +176,11 @@ class TestParseWordResponse:
         with pytest.raises(ParseError):
             LlmResponseParser().parse_word_response(json.dumps(data))
 
+    def test_non_dict_section_raises(self) -> None:
+        data = {"title": "T", "sections": ["not a dict"]}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_word_response(json.dumps(data))
+
 
 # ---------------------------------------------------------------------------
 # parse_excel_response — happy path
@@ -260,6 +265,11 @@ class TestParseExcelResponse:
         with pytest.raises(ParseError):
             LlmResponseParser().parse_excel_response(json.dumps(data))
 
+    def test_nested_cell_value_raises(self) -> None:
+        data = {"sheet_name": "S", "headers": ["col"], "rows": [[{"nested": "dict"}]], "formulas": []}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_excel_response(json.dumps(data))
+
 
 # ---------------------------------------------------------------------------
 # parse_pptx_response — happy path
@@ -334,6 +344,16 @@ class TestParsePptxResponse:
 
     def test_parse_pptx_invalid_slide_type_raises(self) -> None:
         data = {"title": "T", "slides": [{"title": "S", "bullets": [], "type": "bad"}]}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_pptx_response(json.dumps(data))
+
+    def test_non_string_bullet_raises(self) -> None:
+        data = {"title": "T", "slides": [{"title": "S", "bullets": [42], "type": "content"}]}
+        with pytest.raises(ParseError):
+            LlmResponseParser().parse_pptx_response(json.dumps(data))
+
+    def test_non_dict_slide_raises(self) -> None:
+        data = {"title": "T", "slides": ["not a dict"]}
         with pytest.raises(ParseError):
             LlmResponseParser().parse_pptx_response(json.dumps(data))
 

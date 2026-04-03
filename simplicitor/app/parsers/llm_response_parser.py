@@ -26,6 +26,9 @@ class LlmResponseParser:
     # Valid slide types for PowerPoint
     _PPTX_SLIDE_TYPES = {"title", "content", "section"}
 
+    # Valid scalar types for Excel cell values
+    _SCALAR_TYPES = (str, int, float, bool, type(None))
+
     # -----------------------------------------------------------------------
     # Private helpers
     # -----------------------------------------------------------------------
@@ -50,8 +53,10 @@ class LlmResponseParser:
         # Extract outermost JSON object
         start = text.find("{")
         end = text.rfind("}")
-        if start != -1 and end != -1 and end >= start:
-            text = text[start : end + 1]
+        if start == -1 or end == -1 or end <= start:
+            # No valid JSON object found; return as-is and let json.loads raise
+            return text
+        text = text[start : end + 1]
 
         return text
 
@@ -98,6 +103,11 @@ class LlmResponseParser:
 
         # Validate each section
         for idx, section in enumerate(data["sections"]):
+            if not isinstance(section, dict):
+                raise ParseError(
+                    f"Word response sections[{idx}] must be a dict, got {type(section).__name__}",
+                    details=repr(section),
+                )
             prefix = f"Word response sections[{idx}]"
             if "heading" not in section:
                 raise ParseError(f"{prefix} missing required key: 'heading'")
@@ -172,13 +182,20 @@ class LlmResponseParser:
         if "formulas" not in data:
             data["formulas"] = []
 
-        # Pad short rows with empty strings rather than failing hard
+        # Pad short rows with empty strings rather than failing hard; validate cell types
         num_headers = len(data["headers"])
-        for idx, row in enumerate(data["rows"]):
+        for row_idx, row in enumerate(data["rows"]):
             if not isinstance(row, list):
-                raise ParseError(f"Excel response rows[{idx}] must be a list")
+                raise ParseError(f"Excel response rows[{row_idx}] must be a list")
             if len(row) < num_headers:
-                data["rows"][idx] = row + [""] * (num_headers - len(row))
+                data["rows"][row_idx] = row + [""] * (num_headers - len(row))
+            for col_idx, cell in enumerate(row):
+                if not isinstance(cell, self._SCALAR_TYPES):
+                    raise ParseError(
+                        f"Row cell must be a scalar value (string, number, bool, or null), "
+                        f"got {type(cell).__name__} at rows[{row_idx}][{col_idx}]",
+                        details=repr(cell),
+                    )
 
         return data
 
@@ -221,8 +238,13 @@ class LlmResponseParser:
             )
 
         # Validate each slide
-        for idx, slide in enumerate(data["slides"]):
-            prefix = f"PPTX response slides[{idx}]"
+        for slide_idx, slide in enumerate(data["slides"]):
+            if not isinstance(slide, dict):
+                raise ParseError(
+                    f"PPTX response slides[{slide_idx}] must be a dict, got {type(slide).__name__}",
+                    details=repr(slide),
+                )
+            prefix = f"PPTX response slides[{slide_idx}]"
             if "title" not in slide:
                 raise ParseError(f"{prefix} missing required key: 'title'")
             if not isinstance(slide["title"], str):
@@ -232,13 +254,20 @@ class LlmResponseParser:
                 slide["bullets"] = []
             if not isinstance(slide["bullets"], list):
                 raise ParseError(f"{prefix} 'bullets' must be a list")
+            for bullet_idx, bullet in enumerate(slide["bullets"]):
+                if not isinstance(bullet, str):
+                    raise ParseError(
+                        f"PPTX response slides[{slide_idx}]['bullets'][{bullet_idx}] must be a string, "
+                        f"got {type(bullet).__name__}",
+                        details=repr(bullet),
+                    )
             # Default missing type to "content"
             if "type" not in slide:
                 slide["type"] = "content"
             if slide["type"] not in self._PPTX_SLIDE_TYPES:
                 raise ParseError(
                     f"Invalid slide type '{slide['type']}'; must be one of {sorted(self._PPTX_SLIDE_TYPES)}",
-                    details=f"slide index {idx}",
+                    details=f"slide index {slide_idx}",
                 )
 
         return data
