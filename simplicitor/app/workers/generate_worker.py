@@ -19,8 +19,9 @@ _PROMPT_FILES: dict[str, str] = {
     "PowerPoint (.pptx)": "system_pptx.txt",
 }
 
-# Tell Ollama to always return a JSON object (per CLAUDE.md Ollama integration guide)
-_JSON_OUTPUT_FORMAT: dict = {"type": "object"}
+# Tell Ollama to return JSON (the "json" string mode is universally supported by all models;
+# JSON Schema structured output {"type": "object"} is a newer feature not all models honour).
+_JSON_OUTPUT_FORMAT: str = "json"
 
 
 class GenerateWorker(QObject):

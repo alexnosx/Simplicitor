@@ -53,6 +53,7 @@ class FileGenerator:
         output_path = Path(output_path)
 
         logger.debug("Parsing LLM response for file type %r", file_type)
+        logger.debug("Raw LLM response (first 500 chars): %.500s", llm_response)
         try:
             parsed = parser_fn(llm_response)
         except ParseError as exc:

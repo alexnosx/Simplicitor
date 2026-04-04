@@ -166,7 +166,7 @@ class OllamaClient:
         model: str,
         prompt: str,
         system: str,
-        output_format: dict | None = None,
+        output_format: dict | str | None = None,
     ) -> str:
         """Send a generation request to ``/api/generate`` and return the response text.
 
@@ -174,7 +174,9 @@ class OllamaClient:
             model: The Ollama model name to use.
             prompt: The user prompt text.
             system: The system message text.
-            output_format: Optional JSON schema dict passed as Ollama's ``format`` parameter.
+            output_format: Optional value passed as Ollama's ``format`` parameter.
+                Use ``"json"`` to request JSON output (universally supported), or a
+                JSON Schema dict for structured output (newer Ollama / model support required).
 
         Returns:
             The ``"response"`` field from the Ollama API JSON reply.
