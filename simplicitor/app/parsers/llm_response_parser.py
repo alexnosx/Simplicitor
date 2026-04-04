@@ -35,14 +35,21 @@ class LlmResponseParser:
 
     @staticmethod
     def _clean(text: str) -> str:
-        """Return *text* with whitespace and markdown fences stripped.
+        """Return *text* with whitespace, thinking blocks, and markdown fences stripped.
 
         Processing steps, in order:
         1. Strip leading/trailing whitespace.
-        2. Remove markdown code fences (```json...``` or ```...```).
-        3. Extract the outermost JSON object by finding the first ``{`` and
+        2. Remove ``<think>...</think>`` blocks (Qwen3, DeepSeek-R1 reasoning models).
+        3. Remove markdown code fences (```json...``` or ```...```).
+        4. Extract the outermost JSON object by finding the first ``{`` and
            last ``}`` — discards any preamble/postamble prose.
         """
+        text = text.strip()
+
+        # Strip thinking blocks emitted by reasoning models (e.g. Qwen3, DeepSeek-R1).
+        # These appear as <think>...</think> and must be removed before JSON extraction
+        # because the reasoning prose often contains { } characters that confuse the finder.
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
         text = text.strip()
 
         # Remove markdown code fences (optional language tag)

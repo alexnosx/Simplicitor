@@ -386,3 +386,29 @@ class TestConvenienceFunctions:
     def test_parse_pptx_propagates_parse_error(self) -> None:
         with pytest.raises(ParseError):
             parse_pptx("bad input")
+
+
+class TestThinkingModelOutput:
+    """Regression tests for Qwen3/DeepSeek-R1 thinking model output."""
+
+    def test_clean_strips_thinking_block_before_json(self) -> None:
+        """Thinking tokens before the JSON must not confuse the { finder."""
+        response = (
+            "<think>\nI need to create a JSON with title and sections. "
+            "Let me structure it {like this}.\n</think>\n"
+            + json.dumps(VALID_WORD)
+        )
+        result = parse_word(response)
+        assert result["title"] == "My Report"
+
+    def test_clean_strips_multiline_thinking_block(self) -> None:
+        response = (
+            "<think>\nLine one.\nLine two with {curly} braces.\n</think>\n"
+            "```json\n" + json.dumps(VALID_WORD) + "\n```"
+        )
+        result = parse_word(response)
+        assert result["title"] == "My Report"
+
+    def test_clean_unaffected_without_thinking_block(self) -> None:
+        result = parse_word(json.dumps(VALID_WORD))
+        assert result["title"] == "My Report"
