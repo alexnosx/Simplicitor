@@ -19,10 +19,6 @@ _PROMPT_FILES: dict[str, str] = {
     "PowerPoint (.pptx)": "system_pptx.txt",
 }
 
-# Tell Ollama to return JSON (the "json" string mode is universally supported by all models;
-# JSON Schema structured output {"type": "object"} is a newer feature not all models honour).
-_JSON_OUTPUT_FORMAT: str = "json"
-
 
 class GenerateWorker(QObject):
     """Runs LLM generation and file writing on a background QThread (Phase 3).
@@ -89,11 +85,11 @@ class GenerateWorker(QObject):
             )
             return
 
-        # Call Ollama (pass JSON output format to constrain response to a JSON object)
+        # Call Ollama without a format constraint: Qwen3 and other thinking models return empty
+        # responses when Ollama's json mode is active (the two features conflict). Instead we
+        # rely on the system prompt's JSON-only instruction and _clean()'s extraction logic.
         try:
-            llm_response = self._client.generate(
-                self.model, self.prompt, system_prompt, _JSON_OUTPUT_FORMAT
-            )
+            llm_response = self._client.generate(self.model, self.prompt, system_prompt)
         except (OllamaConnectionError, OllamaGenerationError) as exc:
             logger.error("Ollama generation failed: %s", exc)
             self.failed.emit(f"AI generation failed: {exc}")
@@ -113,9 +109,7 @@ class GenerateWorker(QObject):
             self.progress.emit("Retrying with simplified prompt\u2026")
             simplified = f"Generate a simple {self.file_type} document about: {self.prompt[:200]}"
             try:
-                llm_response2 = self._client.generate(
-                    self.model, simplified, system_prompt, _JSON_OUTPUT_FORMAT
-                )
+                llm_response2 = self._client.generate(self.model, simplified, system_prompt)
                 result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
             except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
                 logger.error("Retry Ollama call failed: %s", retry_exc)
