@@ -1,4 +1,7 @@
 # simplicitor/app/widgets/create_panel.py
+import logging
+import os
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
     QLineEdit, QPushButton, QPlainTextEdit, QFileDialog, QSizePolicy,
@@ -13,16 +16,19 @@ from app.config.defaults import (
     DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
     HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
     SUCCESS_COLOR, ERROR_COLOR,
+    PROMPT_COMPLEXITY_THRESHOLD_CHARS, STYLING_KEYWORDS,
 )
 from app.config.settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class CreatePanel(QWidget):
     """Left panel: generate a new Office document from a prompt.
 
     Emits generate_requested(file_type, save_path, prompt) when Generate
-    is clicked. The button stays disabled until Phase 2 calls
-    set_ollama_connected(True).
+    is clicked. The button stays disabled until set_ollama_connected(True)
+    is called AND the prompt is non-empty.
     """
 
     generate_requested = Signal(str, str, str)  # file_type, save_path, prompt
@@ -32,6 +38,8 @@ class CreatePanel(QWidget):
         super().__init__(parent)
         self._settings = settings
         self._ollama_connected: bool = False
+        self._model_is_small: bool = False
+        self._last_generated_path: str = ""
         self._build_ui()
         self._apply_styles()
         self._connect_signals()
@@ -94,7 +102,17 @@ class CreatePanel(QWidget):
         self._char_counter.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self._char_counter)
 
-        # Generate button — disabled until Ollama connects (Phase 2)
+        # Complex prompt tip (shown when small model + complex prompt)
+        self._tip_label = QLabel(
+            "Tip: Your model works best with short, clear prompts. "
+            "Consider simplifying your request for better results."
+        )
+        self._tip_label.setFont(body_font)
+        self._tip_label.setWordWrap(True)
+        self._tip_label.setVisible(False)
+        layout.addWidget(self._tip_label)
+
+        # Generate button — disabled until Ollama connects and prompt is non-empty
         self._generate_btn = QPushButton("Generate")
         self._generate_btn.setObjectName("generate_btn")
         self._generate_btn.setFont(heading_font)
@@ -108,6 +126,14 @@ class CreatePanel(QWidget):
         self._status_label.setVisible(False)
         self._status_label.setWordWrap(True)
         layout.addWidget(self._status_label)
+
+        # Open file button (shown after successful generation)
+        self._open_file_btn = QPushButton("Open file")
+        self._open_file_btn.setObjectName("open_file_btn")
+        self._open_file_btn.setFont(body_font)
+        self._open_file_btn.setFixedHeight(32)
+        self._open_file_btn.setVisible(False)
+        layout.addWidget(self._open_file_btn)
 
         # Disconnected message (shown when Ollama not available)
         self._disconnected_widget = QWidget()
@@ -161,6 +187,9 @@ class CreatePanel(QWidget):
             f"QPushButton#retry_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
             f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
             f"QPushButton#retry_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
+            f"QPushButton#open_file_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
+            f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
+            f"QPushButton#open_file_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
         )
 
     def _connect_signals(self) -> None:
@@ -169,6 +198,7 @@ class CreatePanel(QWidget):
         self._prompt_edit.textChanged.connect(self._on_prompt_changed)
         self._generate_btn.clicked.connect(self._on_generate_clicked)
         self._retry_btn.clicked.connect(self.retry_requested)
+        self._open_file_btn.clicked.connect(self._on_open_file)
 
     # ── Private handlers ──────────────────────────────────────────────────────
 
@@ -191,6 +221,8 @@ class CreatePanel(QWidget):
             self._prompt_edit.setTextCursor(cursor)
         count = min(len(text), MAX_PROMPT_CHARS)
         self._char_counter.setText(f"{count} / {MAX_PROMPT_CHARS}")
+        self._update_generate_btn_state()
+        self._update_tip_visibility()
 
     def _on_generate_clicked(self) -> None:
         self.generate_requested.emit(
@@ -199,28 +231,60 @@ class CreatePanel(QWidget):
             self._prompt_edit.toPlainText().strip(),
         )
 
+    def _update_generate_btn_state(self) -> None:
+        """Enable Generate only when Ollama connected AND prompt is non-empty."""
+        prompt_filled = bool(self._prompt_edit.toPlainText().strip())
+        self._generate_btn.setEnabled(self._ollama_connected and prompt_filled)
+
+    def _update_tip_visibility(self) -> None:
+        """Show inline tip if small model active AND prompt is long or contains styling keywords."""
+        text = self._prompt_edit.toPlainText()
+        is_complex = (
+            len(text) > PROMPT_COMPLEXITY_THRESHOLD_CHARS
+            or any(kw in text.lower() for kw in STYLING_KEYWORDS)
+        )
+        self._tip_label.setVisible(self._model_is_small and is_complex)
+
+    def _on_open_file(self) -> None:
+        """Open the last generated file using the OS default application."""
+        if self._last_generated_path:
+            try:
+                os.startfile(self._last_generated_path)
+            except OSError as exc:
+                logger.error("Could not open file %s: %s", self._last_generated_path, exc)
+
     # ── Public API ────────────────────────────────────────────────────────────
 
     def set_ollama_connected(self, connected: bool) -> None:
-        """Enable or disable Generate based on Ollama connectivity (Phase 2).
+        """Enable or disable Generate based on Ollama connectivity.
 
         Args:
             connected: True when Ollama is reachable; False otherwise.
         """
         self._ollama_connected = connected
-        self._generate_btn.setEnabled(connected)
+        self._update_generate_btn_state()
         self._disconnected_widget.setVisible(not connected)
 
     def set_generating(self, in_progress: bool) -> None:
-        """Show or hide generation progress state (Phase 3)."""
+        """Show or hide generation progress state.
+
+        Args:
+            in_progress: True when generation is underway; False when idle.
+        """
         if not in_progress:
-            self._generate_btn.setEnabled(self._ollama_connected)
+            self._update_generate_btn_state()
         else:
             self._generate_btn.setEnabled(False)
-        self._generate_btn.setText("Generating…" if in_progress else "Generate")
+            self._open_file_btn.setVisible(False)
+        self._generate_btn.setText("Generating\u2026" if in_progress else "Generate")
 
     def show_status(self, message: str, is_error: bool = False) -> None:
-        """Show a status message below the Generate button."""
+        """Show a status message below the Generate button.
+
+        Args:
+            message: The message text to display.
+            is_error: If True, display message in error color; otherwise success color.
+        """
         color = ERROR_COLOR if is_error else SUCCESS_COLOR
         self._status_label.setStyleSheet(f"color: {color};")
         self._status_label.setText(message)
@@ -230,3 +294,21 @@ class CreatePanel(QWidget):
         """Hide the status message."""
         self._status_label.setVisible(False)
         self._status_label.setText("")
+
+    def set_model_small(self, is_small: bool) -> None:
+        """Called by MainWindow when model param count changes.
+
+        Args:
+            is_small: True if current model is under SMALL_MODEL_PARAM_THRESHOLD.
+        """
+        self._model_is_small = is_small
+        self._update_tip_visibility()
+
+    def show_open_file_btn(self, path: str) -> None:
+        """Show the Open File button pointing at the given path.
+
+        Args:
+            path: Absolute path to the generated file.
+        """
+        self._last_generated_path = path
+        self._open_file_btn.setVisible(True)

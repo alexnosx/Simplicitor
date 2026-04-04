@@ -99,3 +99,9 @@ EDIT_PROMPT_PLACEHOLDERS = {
     ),
     "default": "Describe the change you want to make to this file",
 }
+
+FILE_TYPE_EXTENSIONS = {
+    "Word (.docx)": ".docx",
+    "Excel (.xlsx)": ".xlsx",
+    "PowerPoint (.pptx)": ".pptx",
+}

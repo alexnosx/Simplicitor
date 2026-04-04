@@ -1,6 +1,7 @@
 # tests/test_widgets.py
 # conftest.py sets QT_QPA_PLATFORM=offscreen for headless rendering
 import pytest
+from pathlib import Path
 from app.widgets.status_bar import TopBar
 from app.widgets.create_panel import CreatePanel
 from app.widgets.edit_panel import EditPanel
@@ -103,9 +104,9 @@ def test_create_panel_emits_generate_requested(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = CreatePanel(settings)
     qtbot.addWidget(panel)
-    # Manually enable button to test signal emission (normally enabled by Ollama in Phase 2)
-    panel._generate_btn.setEnabled(True)
+    # Enable button by setting Ollama connected and providing a non-empty prompt
     panel._prompt_edit.setPlainText("test prompt")
+    panel._generate_btn.setEnabled(True)
     with qtbot.waitSignal(panel.generate_requested, timeout=1000) as blocker:
         panel._generate_btn.click()
     assert blocker.args[2] == "test prompt"  # (file_type, save_path, prompt)
@@ -216,7 +217,6 @@ def test_create_panel_connected_hides_message(qtbot, tmp_path) -> None:
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
     assert not panel._disconnected_widget.isVisible()
-    assert panel._generate_btn.isEnabled()
 
 
 def test_edit_panel_shows_disconnected_message(qtbot, tmp_path) -> None:
@@ -318,3 +318,164 @@ def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None:
     # Same model signals again — banner should stay hidden
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert not window._capability_banner.isVisible()
+
+
+def test_create_panel_generate_btn_requires_prompt(qtbot, tmp_path) -> None:
+    """Button stays disabled when Ollama is connected but prompt is empty."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    assert not panel._generate_btn.isEnabled()
+
+
+def test_create_panel_generate_btn_enabled_with_prompt_and_ollama(qtbot, tmp_path) -> None:
+    """Button enables when both Ollama is connected and prompt is non-empty."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._prompt_edit.setPlainText("Write a report")
+    assert panel._generate_btn.isEnabled()
+
+
+def test_create_panel_generate_btn_disabled_when_prompt_cleared(qtbot, tmp_path) -> None:
+    """Button disables again when prompt is cleared after being enabled."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._prompt_edit.setPlainText("Write a report")
+    assert panel._generate_btn.isEnabled()
+    panel._prompt_edit.setPlainText("")
+    assert not panel._generate_btn.isEnabled()
+
+
+def test_create_panel_tip_hidden_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    assert not panel._tip_label.isVisible()
+
+
+def test_create_panel_tip_hidden_for_large_model(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_model_small(False)
+    panel._prompt_edit.setPlainText("x" * 600)  # long prompt
+    assert not panel._tip_label.isVisible()
+
+
+def test_create_panel_tip_visible_for_small_model_with_long_prompt(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_model_small(True)
+    panel._prompt_edit.setPlainText("x" * 600)  # exceeds PROMPT_COMPLEXITY_THRESHOLD_CHARS
+    assert panel._tip_label.isVisible()
+
+
+def test_create_panel_tip_visible_for_small_model_with_styling_keyword(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_model_small(True)
+    panel._prompt_edit.setPlainText("Make it bold and color the header blue")
+    assert panel._tip_label.isVisible()
+
+
+def test_create_panel_tip_hidden_for_small_model_with_simple_prompt(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_model_small(True)
+    panel._prompt_edit.setPlainText("Write a report")
+    assert not panel._tip_label.isVisible()
+
+
+def test_create_panel_open_file_btn_hidden_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    assert not panel._open_file_btn.isVisible()
+
+
+def test_create_panel_show_open_file_btn(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_open_file_btn("/some/path/file.docx")
+    assert panel._open_file_btn.isVisible()
+    assert panel._last_generated_path == "/some/path/file.docx"
+
+
+def test_create_panel_set_generating_hides_open_file_btn(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_open_file_btn("/some/file.docx")
+    assert panel._open_file_btn.isVisible()
+    panel.set_generating(True)
+    assert not panel._open_file_btn.isVisible()
+
+
+def test_main_window_on_generate_completed_shows_status(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._on_generate_completed("/some/path/report.docx")
+    assert window._create_panel._status_label.isVisible()
+    assert "report.docx" in window._create_panel._status_label.text()
+    assert window._create_panel._open_file_btn.isVisible()
+
+
+def test_main_window_on_generate_failed_shows_error(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._on_generate_failed("AI generation failed: connection refused")
+    assert window._create_panel._status_label.isVisible()
+    assert "AI generation failed" in window._create_panel._status_label.text()
+
+
+def test_main_window_on_generate_started_sets_generating(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._on_generate_started()
+    assert window._create_panel._generate_btn.text() == "Generating\u2026"
+    assert not window._create_panel._generate_btn.isEnabled()
+
+
+def test_main_window_build_output_path_contains_words_and_timestamp(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    path = window._build_output_path("Word (.docx)", str(tmp_path), "Write a quarterly report now please")
+    filename = Path(path).name
+    assert filename.endswith(".docx")
+    assert "Write" in filename
+    assert "quarterly" in filename
+
+
+def test_main_window_build_output_path_extension_matches_type(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    xlsx_path = window._build_output_path("Excel (.xlsx)", str(tmp_path), "Budget report")
+    pptx_path = window._build_output_path("PowerPoint (.pptx)", str(tmp_path), "Sales deck")
+    assert Path(xlsx_path).suffix == ".xlsx"
+    assert Path(pptx_path).suffix == ".pptx"
+
+
+def test_main_window_model_small_passed_to_panel(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    # 3B params < 7B threshold → model is small
+    window._on_model_params_ready("small-model:3b", 3_000_000_000)
+    assert window._create_panel._model_is_small is True
+    # 13B params > 7B threshold → model is not small
+    window._on_model_params_ready("large-model:13b", 13_000_000_000)
+    assert window._create_panel._model_is_small is False
