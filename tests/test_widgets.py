@@ -452,7 +452,9 @@ def test_main_window_build_output_path_contains_words_and_timestamp(qtbot, tmp_p
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    path = window._build_output_path("Word (.docx)", str(tmp_path), "Write a quarterly report now please")
+    path = window._build_output_path(
+        "Word (.docx)", str(tmp_path), "Write a quarterly report now please"
+    )
     filename = Path(path).name
     assert filename.endswith(".docx")
     assert "Write" in filename

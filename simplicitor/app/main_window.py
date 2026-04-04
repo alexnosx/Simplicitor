@@ -1,6 +1,5 @@
 # simplicitor/app/main_window.py
 import logging
-import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -235,6 +234,8 @@ class MainWindow(QMainWindow):
         self._generate_worker.failed.connect(self._on_generate_failed)
         self._generate_worker.completed.connect(self._generate_thread.quit)
         self._generate_worker.failed.connect(self._generate_thread.quit)
+        self._generate_thread.finished.connect(self._generate_worker.deleteLater)
+        self._generate_thread.finished.connect(self._generate_thread.deleteLater)
 
         self._generate_thread.start()
         logger.info("Generation started: file_type=%s, model=%s", file_type, self._current_model)
