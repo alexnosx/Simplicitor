@@ -19,6 +19,9 @@ _PROMPT_FILES: dict[str, str] = {
     "PowerPoint (.pptx)": "system_pptx.txt",
 }
 
+# Tell Ollama to always return a JSON object (per CLAUDE.md Ollama integration guide)
+_JSON_OUTPUT_FORMAT: dict = {"type": "object"}
+
 
 class GenerateWorker(QObject):
     """Runs LLM generation and file writing on a background QThread (Phase 3).
@@ -85,9 +88,11 @@ class GenerateWorker(QObject):
             )
             return
 
-        # Call Ollama
+        # Call Ollama (pass JSON output format to constrain response to a JSON object)
         try:
-            llm_response = self._client.generate(self.model, self.prompt, system_prompt)
+            llm_response = self._client.generate(
+                self.model, self.prompt, system_prompt, _JSON_OUTPUT_FORMAT
+            )
         except (OllamaConnectionError, OllamaGenerationError) as exc:
             logger.error("Ollama generation failed: %s", exc)
             self.failed.emit(f"AI generation failed: {exc}")
@@ -101,15 +106,21 @@ class GenerateWorker(QObject):
             result_path = FileGenerator().generate(self.file_type, llm_response, output_path)
         except FileGenerationError as exc:
             # Retry once with a simplified prompt
-            logger.warning("First generation attempt failed (%s), retrying with simplified prompt", exc)
+            logger.warning(
+                "First generation attempt failed (%s), retrying with simplified prompt", exc
+            )
             self.progress.emit("Retrying with simplified prompt\u2026")
             simplified = f"Generate a simple {self.file_type} document about: {self.prompt[:200]}"
             try:
-                llm_response2 = self._client.generate(self.model, simplified, system_prompt)
+                llm_response2 = self._client.generate(
+                    self.model, simplified, system_prompt, _JSON_OUTPUT_FORMAT
+                )
                 result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
             except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
                 logger.error("Retry Ollama call failed: %s", retry_exc)
-                self.failed.emit("AI generation failed after retry. Please check Ollama is running.")
+                self.failed.emit(
+                    "AI generation failed after retry. Please check Ollama is running."
+                )
                 return
             except FileGenerationError as retry_exc:
                 logger.error("Retry also produced unparseable response: %s", retry_exc)

@@ -121,8 +121,9 @@ class LlmResponseParser:
             if "type" not in section:
                 section["type"] = "text"
             if section["type"] not in self._WORD_SECTION_TYPES:
+                valid = sorted(self._WORD_SECTION_TYPES)
                 raise ParseError(
-                    f"Invalid section type '{section['type']}'; must be one of {sorted(self._WORD_SECTION_TYPES)}",
+                    f"Invalid section type '{section['type']}'; must be one of {valid}",
                     details=f"section index {idx}",
                 )
 
@@ -265,8 +266,9 @@ class LlmResponseParser:
             if "type" not in slide:
                 slide["type"] = "content"
             if slide["type"] not in self._PPTX_SLIDE_TYPES:
+                valid = sorted(self._PPTX_SLIDE_TYPES)
                 raise ParseError(
-                    f"Invalid slide type '{slide['type']}'; must be one of {sorted(self._PPTX_SLIDE_TYPES)}",
+                    f"Invalid slide type '{slide['type']}'; must be one of {valid}",
                     details=f"slide index {slide_idx}",
                 )
 
