@@ -43,3 +43,7 @@ def setup_logging(log_dir: str) -> None:
     console.setLevel(logging.WARNING)
     console.setFormatter(formatter)
     root.addHandler(console)
+
+    # Suppress noisy third-party HTTP debug logs from the requests/urllib3 stack
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
