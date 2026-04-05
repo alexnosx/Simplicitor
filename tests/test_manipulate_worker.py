@@ -1,4 +1,5 @@
 # tests/test_manipulate_worker.py
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -9,11 +10,11 @@ from app.workers.manipulate_worker import ManipulateWorker
 
 
 def make_worker(
-    file_path: str = "/tmp/doc.txt",
+    file_path: str = str(Path(tempfile.gettempdir()) / "doc.txt"),
     prompt: str = "Make it shorter",
     model: str = "llama3",
     client=None,
-    backup_dir: str = "/tmp/backups",
+    backup_dir: str = str(Path(tempfile.gettempdir()) / "backups"),
 ) -> ManipulateWorker:
     if client is None:
         client = MagicMock()
