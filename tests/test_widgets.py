@@ -606,7 +606,7 @@ def test_edit_panel_save_enabled_with_all_conditions(qtbot, tmp_path) -> None:
     panel.set_ollama_connected(True)
     panel._selected_file = "/some/file.docx"
     panel._prompt_edit.setPlainText("Make it shorter")
-    panel._update_save_btn_state()
+    # _on_prompt_changed is fired by setPlainText → _update_save_btn_state called automatically
     assert panel._save_btn.isEnabled()
 
 
@@ -656,9 +656,11 @@ def test_edit_panel_save_requested_carries_file_path(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
     panel._selected_file = "/path/to/doc.docx"
-    panel._save_btn.setEnabled(True)
     panel._prompt_edit.setPlainText("a change")
+    # Button should now be enabled automatically via signal chain
+    assert panel._save_btn.isEnabled()
     with qtbot.waitSignal(panel.save_requested, timeout=1000) as blocker:
         panel._save_btn.click()
     assert blocker.args[0] == "/path/to/doc.docx"
@@ -674,3 +676,54 @@ def test_edit_panel_file_dropped_copies_to_uploads(qtbot, tmp_path) -> None:
     panel._on_file_dropped(str(src))
     assert panel._selected_file != ""
     assert Path(panel._selected_file).exists()
+
+
+def test_edit_panel_show_status_green(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_status("Done!", is_error=False)
+    assert panel._status_label.isVisible()
+    assert "Done!" in panel._status_label.text()
+
+
+def test_edit_panel_show_status_red(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_status("Something broke", is_error=True)
+    assert panel._status_label.isVisible()
+    assert "Something broke" in panel._status_label.text()
+
+
+def test_edit_panel_clear_status(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_status("visible message")
+    panel.clear_status()
+    assert not panel._status_label.isVisible()
+
+
+def test_edit_panel_set_saving_hides_open_file_btn(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_open_file_btn("/some/path.docx")
+    assert panel._open_file_btn.isVisible()
+    panel.set_saving(True)
+    assert not panel._open_file_btn.isVisible()
+
+
+def test_edit_panel_prompt_typing_enables_save_btn(qtbot, tmp_path) -> None:
+    """Prove that typing in prompt (not manual state call) enables the save button."""
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._selected_file = "/doc.docx"
+    assert not panel._save_btn.isEnabled()  # no prompt yet
+    panel._prompt_edit.setPlainText("now I have a prompt")
+    assert panel._save_btn.isEnabled()  # enabled by signal chain
+    panel._prompt_edit.setPlainText("")
+    assert not panel._save_btn.isEnabled()  # disabled again when cleared

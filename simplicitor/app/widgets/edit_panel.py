@@ -247,6 +247,7 @@ class EditPanel(QWidget):
             self._prompt_edit.setTextCursor(cursor)
         count = min(len(text), MAX_PROMPT_CHARS)
         self._char_counter.setText(f"{count} / {MAX_PROMPT_CHARS}")
+        self._update_save_btn_state()
 
     def _on_save_clicked(self) -> None:
         if self._selected_file:
