@@ -508,3 +508,60 @@ def test_drop_zone_shows_text(qtbot) -> None:
     dz = DropZone()
     qtbot.addWidget(dz)
     assert dz.text()  # non-empty label text
+
+
+# ── FileList tests ────────────────────────────────────────────────────────────
+from app.widgets.file_list import FileList
+
+
+def test_file_list_instantiates(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+
+
+def test_file_list_empty_at_start(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+    assert fl.count() == 0
+    assert fl.selected_file() is None
+
+
+def test_file_list_add_file_inserts_item(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+    fl.add_file("/some/path/report.docx")
+    assert fl.count() == 1
+
+
+def test_file_list_add_file_auto_selects(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+    fl.add_file("/some/path/report.docx")
+    assert fl.selected_file() == "/some/path/report.docx"
+
+
+def test_file_list_most_recent_first(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+    fl.add_file("/path/first.docx")
+    fl.add_file("/path/second.docx")
+    # Most recent (second) should be at row 0 and auto-selected
+    assert fl.selected_file() == "/path/second.docx"
+    assert fl.count() == 2
+
+
+def test_file_list_emits_file_selected(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+    received = []
+    fl.file_selected.connect(received.append)
+    fl.add_file("/path/doc.docx")
+    assert received == ["/path/doc.docx"]
+
+
+def test_file_list_shows_filename_in_label(qtbot) -> None:
+    fl = FileList()
+    qtbot.addWidget(fl)
+    fl.add_file("/some/long/path/myreport.docx")
+    item = fl.item(0)
+    assert "myreport.docx" in item.text()
