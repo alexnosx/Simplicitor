@@ -41,6 +41,9 @@ WINDOW_MIN_HEIGHT = 640
 TOP_BAR_HEIGHT = 48
 BORDER_RADIUS_PX = 4
 MAX_PROMPT_CHARS = 2000
+
+# Maximum characters of file content sent to the LLM (larger files are truncated)
+MAX_MANIPULATION_CHARS = 50_000
 PROMPT_COMPLEXITY_THRESHOLD_CHARS = 500
 
 # ── Styling keywords that trigger the small-model tip ─────────────────────────
