@@ -52,3 +52,13 @@ def test_backup_returns_existing_backup_path(tmp_path):
     existing.write_text("old backup")
     result = BackupService().backup_if_needed(src, backup_dir)
     assert result == existing
+
+
+def test_backup_raises_oserror_on_dir_creation_failure(tmp_path):
+    from unittest.mock import patch
+    src = tmp_path / "doc.txt"
+    src.write_text("content", encoding="utf-8")
+    backup_dir = tmp_path / "backups"
+    with patch("pathlib.Path.mkdir", side_effect=OSError("permission denied")):
+        with pytest.raises(OSError):
+            BackupService().backup_if_needed(src, backup_dir)
