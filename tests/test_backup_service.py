@@ -1,6 +1,9 @@
 # tests/test_backup_service.py
-import pytest
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+
 from app.services.backup_service import BackupService
 
 
@@ -55,7 +58,6 @@ def test_backup_returns_existing_backup_path(tmp_path):
 
 
 def test_backup_raises_oserror_on_dir_creation_failure(tmp_path):
-    from unittest.mock import patch
     src = tmp_path / "doc.txt"
     src.write_text("content", encoding="utf-8")
     backup_dir = tmp_path / "backups"
