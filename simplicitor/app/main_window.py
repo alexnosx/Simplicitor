@@ -21,6 +21,7 @@ from app.widgets.edit_panel import EditPanel
 from app.widgets.settings_dialog import SettingsDialog
 from app.widgets.status_bar import TopBar
 from app.workers.generate_worker import GenerateWorker
+from app.workers.manipulate_worker import ManipulateWorker
 from app.workers.ollama_worker import OllamaWorker
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ class MainWindow(QMainWindow):
         self._top_bar.settings_requested.connect(self._open_settings)
         self._start_ollama_worker()
         self._create_panel.generate_requested.connect(self._on_generate_requested)
-        # TODO: Phase 4 — wire edit_panel.save_requested → ManipulateWorker
+        self._edit_panel.save_requested.connect(self._on_save_requested)
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(f"QMainWindow {{ background-color: {BACKGROUND_COLOR}; }}")
@@ -274,6 +275,85 @@ class MainWindow(QMainWindow):
         self._create_panel.show_status(msg, is_error=True)
         logger.error("Generation failed: %s", msg)
 
+    def _on_save_requested(self, file_path: str, prompt: str) -> None:
+        """Start the ManipulateWorker in response to edit_panel.save_requested.
+
+        Args:
+            file_path: Absolute path to the uploaded file to manipulate.
+            prompt: The user's natural-language change instruction.
+        """
+        if not self._current_model:
+            logger.warning("Save requested but no model selected")
+            self._edit_panel.show_status(
+                "No model is currently running. Please start a model in Ollama.",
+                is_error=True,
+            )
+            return
+
+        if hasattr(self, "_manipulate_thread") and self._manipulate_thread.isRunning():
+            logger.warning("Save requested while previous manipulation still running; ignoring")
+            return
+
+        self._manipulate_worker = ManipulateWorker(
+            file_path=file_path,
+            prompt=prompt,
+            model=self._current_model,
+            client=self._ollama_client,
+            backup_dir=self._settings.backups_dir,
+        )
+        self._manipulate_thread = QThread(self)
+        self._manipulate_worker.moveToThread(self._manipulate_thread)
+
+        self._manipulate_thread.started.connect(self._manipulate_worker.run)
+        self._manipulate_worker.started.connect(self._on_manipulate_started)
+        self._manipulate_worker.progress.connect(self._on_manipulate_progress)
+        self._manipulate_worker.completed.connect(self._on_manipulate_completed)
+        self._manipulate_worker.failed.connect(self._on_manipulate_failed)
+        self._manipulate_worker.completed.connect(self._manipulate_thread.quit)
+        self._manipulate_worker.failed.connect(self._manipulate_thread.quit)
+        self._manipulate_thread.finished.connect(self._manipulate_worker.deleteLater)
+        self._manipulate_thread.finished.connect(self._manipulate_thread.deleteLater)
+
+        self._manipulate_thread.start()
+        logger.info("Manipulation started: file=%s, model=%s", file_path, self._current_model)
+
+    def _on_manipulate_started(self) -> None:
+        """Called when ManipulateWorker begins execution."""
+        self._edit_panel.set_saving(True)
+        self._edit_panel.clear_status()
+
+    def _on_manipulate_progress(self, msg: str) -> None:
+        """Called as ManipulateWorker reports progress.
+
+        Args:
+            msg: Human-readable progress message.
+        """
+        self._edit_panel.show_status(msg, is_error=False)
+
+    def _on_manipulate_completed(self, saved_path: str, backup_path: str) -> None:
+        """Called when ManipulateWorker successfully writes the output file.
+
+        Args:
+            saved_path: Absolute path to the saved (modified) file.
+            backup_path: Absolute path to the backup file.
+        """
+        self._edit_panel.set_saving(False)
+        self._edit_panel.show_status(
+            f"Saved: {saved_path}\nBackup: {backup_path}", is_error=False
+        )
+        self._edit_panel.show_open_file_btn(saved_path)
+        logger.info("Manipulation completed: %s (backup: %s)", saved_path, backup_path)
+
+    def _on_manipulate_failed(self, msg: str) -> None:
+        """Called when ManipulateWorker cannot complete manipulation.
+
+        Args:
+            msg: User-friendly error message.
+        """
+        self._edit_panel.set_saving(False)
+        self._edit_panel.show_status(msg, is_error=True)
+        logger.error("Manipulation failed: %s", msg)
+
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
         dialog = SettingsDialog(self._settings, parent=self)
@@ -292,4 +372,7 @@ class MainWindow(QMainWindow):
         if hasattr(self, "_generate_thread"):
             self._generate_thread.quit()
             self._generate_thread.wait(2000)
+        if hasattr(self, "_manipulate_thread"):
+            self._manipulate_thread.quit()
+            self._manipulate_thread.wait(2000)
         super().closeEvent(event)
