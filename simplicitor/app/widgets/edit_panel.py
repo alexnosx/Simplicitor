@@ -1,37 +1,69 @@
 # simplicitor/app/widgets/edit_panel.py
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QPushButton,
-    QPlainTextEdit, QSizePolicy,
-)
-from PySide6.QtCore import Signal, Qt
+import logging
+import os
+import shutil
+from pathlib import Path
+
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPlainTextEdit,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
 
 from app.config.defaults import (
-    APP_FONT_FAMILY, FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
-    MAX_PROMPT_CHARS, PANEL_BG_COLOR, PRIMARY_ACCENT_COLOR, BORDER_COLOR,
-    BODY_TEXT_COLOR, DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
-    HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
-    SUCCESS_COLOR, ERROR_COLOR,
+    APP_FONT_FAMILY,
+    BODY_TEXT_COLOR,
+    BORDER_COLOR,
+    BORDER_RADIUS_PX,
+    DISABLED_COLOR,
+    EDIT_PROMPT_PLACEHOLDERS,
+    ERROR_COLOR,
+    FONT_SIZE_BODY_PT,
+    FONT_SIZE_HEADING_PT,
+    HOVER_ACCENT_COLOR,
+    BORDER_HOVER_COLOR,
+    MAX_PROMPT_CHARS,
+    PANEL_BG_COLOR,
+    PRIMARY_ACCENT_COLOR,
+    SUCCESS_COLOR,
+    WHITE,
 )
 from app.config.settings import Settings
+from app.widgets.drop_zone import DropZone
+from app.widgets.file_list import FileList
+
+logger = logging.getLogger(__name__)
 
 
 class EditPanel(QWidget):
-    """Right panel: upload a file, describe changes, save the result.
+    """Right panel: upload a file, describe changes, save the result (Phase 4).
 
-    Phase 1: drop zone is a styled placeholder label; file list is an
-    empty QListWidget. Phase 4 adds full drag-and-drop and FileList logic.
-
-    Emits save_requested(file_path, prompt) when Save is clicked.
-    Save stays disabled until Phase 4 wires up file selection.
+    Emits ``save_requested(file_path, prompt)`` when Save is clicked.
+    Save is enabled only when: Ollama connected, a file is selected, and
+    the prompt is non-empty.
     """
 
     save_requested = Signal(str, str)  # file_path, prompt
     retry_requested = Signal()
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
+        """Initialise the EditPanel.
+
+        Args:
+            settings: Application settings (provides uploads_dir, backups_dir).
+            parent: Optional parent widget.
+        """
         super().__init__(parent)
         self._settings = settings
+        self._ollama_connected: bool = False
+        self._selected_file: str = ""
+        self._last_saved_path: str = ""
         self._build_ui()
         self._apply_styles()
         self._connect_signals()
@@ -52,24 +84,20 @@ class EditPanel(QWidget):
         heading.setFont(heading_font)
         layout.addWidget(heading)
 
-        # Drop zone placeholder (Phase 4 replaces with real DropZone widget)
-        self._drop_zone_label = QLabel("Drop files here or click to browse")
-        self._drop_zone_label.setObjectName("drop_zone_label")
-        self._drop_zone_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._drop_zone_label.setFont(body_font)
-        self._drop_zone_label.setFixedHeight(80)
-        layout.addWidget(self._drop_zone_label)
+        # Drop zone
+        self._drop_zone = DropZone()
+        layout.addWidget(self._drop_zone)
 
-        # Supported file types hint
-        types_label = QLabel("Supported: .docx, .xlsx, .pptx, .txt, .pdf")
+        # Supported types hint
+        types_label = QLabel("Supported: .docx  .xlsx  .pptx  .txt  .pdf")
         types_label.setFont(QFont(APP_FONT_FAMILY, 8))
         types_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(types_label)
 
-        # File list (empty in Phase 1; Phase 4 populates it)
+        # File list
         file_list_label = QLabel("Uploaded files")
         file_list_label.setFont(body_font)
-        self._file_list = QListWidget()
+        self._file_list = FileList()
         self._file_list.setFont(body_font)
         self._file_list.setMinimumHeight(80)
         layout.addWidget(file_list_label)
@@ -81,9 +109,7 @@ class EditPanel(QWidget):
         self._prompt_edit = QPlainTextEdit()
         self._prompt_edit.setFont(body_font)
         self._prompt_edit.setMinimumHeight(100)
-        self._prompt_edit.setPlaceholderText(
-            "Select a file above, then describe what you want to change"
-        )
+        self._prompt_edit.setPlaceholderText(EDIT_PROMPT_PLACEHOLDERS["default"])
         self._prompt_edit.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
@@ -96,7 +122,7 @@ class EditPanel(QWidget):
         self._char_counter.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self._char_counter)
 
-        # Save button — disabled until file selected + Ollama connected (Phase 4)
+        # Save button — disabled until file selected + Ollama connected + prompt non-empty
         self._save_btn = QPushButton("Save")
         self._save_btn.setObjectName("save_btn")
         self._save_btn.setFont(heading_font)
@@ -111,7 +137,15 @@ class EditPanel(QWidget):
         self._status_label.setWordWrap(True)
         layout.addWidget(self._status_label)
 
-        # Disconnected message (shown when Ollama not available)
+        # Open file button (shown after successful save)
+        self._open_file_btn = QPushButton("Open file")
+        self._open_file_btn.setObjectName("open_file_btn")
+        self._open_file_btn.setFont(body_font)
+        self._open_file_btn.setFixedHeight(32)
+        self._open_file_btn.setVisible(False)
+        layout.addWidget(self._open_file_btn)
+
+        # Disconnected message
         self._disconnected_widget = QWidget()
         disconnected_layout = QVBoxLayout(self._disconnected_widget)
         disconnected_layout.setContentsMargins(0, 8, 0, 0)
@@ -145,35 +179,65 @@ class EditPanel(QWidget):
         disconnected_layout.addWidget(self._ollama_link)
 
         layout.addWidget(self._disconnected_widget)
-        self._disconnected_widget.setVisible(True)  # visible at start (starts disconnected)
+        self._disconnected_widget.setVisible(True)
 
         layout.addStretch()
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(
             f"EditPanel {{ background-color: {PANEL_BG_COLOR}; }}"
-            f"QLabel#drop_zone_label {{ border: 2px dashed {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; color: {BODY_TEXT_COLOR}; }}"
             f"QListWidget {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
             f"border-radius: {BORDER_RADIUS_PX}px; color: {BODY_TEXT_COLOR}; }}"
-            f"QListWidget::item:selected {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; }}"
+            f"QListWidget::item:selected {{ background-color: {PRIMARY_ACCENT_COLOR}; "
+            f"color: white; }}"
             f"QPlainTextEdit {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
             f"border-radius: {BORDER_RADIUS_PX}px; padding: 6px; color: {BODY_TEXT_COLOR}; }}"
             f"QPushButton#save_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "
             f"border-radius: {BORDER_RADIUS_PX}px; font-weight: 600; }}"
             f"QPushButton#save_btn:disabled {{ background-color: {DISABLED_COLOR}; }}"
             f"QPushButton#save_btn:hover:enabled {{ background-color: {HOVER_ACCENT_COLOR}; }}"
-            f"QPushButton#retry_btn_edit {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
-            f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
+            f"QPushButton#retry_btn_edit {{ background-color: {BORDER_COLOR}; "
+            f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
+            f"border-radius: {BORDER_RADIUS_PX}px; }}"
             f"QPushButton#retry_btn_edit:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
+            f"QPushButton#open_file_btn {{ background-color: {BORDER_COLOR}; "
+            f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
+            f"border-radius: {BORDER_RADIUS_PX}px; }}"
+            f"QPushButton#open_file_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
         )
 
     def _connect_signals(self) -> None:
+        self._drop_zone.file_dropped.connect(self._on_file_dropped)
+        self._file_list.file_selected.connect(self._on_file_selected)
         self._prompt_edit.textChanged.connect(self._on_prompt_changed)
         self._save_btn.clicked.connect(self._on_save_clicked)
         self._retry_btn.clicked.connect(self.retry_requested)
+        self._open_file_btn.clicked.connect(self._on_open_file)
 
     # ── Private handlers ──────────────────────────────────────────────────────
+
+    def _on_file_dropped(self, file_path: str) -> None:
+        """Copy the dropped/selected file to the uploads directory and add to list."""
+        src = Path(file_path)
+        uploads_dir = Path(self._settings.uploads_dir)
+        try:
+            uploads_dir.mkdir(parents=True, exist_ok=True)
+            dest = uploads_dir / src.name
+            if src.resolve() != dest.resolve():
+                shutil.copy2(src, dest)
+            self._file_list.add_file(str(dest))
+            self._selected_file = str(dest)
+        except OSError as exc:
+            logger.error("Could not copy file to uploads dir: %s", exc)
+            self.show_status(f"Could not load file: {exc}", is_error=True)
+            return
+        self._update_save_btn_state()
+        self._update_prompt_placeholder(src.suffix.lower())
+
+    def _on_file_selected(self, file_path: str) -> None:
+        self._selected_file = file_path
+        self._update_save_btn_state()
+        self._update_prompt_placeholder(Path(file_path).suffix.lower())
 
     def _on_prompt_changed(self) -> None:
         text = self._prompt_edit.toPlainText()
@@ -185,22 +249,62 @@ class EditPanel(QWidget):
         self._char_counter.setText(f"{count} / {MAX_PROMPT_CHARS}")
 
     def _on_save_clicked(self) -> None:
-        self.save_requested.emit("", self._prompt_edit.toPlainText().strip())
+        if self._selected_file:
+            self.save_requested.emit(
+                self._selected_file,
+                self._prompt_edit.toPlainText().strip(),
+            )
+
+    def _on_open_file(self) -> None:
+        if self._last_saved_path:
+            try:
+                os.startfile(self._last_saved_path)
+            except OSError as exc:
+                logger.error("Could not open file %s: %s", self._last_saved_path, exc)
+
+    def _update_save_btn_state(self) -> None:
+        """Enable Save only when Ollama connected, file selected, and prompt non-empty."""
+        prompt_filled = bool(self._prompt_edit.toPlainText().strip())
+        self._save_btn.setEnabled(
+            self._ollama_connected and bool(self._selected_file) and prompt_filled
+        )
+
+    def _update_prompt_placeholder(self, suffix: str) -> None:
+        placeholder = EDIT_PROMPT_PLACEHOLDERS.get(suffix, EDIT_PROMPT_PLACEHOLDERS["default"])
+        self._prompt_edit.setPlaceholderText(placeholder)
 
     # ── Public API ────────────────────────────────────────────────────────────
 
     def set_ollama_connected(self, connected: bool) -> None:
-        """Show or hide the disconnected message based on Ollama connectivity.
-
-        Save button enablement is managed by Phase 4 (requires a file to be loaded).
+        """Show or hide the disconnected message and update Save button state.
 
         Args:
             connected: True when Ollama is reachable; False otherwise.
         """
+        self._ollama_connected = connected
+        self._update_save_btn_state()
         self._disconnected_widget.setVisible(not connected)
 
+    def set_saving(self, in_progress: bool) -> None:
+        """Disable/re-enable the Save button while the worker is running.
+
+        Args:
+            in_progress: True while saving; False when done.
+        """
+        if not in_progress:
+            self._update_save_btn_state()
+        else:
+            self._save_btn.setEnabled(False)
+            self._open_file_btn.setVisible(False)
+        self._save_btn.setText("Saving\u2026" if in_progress else "Save")
+
     def show_status(self, message: str, is_error: bool = False) -> None:
-        """Show a status message below the Save button."""
+        """Show a status message below the Save button.
+
+        Args:
+            message: The message to display.
+            is_error: True for red text (error), False for green (success).
+        """
         color = ERROR_COLOR if is_error else SUCCESS_COLOR
         self._status_label.setStyleSheet(f"color: {color};")
         self._status_label.setText(message)
@@ -210,3 +314,12 @@ class EditPanel(QWidget):
         """Hide the status message."""
         self._status_label.setVisible(False)
         self._status_label.setText("")
+
+    def show_open_file_btn(self, path: str) -> None:
+        """Show the Open File button for the given path.
+
+        Args:
+            path: Absolute path to the saved file.
+        """
+        self._last_saved_path = path
+        self._open_file_btn.setVisible(True)

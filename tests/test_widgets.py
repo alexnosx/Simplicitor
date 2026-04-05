@@ -565,3 +565,112 @@ def test_file_list_shows_filename_in_label(qtbot) -> None:
     fl.add_file("/some/long/path/myreport.docx")
     item = fl.item(0)
     assert "myreport.docx" in item.text()
+
+
+# ── EditPanel Phase 4 tests ───────────────────────────────────────────────────
+
+
+def test_edit_panel_has_drop_zone(qtbot, tmp_path) -> None:
+    from app.widgets.drop_zone import DropZone
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert hasattr(panel, "_drop_zone")
+    assert isinstance(panel._drop_zone, DropZone)
+
+
+def test_edit_panel_has_file_list(qtbot, tmp_path) -> None:
+    from app.widgets.file_list import FileList
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert hasattr(panel, "_file_list")
+    assert isinstance(panel._file_list, FileList)
+
+
+def test_edit_panel_save_requires_ollama_file_and_prompt(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    # Nothing set → disabled
+    assert not panel._save_btn.isEnabled()
+    # Ollama connected, but no file or prompt → still disabled
+    panel.set_ollama_connected(True)
+    assert not panel._save_btn.isEnabled()
+
+
+def test_edit_panel_save_enabled_with_all_conditions(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._selected_file = "/some/file.docx"
+    panel._prompt_edit.setPlainText("Make it shorter")
+    panel._update_save_btn_state()
+    assert panel._save_btn.isEnabled()
+
+
+def test_edit_panel_set_saving_disables_btn(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._selected_file = "/f.docx"
+    panel._prompt_edit.setPlainText("change")
+    panel._update_save_btn_state()
+    assert panel._save_btn.isEnabled()
+    panel.set_saving(True)
+    assert not panel._save_btn.isEnabled()
+    assert "Saving" in panel._save_btn.text()
+
+
+def test_edit_panel_set_saving_re_enables_on_false(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._selected_file = "/f.docx"
+    panel._prompt_edit.setPlainText("change")
+    panel.set_saving(True)
+    panel.set_saving(False)
+    assert panel._save_btn.isEnabled()
+    assert panel._save_btn.text() == "Save"
+
+
+def test_edit_panel_open_file_btn_hidden_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    assert not panel._open_file_btn.isVisible()
+
+
+def test_edit_panel_show_open_file_btn(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel.show_open_file_btn("/some/result.docx")
+    assert panel._open_file_btn.isVisible()
+
+
+def test_edit_panel_save_requested_carries_file_path(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel._selected_file = "/path/to/doc.docx"
+    panel._save_btn.setEnabled(True)
+    panel._prompt_edit.setPlainText("a change")
+    with qtbot.waitSignal(panel.save_requested, timeout=1000) as blocker:
+        panel._save_btn.click()
+    assert blocker.args[0] == "/path/to/doc.docx"
+    assert blocker.args[1] == "a change"
+
+
+def test_edit_panel_file_dropped_copies_to_uploads(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    src = tmp_path / "source.txt"
+    src.write_text("hello")
+    panel = EditPanel(settings)
+    qtbot.addWidget(panel)
+    panel._on_file_dropped(str(src))
+    assert panel._selected_file != ""
+    assert Path(panel._selected_file).exists()
