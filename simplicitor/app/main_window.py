@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow, QSplitter, QVBoxLayout, QWidget
 
@@ -38,6 +38,10 @@ class MainWindow(QMainWindow):
     Phase 3 adds: generate_requested wired to GenerateWorker.
     Phase 4 adds: save_requested wired to ManipulateWorker.
     """
+
+    # Internal signal: emitting this triggers an immediate Ollama connectivity
+    # re-check on the worker thread (cross-thread queued connection).
+    _recheck_connection = Signal()
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -130,9 +134,10 @@ class MainWindow(QMainWindow):
         # Model params → capability banner
         self._ollama_worker.model_params_ready.connect(self._on_model_params_ready)
 
-        # Retry buttons → immediate poll
+        # Retry buttons + internal recheck → immediate poll
         self._create_panel.retry_requested.connect(self._ollama_worker.retry_now)
         self._edit_panel.retry_requested.connect(self._ollama_worker.retry_now)
+        self._recheck_connection.connect(self._ollama_worker.retry_now)
 
         # Capability banner dismiss
         self._capability_banner.dismissed.connect(self._on_banner_dismissed)
@@ -274,6 +279,7 @@ class MainWindow(QMainWindow):
         self._create_panel.set_generating(False)
         self._create_panel.show_status(msg, is_error=True)
         logger.error("Generation failed: %s", msg)
+        self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
     def _on_save_requested(self, file_path: str, prompt: str) -> None:
         """Start the ManipulateWorker in response to edit_panel.save_requested.
@@ -353,6 +359,7 @@ class MainWindow(QMainWindow):
         self._edit_panel.set_saving(False)
         self._edit_panel.show_status(msg, is_error=True)
         logger.error("Manipulation failed: %s", msg)
+        self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
