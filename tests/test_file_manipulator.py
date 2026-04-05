@@ -133,3 +133,37 @@ def test_apply_xlsx_creates_valid_xlsx(tmp_path):
     # Just verify the file exists and is non-empty
     assert result.exists()
     assert result.stat().st_size > 0
+
+
+def test_extract_pdf(tmp_path):
+    """PDF extraction returns text via pdfplumber (mocked for test environment)."""
+    from unittest.mock import MagicMock, patch
+    import sys
+    import types
+
+    mock_page = MagicMock()
+    mock_page.extract_text.return_value = "PDF extracted text"
+    mock_pdf = MagicMock()
+    mock_pdf.__enter__ = MagicMock(return_value=mock_pdf)
+    mock_pdf.__exit__ = MagicMock(return_value=False)
+    mock_pdf.pages = [mock_page]
+
+    mock_pdfplumber = types.ModuleType("pdfplumber")
+    mock_pdfplumber.open = MagicMock(return_value=mock_pdf)
+
+    f = tmp_path / "report.pdf"
+    f.write_bytes(b"%PDF-1.4 fake")
+    with patch.dict(sys.modules, {"pdfplumber": mock_pdfplumber}):
+        result = FileManipulator().extract_text(f)
+    assert "PDF extracted text" in result
+
+
+def test_apply_pptx_creates_valid_pptx(tmp_path):
+    f = make_pptx(tmp_path / "deck.pptx")
+    llm_response = "[Slide 1]\nNew Title\nBullet A\nBullet B"
+    result = FileManipulator().apply_changes(f, "", llm_response)
+    assert result == f
+    assert result.exists()
+    assert result.stat().st_size > 0
+    prs = Presentation(str(result))
+    assert len(prs.slides) >= 1
