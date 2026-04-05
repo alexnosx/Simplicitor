@@ -481,3 +481,30 @@ def test_main_window_model_small_passed_to_panel(qtbot, tmp_path) -> None:
     # 13B params > 7B threshold → model is not small
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
     assert window._create_panel._model_is_small is False
+
+
+# ── DropZone tests ────────────────────────────────────────────────────────────
+from app.widgets.drop_zone import DropZone
+
+
+def test_drop_zone_instantiates(qtbot) -> None:
+    dz = DropZone()
+    qtbot.addWidget(dz)
+
+
+def test_drop_zone_has_file_dropped_signal(qtbot) -> None:
+    dz = DropZone()
+    qtbot.addWidget(dz)
+    assert hasattr(dz, "file_dropped")
+
+
+def test_drop_zone_accepts_drops(qtbot) -> None:
+    dz = DropZone()
+    qtbot.addWidget(dz)
+    assert dz.acceptDrops()
+
+
+def test_drop_zone_shows_text(qtbot) -> None:
+    dz = DropZone()
+    qtbot.addWidget(dz)
+    assert dz.text()  # non-empty label text
