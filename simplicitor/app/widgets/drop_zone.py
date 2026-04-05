@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QDragEnterEvent, QDropEvent, QMouseEvent
+from PySide6.QtGui import QDragEnterEvent, QDragLeaveEvent, QDropEvent, QMouseEvent
 from PySide6.QtWidgets import QFileDialog, QLabel, QWidget
 
 from app.config.defaults import (
@@ -63,7 +63,7 @@ class DropZone(QLabel):
                 return
         event.ignore()
 
-    def dragLeaveEvent(self, event) -> None:
+    def dragLeaveEvent(self, event: QDragLeaveEvent) -> None:
         """Restore normal style when drag leaves the zone."""
         self.setStyleSheet(_STYLE_NORMAL)
 
