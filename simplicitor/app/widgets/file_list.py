@@ -58,7 +58,9 @@ class FileList(QListWidget):
 
     # ── Private ───────────────────────────────────────────────────────────────
 
-    def _on_item_changed(self, current: QListWidgetItem | None, _previous) -> None:
+    def _on_item_changed(
+        self, current: QListWidgetItem | None, _previous: QListWidgetItem | None
+    ) -> None:
         if current:
             path = current.data(Qt.ItemDataRole.UserRole)
             self.file_selected.emit(path)
