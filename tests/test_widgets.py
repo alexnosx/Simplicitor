@@ -765,5 +765,6 @@ def test_main_window_has_manipulate_slots(qtbot, tmp_path) -> None:
     qtbot.addWidget(window)
     assert hasattr(window, "_on_save_requested")
     assert hasattr(window, "_on_manipulate_started")
+    assert hasattr(window, "_on_manipulate_progress")
     assert hasattr(window, "_on_manipulate_completed")
     assert hasattr(window, "_on_manipulate_failed")
