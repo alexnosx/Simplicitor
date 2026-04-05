@@ -58,8 +58,6 @@ class ManipulateWorker(QObject):
 
     def run(self) -> None:
         """Execute the manipulation pipeline. Called by QThread via started signal."""
-        self.started.emit()
-
         # Load system prompt
         prompt_path = PROMPTS_DIR / _SYSTEM_PROMPT_FILE
         try:
@@ -68,6 +66,8 @@ class ManipulateWorker(QObject):
             logger.error("Could not read system prompt %s: %s", prompt_path, exc)
             self.failed.emit("System configuration error: missing manipulation prompt file.")
             return
+
+        self.started.emit()
 
         # Extract text from file
         self.progress.emit("Reading file\u2026")
