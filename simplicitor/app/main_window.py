@@ -112,20 +112,13 @@ class MainWindow(QMainWindow):
         self._ollama_worker.connected.connect(self._top_bar.set_connected)
         self._ollama_worker.disconnected.connect(self._top_bar.set_disconnected)
 
-        # Connectivity → CreatePanel enable / disable
-        self._ollama_worker.connected.connect(
-            lambda models, _: self._create_panel.set_ollama_connected(True)
-        )
+        # Connectivity → panels (named method also keeps _current_model in sync)
+        self._ollama_worker.connected.connect(self._on_ollama_connected)
         self._ollama_worker.disconnected.connect(
             lambda: self._create_panel.set_ollama_connected(False)
         )
         self._ollama_worker.disconnected.connect(
             lambda: self._create_panel.set_model_small(False)
-        )
-
-        # Connectivity → EditPanel
-        self._ollama_worker.connected.connect(
-            lambda models, _: self._edit_panel.set_ollama_connected(True)
         )
         self._ollama_worker.disconnected.connect(
             lambda: self._edit_panel.set_ollama_connected(False)
@@ -183,6 +176,18 @@ class MainWindow(QMainWindow):
         self._banner_dismissed_for = self._current_model
         logger.debug("Capability banner dismissed for model: %s", self._current_model)
 
+    def _on_ollama_connected(self, models: list[str], current_model: str) -> None:
+        """Handle Ollama connected signal — update panels and track the running model.
+
+        Args:
+            models: Full list of installed model names.
+            current_model: The model currently loaded in Ollama, or "" if none.
+        """
+        self._create_panel.set_ollama_connected(True)
+        self._edit_panel.set_ollama_connected(True)
+        if current_model:
+            self._current_model = current_model
+
     def _build_output_path(self, file_type: str, save_dir: str, prompt: str) -> str:
         """Build an auto-generated output file path.
 
@@ -225,6 +230,15 @@ class MainWindow(QMainWindow):
             return
 
         effective_save_dir = save_dir or self._settings.generated_dir
+        try:
+            Path(effective_save_dir).mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            logger.error("Cannot create output directory %s: %s", effective_save_dir, exc)
+            self._create_panel.show_status(
+                "Cannot create the output folder. Check the path is valid and you have write permission.",
+                is_error=True,
+            )
+            return
         output_path = self._build_output_path(file_type, effective_save_dir, prompt)
 
         self._generate_worker = GenerateWorker(

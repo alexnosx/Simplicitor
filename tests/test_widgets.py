@@ -768,3 +768,48 @@ def test_main_window_has_manipulate_slots(qtbot, tmp_path) -> None:
     assert hasattr(window, "_on_manipulate_progress")
     assert hasattr(window, "_on_manipulate_completed")
     assert hasattr(window, "_on_manipulate_failed")
+
+
+def test_main_window_on_ollama_connected_updates_current_model(qtbot, tmp_path) -> None:
+    """_on_ollama_connected must update _current_model from the signal."""
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._on_ollama_connected(["gemma3"], "gemma3")
+    assert window._current_model == "gemma3"
+
+
+def test_main_window_on_ollama_connected_no_model_does_not_clear(qtbot, tmp_path) -> None:
+    """_on_ollama_connected with empty current_model must not overwrite an existing model."""
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._current_model = "llama3"
+    window._on_ollama_connected(["llama3"], "")
+    assert window._current_model == "llama3"  # unchanged
+
+
+def test_main_window_generate_auto_creates_output_dir(qtbot, tmp_path) -> None:
+    """_on_generate_requested must create the output directory if it doesn't exist yet."""
+    from pathlib import Path
+    settings = Settings(tmp_path)
+    window = MainWindow(settings)
+    qtbot.addWidget(window)
+    window._current_model = "llama3"
+
+    new_dir = tmp_path / "nonexistent" / "subdir"
+    assert not new_dir.exists()
+
+    # Intercept just after mkdir by patching _build_output_path to raise so we
+    # can confirm mkdir ran without needing to spin up a real QThread.
+    def raise_after_mkdir(*args, **kwargs):
+        raise RuntimeError("stop here")
+
+    import unittest.mock as mock
+    with mock.patch.object(window, "_build_output_path", side_effect=raise_after_mkdir):
+        try:
+            window._on_generate_requested("Word (.docx)", str(new_dir), "test prompt")
+        except RuntimeError:
+            pass
+
+    assert new_dir.exists()
