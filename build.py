@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""
+Simplicitor build script — produces dist/Simplicitor.exe via Nuitka.
+
+Usage:
+    pip install -r requirements-build.txt
+    python build.py
+
+The .exe is written to dist/Simplicitor.exe.
+Run from the repository root (the directory containing this file).
+"""
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+SIMPLICITOR_DIR = ROOT / "simplicitor"
+RESOURCES_DIR = ROOT / "resources"
+DIST_DIR = ROOT / "dist"
+ICON = RESOURCES_DIR / "icon.ico"
+
+# ---------------------------------------------------------------------------
+# Nuitka flags
+# ---------------------------------------------------------------------------
+NUITKA_FLAGS = [
+    "--onefile",
+    "--windows-console-mode=disable",
+    "--enable-plugin=pyside6",
+    # Bundle the prompts/ directory so the app can read system prompts at runtime.
+    # Source path is relative to the build working directory (simplicitor/).
+    "--include-data-dir=prompts=prompts",
+    f"--windows-icon-from-ico={ICON}",
+    "--windows-product-name=Simplicitor",
+    "--windows-product-version=1.0.0.0",
+    "--windows-company-name=Simplicitor",
+    "--windows-file-description=AI-powered Office document generator",
+    f"--output-dir={DIST_DIR}",
+    "--output-filename=Simplicitor",
+]
+
+
+def main() -> int:
+    if not ICON.exists():
+        print(
+            f"ERROR: icon not found at {ICON}\n"
+            "Run:  python resources/create_icon.py",
+            file=sys.stderr,
+        )
+        return 1
+
+    DIST_DIR.mkdir(parents=True, exist_ok=True)
+
+    cmd = [sys.executable, "-m", "nuitka", *NUITKA_FLAGS, "main.py"]
+
+    print("Building Simplicitor.exe ...")
+    print("Command:", " ".join(str(c) for c in cmd))
+    print(f"Working directory: {SIMPLICITOR_DIR}")
+    print()
+
+    result = subprocess.run(cmd, cwd=SIMPLICITOR_DIR)
+
+    if result.returncode != 0:
+        print(f"\nBuild FAILED (exit code {result.returncode})", file=sys.stderr)
+        return result.returncode
+
+    exe = DIST_DIR / "Simplicitor.exe"
+    size_mb = exe.stat().st_size / (1024 * 1024) if exe.exists() else 0
+    print(f"\nBuild complete: {exe}  ({size_mb:.1f} MB)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
