@@ -1,0 +1,6 @@
+# Build-time dependencies — not needed to run Simplicitor
+# Install with: pip install -r requirements-build.txt
+
+nuitka>=2.0
+ordered-set>=4.1.0
+zstandard>=0.21.0
