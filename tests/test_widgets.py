@@ -683,8 +683,8 @@ def test_edit_panel_show_status_green(qtbot, tmp_path) -> None:
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
     panel.show_status("Done!", is_error=False)
-    assert panel._status_label.isVisible()
-    assert "Done!" in panel._status_label.text()
+    assert panel._status_banner.isVisible()
+    assert "Done!" in panel._status_banner.text()
 
 
 def test_edit_panel_show_status_red(qtbot, tmp_path) -> None:
@@ -692,8 +692,8 @@ def test_edit_panel_show_status_red(qtbot, tmp_path) -> None:
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
     panel.show_status("Something broke", is_error=True)
-    assert panel._status_label.isVisible()
-    assert "Something broke" in panel._status_label.text()
+    assert panel._status_banner.isVisible()
+    assert "Something broke" in panel._status_banner.text()
 
 
 def test_edit_panel_clear_status(qtbot, tmp_path) -> None:
@@ -702,7 +702,7 @@ def test_edit_panel_clear_status(qtbot, tmp_path) -> None:
     qtbot.addWidget(panel)
     panel.show_status("visible message")
     panel.clear_status()
-    assert not panel._status_label.isVisible()
+    assert not panel._status_banner.isVisible()
 
 
 def test_edit_panel_set_saving_hides_open_file_btn(qtbot, tmp_path) -> None:
@@ -737,8 +737,8 @@ def test_main_window_on_save_completed_shows_status(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._on_manipulate_completed("/path/result.docx", "/path/backups/result_backup.docx")
-    assert window._edit_panel._status_label.isVisible()
-    assert "result.docx" in window._edit_panel._status_label.text()
+    assert window._edit_panel._status_banner.isVisible()
+    assert "result.docx" in window._edit_panel._status_banner.text()
     assert window._edit_panel._open_file_btn.isVisible()
 
 
@@ -747,8 +747,8 @@ def test_main_window_on_save_failed_shows_error(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._on_manipulate_failed("Could not read file: bad bytes")
-    assert window._edit_panel._status_label.isVisible()
-    assert "Could not read" in window._edit_panel._status_label.text()
+    assert window._edit_panel._status_banner.isVisible()
+    assert "Could not read" in window._edit_panel._status_banner.text()
 
 
 def test_main_window_on_save_started_sets_saving(qtbot, tmp_path) -> None:

@@ -23,7 +23,6 @@ from app.config.defaults import (
     BORDER_RADIUS_PX,
     DISABLED_COLOR,
     EDIT_PROMPT_PLACEHOLDERS,
-    ERROR_COLOR,
     FONT_SIZE_BODY_PT,
     FONT_SIZE_HEADING_PT,
     HOVER_ACCENT_COLOR,
@@ -31,12 +30,12 @@ from app.config.defaults import (
     MAX_PROMPT_CHARS,
     PANEL_BG_COLOR,
     PRIMARY_ACCENT_COLOR,
-    SUCCESS_COLOR,
     WHITE,
 )
 from app.config.settings import Settings
 from app.widgets.drop_zone import DropZone
 from app.widgets.file_list import FileList
+from app.widgets.status_banner import StatusBanner
 
 logger = logging.getLogger(__name__)
 
@@ -130,12 +129,9 @@ class EditPanel(QWidget):
         self._save_btn.setEnabled(False)
         layout.addWidget(self._save_btn)
 
-        # Status label (hidden until needed)
-        self._status_label = QLabel()
-        self._status_label.setFont(body_font)
-        self._status_label.setVisible(False)
-        self._status_label.setWordWrap(True)
-        layout.addWidget(self._status_label)
+        # Status banner (dismissible, hidden until needed)
+        self._status_banner = StatusBanner()
+        layout.addWidget(self._status_banner)
 
         # Open file button (shown after successful save)
         self._open_file_btn = QPushButton("Open file")
@@ -306,15 +302,11 @@ class EditPanel(QWidget):
             message: The message to display.
             is_error: True for red text (error), False for green (success).
         """
-        color = ERROR_COLOR if is_error else SUCCESS_COLOR
-        self._status_label.setStyleSheet(f"color: {color};")
-        self._status_label.setText(message)
-        self._status_label.setVisible(True)
+        self._status_banner.show_message(message, is_error)
 
     def clear_status(self) -> None:
-        """Hide the status message."""
-        self._status_label.setVisible(False)
-        self._status_label.setText("")
+        """Hide the status banner."""
+        self._status_banner.hide_message()
 
     def show_open_file_btn(self, path: str) -> None:
         """Show the Open File button for the given path.
