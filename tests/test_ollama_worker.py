@@ -212,3 +212,66 @@ def test_worker_timer_is_none_before_setup(qtbot) -> None:
     """_timer must be None before setup() is called (timer is created on the worker thread)."""
     worker = _make_worker(qtbot)
     assert worker._timer is None
+
+
+# ---------------------------------------------------------------------------
+# model_params_ready — emitted on model change while connected
+# ---------------------------------------------------------------------------
+
+def test_model_params_ready_emitted_on_model_change_while_connected(qtbot) -> None:
+    """model_params_ready must fire when the running model changes mid-session."""
+    client = MagicMock(spec=OllamaClient)
+    client.check_connection.return_value = True
+    client.get_models.return_value = ["modelA", "modelB"]
+    client.get_running_model.side_effect = ["modelA", "modelA", "modelB"]
+    client.get_model_params.return_value = 7_000_000_000
+    worker = OllamaWorker(client)
+
+    params_signals: list[tuple[str, int]] = []
+    worker.model_params_ready.connect(lambda name, count: params_signals.append((name, count)))
+
+    worker._poll()  # first: disconnected→connected with modelA, emit
+    worker._poll()  # second: still modelA, no emit
+    worker._poll()  # third: modelB running, emit
+
+    assert len(params_signals) == 2
+    assert params_signals[0][0] == "modelA"
+    assert params_signals[1][0] == "modelB"
+
+
+def test_model_params_ready_not_emitted_when_model_unchanged(qtbot) -> None:
+    """model_params_ready must NOT fire on every poll when the running model is stable."""
+    client = MagicMock(spec=OllamaClient)
+    client.check_connection.return_value = True
+    client.get_models.return_value = ["modelA"]
+    client.get_running_model.return_value = "modelA"
+    client.get_model_params.return_value = 7_000_000_000
+    worker = OllamaWorker(client)
+
+    params_signals: list[tuple[str, int]] = []
+    worker.model_params_ready.connect(lambda name, count: params_signals.append((name, count)))
+
+    worker._poll()  # first: emit (first connection)
+    worker._poll()  # second: same model, no emit
+    worker._poll()  # third: same model, no emit
+
+    assert len(params_signals) == 1
+
+
+def test_model_params_ready_emits_empty_when_model_unloaded(qtbot) -> None:
+    """When running model drops to empty, emit model_params_ready('', 0) to hide banner."""
+    client = MagicMock(spec=OllamaClient)
+    client.check_connection.return_value = True
+    client.get_models.return_value = ["modelA"]
+    client.get_running_model.side_effect = ["modelA", ""]
+    client.get_model_params.return_value = 7_000_000_000
+    worker = OllamaWorker(client)
+
+    params_signals: list[tuple[str, int]] = []
+    worker.model_params_ready.connect(lambda name, count: params_signals.append((name, count)))
+
+    worker._poll()  # first: modelA running, emit ("modelA", 7B)
+    worker._poll()  # second: no model running, emit ("", 0)
+
+    assert len(params_signals) == 2
+    assert params_signals[1] == ("", 0)
