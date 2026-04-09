@@ -54,16 +54,22 @@ def test_generate_worker_emits_failed_on_ollama_connection_error(qtbot, tmp_path
     worker = GenerateWorker("Word (.docx)", str(tmp_path / "out.docx"), "prompt", "llama3", client)
     with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
         worker.run()
-    assert "AI generation failed" in blocker.args[0]
+    msg = blocker.args[0]
+    assert "HTTPConnectionPool" not in msg
+    assert "connection refused" not in msg
+    assert "AI engine" in msg or "Ollama" in msg
 
 
 def test_generate_worker_emits_failed_on_ollama_generation_error(qtbot, tmp_path):
     client = MagicMock()
-    client.generate.side_effect = OllamaGenerationError("bad response")
+    client.generate.side_effect = OllamaGenerationError("Ollama returned status 500: Internal Server Error")
     worker = GenerateWorker("Word (.docx)", str(tmp_path / "out.docx"), "prompt", "llama3", client)
     with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
         worker.run()
-    assert "AI generation failed" in blocker.args[0]
+    msg = blocker.args[0]
+    assert "500" not in msg
+    assert "Internal Server Error" not in msg
+    assert "unexpected" in msg.lower() or "try again" in msg.lower()
 
 
 def test_generate_worker_retries_on_parse_failure(qtbot, tmp_path):

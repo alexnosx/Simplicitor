@@ -108,9 +108,15 @@ class ManipulateWorker(QObject):
         user_prompt = f"File content:\n{original_text}\n\nInstruction:\n{self.prompt}"
         try:
             llm_response = self._client.generate(self.model, user_prompt, system_prompt)
-        except (OllamaConnectionError, OllamaGenerationError) as exc:
-            logger.error("Ollama call failed: %s", exc)
-            self.failed.emit(f"AI processing failed: {exc}")
+        except OllamaConnectionError as exc:
+            logger.error("Ollama connection lost during manipulation: %s", exc)
+            self.failed.emit(
+                "The AI engine stopped responding. Please check Ollama is running."
+            )
+            return
+        except OllamaGenerationError as exc:
+            logger.error("Ollama generation error: %s", exc)
+            self.failed.emit("The AI returned an unexpected response. Please try again.")
             return
 
         # Write changes back

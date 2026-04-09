@@ -90,9 +90,15 @@ class GenerateWorker(QObject):
         # rely on the system prompt's JSON-only instruction and _clean()'s extraction logic.
         try:
             llm_response = self._client.generate(self.model, self.prompt, system_prompt)
-        except (OllamaConnectionError, OllamaGenerationError) as exc:
-            logger.error("Ollama generation failed: %s", exc)
-            self.failed.emit(f"AI generation failed: {exc}")
+        except OllamaConnectionError as exc:
+            logger.error("Ollama connection lost during generation: %s", exc)
+            self.failed.emit(
+                "The AI engine stopped responding. Please check Ollama is running."
+            )
+            return
+        except OllamaGenerationError as exc:
+            logger.error("Ollama generation error: %s", exc)
+            self.failed.emit("The AI returned an unexpected response. Please try again.")
             return
 
         self.progress.emit("Generating file\u2026")
@@ -114,7 +120,7 @@ class GenerateWorker(QObject):
             except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
                 logger.error("Retry Ollama call failed: %s", retry_exc)
                 self.failed.emit(
-                    "AI generation failed after retry. Please check Ollama is running."
+                    "The AI engine stopped responding. Please check Ollama is running."
                 )
                 return
             except FileGenerationError as retry_exc:
