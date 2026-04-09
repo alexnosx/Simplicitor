@@ -19,6 +19,7 @@ from app.config.defaults import (
     PROMPT_COMPLEXITY_THRESHOLD_CHARS, STYLING_KEYWORDS,
 )
 from app.config.settings import Settings
+from app.widgets.status_banner import StatusBanner
 
 logger = logging.getLogger(__name__)
 
@@ -120,12 +121,9 @@ class CreatePanel(QWidget):
         self._generate_btn.setEnabled(False)
         layout.addWidget(self._generate_btn)
 
-        # Status label (hidden until needed)
-        self._status_label = QLabel()
-        self._status_label.setFont(body_font)
-        self._status_label.setVisible(False)
-        self._status_label.setWordWrap(True)
-        layout.addWidget(self._status_label)
+        # Status banner (dismissible, hidden until needed)
+        self._status_banner = StatusBanner()
+        layout.addWidget(self._status_banner)
 
         # Open file button (shown after successful generation)
         self._open_file_btn = QPushButton("Open file")
@@ -285,15 +283,11 @@ class CreatePanel(QWidget):
             message: The message text to display.
             is_error: If True, display message in error color; otherwise success color.
         """
-        color = ERROR_COLOR if is_error else SUCCESS_COLOR
-        self._status_label.setStyleSheet(f"color: {color};")
-        self._status_label.setText(message)
-        self._status_label.setVisible(True)
+        self._status_banner.show_message(message, is_error)
 
     def clear_status(self) -> None:
-        """Hide the status message."""
-        self._status_label.setVisible(False)
-        self._status_label.setText("")
+        """Hide the status banner."""
+        self._status_banner.hide_message()
 
     def set_model_small(self, is_small: bool) -> None:
         """Called by MainWindow when model param count changes.

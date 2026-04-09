@@ -425,8 +425,8 @@ def test_main_window_on_generate_completed_shows_status(qtbot, tmp_path) -> None
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._on_generate_completed("/some/path/report.docx")
-    assert window._create_panel._status_label.isVisible()
-    assert "report.docx" in window._create_panel._status_label.text()
+    assert window._create_panel._status_banner.isVisible()
+    assert "report.docx" in window._create_panel._status_banner.text()
     assert window._create_panel._open_file_btn.isVisible()
 
 
@@ -435,8 +435,8 @@ def test_main_window_on_generate_failed_shows_error(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._on_generate_failed("AI generation failed: connection refused")
-    assert window._create_panel._status_label.isVisible()
-    assert "AI generation failed" in window._create_panel._status_label.text()
+    assert window._create_panel._status_banner.isVisible()
+    assert "AI generation failed" in window._create_panel._status_banner.text()
 
 
 def test_main_window_on_generate_started_sets_generating(qtbot, tmp_path) -> None:
