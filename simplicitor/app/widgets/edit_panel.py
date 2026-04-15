@@ -308,6 +308,11 @@ class EditPanel(QWidget):
         """Hide the status banner."""
         self._status_banner.hide_message()
 
+    def clear_prompt(self) -> None:
+        """Clear the prompt text area and reset the character counter."""
+        self._prompt_edit.clear()
+        self._char_counter.setText(f"0 / {MAX_PROMPT_CHARS}")
+
     def show_open_file_btn(self, path: str) -> None:
         """Show the Open File button for the given path.
 

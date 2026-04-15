@@ -91,12 +91,14 @@ class TopBar(QWidget):
     def set_connected(self, models: list[str], current_model: str = "") -> None:
         """Switch to connected state.
 
-        Populates the model dropdown with the currently running model only.
-        If no model is loaded (current_model is empty), the dropdown is cleared
-        and disabled — the user cannot select a ghost model.
+        Populates the model dropdown. If a model is currently running it is
+        pre-selected. If no model is running but installed models exist, the
+        full list is shown and the first entry is pre-selected so the user can
+        generate immediately. If no models are installed at all the dropdown is
+        disabled.
 
         Args:
-            models: Full list of installed model names (retained for future use).
+            models: Full list of installed model names from /api/tags.
             current_model: The model currently loaded in Ollama, or "" if none.
         """
         self._status_dot.setStyleSheet(f"color: {SUCCESS_COLOR};")
@@ -104,13 +106,24 @@ class TopBar(QWidget):
         self._model_combo.blockSignals(True)
         self._model_combo.clear()
         if current_model:
+            # A model is actively running — show only that model.
             self._model_combo.addItem(current_model)
             self._model_combo.setCurrentText(current_model)
+            self._model_combo.setEnabled(True)
+        elif models:
+            # No model running but models are installed — populate list and pre-select first.
+            for model in models:
+                self._model_combo.addItem(model)
+            self._model_combo.setCurrentIndex(0)
             self._model_combo.setEnabled(True)
         else:
             self._model_combo.setPlaceholderText("No model selected")
             self._model_combo.setEnabled(False)
         self._model_combo.blockSignals(False)
+        # Notify subscribers of the pre-selected model (signals were blocked during setup).
+        selected = self._model_combo.currentText()
+        if selected:
+            self.model_changed.emit(selected)
 
     def set_disconnected(self) -> None:
         """Switch to disconnected state and clear the model dropdown."""

@@ -4,10 +4,12 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
 
-from app.config.defaults import MAX_MANIPULATION_CHARS
+from app.config.defaults import MAX_MANIPULATION_CHARS, MANIPULATION_TOKEN_LIMIT, OLLAMA_MANIPULATION_TIMEOUT_S
 from app.services.backup_service import BackupService
 from app.services.file_manipulator import FileManipulator, ManipulationError
-from app.services.ollama_client import OllamaClient, OllamaConnectionError, OllamaGenerationError
+from app.services.ollama_client import (
+    OllamaClient, OllamaConnectionError, OllamaGenerationError, OllamaTimeoutError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -82,12 +84,24 @@ class ManipulateWorker(QObject):
             self.failed.emit("This file appears to be empty.")
             return
 
-        # Warn if truncated
-        if len(original_text) >= MAX_MANIPULATION_CHARS:
-            self.progress.emit(
-                "File is large \u2014 only the first portion will be processed\u2026"
+        # Hard character cap
+        if len(original_text) > MAX_MANIPULATION_CHARS:
+            original_text = original_text[:MAX_MANIPULATION_CHARS]
+            logger.warning("File content hard-truncated at %d chars: %s", MAX_MANIPULATION_CHARS, self.file_path)
+
+        # Token estimation: word_count * 1.3 heuristic; truncate if over limit
+        words = original_text.split()
+        estimated_tokens = len(words) * 1.3
+        if estimated_tokens > MANIPULATION_TOKEN_LIMIT:
+            max_words = int(MANIPULATION_TOKEN_LIMIT / 1.3)
+            original_text = " ".join(words[:max_words])
+            logger.warning(
+                "File content token-truncated to ~%d words (~%d tokens): %s",
+                max_words, MANIPULATION_TOKEN_LIMIT, self.file_path,
             )
-            logger.warning("File content truncated: %s", self.file_path)
+            self.progress.emit(
+                "This file is large. Processing the first portion only\u2026"
+            )
 
         # Create backup
         self.progress.emit("Creating backup\u2026")
@@ -107,7 +121,15 @@ class ManipulateWorker(QObject):
         self.progress.emit("Sending to AI\u2026")
         user_prompt = f"File content:\n{original_text}\n\nInstruction:\n{self.prompt}"
         try:
-            llm_response = self._client.generate(self.model, user_prompt, system_prompt)
+            llm_response = self._client.generate(
+                self.model, user_prompt, system_prompt, timeout=OLLAMA_MANIPULATION_TIMEOUT_S
+            )
+        except OllamaTimeoutError as exc:
+            logger.error("Ollama manipulation timed out: %s", exc)
+            self.failed.emit(
+                "This task took too long. Try a simpler prompt or use a larger model."
+            )
+            return
         except OllamaConnectionError as exc:
             logger.error("Ollama connection lost during manipulation: %s", exc)
             self.failed.emit(

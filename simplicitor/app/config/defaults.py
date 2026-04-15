@@ -28,6 +28,7 @@ OLLAMA_GENERATE_ENDPOINT = "/api/generate"
 OLLAMA_CHAT_ENDPOINT = "/api/chat"
 OLLAMA_POLL_INTERVAL_MS = 5000
 OLLAMA_TIMEOUT_S = 60
+OLLAMA_MANIPULATION_TIMEOUT_S = 120  # manipulation sends file content → needs more time
 SMALL_MODEL_PARAM_THRESHOLD = 7_000_000_000
 
 # ── PowerPoint layout indices (standard Blank template) ──────────────────────
@@ -44,6 +45,8 @@ MAX_PROMPT_CHARS = 2000
 
 # Maximum characters of file content sent to the LLM (larger files are truncated)
 MAX_MANIPULATION_CHARS = 50_000
+# Approximate token limit for LLM input (word_count * 1.3 heuristic); content beyond this is cut
+MANIPULATION_TOKEN_LIMIT = 2000
 PROMPT_COMPLEXITY_THRESHOLD_CHARS = 500
 
 # ── Styling keywords that trigger the small-model tip ─────────────────────────

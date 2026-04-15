@@ -102,6 +102,11 @@ class OllamaWorker(QObject):
                         self.model_params_ready.emit("", 0)
                     self._last_running_model = running_model
 
+                logger.info(
+                    "Ollama connected: %d model(s) installed, running=%r",
+                    len(models),
+                    running_model or "(none)",
+                )
                 self._was_connected = True
                 self.connected.emit(models, running_model)
             else:

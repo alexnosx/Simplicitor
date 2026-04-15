@@ -37,18 +37,26 @@ class PptxGenerator:
         prs = Presentation()
         prs.core_properties.title = parsed.get("title", "")
 
-        for slide_data in parsed.get("slides", []):
+        for idx, slide_data in enumerate(parsed.get("slides", [])):
             slide_type = slide_data.get("type", "content")
             slide_title = slide_data.get("title", "")
-            bullets = slide_data.get("bullets", [])
+            # Normalise bullets: always a list of strings, never None
+            bullets = slide_data.get("bullets") or []
+            bullets = [str(b) for b in bullets if b is not None]
 
-            if slide_type == "title":
-                self._add_title_slide(prs, slide_title, bullets)
-            elif slide_type == "section":
-                self._add_section_slide(prs, slide_title)
-            else:
-                # Default to content layout
-                self._add_content_slide(prs, slide_title, bullets)
+            try:
+                if slide_type == "title":
+                    self._add_title_slide(prs, slide_title, bullets)
+                elif slide_type == "section":
+                    self._add_section_slide(prs, slide_title)
+                else:
+                    # Default to content layout
+                    self._add_content_slide(prs, slide_title, bullets)
+            except Exception as exc:
+                logger.error(
+                    "Failed to add slide %d (type=%r, title=%r): %s", idx, slide_type, slide_title, exc
+                )
+                raise
 
         try:
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -56,6 +64,7 @@ class PptxGenerator:
         except OSError as exc:
             logger.error("Failed to write %s: %s", output_path, exc)
             raise
+        logger.debug("PowerPoint file written successfully: %s", output_path)
         return output_path
 
     def _add_title_slide(self, prs: Presentation, title: str, bullets: list[str]) -> None:
@@ -93,8 +102,8 @@ class PptxGenerator:
         if slide.placeholders:
             slide.placeholders[0].text = title
 
-        # Set bullet content (placeholder idx 1)
-        if len(slide.placeholders) > 1:
+        # Set bullet content (placeholder idx 1); skip if no bullets provided
+        if len(slide.placeholders) > 1 and bullets:
             body_ph = slide.placeholders[1]
             tf = body_ph.text_frame
             tf.clear()

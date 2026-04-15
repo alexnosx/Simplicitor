@@ -34,11 +34,26 @@ class FileList(QListWidget):
     def add_file(self, file_path: str) -> None:
         """Insert *file_path* at the top of the list and select it.
 
+        If the same path already exists in the list, its timestamp is refreshed
+        and it is moved to the top rather than adding a duplicate entry.
+
         Args:
             file_path: Absolute path to the uploaded file.
         """
         name = Path(file_path).name
         timestamp = datetime.now().strftime("%H:%M:%S")
+
+        # Check for an existing entry with the same path and update it in-place.
+        for row in range(self.count()):
+            existing = self.item(row)
+            if existing and existing.data(Qt.ItemDataRole.UserRole) == file_path:
+                existing.setText(f"{name}  ·  {timestamp}")
+                taken = self.takeItem(row)
+                self.insertItem(0, taken)
+                self.setCurrentRow(0)
+                logger.debug("Updated existing file list entry: %s", file_path)
+                return
+
         item = QListWidgetItem(f"{name}  ·  {timestamp}")
         item.setData(Qt.ItemDataRole.UserRole, file_path)
         self.insertItem(0, item)

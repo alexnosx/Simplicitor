@@ -298,6 +298,11 @@ class CreatePanel(QWidget):
         self._model_is_small = is_small
         self._update_tip_visibility()
 
+    def clear_prompt(self) -> None:
+        """Clear the prompt text area and reset the character counter."""
+        self._prompt_edit.clear()
+        self._char_counter.setText(f"0 / {MAX_PROMPT_CHARS}")
+
     def show_open_file_btn(self, path: str) -> None:
         """Show the Open File button pointing at the given path.
 

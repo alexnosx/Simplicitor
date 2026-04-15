@@ -10,11 +10,17 @@ from app.config.defaults import (
     OLLAMA_SHOW_ENDPOINT,
     OLLAMA_TAGS_ENDPOINT,
     OLLAMA_TIMEOUT_S,
+    OLLAMA_MANIPULATION_TIMEOUT_S,
 )
 
 
 class OllamaConnectionError(Exception):
     """Raised when a network-level error prevents reaching the Ollama API."""
+    pass
+
+
+class OllamaTimeoutError(OllamaConnectionError):
+    """Raised when an Ollama API call exceeds its timeout."""
     pass
 
 
@@ -167,6 +173,7 @@ class OllamaClient:
         prompt: str,
         system: str,
         output_format: dict | str | None = None,
+        timeout: int | None = None,
     ) -> str:
         """Send a generation request to ``/api/generate`` and return the response text.
 
@@ -177,12 +184,14 @@ class OllamaClient:
             output_format: Optional value passed as Ollama's ``format`` parameter.
                 Use ``"json"`` to request JSON output (universally supported), or a
                 JSON Schema dict for structured output (newer Ollama / model support required).
+            timeout: Request timeout in seconds. Defaults to ``OLLAMA_TIMEOUT_S``.
 
         Returns:
             The ``"response"`` field from the Ollama API JSON reply.
 
         Raises:
-            OllamaConnectionError: If the HTTP request fails for any network reason.
+            OllamaTimeoutError: If the request exceeds the timeout.
+            OllamaConnectionError: If the HTTP request fails for any other network reason.
             OllamaGenerationError: If the server returns a non-200 status code or
                 the response body does not contain a ``"response"`` key.
         """
@@ -195,12 +204,16 @@ class OllamaClient:
         if output_format is not None:
             body["format"] = output_format
 
+        effective_timeout = timeout if timeout is not None else OLLAMA_TIMEOUT_S
+
         try:
             response = requests.post(
                 f"{self._base_url}{OLLAMA_GENERATE_ENDPOINT}",
                 json=body,
-                timeout=OLLAMA_TIMEOUT_S,
+                timeout=effective_timeout,
             )
+        except requests.Timeout as exc:
+            raise OllamaTimeoutError(str(exc)) from exc
         except requests.RequestException as exc:
             raise OllamaConnectionError(str(exc)) from exc
 

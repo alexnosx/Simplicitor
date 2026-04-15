@@ -66,5 +66,8 @@ class FileGenerator:
         except OSError as exc:
             logger.error("Failed to write file %s: %s", output_path, exc)
             raise FileGenerationError(f"Could not write file to {output_path}: {exc}") from exc
+        except Exception as exc:
+            logger.error("Unexpected error writing %r file %s: %s", file_type, output_path, exc)
+            raise FileGenerationError(f"Unexpected error generating file: {exc}") from exc
 
         return result

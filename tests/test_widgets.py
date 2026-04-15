@@ -39,22 +39,26 @@ def test_top_bar_set_connected_with_running_model(qtbot) -> None:
     assert bar._model_combo.count() == 1  # only the running model
 
 
-def test_top_bar_set_connected_no_running_model_clears_combo(qtbot) -> None:
+def test_top_bar_set_connected_no_running_model_populates_from_list(qtbot) -> None:
+    # When no model is running but models are installed, the dropdown should be
+    # populated with all installed models and the first one pre-selected.
     bar = TopBar()
     qtbot.addWidget(bar)
     bar.set_connected(["llama3:8b", "mistral:7b"], "")  # installed but nothing running
-    assert bar.current_model() == ""
-    assert bar._model_combo.count() == 0
-    assert not bar._model_combo.isEnabled()
+    assert bar.current_model() == "llama3:8b"
+    assert bar._model_combo.count() == 2
+    assert bar._model_combo.isEnabled()
 
 
-def test_top_bar_model_changed_not_emitted_when_no_running_model(qtbot) -> None:
+def test_top_bar_model_changed_emitted_with_first_model_when_no_running_model(qtbot) -> None:
+    # When models are installed but none running, model_changed should fire with the
+    # first model so MainWindow._current_model is always in sync after connection.
     bar = TopBar()
     qtbot.addWidget(bar)
     signals_received = []
     bar.model_changed.connect(signals_received.append)
     bar.set_connected(["llama3:8b"], "")
-    assert signals_received == []
+    assert signals_received == ["llama3:8b"]
 
 
 def test_top_bar_set_disconnected_clears_models(qtbot) -> None:

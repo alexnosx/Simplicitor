@@ -134,6 +134,10 @@ class GenerateWorker(QObject):
                     "Check the folder exists and you have write permission."
                 )
                 return
+            except Exception as retry_exc:
+                logger.error("Retry unexpected error: %s", retry_exc)
+                self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
+                return
             self.completed.emit(str(result_path))
             return
         except OSError as exc:
@@ -142,6 +146,10 @@ class GenerateWorker(QObject):
                 f"Could not save file to {self.save_path}. "
                 "Check the folder exists and you have write permission."
             )
+            return
+        except Exception as exc:
+            logger.error("Unexpected error during file generation: %s", exc)
+            self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
             return
 
         self.completed.emit(str(result_path))

@@ -140,6 +140,9 @@ class MainWindow(QMainWindow):
         self._banner_dismissed_for: str = ""
         self._top_bar.model_changed.connect(self._on_model_changed)
 
+        # Generation in-progress guard (explicit flag; more reliable than QThread.isRunning())
+        self._generating: bool = False
+
         self._ollama_thread.start()
 
     # ── Slots ─────────────────────────────────────────────────────────────────
@@ -225,7 +228,7 @@ class MainWindow(QMainWindow):
             )
             return
 
-        if hasattr(self, "_generate_thread") and self._generate_thread.isRunning():
+        if self._generating:
             logger.warning("Generate requested while previous generation still running; ignoring")
             return
 
@@ -257,6 +260,7 @@ class MainWindow(QMainWindow):
         self._generate_thread.finished.connect(self._generate_worker.deleteLater)
         self._generate_thread.finished.connect(self._generate_thread.deleteLater)
 
+        self._generating = True
         self._generate_thread.start()
         logger.info("Generation started: file_type=%s, model=%s", file_type, self._current_model)
 
@@ -279,7 +283,9 @@ class MainWindow(QMainWindow):
         Args:
             path: Absolute path to the generated file.
         """
+        self._generating = False
         self._create_panel.set_generating(False)
+        self._create_panel.clear_prompt()
         self._create_panel.show_status(f"File saved: {path}", is_error=False)
         self._create_panel.show_open_file_btn(path)
         logger.info("Generation completed: %s", path)
@@ -290,6 +296,7 @@ class MainWindow(QMainWindow):
         Args:
             msg: User-friendly error message.
         """
+        self._generating = False
         self._create_panel.set_generating(False)
         self._create_panel.show_status(msg, is_error=True)
         logger.error("Generation failed: %s", msg)
@@ -358,6 +365,7 @@ class MainWindow(QMainWindow):
             backup_path: Absolute path to the backup file.
         """
         self._edit_panel.set_saving(False)
+        self._edit_panel.clear_prompt()
         self._edit_panel.show_status(
             f"Saved: {saved_path}\nBackup: {backup_path}", is_error=False
         )
