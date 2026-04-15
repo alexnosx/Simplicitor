@@ -103,6 +103,8 @@ class TopBar(QWidget):
         """
         self._status_dot.setStyleSheet(f"color: {SUCCESS_COLOR};")
         self._status_text.setText("Connected")
+        # Capture what was selected before rebuilding so we can detect a real change.
+        previous_selection = self._model_combo.currentText()
         self._model_combo.blockSignals(True)
         self._model_combo.clear()
         if current_model:
@@ -120,9 +122,9 @@ class TopBar(QWidget):
             self._model_combo.setPlaceholderText("No model selected")
             self._model_combo.setEnabled(False)
         self._model_combo.blockSignals(False)
-        # Notify subscribers of the pre-selected model (signals were blocked during setup).
+        # Only notify subscribers when the selection actually changed (not on every poll).
         selected = self._model_combo.currentText()
-        if selected:
+        if selected and selected != previous_selection:
             self.model_changed.emit(selected)
 
     def set_disconnected(self) -> None:
