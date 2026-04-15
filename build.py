@@ -29,6 +29,9 @@ NUITKA_FLAGS = [
     # Bundle the prompts/ directory so the app can read system prompts at runtime.
     # Source path is relative to the build working directory (simplicitor/).
     "--include-data-dir=prompts=prompts",
+    # Bundle the pptx default template — python-pptx's internal copy is not
+    # accessible inside a Nuitka onefile executable.
+    "--include-data-dir=templates=templates",
     f"--windows-icon-from-ico={ICON}",
     "--windows-product-name=Simplicitor",
     "--windows-product-version=1.0.0.0",

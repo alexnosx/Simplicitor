@@ -14,6 +14,10 @@ from app.config.defaults import (
 
 logger = logging.getLogger(__name__)
 
+# Bundled default template — avoids relying on pptx's internal package path,
+# which is unreachable inside a Nuitka onefile executable.
+_BUNDLED_TEMPLATE = Path(__file__).parent.parent.parent / "templates" / "pptx_default.pptx"
+
 
 class PptxGenerator:
     """Generates .pptx files from parsed LLM output (Phase 3)."""
@@ -34,7 +38,8 @@ class PptxGenerator:
         """
         output_path = Path(output_path)
 
-        prs = Presentation()
+        template_arg = str(_BUNDLED_TEMPLATE) if _BUNDLED_TEMPLATE.exists() else None
+        prs = Presentation(template_arg)
         prs.core_properties.title = parsed.get("title", "")
 
         for idx, slide_data in enumerate(parsed.get("slides", [])):
