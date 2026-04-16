@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import QMainWindow, QSplitter, QVBoxLayout, QWidget
 
 from app.config.defaults import (
@@ -13,6 +13,7 @@ from app.config.defaults import (
     WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, SMALL_MODEL_PARAM_THRESHOLD,
     FILE_TYPE_EXTENSIONS,
 )
+from app.utils.file_utils import resource_path, truncate_path
 from app.config.settings import Settings
 from app.services.ollama_client import OllamaClient
 from app.widgets.capability_banner import CapabilityBanner
@@ -55,6 +56,9 @@ class MainWindow(QMainWindow):
     def _build_ui(self) -> None:
         self.setWindowTitle(APP_NAME)
         self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
+        icon_path = resource_path("assets/icons/simplicitor.ico")
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -74,7 +78,7 @@ class MainWindow(QMainWindow):
 
         # Two-panel horizontal splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setHandleWidth(1)
+        splitter.setHandleWidth(12)  # 12px gap between panels
         splitter.setChildrenCollapsible(False)
 
         self._create_panel = CreatePanel(self._settings)
@@ -93,7 +97,11 @@ class MainWindow(QMainWindow):
         self._edit_panel.save_requested.connect(self._on_save_requested)
 
     def _apply_styles(self) -> None:
-        self.setStyleSheet(f"QMainWindow {{ background-color: {BACKGROUND_COLOR}; }}")
+        self.setStyleSheet(
+            f"QMainWindow {{ background-color: {BACKGROUND_COLOR}; }}"
+            f"QMainWindow > QWidget {{ background-color: {BACKGROUND_COLOR}; }}"
+            f"QSplitter::handle {{ background-color: {BACKGROUND_COLOR}; }}"
+        )
 
     # ── Ollama worker ─────────────────────────────────────────────────────────
 
@@ -286,7 +294,12 @@ class MainWindow(QMainWindow):
         self._generating = False
         self._create_panel.set_generating(False)
         self._create_panel.clear_prompt()
-        self._create_panel.show_status(f"File saved: {path}", is_error=False)
+        self._create_panel.show_status(
+            "File created successfully",
+            is_error=False,
+            secondary=truncate_path(path),
+            tooltip=path,
+        )
         self._create_panel.show_open_file_btn(path)
         logger.info("Generation completed: %s", path)
 
@@ -366,8 +379,15 @@ class MainWindow(QMainWindow):
         """
         self._edit_panel.set_saving(False)
         self._edit_panel.clear_prompt()
+        secondary = (
+            f"Saved: {truncate_path(saved_path)}\n"
+            f"Backup: {truncate_path(backup_path)}"
+        )
         self._edit_panel.show_status(
-            f"Saved: {saved_path}\nBackup: {backup_path}", is_error=False
+            "File saved. Backup created.",
+            is_error=False,
+            secondary=secondary,
+            tooltip=f"Saved: {saved_path}\nBackup: {backup_path}",
         )
         self._edit_panel.show_open_file_btn(saved_path)
         logger.info("Manipulation completed: %s (backup: %s)", saved_path, backup_path)

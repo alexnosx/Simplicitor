@@ -15,9 +15,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SIMPLICITOR_DIR = ROOT / "simplicitor"
-RESOURCES_DIR = ROOT / "resources"
+ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
-ICON = RESOURCES_DIR / "icon.ico"
+ICON = ASSETS_DIR / "icons" / "simplicitor.ico"
 
 # ---------------------------------------------------------------------------
 # Nuitka flags
@@ -32,6 +32,8 @@ NUITKA_FLAGS = [
     # Bundle the pptx default template — python-pptx's internal copy is not
     # accessible inside a Nuitka onefile executable.
     "--include-data-dir=templates=templates",
+    # Bundle the assets directory so icons are available at runtime.
+    f"--include-data-dir={ASSETS_DIR}=assets",
     f"--windows-icon-from-ico={ICON}",
     "--windows-product-name=Simplicitor",
     "--windows-product-version=1.0.0.0",
@@ -46,7 +48,7 @@ def main() -> int:
     if not ICON.exists():
         print(
             f"ERROR: icon not found at {ICON}\n"
-            "Run:  python resources/create_icon.py",
+            "Place icon files in assets/icons/ (see docs for details).",
             file=sys.stderr,
         )
         return 1

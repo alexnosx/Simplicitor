@@ -1,6 +1,43 @@
 # simplicitor/app/utils/file_utils.py
 import re
+import sys
 from pathlib import Path
+
+
+def resource_path(relative: str) -> Path:
+    """Resolve a path to a bundled resource that works both in development
+    and inside a Nuitka-packaged executable.
+
+    Args:
+        relative: Path string relative to the repository root (e.g. 'assets/icons/simplicitor.ico').
+
+    Returns:
+        Absolute Path to the resource.
+    """
+    if getattr(sys, "frozen", False):
+        # Nuitka onefile sets this; fall back to the exe directory
+        base = Path(sys.executable).parent
+    else:
+        # In development, the repo root is two levels up from this file:
+        # app/utils/file_utils.py -> app/utils -> app -> simplicitor -> <repo>
+        base = Path(__file__).resolve().parents[3]
+    return base / relative
+
+
+def truncate_path(path: str, max_chars: int = 60) -> str:
+    """Shorten a path for display, keeping the start and end visible.
+
+    Args:
+        path: The full file path string to shorten.
+        max_chars: Maximum character length of the returned string.
+
+    Returns:
+        Truncated path with ellipsis in the middle if it exceeds max_chars.
+    """
+    if len(path) <= max_chars:
+        return path
+    keep = (max_chars - 3) // 2
+    return f"{path[:keep]}...{path[-keep:]}"
 
 
 def sanitize_filename(text: str, max_length: int = 40) -> str:

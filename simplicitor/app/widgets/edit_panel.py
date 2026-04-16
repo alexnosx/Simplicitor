@@ -70,9 +70,10 @@ class EditPanel(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
+        self.setObjectName("panelContainer")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
+        layout.setContentsMargins(24, 24, 24, 24)  # 16px panel + 8px inner padding
+        layout.setSpacing(12)
 
         heading_font = QFont(APP_FONT_FAMILY, FONT_SIZE_HEADING_PT)
         heading_font.setWeight(QFont.Weight.DemiBold)
@@ -107,7 +108,7 @@ class EditPanel(QWidget):
         prompt_label.setFont(body_font)
         self._prompt_edit = QPlainTextEdit()
         self._prompt_edit.setFont(body_font)
-        self._prompt_edit.setMinimumHeight(100)
+        self._prompt_edit.setMinimumHeight(120)
         self._prompt_edit.setPlaceholderText(EDIT_PROMPT_PLACEHOLDERS["default"])
         self._prompt_edit.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
@@ -120,6 +121,7 @@ class EditPanel(QWidget):
         self._char_counter.setFont(QFont(APP_FONT_FAMILY, 8))
         self._char_counter.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self._char_counter)
+        layout.addSpacing(12)  # extra gap between counter and Save button
 
         # Save button — disabled until file selected + Ollama connected + prompt non-empty
         self._save_btn = QPushButton("Save")
@@ -181,25 +183,31 @@ class EditPanel(QWidget):
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(
-            f"EditPanel {{ background-color: {PANEL_BG_COLOR}; }}"
-            f"QListWidget {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; color: {BODY_TEXT_COLOR}; }}"
-            f"QListWidget::item:selected {{ background-color: {PRIMARY_ACCENT_COLOR}; "
-            f"color: white; }}"
-            f"QPlainTextEdit {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; padding: 6px; color: {BODY_TEXT_COLOR}; }}"
+            f"#panelContainer {{ background-color: {PANEL_BG_COLOR}; "
+            f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
+            # Primary action button
             f"QPushButton#save_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "
-            f"border-radius: {BORDER_RADIUS_PX}px; font-weight: 600; }}"
-            f"QPushButton#save_btn:disabled {{ background-color: {DISABLED_COLOR}; }}"
-            f"QPushButton#save_btn:hover:enabled {{ background-color: {HOVER_ACCENT_COLOR}; }}"
+            f"border: none; border-radius: {BORDER_RADIUS_PX}px; "
+            f"padding: 10px 16px; font-size: 14px; font-weight: 600; }}"
+            f"QPushButton#save_btn:hover {{ background-color: {HOVER_ACCENT_COLOR}; }}"
+            f"QPushButton#save_btn:pressed {{ background-color: #1E40AF; }}"
+            f"QPushButton#save_btn:disabled {{ background-color: {BORDER_COLOR}; "
+            f"color: {DISABLED_COLOR}; }}"
+            # Secondary button (Open file)
+            f"QPushButton#open_file_btn {{ background-color: {WHITE}; "
+            f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
+            f"border-radius: {BORDER_RADIUS_PX}px; padding: 8px 14px; font-size: 13px; "
+            f"font-weight: 500; }}"
+            f"QPushButton#open_file_btn:hover {{ background-color: {PANEL_BG_COLOR}; "
+            f"border-color: #9CA3AF; }}"
+            f"QPushButton#open_file_btn:pressed {{ background-color: {BORDER_COLOR}; }}"
+            f"QPushButton#open_file_btn:disabled {{ color: {DISABLED_COLOR}; "
+            f"border-color: {BORDER_COLOR}; }}"
+            # Retry button
             f"QPushButton#retry_btn_edit {{ background-color: {BORDER_COLOR}; "
             f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
             f"border-radius: {BORDER_RADIUS_PX}px; }}"
             f"QPushButton#retry_btn_edit:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
-            f"QPushButton#open_file_btn {{ background-color: {BORDER_COLOR}; "
-            f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; }}"
-            f"QPushButton#open_file_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
         )
 
     def _connect_signals(self) -> None:
@@ -295,14 +303,18 @@ class EditPanel(QWidget):
             self._open_file_btn.setVisible(False)
         self._save_btn.setText("Saving\u2026" if in_progress else "Save")
 
-    def show_status(self, message: str, is_error: bool = False) -> None:
+    def show_status(
+        self, message: str, is_error: bool = False, secondary: str = "", tooltip: str = ""
+    ) -> None:
         """Show a status message below the Save button.
 
         Args:
-            message: The message to display.
+            message: Short primary message text to display.
             is_error: True for red text (error), False for green (success).
+            secondary: Optional secondary line (e.g. truncated file paths) in muted gray.
+            tooltip: Full text shown on hover over the secondary line.
         """
-        self._status_banner.show_message(message, is_error)
+        self._status_banner.show_message(message, is_error, secondary, tooltip)
 
     def clear_status(self) -> None:
         """Hide the status banner."""

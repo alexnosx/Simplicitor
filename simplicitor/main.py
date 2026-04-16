@@ -6,11 +6,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 
-from app.config.defaults import APP_NAME, APP_FONT_FAMILY, FONT_SIZE_BODY_PT
+from app.config.defaults import (
+    APP_NAME, APP_FONT_FAMILY, FONT_SIZE_BODY_PT,
+    BORDER_COLOR, PRIMARY_ACCENT_COLOR, BODY_TEXT_COLOR, PANEL_BG_COLOR,
+    DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
+)
 from app.config.settings import Settings
 from app.utils.logging_setup import setup_logging
+from app.utils.file_utils import resource_path
 from app.main_window import MainWindow
 
 
@@ -32,6 +37,39 @@ def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
+    icon_path = resource_path("assets/icons/simplicitor.ico")
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
+    app.setStyleSheet(
+        f"QLineEdit, QPlainTextEdit, QListWidget, QComboBox {{"
+        f"    background-color: {WHITE};"
+        f"    border: 1px solid {BORDER_COLOR};"
+        f"    border-radius: {BORDER_RADIUS_PX}px;"
+        f"    padding: 6px 8px;"
+        f"    font-family: 'Segoe UI';"
+        f"    font-size: 13px;"
+        f"    color: {BODY_TEXT_COLOR};"
+        f"}}"
+        f"QLineEdit:focus, QPlainTextEdit:focus, QComboBox:focus {{"
+        f"    border: 1px solid {PRIMARY_ACCENT_COLOR};"
+        f"    outline: none;"
+        f"}}"
+        f"QLineEdit:disabled, QPlainTextEdit:disabled, QComboBox:disabled {{"
+        f"    background-color: #F9FAFB;"
+        f"    color: {DISABLED_COLOR};"
+        f"}}"
+        f"QListWidget::item {{"
+        f"    padding: 6px 8px;"
+        f"    border-radius: 2px;"
+        f"}}"
+        f"QListWidget::item:selected {{"
+        f"    background-color: {PRIMARY_ACCENT_COLOR};"
+        f"    color: {WHITE};"
+        f"}}"
+        f"QListWidget::item:hover:!selected {{"
+        f"    background-color: #EFF6FF;"
+        f"}}"
+    )
 
     window = MainWindow(settings)
     window.show()

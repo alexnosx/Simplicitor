@@ -1,12 +1,13 @@
 # simplicitor/app/widgets/status_bar.py
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox, QPushButton
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QPixmap
 
 from app.config.defaults import (
     APP_NAME, APP_FONT_FAMILY, FONT_SIZE_HEADING_PT, FONT_SIZE_BODY_PT,
     BORDER_COLOR, BODY_TEXT_COLOR, WHITE, SUCCESS_COLOR, ERROR_COLOR,
 )
+from app.utils.file_utils import resource_path
 
 
 class TopBar(QWidget):
@@ -34,15 +35,26 @@ class TopBar(QWidget):
 
     def _build_ui(self) -> None:
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 0, 16, 0)
+        layout.setContentsMargins(16, 4, 16, 4)
         layout.setSpacing(8)
 
-        heading_font = QFont(APP_FONT_FAMILY, FONT_SIZE_HEADING_PT)
-        heading_font.setWeight(QFont.Weight.DemiBold)
+        # Title font: semibold, 12pt (≈16px at 96 DPI)
+        title_font = QFont(APP_FONT_FAMILY, 12)
+        title_font.setWeight(QFont.Weight.DemiBold)
         body_font = QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT)
 
+        # Optional 16x16 app icon to the left of the title
+        icon_path = resource_path("assets/icons/simplicitor_16.png")
+        if icon_path.exists():
+            icon_label = QLabel()
+            pixmap = QPixmap(str(icon_path))
+            icon_label.setPixmap(pixmap.scaled(16, 16))
+            icon_label.setFixedSize(16, 16)
+            layout.addWidget(icon_label)
+            layout.addSpacing(4)
+
         self._title_label = QLabel(APP_NAME)
-        self._title_label.setFont(heading_font)
+        self._title_label.setFont(title_font)
 
         # Connection indicator dot
         self._status_dot = QLabel("●")

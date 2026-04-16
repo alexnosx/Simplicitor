@@ -7,24 +7,36 @@ from PySide6.QtGui import QDragEnterEvent, QDragLeaveEvent, QDropEvent, QMouseEv
 from PySide6.QtWidgets import QFileDialog, QLabel, QWidget
 
 from app.config.defaults import (
-    BODY_TEXT_COLOR,
-    BORDER_COLOR,
-    BORDER_RADIUS_PX,
     EDIT_EXTENSIONS,
     EDIT_FILE_FILTER,
-    PRIMARY_ACCENT_COLOR,
 )
 
 logger = logging.getLogger(__name__)
 
-_STYLE_NORMAL = (
-    f"DropZone {{ border: 2px dashed {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; "
-    f"color: {BODY_TEXT_COLOR}; background: transparent; }}"
-)
-_STYLE_HOVER = (
-    f"DropZone {{ border: 2px solid {PRIMARY_ACCENT_COLOR}; border-radius: {BORDER_RADIUS_PX}px; "
-    f"color: {BODY_TEXT_COLOR}; background: transparent; }}"
-)
+_DROP_ZONE_IDLE = """
+QLabel#DropZone {
+    background-color: #FFFFFF;
+    border: 2px dashed #9CA3AF;
+    border-radius: 6px;
+    padding: 24px;
+    color: #1E1E1E;
+    font-family: 'Segoe UI';
+    font-size: 14px;
+}
+"""
+
+_DROP_ZONE_HOVER = """
+QLabel#DropZone {
+    background-color: #EFF6FF;
+    border: 2px dashed #2563EB;
+    border-radius: 6px;
+    padding: 24px;
+    color: #1E40AF;
+    font-family: 'Segoe UI';
+    font-size: 14px;
+    font-weight: 600;
+}
+"""
 
 
 class DropZone(QLabel):
@@ -43,13 +55,14 @@ class DropZone(QLabel):
             parent: Optional parent widget.
         """
         super().__init__(parent)
-        self.setText("Drop a file here  or  click to browse")
         self.setObjectName("DropZone")
+        self.setTextFormat(Qt.TextFormat.RichText)
+        self.setText("<b>Drop a file here</b> or click to browse")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setFixedHeight(80)
+        self.setMinimumHeight(80)
         self.setAcceptDrops(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(_STYLE_NORMAL)
+        self.setStyleSheet(_DROP_ZONE_IDLE)
 
     # ── Drag events ───────────────────────────────────────────────────────────
 
@@ -59,17 +72,17 @@ class DropZone(QLabel):
             paths = [u.toLocalFile() for u in event.mimeData().urls()]
             if any(Path(p).suffix.lower() in EDIT_EXTENSIONS for p in paths):
                 event.acceptProposedAction()
-                self.setStyleSheet(_STYLE_HOVER)
+                self.setStyleSheet(_DROP_ZONE_HOVER)
                 return
         event.ignore()
 
     def dragLeaveEvent(self, event: QDragLeaveEvent) -> None:
         """Restore normal style when drag leaves the zone."""
-        self.setStyleSheet(_STYLE_NORMAL)
+        self.setStyleSheet(_DROP_ZONE_IDLE)
 
     def dropEvent(self, event: QDropEvent) -> None:
         """Emit file_dropped for the first accepted file in the drop."""
-        self.setStyleSheet(_STYLE_NORMAL)
+        self.setStyleSheet(_DROP_ZONE_IDLE)
         for url in event.mimeData().urls():
             path = url.toLocalFile()
             if Path(path).suffix.lower() in EDIT_EXTENSIONS:

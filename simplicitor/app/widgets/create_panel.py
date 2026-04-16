@@ -48,9 +48,10 @@ class CreatePanel(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
+        self.setObjectName("panelContainer")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
+        layout.setContentsMargins(24, 24, 24, 24)  # 16px panel + 8px inner padding
+        layout.setSpacing(12)
 
         heading_font = QFont(APP_FONT_FAMILY, FONT_SIZE_HEADING_PT)
         heading_font.setWeight(QFont.Weight.DemiBold)
@@ -77,6 +78,7 @@ class CreatePanel(QWidget):
         self._save_path_edit = QLineEdit(self._settings.generated_dir)
         self._save_path_edit.setFont(body_font)
         self._browse_btn = QPushButton("Browse…")
+        self._browse_btn.setObjectName("browse_btn")
         self._browse_btn.setFont(body_font)
         self._browse_btn.setFixedHeight(30)
         save_row.addWidget(self._save_path_edit)
@@ -102,6 +104,7 @@ class CreatePanel(QWidget):
         self._char_counter.setFont(QFont(APP_FONT_FAMILY, 8))
         self._char_counter.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self._char_counter)
+        layout.addSpacing(12)  # extra gap between counter and Generate button
 
         # Complex prompt tip (shown when small model + complex prompt)
         self._tip_label = QLabel(
@@ -173,21 +176,31 @@ class CreatePanel(QWidget):
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(
-            f"CreatePanel {{ background-color: {PANEL_BG_COLOR}; }}"
-            f"QPlainTextEdit {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; padding: 6px; color: {BODY_TEXT_COLOR}; }}"
-            f"QLineEdit {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; padding: 4px 8px; color: {BODY_TEXT_COLOR}; }}"
+            f"#panelContainer {{ background-color: {PANEL_BG_COLOR}; "
+            f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
+            # Primary action button
             f"QPushButton#generate_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "
-            f"border-radius: {BORDER_RADIUS_PX}px; font-weight: 600; }}"
-            f"QPushButton#generate_btn:disabled {{ background-color: {DISABLED_COLOR}; }}"
-            f"QPushButton#generate_btn:hover:enabled {{ background-color: {HOVER_ACCENT_COLOR}; }}"
+            f"border: none; border-radius: {BORDER_RADIUS_PX}px; "
+            f"padding: 10px 16px; font-size: 14px; font-weight: 600; }}"
+            f"QPushButton#generate_btn:hover {{ background-color: {HOVER_ACCENT_COLOR}; }}"
+            f"QPushButton#generate_btn:pressed {{ background-color: #1E40AF; }}"
+            f"QPushButton#generate_btn:disabled {{ background-color: {BORDER_COLOR}; "
+            f"color: {DISABLED_COLOR}; }}"
+            # Secondary buttons (Browse, Open file)
+            f"QPushButton#browse_btn, QPushButton#open_file_btn {{ background-color: {WHITE}; "
+            f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
+            f"border-radius: {BORDER_RADIUS_PX}px; padding: 8px 14px; font-size: 13px; "
+            f"font-weight: 500; }}"
+            f"QPushButton#browse_btn:hover, QPushButton#open_file_btn:hover {{ "
+            f"background-color: {PANEL_BG_COLOR}; border-color: #9CA3AF; }}"
+            f"QPushButton#browse_btn:pressed, QPushButton#open_file_btn:pressed {{ "
+            f"background-color: {BORDER_COLOR}; }}"
+            f"QPushButton#browse_btn:disabled, QPushButton#open_file_btn:disabled {{ "
+            f"color: {DISABLED_COLOR}; border-color: {BORDER_COLOR}; }}"
+            # Retry button
             f"QPushButton#retry_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
             f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
             f"QPushButton#retry_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
-            f"QPushButton#open_file_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
-            f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
-            f"QPushButton#open_file_btn:hover {{ background-color: {BORDER_HOVER_COLOR}; }}"
         )
 
     def _connect_signals(self) -> None:
@@ -276,14 +289,18 @@ class CreatePanel(QWidget):
             self._open_file_btn.setVisible(False)
         self._generate_btn.setText("Generating\u2026" if in_progress else "Generate")
 
-    def show_status(self, message: str, is_error: bool = False) -> None:
+    def show_status(
+        self, message: str, is_error: bool = False, secondary: str = "", tooltip: str = ""
+    ) -> None:
         """Show a status message below the Generate button.
 
         Args:
-            message: The message text to display.
+            message: Short primary message text to display.
             is_error: If True, display message in error color; otherwise success color.
+            secondary: Optional secondary line (e.g. truncated file path) in muted gray.
+            tooltip: Full text shown on hover over the secondary line.
         """
-        self._status_banner.show_message(message, is_error)
+        self._status_banner.show_message(message, is_error, secondary, tooltip)
 
     def clear_status(self) -> None:
         """Hide the status banner."""
