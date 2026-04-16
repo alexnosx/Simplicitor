@@ -7,6 +7,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPlainTextEdit,
@@ -40,7 +41,7 @@ from app.widgets.status_banner import StatusBanner
 logger = logging.getLogger(__name__)
 
 
-class EditPanel(QWidget):
+class EditPanel(QFrame):
     """Right panel: upload a file, describe changes, save the result (Phase 4).
 
     Emits ``save_requested(file_path, prompt)`` when Save is clicked.
@@ -59,6 +60,9 @@ class EditPanel(QWidget):
             parent: Optional parent widget.
         """
         super().__init__(parent)
+        self.setObjectName("editPanel")
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding)
         self._settings = settings
         self._ollama_connected: bool = False
         self._selected_file: str = ""
@@ -70,7 +74,6 @@ class EditPanel(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        self.setObjectName("panelContainer")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)  # 16px panel + 8px inner padding
         layout.setSpacing(12)
@@ -183,7 +186,7 @@ class EditPanel(QWidget):
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(
-            f"#panelContainer {{ background-color: {PANEL_BG_COLOR}; "
+            f"QFrame#editPanel {{ background-color: {PANEL_BG_COLOR}; "
             f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
             # Primary action button
             f"QPushButton#save_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "

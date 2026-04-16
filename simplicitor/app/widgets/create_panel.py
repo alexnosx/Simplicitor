@@ -3,8 +3,8 @@ import logging
 import os
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
-    QLineEdit, QPushButton, QPlainTextEdit, QFileDialog, QSizePolicy,
+    QFrame, QSizePolicy, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
+    QLineEdit, QPushButton, QPlainTextEdit, QFileDialog,
 )
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QFont
@@ -24,7 +24,7 @@ from app.widgets.status_banner import StatusBanner
 logger = logging.getLogger(__name__)
 
 
-class CreatePanel(QWidget):
+class CreatePanel(QFrame):
     """Left panel: generate a new Office document from a prompt.
 
     Emits generate_requested(file_type, save_path, prompt) when Generate
@@ -37,6 +37,9 @@ class CreatePanel(QWidget):
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self.setObjectName("createPanel")
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding)
         self._settings = settings
         self._ollama_connected: bool = False
         self._model_is_small: bool = False
@@ -48,7 +51,6 @@ class CreatePanel(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        self.setObjectName("panelContainer")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)  # 16px panel + 8px inner padding
         layout.setSpacing(12)
@@ -176,7 +178,7 @@ class CreatePanel(QWidget):
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(
-            f"#panelContainer {{ background-color: {PANEL_BG_COLOR}; "
+            f"QFrame#createPanel {{ background-color: {PANEL_BG_COLOR}; "
             f"border: 1px solid {BORDER_COLOR}; border-radius: {BORDER_RADIUS_PX}px; }}"
             # Primary action button
             f"QPushButton#generate_btn {{ background-color: {PRIMARY_ACCENT_COLOR}; color: white; "

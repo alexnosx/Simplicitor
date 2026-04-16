@@ -4,9 +4,9 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QCloseEvent, QIcon
-from PySide6.QtWidgets import QMainWindow, QSplitter, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
 from app.config.defaults import (
     APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
             self.setWindowIcon(QIcon(str(icon_path)))
 
         central = QWidget()
+        central.setStyleSheet(f"background-color: {BACKGROUND_COLOR};")
         self.setCentralWidget(central)
 
         root_layout = QVBoxLayout(central)
@@ -76,19 +77,17 @@ class MainWindow(QMainWindow):
         self._capability_banner = CapabilityBanner()
         root_layout.addWidget(self._capability_banner)
 
-        # Two-panel horizontal splitter
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setHandleWidth(12)  # 12px gap between panels
-        splitter.setChildrenCollapsible(False)
-
+        # Two-panel area — QFrame panels in a horizontal layout with padding and gap
         self._create_panel = CreatePanel(self._settings)
         self._edit_panel = EditPanel(self._settings)
 
-        splitter.addWidget(self._create_panel)
-        splitter.addWidget(self._edit_panel)
-        splitter.setSizes([500, 500])
+        panels_layout = QHBoxLayout()
+        panels_layout.setContentsMargins(16, 16, 16, 16)
+        panels_layout.setSpacing(12)
+        panels_layout.addWidget(self._create_panel, 1)
+        panels_layout.addWidget(self._edit_panel, 1)
 
-        root_layout.addWidget(splitter)
+        root_layout.addLayout(panels_layout, stretch=1)
 
     def _connect_signals(self) -> None:
         self._top_bar.settings_requested.connect(self._open_settings)
@@ -97,11 +96,7 @@ class MainWindow(QMainWindow):
         self._edit_panel.save_requested.connect(self._on_save_requested)
 
     def _apply_styles(self) -> None:
-        self.setStyleSheet(
-            f"QMainWindow {{ background-color: {BACKGROUND_COLOR}; }}"
-            f"QMainWindow > QWidget {{ background-color: {BACKGROUND_COLOR}; }}"
-            f"QSplitter::handle {{ background-color: {BACKGROUND_COLOR}; }}"
-        )
+        self.setStyleSheet(f"QMainWindow {{ background-color: {BACKGROUND_COLOR}; }}")
 
     # ── Ollama worker ─────────────────────────────────────────────────────────
 

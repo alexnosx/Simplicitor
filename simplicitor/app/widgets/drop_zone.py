@@ -59,6 +59,7 @@ class DropZone(QLabel):
         self.setTextFormat(Qt.TextFormat.RichText)
         self.setText("<b>Drop a file here</b> or click to browse")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setWordWrap(True)
         self.setMinimumHeight(80)
         self.setAcceptDrops(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
