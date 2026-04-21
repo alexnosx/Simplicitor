@@ -121,3 +121,92 @@ def test_manipulate_worker_emits_failed_on_unreadable_file(qtbot, tmp_path):
     with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
         worker.run()
     assert blocker.args[0]  # non-empty error message
+
+
+# ── Scope detection tests ─────────────────────────────────────────────────────
+
+def _make_valid_pptx(path: Path) -> None:
+    """Write a minimal valid .pptx file with one slide for testing."""
+    from pptx import Presentation as _Prs
+    from pptx.util import Inches, Pt
+    prs = _Prs()
+    slide = prs.slides.add_slide(prs.slide_layouts[1])  # title+content layout
+    slide.placeholders[0].text = "Test Slide"
+    slide.placeholders[1].text = "Some bullet content"
+    prs.save(str(path))
+
+
+def _make_valid_docx(path: Path) -> None:
+    """Write a minimal valid .docx file for testing."""
+    from docx import Document as _Doc
+    doc = _Doc()
+    doc.add_paragraph("Hello world")
+    doc.save(str(path))
+
+
+def test_scope_check_rejects_styling_prompt_for_pptx(qtbot, tmp_path):
+    """Styling keyword in prompt + .pptx → failed with scope message; Ollama not called."""
+    pptx_file = tmp_path / "deck.pptx"
+    _make_valid_pptx(pptx_file)
+    client = MagicMock()
+
+    worker = ManipulateWorker(
+        str(pptx_file), "change the theme color to blue", "llama3", client, str(tmp_path / "bk")
+    )
+    with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
+        worker.run()
+
+    msg = blocker.args[0]
+    assert "cannot" in msg.lower()
+    assert "not modified" in msg.lower()
+    client.generate.assert_not_called()
+    assert not (tmp_path / "bk").exists()  # no backup directory created
+
+
+def test_scope_check_rejects_styling_prompt_for_docx(qtbot, tmp_path):
+    """Styling keyword in prompt + .docx → same scope rejection."""
+    docx_file = tmp_path / "report.docx"
+    _make_valid_docx(docx_file)
+    client = MagicMock()
+
+    worker = ManipulateWorker(
+        str(docx_file), "update the font to Arial and make it bold", "llama3", client, str(tmp_path / "bk")
+    )
+    with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
+        worker.run()
+
+    msg = blocker.args[0]
+    assert "cannot" in msg.lower()
+    client.generate.assert_not_called()
+
+
+def test_scope_check_does_not_block_txt_with_styling_keyword(qtbot, tmp_path):
+    """Styling keyword in prompt + .txt → scope check does NOT fire; Ollama IS called."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Some notes about color theory.", encoding="utf-8")
+    client = MagicMock()
+    client.generate.return_value = "Modified notes about color theory."
+
+    worker = ManipulateWorker(
+        str(txt_file), "mention the color blue more", "llama3", client, str(tmp_path / "bk")
+    )
+    with qtbot.waitSignal(worker.completed, timeout=5000):
+        worker.run()
+
+    client.generate.assert_called_once()
+
+
+def test_scope_check_does_not_block_pptx_with_safe_prompt(qtbot, tmp_path):
+    """Non-styling prompt + .pptx → scope check passes; pipeline continues normally."""
+    pptx_file = tmp_path / "deck.pptx"
+    _make_valid_pptx(pptx_file)
+    client = MagicMock()
+    client.generate.return_value = "[Slide 1]\nNew Title\nBullet one"
+
+    worker = ManipulateWorker(
+        str(pptx_file), "rewrite the slide titles to be more concise", "llama3", client, str(tmp_path / "bk")
+    )
+    with qtbot.waitSignal(worker.completed, timeout=5000):
+        worker.run()
+
+    client.generate.assert_called_once()

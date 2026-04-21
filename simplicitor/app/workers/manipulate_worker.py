@@ -4,7 +4,13 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
 
-from app.config.defaults import MAX_MANIPULATION_CHARS, MANIPULATION_TOKEN_LIMIT, OLLAMA_MANIPULATION_TIMEOUT_S
+from app.config.defaults import (
+    MAX_MANIPULATION_CHARS,
+    MANIPULATION_TOKEN_LIMIT,
+    MANIPULATION_OUT_OF_SCOPE_KEYWORDS,
+    MANIPULATION_VISUAL_EXTENSIONS,
+    OLLAMA_MANIPULATION_TIMEOUT_S,
+)
 from app.services.backup_service import BackupService
 from app.services.file_manipulator import FileManipulator, ManipulationError
 from app.services.ollama_client import (
@@ -60,6 +66,24 @@ class ManipulateWorker(QObject):
 
     def run(self) -> None:
         """Execute the manipulation pipeline. Called by QThread via started signal."""
+        # ── Scope check ───────────────────────────────────────────────────────
+        # Detect visual/styling requests that the v1 pipeline cannot fulfill.
+        # Must run before started.emit() so no spinner shows, no backup is
+        # created, and the file is never touched.
+        file_suffix = Path(self.file_path).suffix.lower()
+        if file_suffix in MANIPULATION_VISUAL_EXTENSIONS:
+            prompt_lower = self.prompt.lower()
+            if any(kw in prompt_lower for kw in MANIPULATION_OUT_OF_SCOPE_KEYWORDS):
+                logger.warning(
+                    "Out-of-scope manipulation request (styling keywords in prompt) for %s",
+                    self.file_path,
+                )
+                self.failed.emit(
+                    "Simplicitor can modify text and structure in existing files, but cannot "
+                    "change themes, colors, or visual styling in v1. Your file was not modified."
+                )
+                return
+
         # Load system prompt
         prompt_path = PROMPTS_DIR / _SYSTEM_PROMPT_FILE
         try:

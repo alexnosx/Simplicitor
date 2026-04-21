@@ -56,6 +56,17 @@ STYLING_KEYWORDS = [
     "border", "background", "dark", "light",
 ]
 
+# ── Out-of-scope keywords for manipulation (visual/styling requests) ───────────
+# Prompts matching these keywords against .pptx/.docx files are rejected before
+# any file I/O because the pipeline can only modify text and structure in v1.
+MANIPULATION_OUT_OF_SCOPE_KEYWORDS = [
+    "theme", "color", "colour", "style", "font", "layout",
+    "background", "design", "template", "image", "picture",
+    "logo", "icon", "shape", "border", "animation", "transition",
+]
+# File types where visual changes are commonly requested but unsupported
+MANIPULATION_VISUAL_EXTENSIONS = {".pptx", ".docx"}
+
 # ── File Types ────────────────────────────────────────────────────────────────
 GENERATE_FILE_TYPES = ["Word (.docx)", "Excel (.xlsx)", "PowerPoint (.pptx)"]
 EDIT_EXTENSIONS = [".docx", ".xlsx", ".pptx", ".txt", ".pdf"]
