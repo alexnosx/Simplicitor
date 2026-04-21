@@ -430,7 +430,7 @@ def test_main_window_on_generate_completed_shows_status(qtbot, tmp_path) -> None
     qtbot.addWidget(window)
     window._on_generate_completed("/some/path/report.docx")
     assert window._create_panel._status_banner.isVisible()
-    assert "report.docx" in window._create_panel._status_banner.text()
+    assert "File created successfully" in window._create_panel._status_banner.text()
     assert window._create_panel._open_file_btn.isVisible()
 
 
@@ -742,7 +742,7 @@ def test_main_window_on_save_completed_shows_status(qtbot, tmp_path) -> None:
     qtbot.addWidget(window)
     window._on_manipulate_completed("/path/result.docx", "/path/backups/result_backup.docx")
     assert window._edit_panel._status_banner.isVisible()
-    assert "result.docx" in window._edit_panel._status_banner.text()
+    assert "File saved. Backup created." in window._edit_panel._status_banner.text()
     assert window._edit_panel._open_file_btn.isVisible()
 
 

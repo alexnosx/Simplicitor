@@ -32,7 +32,7 @@ def test_build_script_includes_prompts_dir() -> None:
 
 
 def test_build_script_references_icon() -> None:
-    assert "icon.ico" in _content()
+    assert "windows-icon-from-ico" in _content()
 
 
 def test_build_script_sets_product_name() -> None:

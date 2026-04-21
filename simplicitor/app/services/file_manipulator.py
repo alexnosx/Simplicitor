@@ -177,7 +177,24 @@ class FileManipulator:
     def _apply_pptx(self, path: Path, text: str) -> Path:
         from pptx import Presentation
         from app.config.defaults import PPTX_LAYOUT_TITLE_CONTENT
-        prs = Presentation()
+
+        # Open the EXISTING file rather than Presentation() — a .pptx file is a
+        # self-contained ZIP with its own slide masters and layouts, so no
+        # default.pptx lookup occurs.  This also preserves the user's theme.
+        prs = Presentation(str(path))
+
+        # Remove all existing slides so we can rebuild from the LLM response.
+        # drop_rel() cleans up the relationship entry; removing from _sldIdLst
+        # removes the slide reference from the presentation manifest.
+        slide_id_list = prs.slides._sldIdLst
+        for sld_id in list(slide_id_list):
+            r_id = sld_id.get(
+                "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
+            )
+            if r_id:
+                prs.part.drop_rel(r_id)
+            slide_id_list.remove(sld_id)
+
         layout = prs.slide_layouts[PPTX_LAYOUT_TITLE_CONTENT]
 
         title = ""
