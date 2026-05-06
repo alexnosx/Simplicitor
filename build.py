@@ -26,6 +26,7 @@ NUITKA_FLAGS = [
     "--onefile",
     "--windows-console-mode=disable",
     "--enable-plugin=pyside6",
+    "--assume-yes-for-downloads",
     # Bundle the prompts/ directory so the app can read system prompts at runtime.
     # Source path is relative to the build working directory (simplicitor/).
     "--include-data-dir=prompts=prompts",
