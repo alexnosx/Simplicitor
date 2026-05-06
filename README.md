@@ -1,105 +1,35 @@
 # Simplicitor
 
-Generate and edit Word, Excel, and PowerPoint files using plain English — powered by a locally running AI.
+*Native Windows app that turns a local Ollama LLM into an Office document generator.*
 
-No cloud. No subscription. No data leaves your machine.
+[![License: Polyform Noncommercial 1.0](https://img.shields.io/badge/license-Polyform%20Noncommercial%201.0-blue)](LICENSE) [![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey)](https://github.com/alexnosx/Simplicitor/releases) [![Built with: Python + PySide6 + Ollama](https://img.shields.io/badge/built%20with-Python%20%2B%20PySide6%20%2B%20Ollama-informational)]()
 
-## Requirements
+## What it is
 
-- **Windows 10 or 11** (64-bit)
-- **[Ollama](https://ollama.com)** installed and running on your machine
-- At least one language model loaded in Ollama (see recommendations below)
+Simplicitor generates and edits Word, Excel, and PowerPoint files from natural language prompts. You type what you want, select a file type, and the app talks to a locally running Ollama instance to produce the file. For existing documents, you drag a file in, describe the change, and Simplicitor applies it and saves a backup. Single `.exe`, no installation, no Python required, no cloud.
 
-## Installation
+Simplicitor is not a chat interface. It is not a RAG tool. It is not a model manager or a general-purpose AI assistant. It does one thing: it turns a local LLM into a document production tool with a file output you can actually use.
 
-1. Download `Simplicitor.exe` from the [Releases](../../releases) page
-2. Double-click `Simplicitor.exe` — no installation or Python required
+## Why this exists
 
-## Recommended Models
+The local AI space is saturated with chat interfaces. Chat is the commodity. What is missing is the step after the conversation — the actual file, the deliverable, the thing a non-technical user can take somewhere. Simplicitor exists because the "I installed Ollama, now what?" gap is real and unaddressed. Users go through the effort of running a local model and then have nowhere productive to take it. This app closes that gap: pick a file type, describe what you need, get a file.
 
-For best results use a model with **7 billion parameters or more**:
+## Screenshot
 
-| Model | Download size | Ollama command |
-|---|---|---|
-| Qwen3 8B | ~5 GB | `ollama pull qwen3:8b` |
-| Llama 3.1 8B | ~4.7 GB | `ollama pull llama3.1:8b` |
-| Mistral 7B | ~4 GB | `ollama pull mistral:7b` |
+![Simplicitor screenshot](docs/screenshot.png)
 
-Smaller models work for simple requests but may struggle with complex documents.
+## Install and run
 
-## Quick Start
+### Download the binary
 
-### 1. Start Ollama
+Download `Simplicitor.exe` from the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. The binary is currently unsigned — Windows SmartScreen will show a warning on first run. To run it anyway: click **More info**, then **Run anyway**.
 
-Open a terminal (Win+R → `cmd`) and run:
+### Build from source
 
-```
-ollama serve
-```
-
-Then in another terminal, load your model:
-
-```
-ollama run qwen3:8b
-```
-
-### 2. Launch Simplicitor
-
-Double-click `Simplicitor.exe`. The status dot in the top bar turns **green** when the AI is ready.
-
-### Create a new document
-
-1. Select a file type: **Word**, **Excel**, or **PowerPoint**
-2. Choose where to save it (defaults to `Documents\Simplicitor\Generated`)
-3. Describe what you need in the text box
-4. Click **Generate** — the file is saved automatically and an **Open file** button appears
-
-### Edit an existing document
-
-1. Drag a `.docx`, `.xlsx`, `.pptx`, `.txt`, or `.pdf` file into the Edit panel (or click to browse)
-2. Describe the change you want
-3. Click **Save** — a backup of the original is created automatically in `Documents\Simplicitor\Backups`
-
-## Troubleshooting
-
-**"AI engine not connected" (red indicator)**
-- Make sure Ollama is running: open a terminal and run `ollama serve`
-- Click the **Retry** button in the app
-
-**Generation produces empty or garbled output**
-- Try a shorter, simpler prompt
-- Use a larger model (7B+ recommended)
-- Check the logs: Settings → View Logs Folder
-
-**"Cannot create the output folder" error**
-- Open Settings (⚙ gear icon) and verify the "Generated files" path is valid
-- Make sure you have write permission to that folder
-
-**The generated file looks wrong (missing formatting, wrong structure)**
-- The AI controls content; Simplicitor handles formatting
-- Try adding more detail to your prompt
-- Upgrade to a larger model
-
-## Settings
-
-Click the **⚙** gear icon (top right) to configure:
-
-| Setting | Default location |
-|---|---|
-| Generated files | `Documents\Simplicitor\Generated` |
-| Uploaded files | `Documents\Simplicitor\Uploads` |
-| Backups | `Documents\Simplicitor\Backups` |
-| Logs | `Documents\Simplicitor\Logs` |
-
-Click **View Logs Folder** to open the log directory in Explorer.
-Click **Reset to Defaults** to restore all paths to their defaults.
-
-## Building from Source
-
-Requirements: Python 3.11+, Git
+Requirements: Python 3.11+, Git.
 
 ```bat
-git clone <repo-url>
+git clone https://github.com/alexnosx/Simplicitor.git
 cd Simplicitor
 pip install -r requirements.txt
 pip install -r requirements-build.txt
@@ -107,8 +37,36 @@ python resources/create_icon.py
 python build.py
 ```
 
-The compiled executable will be at `dist\Simplicitor.exe`.
+The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files and pptx template, and writes `dist\Simplicitor.exe`. Build time is 5–10 minutes on a modern machine.
 
-## Privacy
+## Requirements
 
-Simplicitor sends your prompts only to the Ollama instance running on your own machine. No data is sent to any external server. Log files contain operation metadata (timestamps, file types, success/error status) but never file content or prompt text.
+- Windows 10 or 11 (64-bit)
+- A running Ollama instance reachable at `localhost:11434`
+- At least one model pulled (`ollama pull <model>`)
+- Recommended: 7B+ parameter model for reliable structured output (4B works with degraded output quality on complex documents)
+
+## How it was built
+
+Simplicitor was built PRD-first: a v1.0 PRD was written before any code, iterated to v1.2 against scope creep and architectural stress tests, then broken into six implementation phases. Claude Opus 4.6 was the strategic thinking partner for architecture and contract design; Claude Code handled all implementation across approximately 1.4 million tokens of generation. The human role was PM, architect, code reviewer, and tester — not coder. Not a single line of code was written by hand. See [BUILD_STORY.md](BUILD_STORY.md) for the full account.
+
+## Architecture at a glance
+
+- **LLM produces content and structure only** — Python handles all formatting, colors, and layout; this is what makes the app work reliably on 4B models
+- **Scope detection on manipulation** — out-of-scope prompts (theme colors, visual styling) are detected and rejected before any file is touched; no silent failures
+- **One-to-one backup logic** — first manipulation of a file creates a backup; subsequent manipulations of the same file do not; the backup always represents the original state
+- **Model capability guidance, not gatekeeping** — sub-7B models show a non-blocking info banner; the app coaches users instead of blocking them
+- **Nuitka over PyInstaller** — native C compilation produces a smaller binary (~30 MB) with dramatically fewer antivirus false positives
+- **No cloud, no telemetry** — all communication is localhost Ollama only; log files record metadata (timestamps, file type, success/error) but never prompt text or file content
+
+## License
+
+Simplicitor is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). You may read, fork, modify, and use it for personal and noncommercial purposes. You may not sell it, include it in a paid product, or use it as part of a commercial offering. See [LICENSE_NOTICE.md](LICENSE_NOTICE.md) for a plain-English summary.
+
+## Contributing
+
+Issues are welcome but not guaranteed to be addressed — this is a personal demonstration project with limited maintenance bandwidth. Pull requests are not currently accepted. Forks for personal use are encouraged under the license terms.
+
+## Author
+
+Built by [Alexandru Pop](https://www.linkedin.com/in/alexandru-pop-b29b73198/)

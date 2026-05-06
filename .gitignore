@@ -1,20 +1,83 @@
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
-.pytest_cache/
+*.pyd
+*.so
+*.egg
 *.egg-info/
+.eggs/
 dist/
 build/
+*.whl
+MANIFEST
+pip-wheel-metadata/
+
+# Virtual environments
 .venv/
 venv/
+env/
+ENV/
+.env/
+.venv.bak/
+
+# Nuitka build artifacts
+*.dist/
+*.build/
+*.onefile-build/
+.nuitka/
+*.nuitka-*.tmp
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
 
 # Application logs and output
 logs/
 *.log
 
-# Nuitka build artifacts
-.nuitka/
-*.nuitka-*.tmp
-
 # Environment files
 .env
+.env.local
+.env.*.local
+
+# Internal planning and handoff documents (not for public repo)
+docs/OPEN_SOURCE_TASK.MD
+docs/simplicitor_handoff.pdf
+
+# Internal working notes — never publish
+FUTURE_WORK.md
+AUDIT_REPORT.md
+HANDOFF_TO_HUMAN.md
