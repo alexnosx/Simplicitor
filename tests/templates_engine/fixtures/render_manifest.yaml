@@ -1,0 +1,40 @@
+name: render_test
+type: pptx
+template_file: template.pptx
+description: Manifest for render_pptx tests
+slide_types:
+  title_slide:
+    layout_index: 0
+    fields:
+      - name: title
+        placeholder_idx: 0
+        kind: text
+        required: true
+        max_chars: 20
+      - name: subtitle
+        placeholder_idx: 1
+        kind: text
+        required: false
+  content_slide:
+    layout_index: 1
+    fields:
+      - name: heading
+        placeholder_idx: 0
+        kind: text
+        required: true
+      - name: body
+        placeholder_idx: 1
+        kind: bullets
+        required: false
+        max_items: 2
+  image_slide:
+    layout_index: 1
+    fields:
+      - name: heading
+        placeholder_idx: 0
+        kind: text
+        required: true
+      - name: img
+        placeholder_idx: 1
+        kind: image
+        required: false
