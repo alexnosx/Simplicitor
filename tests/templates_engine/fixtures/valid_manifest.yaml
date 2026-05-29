@@ -1,0 +1,43 @@
+name: test_template
+type: pptx
+template_file: test_template.pptx
+description: A valid test template for Phase B
+slide_types:
+  title:
+    layout_index: 0
+    repeatable: false
+    fields:
+      - name: title
+        placeholder_idx: 0
+        kind: text
+        required: true
+        max_chars: 100
+      - name: subtitle
+        placeholder_idx: 1
+        kind: text
+        required: false
+  content:
+    layout_index: 1
+    repeatable: true
+    fields:
+      - name: heading
+        placeholder_idx: 0
+        kind: text
+        required: true
+      - name: body
+        placeholder_idx: 1
+        kind: bullets
+        required: false
+        max_items: 8
+  photo:
+    layout_index: 2
+    repeatable: true
+    fields:
+      - name: heading
+        placeholder_idx: 0
+        kind: text
+        required: true
+      - name: image
+        placeholder_idx: 10
+        kind: image
+        required: false
