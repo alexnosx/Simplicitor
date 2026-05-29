@@ -2,10 +2,10 @@
 # Phase B: Manifest schema, loader, and linter.
 import logging
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -13,25 +13,29 @@ logger = logging.getLogger(__name__)
 # Schema
 # ---------------------------------------------------------------------------
 
-VALID_KINDS = {"text", "bullets", "image"}
-
 
 class FieldDef(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     name: str
     placeholder_idx: int
     kind: Literal["text", "bullets", "image"]
     required: bool
-    max_chars: Optional[int] = None
-    max_items: Optional[int] = None
+    max_chars: int | None = Field(default=None, ge=1)
+    max_items: int | None = Field(default=None, ge=1)
 
 
 class SlideTypeDef(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     layout_index: int
     repeatable: bool = False
     fields: list[FieldDef] = []
 
 
 class Manifest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     name: str
     type: Literal["pptx"]
     template_file: str
@@ -50,7 +54,7 @@ def load_manifest(path: str | Path) -> Manifest:
         path: Path to the manifest YAML file.
 
     Returns:
-        A validated Manifest instance.
+        A validated, immutable Manifest instance.
 
     Raises:
         OSError: If the file cannot be read.
@@ -114,6 +118,12 @@ def lint_manifest(manifest: Manifest) -> list[str]:
         List of human-readable warning strings.
     """
     warnings: list[str] = []
+
+    if not manifest.slide_types:
+        warnings.append(
+            "Manifest has no slide types defined — no slides can be rendered."
+        )
+        return warnings
 
     for slide_name, slide in manifest.slide_types.items():
         if not slide.fields:

@@ -1,0 +1,12 @@
+name: broken_kind_template
+type: pptx
+template_file: broken.pptx
+description: Broken fixture -- field has an invalid kind value
+slide_types:
+  title:
+    layout_index: 0
+    fields:
+      - name: title
+        placeholder_idx: 0
+        kind: invalid_kind   # not text|bullets|image -- should fail Pydantic validation
+        required: true

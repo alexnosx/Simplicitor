@@ -55,24 +55,42 @@ def test_valid_manifest_image_field():
 
 def test_repeatable_defaults_false():
     m = load_manifest(FIXTURES / "valid_manifest.yaml")
-    # title slide has repeatable: false explicitly; content has repeatable: true
     assert m.slide_types["title"].repeatable is False
     assert m.slide_types["content"].repeatable is True
 
 
+def test_manifest_is_immutable():
+    m = load_manifest(FIXTURES / "valid_manifest.yaml")
+    with pytest.raises(Exception):  # pydantic ValidationError or AttributeError
+        m.name = "mutated"  # type: ignore[misc]
+
+
 # ---------------------------------------------------------------------------
-# load_manifest — broken fixture (raises ValueError naming the problem)
+# load_manifest — broken_kind_manifest fixture
 # ---------------------------------------------------------------------------
 
-def test_broken_manifest_raises_value_error():
+def test_broken_kind_raises_value_error():
     with pytest.raises(ValueError):
-        load_manifest(FIXTURES / "broken_manifest.yaml")
+        load_manifest(FIXTURES / "broken_kind_manifest.yaml")
 
 
-def test_broken_manifest_error_names_problem():
-    """The error message must identify the specific validation failure."""
-    with pytest.raises(ValueError, match=r"invalid_kind|kind|duplicate|validation failed"):
-        load_manifest(FIXTURES / "broken_manifest.yaml")
+def test_broken_kind_error_names_problem():
+    with pytest.raises(ValueError, match=r"kind|invalid_kind|validation failed"):
+        load_manifest(FIXTURES / "broken_kind_manifest.yaml")
+
+
+# ---------------------------------------------------------------------------
+# load_manifest — broken_duplicate_manifest fixture
+# ---------------------------------------------------------------------------
+
+def test_broken_duplicate_raises_value_error():
+    with pytest.raises(ValueError):
+        load_manifest(FIXTURES / "broken_duplicate_manifest.yaml")
+
+
+def test_broken_duplicate_error_names_field():
+    with pytest.raises(ValueError, match=r"duplicate.*body|body.*duplicate"):
+        load_manifest(FIXTURES / "broken_duplicate_manifest.yaml")
 
 
 # ---------------------------------------------------------------------------
@@ -131,7 +149,7 @@ def test_duplicate_field_name_raises_value_error(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_missing_required_key_raises(tmp_path):
-    data = {"name": "x", "type": "pptx", "template_file": "x.pptx"}  # missing description, slide_types
+    data = {"name": "x", "type": "pptx", "template_file": "x.pptx"}
     p = tmp_path / "missing.yaml"
     p.write_text(yaml.dump(data), encoding="utf-8")
     with pytest.raises(ValueError, match=r"validation failed|description|slide_types"):
@@ -141,7 +159,7 @@ def test_missing_required_key_raises(tmp_path):
 def test_wrong_type_value_raises(tmp_path):
     data = {
         "name": "x",
-        "type": "docx",  # must be "pptx"
+        "type": "docx",
         "template_file": "x.pptx",
         "description": "d",
         "slide_types": {},
@@ -171,6 +189,50 @@ def test_missing_file_raises_oserror(tmp_path):
         load_manifest(tmp_path / "nonexistent.yaml")
 
 
+def test_negative_max_chars_raises(tmp_path):
+    data = {
+        "name": "x",
+        "type": "pptx",
+        "template_file": "x.pptx",
+        "description": "d",
+        "slide_types": {
+            "s": {
+                "layout_index": 0,
+                "fields": [
+                    {"name": "t", "placeholder_idx": 0, "kind": "text",
+                     "required": True, "max_chars": -1},
+                ],
+            }
+        },
+    }
+    p = tmp_path / "neg_chars.yaml"
+    p.write_text(yaml.dump(data), encoding="utf-8")
+    with pytest.raises(ValueError):
+        load_manifest(p)
+
+
+def test_zero_max_items_raises(tmp_path):
+    data = {
+        "name": "x",
+        "type": "pptx",
+        "template_file": "x.pptx",
+        "description": "d",
+        "slide_types": {
+            "s": {
+                "layout_index": 0,
+                "fields": [
+                    {"name": "b", "placeholder_idx": 1, "kind": "bullets",
+                     "required": False, "max_items": 0},
+                ],
+            }
+        },
+    }
+    p = tmp_path / "zero_items.yaml"
+    p.write_text(yaml.dump(data), encoding="utf-8")
+    with pytest.raises(ValueError):
+        load_manifest(p)
+
+
 # ---------------------------------------------------------------------------
 # lint_manifest
 # ---------------------------------------------------------------------------
@@ -178,6 +240,18 @@ def test_missing_file_raises_oserror(tmp_path):
 def test_lint_clean_manifest():
     m = load_manifest(FIXTURES / "valid_manifest.yaml")
     assert lint_manifest(m) == []
+
+
+def test_lint_warns_no_slide_types():
+    m = Manifest(
+        name="x",
+        type="pptx",
+        template_file="x.pptx",
+        description="d",
+        slide_types={},
+    )
+    warnings = lint_manifest(m)
+    assert any("no slide types" in w for w in warnings)
 
 
 def test_lint_warns_empty_fields():

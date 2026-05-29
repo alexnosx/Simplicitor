@@ -1,0 +1,16 @@
+name: broken_duplicate_template
+type: pptx
+template_file: broken.pptx
+description: Broken fixture -- duplicate field name within a slide type
+slide_types:
+  content:
+    layout_index: 1
+    fields:
+      - name: body
+        placeholder_idx: 1
+        kind: bullets
+        required: false
+      - name: body           # duplicate -- should fail post-Pydantic duplicate check
+        placeholder_idx: 2
+        kind: text
+        required: false
