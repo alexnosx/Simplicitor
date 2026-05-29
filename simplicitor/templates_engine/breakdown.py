@@ -1,6 +1,7 @@
 # templates_engine/breakdown.py
 # Phase D-F: PPTX structural inspector, content stripping, draft manifest generation.
 import logging
+import re
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -12,11 +13,89 @@ _SLIDE_REL_ATTR = "{http://schemas.openxmlformats.org/officeDocument/2006/relati
 # Placeholder types that carry no fillable content (date stamp, footer text, slide counter).
 _DECORATIVE_TYPES = frozenset({"DATE", "FOOTER", "SLIDE_NUMBER"})
 
+_HARD_STOP_MESSAGE = (
+    "This presentation can't be used as a template. Simplicitor builds slides by filling "
+    "content placeholders defined in a presentation's layouts. This deck's slides use "
+    "manually placed text boxes rather than layout placeholders, so there's no structure "
+    "to fill. This is normal for hand-built decks - nothing is wrong with your file. You "
+    "can use one of Simplicitor's built-in templates, or rebuild this deck using "
+    "PowerPoint's slide layouts, then upload again."
+)
+
 
 def _emu_to_in(emu: int | None) -> str:
     if emu is None:
         return "?"
     return f"{emu / _EMU_PER_INCH:.2f}\""
+
+
+def _slugify(text: str) -> str:
+    """Convert a display name to a valid snake_case manifest key."""
+    slug = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+    return slug or "layout"
+
+
+def _infer_kind(type_str: str) -> str:
+    """Guess the field kind from a placeholder type string."""
+    upper = type_str.upper()
+    if "PICTURE" in upper or "MEDIA" in upper or "CLIP_ART" in upper:
+        return "image"
+    if "BODY" in upper:
+        return "bullets"
+    return "text"
+
+
+def _label_placeholders(placeholders: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Assign name+kind to each non-decorative, non-custom placeholder in a layout.
+
+    Labeling rules (in priority order):
+    - idx=0 -> name "title", kind "text"
+    - "PICTURE" in type -> name "image", kind "image"
+    - Multiple placeholders sharing the same type string -> NEEDS_LABEL_<idx>
+    - "BODY" in type (single) -> name "body", kind "bullets"
+    - "SUBTITLE" in type (single) -> name "subtitle", kind "text"
+    - Anything else (single, unrecognised) -> NEEDS_LABEL_<idx>, kind guessed
+
+    Custom (idx>=10) and decorative (DATE/FOOTER/SLIDE_NUMBER) placeholders are skipped.
+    """
+    content_phs = [
+        ph for ph in placeholders
+        if ph["idx"] < 10
+        and not any(dt in ph["type"].upper() for dt in _DECORATIVE_TYPES)
+    ]
+
+    # Count occurrences of each type string to detect ambiguity within this layout.
+    type_counts: dict[str, int] = {}
+    for ph in content_phs:
+        type_counts[ph["type"]] = type_counts.get(ph["type"], 0) + 1
+
+    fields: list[dict[str, Any]] = []
+    for ph in content_phs:
+        idx = ph["idx"]
+        type_str = ph["type"]
+        upper = type_str.upper()
+
+        if idx == 0:
+            name, kind = "title", "text"
+        elif "PICTURE" in upper:
+            name, kind = "image", "image"
+        elif type_counts[type_str] > 1:
+            name, kind = f"NEEDS_LABEL_{idx}", _infer_kind(type_str)
+        elif "BODY" in upper:
+            name, kind = "body", "bullets"
+        elif "SUBTITLE" in upper:
+            name, kind = "subtitle", "text"
+        else:
+            name, kind = f"NEEDS_LABEL_{idx}", _infer_kind(type_str)
+
+        fields.append({
+            "name": name,
+            "placeholder_idx": idx,
+            "kind": kind,
+            "required": True,
+        })
+
+    return fields
 
 
 def _open_presentation(path: Path):
@@ -234,7 +313,7 @@ def score_layouts(inspection: dict[str, Any]) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Phase F stubs: generate_draft_manifest, detection_report, hard_stop_result
+# Phase F: generate_draft_manifest, detection_report, hard_stop_result
 # ---------------------------------------------------------------------------
 
 def generate_draft_manifest(
@@ -242,15 +321,145 @@ def generate_draft_manifest(
     scoring: dict[str, Any],
     template_file: str,
 ) -> dict[str, Any]:
-    raise NotImplementedError
+    """Generate a draft manifest dict from an inspection and scoring result.
+
+    Only usable layouts (per scoring) are included as slide types.
+    Placeholders are auto-labeled: idx=0 -> title, PICTURE -> image,
+    same-type duplicates -> NEEDS_LABEL_<idx>. Custom and decorative
+    placeholders are excluded. The returned dict is compatible with
+    load_manifest after YAML serialisation.
+
+    Args:
+        inspection: The dict returned by inspect_pptx().
+        scoring: The dict returned by score_layouts().
+        template_file: Filename of the stripped .pptx (stored in the manifest).
+
+    Returns:
+        A manifest dict ready for yaml.dump / load_manifest round-trip.
+
+    Raises:
+        ValueError: If inspection or scoring are not the expected dicts.
+    """
+    if "layouts" not in inspection:
+        raise ValueError("inspection must be the dict returned by inspect_pptx().")
+    if "layouts" not in scoring:
+        raise ValueError("scoring must be the dict returned by score_layouts().")
+
+    usable_indices = {s["layout_index"] for s in scoring["layouts"] if s["usable"]}
+    manifest_name = _slugify(Path(template_file).stem)
+
+    slide_types: dict[str, Any] = {}
+    slug_counts: dict[str, int] = {}
+
+    for layout in inspection["layouts"]:
+        if layout["layout_index"] not in usable_indices:
+            continue
+        slug = _slugify(layout["name"])
+        count = slug_counts.get(slug, 0)
+        slug_counts[slug] = count + 1
+        key = slug if count == 0 else f"{slug}_{count}"
+        slide_types[key] = {
+            "layout_index": layout["layout_index"],
+            "fields": _label_placeholders(layout["placeholders"]),
+        }
+
+    logger.debug(
+        "Generated draft manifest for '%s': %d slide type(s).",
+        template_file,
+        len(slide_types),
+    )
+    return {
+        "name": manifest_name,
+        "type": "pptx",
+        "template_file": template_file,
+        "description": "Draft manifest — review NEEDS_LABEL fields before use.",
+        "slide_types": slide_types,
+    }
 
 
 def detection_report(
     inspection: dict[str, Any],
     scoring: dict[str, Any],
 ) -> str:
-    raise NotImplementedError
+    """Return a human-readable report of a deck's layout structure and usability.
+
+    Args:
+        inspection: The dict returned by inspect_pptx().
+        scoring: The dict returned by score_layouts().
+
+    Returns:
+        A multi-line string suitable for CLI output or the GUI detection screen.
+
+    Raises:
+        ValueError: If inspection or scoring are not the expected dicts.
+    """
+    if "layouts" not in inspection:
+        raise ValueError("inspection must be the dict returned by inspect_pptx().")
+    if "layouts" not in scoring:
+        raise ValueError("scoring must be the dict returned by score_layouts().")
+
+    filename = Path(inspection.get("path", "(unknown)")).name
+    usability_by_idx = {s["layout_index"]: s["usable"] for s in scoring["layouts"]}
+    usable = [l for l in inspection["layouts"] if usability_by_idx.get(l["layout_index"])]
+    unusable = [l for l in inspection["layouts"] if not usability_by_idx.get(l["layout_index"])]
+    total = len(inspection["layouts"])
+
+    lines: list[str] = [
+        f"Inspection report: {filename}",
+        f"Layouts: {total} total, {len(usable)} usable, {len(unusable)} unusable",
+    ]
+
+    if usable:
+        # Pre-compute labels so _label_placeholders is called once per layout.
+        lines.append("\nUsable layouts:")
+        for layout in usable:
+            fields = _label_placeholders(layout["placeholders"])
+            field_summary = ", ".join(
+                f"{f['name']} (idx={f['placeholder_idx']}, {f['kind']})" for f in fields
+            )
+            lines.append(
+                f"  [{layout['layout_index']:2d}] {layout['name']}: "
+                f"{field_summary or '(no fields)'}"
+            )
+
+    if unusable:
+        lines.append("\nUnusable layouts (no fillable content placeholders):")
+        for layout in unusable:
+            lines.append(f"  [{layout['layout_index']:2d}] {layout['name']}")
+
+    if scoring["is_usable"]:
+        needs_label_count = sum(
+            1
+            for layout in usable
+            for f in _label_placeholders(layout["placeholders"])
+            if f["name"].startswith("NEEDS_LABEL_")
+        )
+        lines.append("\nVerdict: Deck CAN be used as a template.")
+        if needs_label_count:
+            lines.append(
+                f"Action required: {needs_label_count} placeholder(s) need labelling "
+                f"(marked NEEDS_LABEL_<idx>) — edit the manifest before use."
+            )
+    else:
+        lines.append(
+            "\nVerdict: Deck CANNOT be used as a template — "
+            "no layout has fillable content placeholders."
+        )
+
+    return "\n".join(lines)
 
 
 def hard_stop_result() -> dict[str, Any]:
-    raise NotImplementedError
+    """Return the hard-stop result for a deck that cannot be used as a template.
+
+    This is a normal returned value, not an exception — it represents expected
+    user input (a hand-built deck with no layout placeholders), not a fault.
+    The caller (import_template) decides when to return it.
+
+    Returns:
+        A dict with ``status`` "hard_stop" and the verbatim product-spec message.
+    """
+    return {
+        "status": "hard_stop",
+        "message": _HARD_STOP_MESSAGE,
+    }

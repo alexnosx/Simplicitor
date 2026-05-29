@@ -1,19 +1,25 @@
 # tests/templates_engine/test_breakdown.py
-# Phase D+E: Tests for pptx structural inspector, content stripping, and usability scoring.
+# Phase D+E+F: Tests for pptx structural inspector, content stripping,
+#              usability scoring, draft manifest, detection report, and hard stop.
 from pathlib import Path
 from unittest.mock import patch
 
 import pptx.presentation
 import pytest
+import yaml
 from pptx import Presentation
 
 from app.services.file_manipulator import ManipulationError
 from templates_engine.breakdown import (
+    detection_report,
     format_inspection,
+    generate_draft_manifest,
+    hard_stop_result,
     inspect_pptx,
     score_layouts,
     strip_to_template,
 )
+from templates_engine.manifest import load_manifest
 
 # Bundled default template shipped with Simplicitor -- a real .pptx fixture.
 BUNDLED_TEMPLATE = (
@@ -408,3 +414,249 @@ def test_score_real_pptx(tmp_path):
     assert "is_usable" in result
     assert "layouts" in result
     assert len(result["layouts"]) == len(inspection["layouts"])
+
+
+# ---------------------------------------------------------------------------
+# Phase F: generate_draft_manifest
+# ---------------------------------------------------------------------------
+
+def test_draft_manifest_title_auto_labeled():
+    """idx=0 placeholder must be named 'title' with kind='text'."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    title_field = next(f for f in fields if f["placeholder_idx"] == 0)
+    assert title_field["name"] == "title"
+    assert title_field["kind"] == "text"
+
+
+def test_draft_manifest_body_auto_labeled():
+    """Single BODY placeholder must be named 'body' with kind='bullets'."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    body_field = next(f for f in fields if f["placeholder_idx"] == 1)
+    assert body_field["name"] == "body"
+    assert body_field["kind"] == "bullets"
+
+
+def test_draft_manifest_picture_auto_labeled():
+    """PICTURE placeholder must be named 'image' with kind='image'."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "PICTURE (18)"}]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    img_field = next(f for f in fields if f["placeholder_idx"] == 1)
+    assert img_field["name"] == "image"
+    assert img_field["kind"] == "image"
+
+
+def test_draft_manifest_same_type_both_get_needs_label():
+    """Two BODY placeholders in the same layout both get NEEDS_LABEL_<idx>."""
+    inspection = _fake_inspection([
+        [
+            {"idx": 0, "type": "TITLE (1)"},
+            {"idx": 1, "type": "BODY (2)"},
+            {"idx": 2, "type": "BODY (2)"},
+        ]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    ambiguous = [f for f in fields if f["placeholder_idx"] in (1, 2)]
+    assert all(f["name"].startswith("NEEDS_LABEL_") for f in ambiguous)
+
+
+def test_draft_manifest_excludes_unusable_layouts():
+    """Unusable layouts (title-only) must not appear in slide_types."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}],  # unusable
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}],  # usable
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    assert len(result["slide_types"]) == 1
+    slide_type = list(result["slide_types"].values())[0]
+    assert slide_type["layout_index"] == 1
+
+
+def test_draft_manifest_excludes_decorative_placeholders():
+    """DATE/FOOTER/SLIDE_NUMBER placeholders must not appear as fields."""
+    inspection = _fake_inspection([
+        [
+            {"idx": 0, "type": "TITLE (1)"},
+            {"idx": 1, "type": "BODY (2)"},
+            {"idx": 2, "type": "DATE (10)"},
+            {"idx": 3, "type": "FOOTER (11)"},
+        ]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    field_indices = {f["placeholder_idx"] for f in fields}
+    assert 2 not in field_indices
+    assert 3 not in field_indices
+
+
+def test_draft_manifest_excludes_custom_placeholders():
+    """Custom placeholders (idx>=10) must not appear as fields."""
+    inspection = _fake_inspection([
+        [
+            {"idx": 0, "type": "TITLE (1)"},
+            {"idx": 1, "type": "BODY (2)"},
+            {"idx": 11, "type": "OBJECT (14)"},
+        ]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    assert 11 not in {f["placeholder_idx"] for f in fields}
+
+
+def test_draft_manifest_has_required_top_level_keys():
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    assert result["type"] == "pptx"
+    assert result["template_file"] == "test.pptx"
+    assert "name" in result
+    assert "description" in result
+    assert "slide_types" in result
+
+
+def test_draft_manifest_deduplicated_slide_type_keys():
+    """Two layouts with the same name get distinct slide_type keys."""
+    inspection = {
+        "path": "/fake/path.pptx",
+        "layouts": [
+            {
+                "layout_index": 0,
+                "name": "Content",
+                "placeholders": [
+                    {"idx": 0, "type": "TITLE (1)", "name": "T", "position": {}, "is_custom": False},
+                    {"idx": 1, "type": "BODY (2)", "name": "B", "position": {}, "is_custom": False},
+                ],
+            },
+            {
+                "layout_index": 1,
+                "name": "Content",
+                "placeholders": [
+                    {"idx": 0, "type": "TITLE (1)", "name": "T", "position": {}, "is_custom": False},
+                    {"idx": 1, "type": "BODY (2)", "name": "B", "position": {}, "is_custom": False},
+                ],
+            },
+        ],
+    }
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    keys = list(result["slide_types"].keys())
+    assert len(keys) == 2
+    assert len(set(keys)) == 2
+
+
+def test_draft_manifest_round_trips_via_load_manifest(tmp_path):
+    """Draft manifest dict must round-trip through YAML and load_manifest."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    scoring = score_layouts(inspection)
+    manifest_dict = generate_draft_manifest(inspection, scoring, "test.pptx")
+
+    manifest_path = tmp_path / "manifest.yaml"
+    manifest_path.write_text(yaml.dump(manifest_dict), encoding="utf-8")
+
+    loaded = load_manifest(manifest_path)
+    assert loaded.name == manifest_dict["name"]
+    assert loaded.type == "pptx"
+    assert len(loaded.slide_types) == 1
+
+
+# ---------------------------------------------------------------------------
+# Phase F: detection_report
+# ---------------------------------------------------------------------------
+
+def test_detection_report_is_string():
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    scoring = score_layouts(inspection)
+    assert isinstance(detection_report(inspection, scoring), str)
+
+
+def test_detection_report_usable_deck_says_can():
+    """Usable deck must have a CAN verdict in the report."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    scoring = score_layouts(inspection)
+    report = detection_report(inspection, scoring)
+    assert "CAN" in report
+
+
+def test_detection_report_unusable_deck_says_cannot():
+    """Unusable deck (title-only layout) must have a CANNOT verdict."""
+    inspection = _fake_inspection([[{"idx": 0, "type": "TITLE (1)"}]])
+    scoring = score_layouts(inspection)
+    report = detection_report(inspection, scoring)
+    assert "CANNOT" in report
+
+
+def test_detection_report_contains_layout_counts():
+    """Report must mention the total number of layouts."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}],
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}],
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}],
+    ])
+    scoring = score_layouts(inspection)
+    report = detection_report(inspection, scoring)
+    assert "3" in report  # total layouts
+
+
+def test_detection_report_mentions_needs_label():
+    """Report must flag ambiguous placeholders needing labelling."""
+    inspection = _fake_inspection([
+        [
+            {"idx": 0, "type": "TITLE (1)"},
+            {"idx": 1, "type": "BODY (2)"},
+            {"idx": 2, "type": "BODY (2)"},
+        ]
+    ])
+    scoring = score_layouts(inspection)
+    report = detection_report(inspection, scoring)
+    assert "NEEDS_LABEL" in report or "need" in report.lower()
+
+
+# ---------------------------------------------------------------------------
+# Phase F: hard_stop_result
+# ---------------------------------------------------------------------------
+
+def test_hard_stop_result_returns_dict():
+    assert isinstance(hard_stop_result(), dict)
+
+
+def test_hard_stop_result_has_hard_stop_status():
+    assert hard_stop_result()["status"] == "hard_stop"
+
+
+def test_hard_stop_result_contains_verbatim_phrases():
+    message = hard_stop_result()["message"]
+    assert "can't be used as a template" in message
+    assert "manually placed text boxes" in message
+    assert "PowerPoint's slide layouts" in message
+
+
+def test_hard_stop_result_is_returned_not_raised():
+    """hard_stop_result must return normally, never raise."""
+    result = hard_stop_result()
+    assert result is not None
