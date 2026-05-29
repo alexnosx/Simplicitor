@@ -27,6 +27,7 @@ ENV/
 *.onefile-build/
 .nuitka/
 *.nuitka-*.tmp
+nuitka-crash-report.xml
 
 # Testing
 .pytest_cache/
@@ -77,7 +78,7 @@ logs/
 docs/OPEN_SOURCE_TASK.MD
 docs/simplicitor_handoff.pdf
 
-# Internal working notes — never publish
+# Internal working notes ï¿½ never publish
 FUTURE_WORK.md
 AUDIT_REPORT.md
 HANDOFF_TO_HUMAN.md
