@@ -77,10 +77,13 @@ def _label_placeholders(placeholders: list[dict[str, Any]]) -> list[dict[str, An
 
         if idx == 0:
             name, kind = "title", "text"
+        elif type_counts[type_str] > 1:
+            # Same type appears multiple times in this layout — ambiguous, needs a label.
+            # This takes priority over PICTURE so two-image layouts don't produce
+            # duplicate "image" field names (which load_manifest would reject).
+            name, kind = f"NEEDS_LABEL_{idx}", _infer_kind(type_str)
         elif "PICTURE" in upper:
             name, kind = "image", "image"
-        elif type_counts[type_str] > 1:
-            name, kind = f"NEEDS_LABEL_{idx}", _infer_kind(type_str)
         elif "BODY" in upper:
             name, kind = "body", "bullets"
         elif "SUBTITLE" in upper:
@@ -409,11 +412,14 @@ def detection_report(
         f"Layouts: {total} total, {len(usable)} usable, {len(unusable)} unusable",
     ]
 
-    if usable:
-        # Pre-compute labels so _label_placeholders is called once per layout.
+    # Pre-compute labels once per layout; reused for the summary and the NEEDS_LABEL count.
+    usable_with_fields = [
+        (layout, _label_placeholders(layout["placeholders"])) for layout in usable
+    ]
+
+    if usable_with_fields:
         lines.append("\nUsable layouts:")
-        for layout in usable:
-            fields = _label_placeholders(layout["placeholders"])
+        for layout, fields in usable_with_fields:
             field_summary = ", ".join(
                 f"{f['name']} (idx={f['placeholder_idx']}, {f['kind']})" for f in fields
             )
@@ -430,8 +436,8 @@ def detection_report(
     if scoring["is_usable"]:
         needs_label_count = sum(
             1
-            for layout in usable
-            for f in _label_placeholders(layout["placeholders"])
+            for _, fields in usable_with_fields
+            for f in fields
             if f["name"].startswith("NEEDS_LABEL_")
         )
         lines.append("\nVerdict: Deck CAN be used as a template.")

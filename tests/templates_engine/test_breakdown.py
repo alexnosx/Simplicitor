@@ -475,6 +475,30 @@ def test_draft_manifest_same_type_both_get_needs_label():
     assert all(f["name"].startswith("NEEDS_LABEL_") for f in ambiguous)
 
 
+def test_draft_manifest_two_picture_placeholders_get_needs_label(tmp_path):
+    """Two PICTURE placeholders must both become NEEDS_LABEL, not duplicate 'image' names.
+
+    Duplicate 'image' names would break the load_manifest round-trip.
+    """
+    inspection = _fake_inspection([
+        [
+            {"idx": 0, "type": "TITLE (1)"},
+            {"idx": 1, "type": "PICTURE (18)"},
+            {"idx": 2, "type": "PICTURE (18)"},
+        ]
+    ])
+    scoring = score_layouts(inspection)
+    result = generate_draft_manifest(inspection, scoring, "test.pptx")
+    fields = list(result["slide_types"].values())[0]["fields"]
+    picture_fields = [f for f in fields if f["placeholder_idx"] in (1, 2)]
+    assert all(f["name"].startswith("NEEDS_LABEL_") for f in picture_fields)
+    # Verify round-trip: no duplicate names means load_manifest must succeed.
+    manifest_path = tmp_path / "manifest.yaml"
+    manifest_path.write_text(yaml.dump(result), encoding="utf-8")
+    loaded = load_manifest(manifest_path)
+    assert len(loaded.slide_types) == 1
+
+
 def test_draft_manifest_excludes_unusable_layouts():
     """Unusable layouts (title-only) must not appear in slide_types."""
     inspection = _fake_inspection([
@@ -624,7 +648,7 @@ def test_detection_report_contains_layout_counts():
 
 
 def test_detection_report_mentions_needs_label():
-    """Report must flag ambiguous placeholders needing labelling."""
+    """Report must include NEEDS_LABEL field names when ambiguous placeholders are present."""
     inspection = _fake_inspection([
         [
             {"idx": 0, "type": "TITLE (1)"},
@@ -634,7 +658,7 @@ def test_detection_report_mentions_needs_label():
     ])
     scoring = score_layouts(inspection)
     report = detection_report(inspection, scoring)
-    assert "NEEDS_LABEL" in report or "need" in report.lower()
+    assert "NEEDS_LABEL" in report
 
 
 # ---------------------------------------------------------------------------
