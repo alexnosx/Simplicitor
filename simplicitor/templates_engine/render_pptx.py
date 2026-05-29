@@ -18,7 +18,7 @@ def _open_template(path: Path):
         raise ValueError(f"Template file not found: '{path}'.")
     try:
         return Presentation(str(path))
-    except (PackageNotFoundError, InvalidXmlError, KeyError, zipfile.BadZipFile) as exc:
+    except (PackageNotFoundError, InvalidXmlError, zipfile.BadZipFile) as exc:
         raise ValueError(
             f"Could not open template '{path.name}' as a PowerPoint file."
         ) from exc
@@ -70,7 +70,7 @@ def _render_slide(
                     f"Slide {slide_idx}, field '{name}': text length {len(value)} "
                     f"exceeds max_chars {field.max_chars}."
                 )
-                logger.warning(msg)
+                logger.warning("%s", msg)
                 issues.append(msg)
 
         elif field.kind == "bullets":
@@ -86,7 +86,7 @@ def _render_slide(
                     f"Slide {slide_idx}, field '{name}': {len(value)} bullets "
                     f"exceeds max_items {field.max_items}."
                 )
-                logger.warning(msg)
+                logger.warning("%s", msg)
                 issues.append(msg)
 
         elif field.kind == "image":
@@ -96,7 +96,7 @@ def _render_slide(
                     f"Slide {slide_idx}, field '{name}': image path '{img_path}' "
                     f"not found, field skipped."
                 )
-                logger.warning(msg)
+                logger.warning("%s", msg)
                 issues.append(msg)
                 continue
             try:
@@ -106,8 +106,16 @@ def _render_slide(
                     f"Slide {slide_idx}, field '{name}': could not insert image "
                     f"({type(exc).__name__}), field skipped."
                 )
-                logger.warning(msg)
+                logger.warning("%s", msg)
                 issues.append(msg)
+
+        else:
+            msg = (
+                f"Slide {slide_idx}, field '{name}': unknown kind '{field.kind}', "
+                f"field skipped."
+            )
+            logger.warning("%s", msg)
+            issues.append(msg)
 
     return issues
 
