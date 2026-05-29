@@ -36,7 +36,11 @@ def get_user_root() -> Path:
         ManipulationError: If the directory cannot be created (permissions/disk).
     """
     override = _config_override("user_dir")
-    if override:
+    if override is not None:
+        if not isinstance(override, str) or not override.strip():
+            raise ValueError(
+                "simplicitor.toml [templates] user_dir must be a non-empty string."
+            )
         root = Path(override)
     else:
         appdata = os.environ.get("APPDATA")

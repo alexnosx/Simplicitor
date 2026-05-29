@@ -68,10 +68,8 @@ def test_builtin_root_points_inside_package():
 def test_user_root_creates_dir_if_missing(tmp_path):
     target = tmp_path / "user_templates"
     assert not target.exists()
-    with patch("templates_engine.config.get_user_root", return_value=target):
-        # Call _ensure_dir directly to test directory creation.
-        from templates_engine.config import _ensure_dir
-        _ensure_dir(target)
+    from templates_engine.config import _ensure_dir
+    _ensure_dir(target)
     assert target.is_dir()
 
 
@@ -273,9 +271,12 @@ def test_import_failed_strip_leaves_no_debris(tmp_path):
 
 
 def test_import_failed_manifest_write_leaves_no_debris(tmp_path):
+    """Simulate manifest serialisation failure; no template folder should survive."""
     pptx = _make_pptx(tmp_path / "source.pptx")
     uroot = tmp_path / "user"
-    with patch("pathlib.Path.write_text", side_effect=OSError("disk full")):
+    # Patch yaml.dump in the config module so only manifest serialisation fails,
+    # not strip_to_template or any other write in the call chain.
+    with patch("templates_engine.config.yaml.dump", side_effect=OSError("disk full")):
         with pytest.raises((ManipulationError, OSError)):
             import_template(pptx, user_root=uroot)
     template_dir = uroot / "source"

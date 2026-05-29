@@ -27,7 +27,7 @@ def _cmd_list_templates(args: argparse.Namespace) -> int:
 
     try:
         templates = list_templates()
-    except ManipulationError as exc:
+    except (ValueError, ManipulationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
@@ -53,8 +53,8 @@ def _cmd_import(args: argparse.Namespace) -> int:
         return 1
 
     if result["status"] == "hard_stop":
-        print(result["message"])
-        return 0
+        print(result["message"], file=sys.stderr)
+        return 1
 
     print(f"Imported '{result['name']}' successfully.")
     print()
