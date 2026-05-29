@@ -1,11 +1,19 @@
 # tests/templates_engine/test_breakdown.py
-# Phase D: Tests for pptx structural inspector.
+# Phase D+E: Tests for pptx structural inspector, content stripping, and usability scoring.
 from pathlib import Path
+from unittest.mock import patch
 
+import pptx.presentation
 import pytest
 from pptx import Presentation
 
-from templates_engine.breakdown import format_inspection, inspect_pptx
+from app.services.file_manipulator import ManipulationError
+from templates_engine.breakdown import (
+    format_inspection,
+    inspect_pptx,
+    score_layouts,
+    strip_to_template,
+)
 
 # Bundled default template shipped with Simplicitor -- a real .pptx fixture.
 BUNDLED_TEMPLATE = (
@@ -211,3 +219,165 @@ def test_format_inspection_marks_custom_placeholders(tmp_path):
     if has_custom:
         result = format_inspection(report)
         assert "CUSTOM" in result
+
+
+# ---------------------------------------------------------------------------
+# Phase E: strip_to_template
+# ---------------------------------------------------------------------------
+
+def test_strip_yields_zero_slides(tmp_path):
+    source = _make_minimal_pptx(tmp_path / "source.pptx")
+    out = tmp_path / "stripped.pptx"
+    strip_to_template(source, out)
+    result = Presentation(str(out))
+    assert len(result.slides) == 0
+
+
+def test_strip_output_is_openable(tmp_path):
+    source = _make_minimal_pptx(tmp_path / "source.pptx")
+    out = tmp_path / "stripped.pptx"
+    strip_to_template(source, out)
+    prs = Presentation(str(out))
+    assert prs is not None
+
+
+def test_strip_preserves_layouts(tmp_path):
+    source = _make_minimal_pptx(tmp_path / "source.pptx")
+    original_layout_count = len(Presentation(str(source)).slide_layouts)
+    out = tmp_path / "stripped.pptx"
+    strip_to_template(source, out)
+    stripped = Presentation(str(out))
+    assert len(stripped.slide_layouts) == original_layout_count
+
+
+def test_strip_write_failure_raises_manipulation_error(tmp_path):
+    source = _make_minimal_pptx(tmp_path / "source.pptx")
+    out = tmp_path / "output.pptx"
+    with patch.object(pptx.presentation.Presentation, "save", side_effect=OSError("simulated disk full")):
+        with pytest.raises(ManipulationError):
+            strip_to_template(source, out)
+
+
+def test_strip_write_failure_leaves_no_debris(tmp_path):
+    source = _make_minimal_pptx(tmp_path / "source.pptx")
+    out = tmp_path / "output.pptx"
+    out.write_bytes(b"partial content")  # pre-create to simulate a partial write
+    with patch.object(pptx.presentation.Presentation, "save", side_effect=OSError("simulated disk full")):
+        with pytest.raises(ManipulationError):
+            strip_to_template(source, out)
+    assert not out.exists(), "Partial output file must be deleted on write failure"
+
+
+# ---------------------------------------------------------------------------
+# Phase E: score_layouts
+# ---------------------------------------------------------------------------
+
+def _fake_inspection(layouts_spec: list[list[dict]]) -> dict:
+    """Build a minimal inspection dict from a list of placeholder-spec lists."""
+    layouts = []
+    for i, placeholders in enumerate(layouts_spec):
+        layouts.append({
+            "layout_index": i,
+            "name": f"Layout {i}",
+            "placeholders": [
+                {
+                    "idx": ph["idx"],
+                    "type": ph.get("type", f"BODY ({ph['idx']})"),
+                    "name": ph.get("name", f"Placeholder {ph['idx']}"),
+                    "position": {"left": 0, "top": 0, "width": 0, "height": 0},
+                    "is_custom": ph["idx"] >= 10,
+                }
+                for ph in placeholders
+            ],
+        })
+    return {"path": "/fake/path.pptx", "layouts": layouts}
+
+
+def test_score_title_only_is_unusable():
+    inspection = _fake_inspection([[{"idx": 0, "type": "TITLE (1)"}]])
+    result = score_layouts(inspection)
+    assert result["layouts"][0]["usable"] is False
+
+
+def test_score_title_and_body_is_usable():
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}]
+    ])
+    result = score_layouts(inspection)
+    assert result["layouts"][0]["usable"] is True
+
+
+def test_score_custom_only_is_unusable():
+    inspection = _fake_inspection([[{"idx": 10, "type": "OBJECT (14)"}]])
+    result = score_layouts(inspection)
+    assert result["layouts"][0]["usable"] is False
+
+
+def test_score_empty_layout_is_unusable():
+    inspection = _fake_inspection([[]])
+    result = score_layouts(inspection)
+    assert result["layouts"][0]["usable"] is False
+
+
+def test_score_deck_is_usable_if_any_layout_usable():
+    # First layout: title-only (unusable), second: title+body (usable)
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}],
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}],
+    ])
+    result = score_layouts(inspection)
+    assert result["is_usable"] is True
+
+
+def test_score_deck_is_unusable_when_all_layouts_unusable():
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}],
+        [{"idx": 10, "type": "OBJECT (14)"}],
+        [],
+    ])
+    result = score_layouts(inspection)
+    assert result["is_usable"] is False
+
+
+def test_score_layout_with_subtitle_is_usable():
+    """SUBTITLE (idx=1) qualifies as a content placeholder."""
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "SUBTITLE (4)"}]
+    ])
+    result = score_layouts(inspection)
+    assert result["layouts"][0]["usable"] is True
+
+
+def test_score_decorative_placeholder_not_counted():
+    """DATE/FOOTER/SLIDE_NUMBER do not make a layout usable."""
+    inspection = _fake_inspection([
+        [
+            {"idx": 0, "type": "TITLE (1)"},
+            {"idx": 2, "type": "DATE (10)"},
+            {"idx": 3, "type": "FOOTER (11)"},
+            {"idx": 4, "type": "SLIDE_NUMBER (12)"},
+        ]
+    ])
+    result = score_layouts(inspection)
+    assert result["layouts"][0]["usable"] is False
+
+
+def test_score_returns_per_layout_entries_for_all_layouts():
+    inspection = _fake_inspection([
+        [{"idx": 0, "type": "TITLE (1)"}],
+        [{"idx": 0, "type": "TITLE (1)"}, {"idx": 1, "type": "BODY (2)"}],
+    ])
+    result = score_layouts(inspection)
+    assert len(result["layouts"]) == 2
+    assert result["layouts"][0]["layout_index"] == 0
+    assert result["layouts"][1]["layout_index"] == 1
+
+
+def test_score_real_pptx(tmp_path):
+    """score_layouts on a real python-pptx generated file produces a valid result."""
+    pptx = _make_minimal_pptx(tmp_path / "test.pptx")
+    inspection = inspect_pptx(pptx)
+    result = score_layouts(inspection)
+    assert "is_usable" in result
+    assert "layouts" in result
+    assert len(result["layouts"]) == len(inspection["layouts"])
