@@ -160,6 +160,10 @@ def strip_to_template(path: str | Path, out_path: str | Path) -> None:
 
     path = Path(path)
     out_path = Path(out_path)
+    if out_path.suffix.lower() != ".pptx":
+        raise ValueError(
+            f"out_path must be a .pptx path, got '{out_path.suffix or '(no extension)'}'."
+        )
     prs = _open_presentation(path)
 
     # Remove all slides while keeping masters/layouts/theme intact.
@@ -203,6 +207,9 @@ def score_layouts(inspection: dict[str, Any]) -> dict[str, Any]:
                 ``usable`` (bool).
             ``is_usable`` (bool): True if at least one layout is usable.
     """
+    if "layouts" not in inspection:
+        raise ValueError("inspection must be the dict returned by inspect_pptx().")
+
     layout_scores: list[dict[str, Any]] = []
     any_usable = False
 

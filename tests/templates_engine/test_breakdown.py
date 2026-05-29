@@ -233,12 +233,28 @@ def test_strip_yields_zero_slides(tmp_path):
     assert len(result.slides) == 0
 
 
-def test_strip_output_is_openable(tmp_path):
+def test_strip_preserves_slide_masters(tmp_path):
+    """Stripping must keep slide masters intact (the 'design-only' guarantee)."""
     source = _make_minimal_pptx(tmp_path / "source.pptx")
+    master_count = len(Presentation(str(source)).slide_masters)
     out = tmp_path / "stripped.pptx"
     strip_to_template(source, out)
-    prs = Presentation(str(out))
-    assert prs is not None
+    assert len(Presentation(str(out)).slide_masters) == master_count
+
+
+def test_strip_real_slides_yields_zero(tmp_path):
+    """Strip a presentation with real slides -- confirms they are actually removed."""
+    prs = Presentation()
+    layout = prs.slide_layouts[0]
+    prs.slides.add_slide(layout)
+    prs.slides.add_slide(layout)
+    source = tmp_path / "two_slides.pptx"
+    prs.save(str(source))
+    out = tmp_path / "stripped.pptx"
+    strip_to_template(source, out)
+    result = Presentation(str(out))
+    assert len(result.slides) == 0
+    assert len(result.slide_masters) > 0
 
 
 def test_strip_preserves_layouts(tmp_path):
@@ -248,6 +264,12 @@ def test_strip_preserves_layouts(tmp_path):
     strip_to_template(source, out)
     stripped = Presentation(str(out))
     assert len(stripped.slide_layouts) == original_layout_count
+
+
+def test_strip_wrong_out_extension_raises_value_error(tmp_path):
+    source = _make_minimal_pptx(tmp_path / "source.pptx")
+    with pytest.raises(ValueError, match=r"\.pptx|extension"):
+        strip_to_template(source, tmp_path / "output.docx")
 
 
 def test_strip_write_failure_raises_manipulation_error(tmp_path):
@@ -291,6 +313,11 @@ def _fake_inspection(layouts_spec: list[list[dict]]) -> dict:
             ],
         })
     return {"path": "/fake/path.pptx", "layouts": layouts}
+
+
+def test_score_wrong_input_raises_value_error():
+    with pytest.raises(ValueError, match=r"inspect_pptx"):
+        score_layouts({"not_layouts": []})
 
 
 def test_score_title_only_is_unusable():
