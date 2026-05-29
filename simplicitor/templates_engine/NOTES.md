@@ -49,6 +49,8 @@ New modules should raise from this set where the semantics fit. For input faults
 prefer `ValueError` (bad programmer arg) or `ParseError` (bad structured input). For genuine system/IO
 faults, raise a new domain-specific exception following the same pattern (subclass of `Exception`, name
 ends in `Error`, message is descriptive). **Do not reuse Ollama* exception types for non-Ollama failures.**
+Missing or corrupt files at known paths are file read failures and raise `ManipulationError`. `ValueError`
+is for malformed or semantically invalid arguments, not for path-target-missing.
 
 ### Logging convention
 

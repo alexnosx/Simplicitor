@@ -107,6 +107,8 @@ def _open_presentation(path: Path):
     from pptx.exceptions import InvalidXmlError, PackageNotFoundError
 
     if not path.exists():
+        # TODO: raise ManipulationError here per NOTES.md (file read failure, not bad arg).
+        # Same correction applied to render_pptx._open_template in Phase H. Fix when touching this file.
         raise ValueError(f"File not found: '{path}'.")
     if path.suffix.lower() != ".pptx":
         raise ValueError(

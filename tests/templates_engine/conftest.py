@@ -22,7 +22,12 @@ def tmp_template(tmp_path):
 
 @pytest.fixture
 def tiny_png(tmp_path):
-    """A file at tmp_path/test_image.png. Content is not a valid image; tests mock insert_picture."""
+    """A file at tmp_path/test_image.png. Content is not a valid PNG image.
+
+    Tests that reach insert_picture either mock it narrowly (test_render_image_field_does_not_raise)
+    or rely on the placeholder type raising naturally (test_render_image_insert_failure_warns_not_raises).
+    The file must exist on disk for the renderer's path-existence check to pass.
+    """
     path = tmp_path / "test_image.png"
     path.write_bytes(b"PNG")
     return path

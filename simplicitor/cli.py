@@ -69,6 +69,50 @@ def _cmd_import(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_render(args: argparse.Namespace) -> int:
+    import json
+
+    from app.services.file_manipulator import ManipulationError
+    from templates_engine.config import list_templates
+    from templates_engine.manifest import load_manifest
+    from templates_engine.render_pptx import render
+    from templates_engine.validation import format_validation_errors, validate_content
+
+    try:
+        templates = list_templates()
+        match = next((t for t in templates if t["name"] == args.template), None)
+        if match is None:
+            raise ValueError(f"Template '{args.template}' not found.")
+
+        manifest = load_manifest(match["manifest_path"])
+
+        spec_path = Path(args.spec)
+        try:
+            spec_text = spec_path.read_text(encoding="utf-8")
+        except OSError:
+            raise ValueError(f"Spec file not found or not readable: {spec_path}")
+        try:
+            raw_json = json.loads(spec_text)
+        except json.JSONDecodeError:
+            raise ValueError(f"Invalid JSON in spec file: {spec_path}")
+
+        ok, payload = validate_content(manifest, raw_json)
+        if not ok:
+            print(format_validation_errors(payload), file=sys.stderr)
+            return 1
+
+        result = render(manifest, payload, args.out, template_dir=match["path"])
+
+        print(result["path"])
+        for issue in result["issues"]:
+            print(f"Warning: {issue}")
+
+        return 0
+    except (ValueError, ManipulationError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="simplicitor",
@@ -84,6 +128,11 @@ def _build_parser() -> argparse.ArgumentParser:
     import_p = sub.add_parser("import", help="Import a .pptx file as a user template.")
     import_p.add_argument("file", help="Path to the .pptx file to import.")
 
+    render_p = sub.add_parser("render", help="Render a content spec using a template.")
+    render_p.add_argument("--template", required=True, help="Template name.")
+    render_p.add_argument("--spec", required=True, help="Path to content JSON file.")
+    render_p.add_argument("--out", required=True, help="Output .pptx path.")
+
     return parser
 
 
@@ -97,6 +146,8 @@ def main() -> int:
         return _cmd_list_templates(args)
     if args.command == "import":
         return _cmd_import(args)
+    if args.command == "render":
+        return _cmd_render(args)
 
     parser.print_help()
     return 0

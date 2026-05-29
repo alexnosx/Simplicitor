@@ -10,12 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 def _open_template(path: Path):
-    """Open a .pptx template, raising ValueError if missing, wrong type, or corrupt."""
+    """Open a .pptx template, raising ManipulationError if missing, ValueError if corrupt."""
     from pptx import Presentation
     from pptx.exceptions import InvalidXmlError, PackageNotFoundError
 
+    from app.services.file_manipulator import ManipulationError
+
     if not path.exists():
-        raise ValueError(f"Template file not found: '{path}'.")
+        raise ManipulationError(f"Template file not found: '{path}'.")
     try:
         return Presentation(str(path))
     except (PackageNotFoundError, InvalidXmlError, zipfile.BadZipFile) as exc:
