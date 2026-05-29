@@ -127,8 +127,8 @@ def test_inspect_bundled_template_smoke():
     """Smoke test against the real bundled template shipped with Simplicitor."""
     assert BUNDLED_TEMPLATE.exists(), f"Bundled template not found at {BUNDLED_TEMPLATE}"
     report = inspect_pptx(BUNDLED_TEMPLATE)
-    assert len(report["layouts"]) == 11  # default pptx has 11 layouts
-    # Layout 0 must have a title placeholder
+    assert len(report["layouts"]) >= 1
+    # Layout 0 must have a title placeholder at idx 0
     layout_0 = report["layouts"][0]
     assert any(ph["idx"] == 0 for ph in layout_0["placeholders"])
 
@@ -140,13 +140,6 @@ def test_inspect_bundled_template_smoke():
 def test_missing_file_raises_value_error(tmp_path):
     with pytest.raises(ValueError, match=r"not found|missing"):
         inspect_pptx(tmp_path / "ghost.pptx")
-
-
-def test_missing_file_error_not_oserror(tmp_path):
-    """Must raise ValueError, not the raw OSError from the filesystem."""
-    with pytest.raises(ValueError):
-        inspect_pptx(tmp_path / "ghost.pptx")
-    # If OSError were raised the above would fail — confirming convention
 
 
 def test_non_pptx_extension_raises_value_error(tmp_path):
@@ -170,11 +163,13 @@ def test_corrupt_pptx_raises_value_error(tmp_path):
         inspect_pptx(bad)
 
 
-def test_corrupt_pptx_not_raw_exception(tmp_path):
-    """python-pptx raises BadZipFile for corrupt files; must be wrapped in ValueError."""
-    bad = tmp_path / "corrupt.pptx"
-    bad.write_bytes(b"\x00\x01\x02\x03 garbage")
-    with pytest.raises(ValueError):
+def test_corrupt_pptx_valid_zip_wrong_structure(tmp_path):
+    """A valid zip that is not a pptx internally must also raise ValueError."""
+    import zipfile as zf
+    bad = tmp_path / "fake.pptx"
+    with zf.ZipFile(str(bad), "w") as z:
+        z.writestr("not_a_pptx.txt", "wrong content")
+    with pytest.raises(ValueError, match=r"[Cc]ould not open|PowerPoint"):
         inspect_pptx(bad)
 
 

@@ -1,6 +1,7 @@
 # templates_engine/breakdown.py
 # Phase D-F: PPTX structural inspector, content stripping, draft manifest generation.
 import logging
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,7 @@ def inspect_pptx(path: str | Path) -> dict[str, Any]:
             or cannot be opened as a PowerPoint presentation.
     """
     from pptx import Presentation  # local import keeps startup cost low
+    from pptx.exceptions import InvalidXmlError, PackageNotFoundError
 
     path = Path(path)
 
@@ -55,9 +57,17 @@ def inspect_pptx(path: str | Path) -> dict[str, Any]:
 
     try:
         prs = Presentation(str(path))
-    except Exception as exc:
+    except (PackageNotFoundError, InvalidXmlError, KeyError, zipfile.BadZipFile) as exc:
+        # Known python-pptx failure modes: corrupt/non-zip, bad XML, missing content type.
         raise ValueError(
-            f"Could not open '{path.name}' as a PowerPoint file: {exc}"
+            f"Could not open '{path.name}' as a PowerPoint file."
+        ) from exc
+    except Exception as exc:
+        # Unexpected failure — surface the type name only, never str(exc) which may
+        # contain internal paths or unrelated details.
+        raise ValueError(
+            f"Could not open '{path.name}' as a PowerPoint file "
+            f"({type(exc).__name__})."
         ) from exc
 
     layouts: list[dict[str, Any]] = []
