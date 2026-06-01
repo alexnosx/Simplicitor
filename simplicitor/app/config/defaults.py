@@ -26,6 +26,7 @@ OLLAMA_PS_ENDPOINT = "/api/ps"
 OLLAMA_SHOW_ENDPOINT = "/api/show"
 OLLAMA_GENERATE_ENDPOINT = "/api/generate"
 OLLAMA_CHAT_ENDPOINT = "/api/chat"
+OLLAMA_CHAT_COMPLETIONS_ENDPOINT = "/v1/chat/completions"
 OLLAMA_POLL_INTERVAL_MS = 5000
 OLLAMA_TIMEOUT_S = 60
 OLLAMA_MANIPULATION_TIMEOUT_S = 120  # manipulation sends file content → needs more time

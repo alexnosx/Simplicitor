@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import requests
 
 from app.config.defaults import (
+    OLLAMA_CHAT_COMPLETIONS_ENDPOINT,
     OLLAMA_GENERATE_ENDPOINT,
     OLLAMA_PS_ENDPOINT,
     OLLAMA_SHOW_ENDPOINT,
@@ -229,3 +230,60 @@ class OllamaClient:
             )
 
         return data["response"]
+
+    def chat_completion(
+        self,
+        messages: list[dict],
+        model: str,
+        temperature: float = 0.3,
+        timeout: int | None = None,
+    ) -> str:
+        """Send a chat completion request to ``/v1/chat/completions`` and return the content string.
+
+        Args:
+            messages: List of message dicts with "role" and "content" keys.
+            model: The Ollama model name to use.
+            temperature: Sampling temperature (default 0.3 for structured output).
+            timeout: Request timeout in seconds. Defaults to ``OLLAMA_TIMEOUT_S``.
+
+        Returns:
+            The ``choices[0]["message"]["content"]`` string from the response.
+
+        Raises:
+            OllamaTimeoutError: If the request exceeds the timeout.
+            OllamaConnectionError: If the HTTP request fails for any other network reason.
+            OllamaGenerationError: If the server returns a non-200 status or the response
+                does not contain ``choices[0]["message"]["content"]``.
+        """
+        body = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "response_format": {"type": "json_object"},
+        }
+        effective_timeout = timeout if timeout is not None else OLLAMA_TIMEOUT_S
+
+        try:
+            response = requests.post(
+                f"{self._base_url}{OLLAMA_CHAT_COMPLETIONS_ENDPOINT}",
+                json=body,
+                timeout=effective_timeout,
+            )
+        except requests.Timeout as exc:
+            raise OllamaTimeoutError(str(exc)) from exc
+        except requests.RequestException as exc:
+            raise OllamaConnectionError(str(exc)) from exc
+
+        if response.status_code != 200:
+            raise OllamaGenerationError(
+                f"Ollama returned status {response.status_code}: {response.text}"
+            )
+
+        try:
+            content = response.json()["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise OllamaGenerationError(
+                f"Unexpected response format from Ollama chat completion: {exc}"
+            ) from exc
+
+        return content

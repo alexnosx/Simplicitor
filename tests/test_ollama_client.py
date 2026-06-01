@@ -10,6 +10,7 @@ from app.services.ollama_client import (
     OllamaConnectionError,
     OllamaGenerationError,
     OllamaStatus,
+    OllamaTimeoutError,
 )
 
 BASE_URL = "http://localhost:11434"
@@ -360,3 +361,50 @@ class TestGenerate:
         client = OllamaClient(BASE_URL)
         with pytest.raises(OllamaConnectionError):
             client.generate("llama3", "p", "s")
+
+
+# ---------------------------------------------------------------------------
+# chat_completion
+# ---------------------------------------------------------------------------
+
+class TestChatCompletion:
+    MESSAGES = [
+        {"role": "system", "content": "Return JSON only."},
+        {"role": "user", "content": "Make a deck about dogs."},
+    ]
+
+    def test_chat_completion_returns_content_string(self):
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(200, {
+            "choices": [{"message": {"content": '{"slides": []}'}}]
+        })
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp):
+            result = client.chat_completion(self.MESSAGES, "llama3")
+        assert result == '{"slides": []}'
+
+    def test_chat_completion_timeout_raises_ollama_timeout_error(self):
+        client = OllamaClient(BASE_URL)
+        with patch("app.services.ollama_client.requests.post", side_effect=requests.Timeout("timed out")):
+            with pytest.raises(OllamaTimeoutError):
+                client.chat_completion(self.MESSAGES, "llama3")
+
+    def test_chat_completion_connection_error_raises_ollama_connection_error(self):
+        client = OllamaClient(BASE_URL)
+        with patch("app.services.ollama_client.requests.post", side_effect=requests.ConnectionError("refused")):
+            with pytest.raises(OllamaConnectionError):
+                client.chat_completion(self.MESSAGES, "llama3")
+
+    def test_chat_completion_non_200_raises_ollama_generation_error(self):
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(500, {})
+        mock_resp.text = "Internal Server Error"
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp):
+            with pytest.raises(OllamaGenerationError):
+                client.chat_completion(self.MESSAGES, "llama3")
+
+    def test_chat_completion_missing_choices_raises_ollama_generation_error(self):
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(200, {"model": "llama3"})  # no "choices" key
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp):
+            with pytest.raises(OllamaGenerationError):
+                client.chat_completion(self.MESSAGES, "llama3")
