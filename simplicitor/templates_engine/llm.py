@@ -1,14 +1,12 @@
 # templates_engine/llm.py
 # Phase I: Module-level facade over OllamaClient for the chat-completions path.
-import logging
 from app.config.defaults import OLLAMA_BASE_URL
 from app.services.ollama_client import (
     OllamaClient,
     OllamaConnectionError,
     OllamaGenerationError,
+    OllamaTimeoutError,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def _client(client: OllamaClient | None = None) -> OllamaClient:
@@ -21,12 +19,17 @@ def preflight(model: str, client: OllamaClient | None = None) -> None:
     """Check Ollama is reachable and the model is available.
 
     Raises:
+        OllamaTimeoutError: If Ollama is reachable but get_models times out.
         OllamaConnectionError: If Ollama is unreachable.
         OllamaGenerationError: If the model is not in the installed list.
     """
     c = _client(client)
     try:
         models = c.get_models()
+    except OllamaTimeoutError as exc:
+        raise OllamaTimeoutError(
+            f"Ollama timed out during model list. Is it overloaded? ({exc})"
+        ) from exc
     except OllamaConnectionError as exc:
         raise OllamaConnectionError(
             f"Ollama is not responding. Check that Ollama is running. ({exc})"

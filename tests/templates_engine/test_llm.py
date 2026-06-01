@@ -29,6 +29,12 @@ def test_preflight_raises_connection_error_when_ollama_unreachable():
         preflight("llama3", client=mock)
 
 
+def test_preflight_raises_timeout_error_when_get_models_times_out():
+    mock = _mock_client(raises=OllamaTimeoutError("timed out"))
+    with pytest.raises(OllamaTimeoutError, match=r"[Oo]llama"):
+        preflight("llama3", client=mock)
+
+
 def test_preflight_raises_generation_error_when_model_not_available():
     mock = _mock_client(models=["other_model:latest"])
     with pytest.raises(OllamaGenerationError, match=r"llama3"):

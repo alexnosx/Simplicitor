@@ -149,6 +149,9 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 "ASSISTANT (one-shot response)",
                 "USER (request)",
             ]
+            assert len(messages) == len(labels), (
+                f"Expected {len(labels)} messages from build_prompt, got {len(messages)}"
+            )
             for label, msg in zip(labels, messages):
                 print(f"=== {label} ===")
                 print(msg["content"])
