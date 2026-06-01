@@ -84,3 +84,22 @@ logger = logging.getLogger(__name__)
 
 - `OllamaClient.check_connection()` **never raises** -- returns `bool`. Safe to call from polling loops.
 - All other `OllamaClient` methods raise on network failure.
+
+---
+
+## Known follow-ups
+
+Items deferred out of scope — persist here so they don't evaporate with session context.
+
+1. **`breakdown.py` `_open_presentation()` raises `ValueError` for missing file** (Phase H regression).
+   Should raise `ManipulationError` per the corrected convention (file read failure, not bad arg).
+   Same fix applied to `render_pptx._open_template` in Phase H. See TODO comment in `breakdown.py:110`.
+   Fix when next touching that file, or in Phase M hardening pass.
+
+2. **`OllamaClient` discovery methods don't distinguish `Timeout` from `RequestException`** (Phase I).
+   `get_models()`, `get_running_model()`, `get_model_info()` all map any `requests.RequestException`
+   to `OllamaConnectionError`, including timeouts. Only `generate()` separates `Timeout` into
+   `OllamaTimeoutError`. `preflight()` in `llm.py` reuses `get_models()`, so a slow-but-responsive
+   Ollama will report `OllamaConnectionError` where `OllamaTimeoutError` is more precise.
+   Acceptable for Phase I. Fix in a future `OllamaClient` refactor (add `requests.Timeout` handling
+   to all discovery methods).
