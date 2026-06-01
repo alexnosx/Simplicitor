@@ -113,6 +113,60 @@ def _cmd_render(args: argparse.Namespace) -> int:
         return 1
 
 
+def _cmd_generate(args: argparse.Namespace) -> int:
+    from app.services.ollama_client import (
+        OllamaConnectionError,
+        OllamaGenerationError,
+        OllamaTimeoutError,
+    )
+    from templates_engine.config import list_templates
+    from templates_engine.manifest import load_manifest
+    from templates_engine.prompt_builder import build_prompt
+    from templates_engine import llm
+
+    try:
+        templates = list_templates()
+        match = next((t for t in templates if t["name"] == args.template), None)
+        if match is None:
+            raise ValueError(f"Template '{args.template}' not found.")
+
+        manifest = load_manifest(match["manifest_path"])
+
+        source_text = None
+        if args.source:
+            source_path = Path(args.source)
+            try:
+                source_text = source_path.read_text(encoding="utf-8")
+            except OSError:
+                raise ValueError(f"Source file not found or not readable: {source_path}")
+
+        messages = build_prompt(manifest, args.request, source_text)
+
+        if args.dry_run:
+            labels = [
+                "SYSTEM",
+                "USER (one-shot example)",
+                "ASSISTANT (one-shot response)",
+                "USER (request)",
+            ]
+            for label, msg in zip(labels, messages):
+                print(f"=== {label} ===")
+                print(msg["content"])
+                print()
+            return 0
+
+        # Phase I: prints raw model JSON to stdout as scaffolding.
+        # Phase J replaces this with the full render + repair loop + --out path.
+        llm.preflight(args.model)
+        raw = llm.generate(messages, args.model)
+        print(raw)
+        return 0
+
+    except (ValueError, OllamaConnectionError, OllamaTimeoutError, OllamaGenerationError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="simplicitor",
@@ -133,6 +187,14 @@ def _build_parser() -> argparse.ArgumentParser:
     render_p.add_argument("--spec", required=True, help="Path to content JSON file.")
     render_p.add_argument("--out", required=True, help="Output .pptx path.")
 
+    generate_p = sub.add_parser("generate", help="Build and optionally send a prompt from a template.")
+    generate_p.add_argument("--template", required=True, help="Template name.")
+    generate_p.add_argument("--request", required=True, help="User request text.")
+    generate_p.add_argument("--source", default=None, help="Optional source file path.")
+    generate_p.add_argument("--model", default="llama3", help="Ollama model name (default: llama3).")
+    generate_p.add_argument("--dry-run", action="store_true", dest="dry_run",
+                            help="Print assembled prompt without calling the model.")
+
     return parser
 
 
@@ -148,6 +210,8 @@ def main() -> int:
         return _cmd_import(args)
     if args.command == "render":
         return _cmd_render(args)
+    if args.command == "generate":
+        return _cmd_generate(args)
 
     parser.print_help()
     return 0
