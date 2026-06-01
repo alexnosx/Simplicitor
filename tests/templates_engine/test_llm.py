@@ -46,6 +46,25 @@ def test_preflight_succeeds_when_model_available():
     preflight("llama3", client=mock)  # must not raise
 
 
+def test_preflight_succeeds_bare_name_matches_tagged_install():
+    # "llama3" requested, "llama3:latest" installed — common Ollama default
+    mock = _mock_client(models=["llama3:latest"])
+    preflight("llama3", client=mock)  # must not raise
+
+
+def test_preflight_succeeds_tagged_name_matches_bare_install():
+    # "llama3:latest" requested, "llama3" installed — reverse direction
+    mock = _mock_client(models=["llama3"])
+    preflight("llama3:latest", client=mock)  # must not raise
+
+
+def test_preflight_fails_when_different_tags_do_not_cross_match():
+    # "llama3:7b" requested, only "llama3:latest" installed — distinct models
+    mock = _mock_client(models=["llama3:latest"])
+    with pytest.raises(OllamaGenerationError, match=r"llama3:7b"):
+        preflight("llama3:7b", client=mock)
+
+
 def test_generate_returns_content_string():
     mock = _mock_client(chat_return='{"slides": []}')
     messages = [{"role": "user", "content": "Make a deck."}]

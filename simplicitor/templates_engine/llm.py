@@ -35,7 +35,17 @@ def preflight(model: str, client: OllamaClient | None = None) -> None:
             f"Ollama is not responding. Check that Ollama is running. ({exc})"
         ) from exc
 
-    if not any(m == model or m.startswith(f"{model}:") for m in models):
+    def _matches(installed: str, requested: str) -> bool:
+        # Exact match, or one side is bare and the other has a tag.
+        # "llama3" matches "llama3:latest"; "llama3:latest" matches "llama3".
+        # "llama3:7b" does NOT match "llama3:latest" (distinct tags, distinct models).
+        return (
+            installed == requested
+            or installed.startswith(f"{requested}:")
+            or requested.startswith(f"{installed}:")
+        )
+
+    if not any(_matches(m, model) for m in models):
         raise OllamaGenerationError(
             f"Model '{model}' is not available in Ollama. "
             f"Run 'ollama pull {model}' to download it."
