@@ -4,6 +4,7 @@ import json
 import logging
 
 from templates_engine.manifest import Manifest
+from templates_engine.validation import format_validation_errors
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +111,42 @@ def _build_actual_user_message(user_request: str, source_text: str | None) -> st
     if source_text is not None:
         message += f"\n\nSource content:\n{source_text}"
     return message
+
+
+def build_repair_prompt(
+    original_messages: list[dict],
+    raw_response: str,
+    errors: list[str] | None = None,
+) -> list[dict]:
+    """Build a repair prompt by appending a correction block to the original messages.
+
+    Extends the conversation with the model's previous (bad) output as an assistant
+    message, followed by a user correction message explaining what was wrong.
+
+    Args:
+        original_messages: The messages list from build_prompt (4 messages).
+        raw_response: The model's previous raw output (the bad response).
+        errors: If None, the failure was a JSON parse error. If a list of strings,
+            these are the pydantic validation error messages from validate_content().
+
+    Returns:
+        original_messages + [assistant: raw_response, user: correction_text]
+    """
+    if errors is None:
+        correction = (
+            "Your previous response could not be parsed as JSON.\n\n"
+            f"Previous output:\n{raw_response}\n\n"
+            "Return ONLY valid JSON matching the schema. "
+            "No prose, no markdown fences, no think blocks."
+        )
+    else:
+        correction = (
+            "Your previous response had schema validation errors:\n\n"
+            f"{format_validation_errors(errors)}\n\n"
+            "Fix only the fields listed above. Return the complete corrected JSON."
+        )
+
+    return list(original_messages) + [
+        {"role": "assistant", "content": raw_response},
+        {"role": "user",      "content": correction},
+    ]

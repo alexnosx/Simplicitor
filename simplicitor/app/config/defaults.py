@@ -30,6 +30,7 @@ OLLAMA_CHAT_COMPLETIONS_ENDPOINT = "/v1/chat/completions"
 OLLAMA_POLL_INTERVAL_MS = 5000
 OLLAMA_TIMEOUT_S = 60
 OLLAMA_MANIPULATION_TIMEOUT_S = 120  # manipulation sends file content → needs more time
+OLLAMA_REPAIR_MAX_TOKENS = 4096      # floor for max_tokens on truncation-bump repair attempt
 SMALL_MODEL_PARAM_THRESHOLD = 7_000_000_000
 
 # ── PowerPoint layout indices (standard Blank template) ──────────────────────

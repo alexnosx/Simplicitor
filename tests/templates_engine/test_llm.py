@@ -77,3 +77,10 @@ def test_generate_timeout_propagates():
     mock = _mock_client(raises=OllamaTimeoutError("timed out"))
     with pytest.raises(OllamaTimeoutError):
         generate([{"role": "user", "content": "x"}], "llama3", client=mock)
+
+
+def test_generate_threads_max_tokens_to_chat_completion():
+    mock = _mock_client(chat_return='{"slides": []}')
+    messages = [{"role": "user", "content": "Make a deck."}]
+    generate(messages, "llama3", max_tokens=512, client=mock)
+    mock.chat_completion.assert_called_once_with(messages, "llama3", 0.3, max_tokens=512)

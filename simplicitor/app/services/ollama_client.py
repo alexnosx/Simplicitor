@@ -237,6 +237,7 @@ class OllamaClient:
         model: str,
         temperature: float = 0.3,
         timeout: int | None = None,
+        max_tokens: int | None = None,
     ) -> str:
         """Send a chat completion request to ``/v1/chat/completions`` and return the content string.
 
@@ -245,6 +246,8 @@ class OllamaClient:
             model: The Ollama model name to use.
             temperature: Sampling temperature (default 0.3 for structured output).
             timeout: Request timeout in seconds. Defaults to ``OLLAMA_TIMEOUT_S``.
+            max_tokens: Maximum tokens to generate. None means Ollama's default applies.
+                Pass an explicit value to raise the output budget on repair attempts.
 
         Returns:
             The ``choices[0]["message"]["content"]`` string from the response.
@@ -261,6 +264,8 @@ class OllamaClient:
             "temperature": temperature,
             "response_format": {"type": "json_object"},
         }
+        if max_tokens is not None:
+            body["max_tokens"] = max_tokens
         effective_timeout = timeout if timeout is not None else OLLAMA_TIMEOUT_S
 
         try:

@@ -3,7 +3,7 @@
 from pathlib import Path
 import pytest
 from templates_engine.manifest import load_manifest
-from templates_engine.prompt_builder import build_prompt
+from templates_engine.prompt_builder import build_prompt, build_repair_prompt
 
 FIXTURE_MANIFEST = Path(__file__).parent / "fixtures" / "render_manifest.yaml"
 
@@ -80,3 +80,33 @@ def test_build_prompt_includes_source_text_when_provided(manifest):
 def test_build_prompt_omits_source_section_when_none(manifest):
     messages = build_prompt(manifest, "Make a deck.", source_text=None)
     assert "Source content:" not in messages[-1]["content"]
+
+
+# ---------------------------------------------------------------------------
+# build_repair_prompt
+# ---------------------------------------------------------------------------
+
+def test_build_repair_prompt_appends_two_messages(manifest):
+    original = build_prompt(manifest, "Make a deck.")
+    result = build_repair_prompt(original, "not json")
+    assert len(result) == len(original) + 2
+    assert result[-2]["role"] == "assistant"
+    assert result[-1]["role"] == "user"
+
+
+def test_build_repair_prompt_parse_failure_instruction(manifest):
+    original = build_prompt(manifest, "Make a deck.")
+    result = build_repair_prompt(original, "not json", errors=None)
+    correction = result[-1]["content"]
+    assert "could not be parsed" in correction
+    assert "no prose" in correction.lower()
+    assert "no markdown fences" in correction.lower()
+
+
+def test_build_repair_prompt_validation_failure_contains_error_strings(manifest):
+    original = build_prompt(manifest, "Make a deck.")
+    errors = ["slides[0].fields.title: Field required."]
+    result = build_repair_prompt(original, '{"slides": []}', errors=errors)
+    correction = result[-1]["content"]
+    assert "slides[0].fields.title: Field required." in correction
+    assert "Fix only the fields" in correction

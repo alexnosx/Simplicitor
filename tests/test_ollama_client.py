@@ -408,3 +408,23 @@ class TestChatCompletion:
         with patch("app.services.ollama_client.requests.post", return_value=mock_resp):
             with pytest.raises(OllamaGenerationError):
                 client.chat_completion(self.MESSAGES, "llama3")
+
+    def test_chat_completion_max_tokens_included_in_body(self):
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(200, {
+            "choices": [{"message": {"content": '{"slides": []}'}}]
+        })
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp) as mock_post:
+            client.chat_completion(self.MESSAGES, "llama3", max_tokens=512)
+        body = mock_post.call_args[1]["json"]
+        assert body["max_tokens"] == 512
+
+    def test_chat_completion_max_tokens_absent_when_none(self):
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(200, {
+            "choices": [{"message": {"content": '{"slides": []}'}}]
+        })
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp) as mock_post:
+            client.chat_completion(self.MESSAGES, "llama3", max_tokens=None)
+        body = mock_post.call_args[1]["json"]
+        assert "max_tokens" not in body
