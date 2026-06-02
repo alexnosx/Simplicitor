@@ -89,9 +89,7 @@ def run(
             "JSON parse failed on attempt 1 (truncated=%s). Attempting repair.",
             truncated,
         )
-        repair_max_tokens = (
-            max(0, OLLAMA_REPAIR_MAX_TOKENS) if truncated else None
-        )
+        repair_max_tokens = OLLAMA_REPAIR_MAX_TOKENS if truncated else None
         repair_msgs = build_repair_prompt(messages, raw1, errors=None)
 
     # ── Attempt 2 (repair) ───────────────────────────────────────────────────
