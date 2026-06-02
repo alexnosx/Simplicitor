@@ -1,5 +1,6 @@
 # simplicitor/app/services/ollama_client.py
 # Phase 2: Ollama REST client
+import logging
 from dataclasses import dataclass, field
 
 import requests
@@ -13,6 +14,8 @@ from app.config.defaults import (
     OLLAMA_TIMEOUT_S,
     OLLAMA_MANIPULATION_TIMEOUT_S,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class OllamaConnectionError(Exception):
@@ -285,10 +288,19 @@ class OllamaClient:
             )
 
         try:
-            content = response.json()["choices"][0]["message"]["content"]
+            data = response.json()
+            choice = data["choices"][0]
+            content = choice["message"]["content"]
+            finish_reason = choice.get("finish_reason", "unknown")
         except (KeyError, IndexError) as exc:
             raise OllamaGenerationError(
                 f"Unexpected response format from Ollama chat completion: {exc}"
             ) from exc
 
+        if finish_reason != "stop":
+            logger.warning(
+                "chat_completion finish_reason=%s (model=%s)",
+                finish_reason,
+                model,
+            )
         return content

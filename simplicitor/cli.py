@@ -114,6 +114,13 @@ def _cmd_render(args: argparse.Namespace) -> int:
 
 
 def _cmd_generate(args: argparse.Namespace) -> int:
+    if not args.dry_run and not args.out:
+        print(
+            "Error: --out is required. Use --dry-run to inspect the prompt without generating a file.",
+            file=sys.stderr,
+        )
+        return 1
+
     from app.services.ollama_client import (
         OllamaConnectionError,
         OllamaGenerationError,
@@ -141,13 +148,6 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 raise ValueError(f"Source file not found or not readable: {source_path}")
 
         messages = build_prompt(manifest, args.request, source_text)
-
-        if not args.dry_run and not args.out:
-            print(
-                "Error: --out is required. Use --dry-run to inspect the prompt without generating a file.",
-                file=sys.stderr,
-            )
-            return 1
 
         if args.dry_run:
             labels = [

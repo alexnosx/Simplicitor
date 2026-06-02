@@ -36,7 +36,7 @@ def _looks_truncated(cleaned: str, exc: json.JSONDecodeError) -> bool:
     1. Position-based: the JSONDecodeError position lands within 10 chars of the end.
     2. Structural: a depth count of { [ vs } ] ends positive (more openers than closers).
     """
-    if exc.pos is not None and len(cleaned) > 10 and exc.pos >= len(cleaned) - 10:
+    if exc.pos is not None and len(cleaned) >= 10 and exc.pos >= len(cleaned) - 10:
         return True
     depth = 0
     for ch in cleaned:
@@ -102,7 +102,7 @@ def run(
 
     # ── Attempt 2 (repair) ───────────────────────────────────────────────────
     raw2 = llm.generate(repair_msgs, model, max_tokens=repair_max_tokens, client=client)
-    cleaned2, parsed2, parse_exc2 = _try_parse(raw2)
+    _, parsed2, parse_exc2 = _try_parse(raw2)
 
     if parsed2 is None:
         logger.error("JSON parse failed after repair. Giving up.")
