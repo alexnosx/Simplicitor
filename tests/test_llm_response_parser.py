@@ -79,11 +79,11 @@ class TestParseError:
 
 
 # ---------------------------------------------------------------------------
-# _clean (via happy-path side-effects)
+# LlmResponseParser.clean (via happy-path side-effects)
 # ---------------------------------------------------------------------------
 
 class TestClean:
-    """Test _clean indirectly by verifying the parsers accept cleaned inputs."""
+    """Test .clean() indirectly by verifying the parsers accept cleaned inputs."""
 
     def test_strips_whitespace(self) -> None:
         text = "   " + _json(VALID_WORD) + "   "

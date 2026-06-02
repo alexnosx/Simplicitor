@@ -30,7 +30,7 @@ class LlmResponseParser:
     _SCALAR_TYPES = (str, int, float, bool, type(None))
 
     # -----------------------------------------------------------------------
-    # Private helpers
+    # Helpers
     # -----------------------------------------------------------------------
 
     @staticmethod
