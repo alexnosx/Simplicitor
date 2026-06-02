@@ -34,7 +34,7 @@ class LlmResponseParser:
     # -----------------------------------------------------------------------
 
     @staticmethod
-    def _clean(text: str) -> str:
+    def clean(text: str) -> str:
         """Return *text* with whitespace, thinking blocks, and markdown fences stripped.
 
         Processing steps, in order:
@@ -88,7 +88,7 @@ class LlmResponseParser:
         Raises:
             ParseError: If the text cannot be parsed or fails validation.
         """
-        cleaned = self._clean(text)
+        cleaned = self.clean(text)
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError as exc:
@@ -154,7 +154,7 @@ class LlmResponseParser:
         Raises:
             ParseError: If the text cannot be parsed or fails validation.
         """
-        cleaned = self._clean(text)
+        cleaned = self.clean(text)
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError as exc:
@@ -225,7 +225,7 @@ class LlmResponseParser:
         Raises:
             ParseError: If the text cannot be parsed or fails validation.
         """
-        cleaned = self._clean(text)
+        cleaned = self.clean(text)
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError as exc:

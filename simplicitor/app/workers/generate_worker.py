@@ -87,7 +87,7 @@ class GenerateWorker(QObject):
 
         # Call Ollama without a format constraint: Qwen3 and other thinking models return empty
         # responses when Ollama's json mode is active (the two features conflict). Instead we
-        # rely on the system prompt's JSON-only instruction and _clean()'s extraction logic.
+        # rely on the system prompt's JSON-only instruction and .clean()'s extraction logic.
         try:
             llm_response = self._client.generate(self.model, self.prompt, system_prompt)
         except OllamaConnectionError as exc:
