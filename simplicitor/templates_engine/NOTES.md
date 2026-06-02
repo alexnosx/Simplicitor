@@ -96,6 +96,14 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    Same fix applied to `render_pptx._open_template` in Phase H. See TODO comment in `breakdown.py:110`.
    Fix when next touching that file, or in Phase M hardening pass.
 
+3. **`pipeline.run` floor semantics for `max_tokens` not yet wired** (Phase J).
+   The spec describes `repair_max_tokens = max(original_budget or 0, OLLAMA_REPAIR_MAX_TOKENS)` as
+   a floor, not a ceiling. Phase J omits the `original_budget` parameter from `pipeline.run` (no callers
+   need it yet), so the floor is currently just `OLLAMA_REPAIR_MAX_TOKENS` directly. If a future caller
+   wants a higher first-attempt budget, they cannot pass it through today. Fix when `pipeline.run`
+   gains a `max_tokens` parameter: add `max_tokens: int | None = None` to the signature and compute
+   `repair_max_tokens = max(max_tokens or 0, OLLAMA_REPAIR_MAX_TOKENS)` in the truncation-bump branch.
+
 2. **`OllamaClient` discovery methods don't distinguish `Timeout` from `RequestException`** (Phase I).
    `get_models()`, `get_running_model()`, `get_model_info()` all map any `requests.RequestException`
    to `OllamaConnectionError`, including timeouts. Only `generate()` separates `Timeout` into

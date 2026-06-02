@@ -94,7 +94,7 @@ def test_build_repair_prompt_appends_two_messages(manifest):
     assert result[-1]["role"] == "user"
 
 
-def test_build_repair_prompt_parse_failure_instruction(manifest):
+def test_build_repair_prompt_parse_failure_contains_no_prose_instruction(manifest):
     original = build_prompt(manifest, "Make a deck.")
     result = build_repair_prompt(original, "not json", errors=None)
     correction = result[-1]["content"]
