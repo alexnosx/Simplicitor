@@ -142,6 +142,13 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
         messages = build_prompt(manifest, args.request, source_text)
 
+        if not args.dry_run and not args.out:
+            print(
+                "Error: --out is required. Use --dry-run to inspect the prompt without generating a file.",
+                file=sys.stderr,
+            )
+            return 1
+
         if args.dry_run:
             labels = [
                 "SYSTEM",
@@ -158,14 +165,19 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 print()
             return 0
 
-        # Phase I: prints raw model JSON to stdout as scaffolding.
-        # Phase J replaces this with the full render + repair loop + --out path.
+        from app.parsers.llm_response_parser import ParseError
+        from app.services.file_manipulator import ManipulationError
+        from templates_engine import pipeline
+
         llm.preflight(args.model)
-        raw = llm.generate(messages, args.model)
-        print(raw)
+        result = pipeline.run(manifest, match["path"], messages, args.model, args.out)
+        print(result["path"])
+        for issue in result["issues"]:
+            print(f"Warning: {issue}")
         return 0
 
-    except (ValueError, OllamaConnectionError, OllamaTimeoutError, OllamaGenerationError) as exc:
+    except (ValueError, ParseError, ManipulationError,
+            OllamaConnectionError, OllamaTimeoutError, OllamaGenerationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
@@ -197,6 +209,10 @@ def _build_parser() -> argparse.ArgumentParser:
     generate_p.add_argument("--model", default="llama3", help="Ollama model name (default: llama3).")
     generate_p.add_argument("--dry-run", action="store_true", dest="dry_run",
                             help="Print assembled prompt without calling the model.")
+    generate_p.add_argument(
+        "--out", default=None,
+        help="Output .pptx path (required unless --dry-run).",
+    )
 
     return parser
 
