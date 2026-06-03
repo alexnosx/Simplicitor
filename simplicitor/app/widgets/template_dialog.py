@@ -8,8 +8,9 @@ import logging
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QPlainTextEdit, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
+    QApplication, QDialog, QFileDialog, QHBoxLayout, QLabel, QListWidget,
+    QListWidgetItem, QPlainTextEdit, QPushButton, QStackedWidget, QVBoxLayout,
+    QWidget,
 )
 
 from app.config.defaults import (
@@ -17,6 +18,8 @@ from app.config.defaults import (
     FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
 )
 from app.config.settings import Settings
+from app.services.file_manipulator import ManipulationError
+from app.widgets.hard_stop_dialog import CHOICE_BUILTIN, HardStopDialog
 from templates_engine import config
 from templates_engine.manifest import Manifest, load_manifest
 
@@ -93,6 +96,10 @@ class TemplateDialog(QDialog):
         self._sel_error.setVisible(False)
         v.addWidget(self._sel_error)
         row = QHBoxLayout()
+        self._sel_upload_btn = QPushButton("Upload a .pptx…")
+        self._sel_upload_btn.setFont(self._body_font())
+        self._sel_upload_btn.clicked.connect(self._on_upload)
+        row.addWidget(self._sel_upload_btn)
         row.addStretch()
         self._sel_next_btn = QPushButton("Next")
         self._sel_next_btn.setFont(self._body_font())
@@ -113,6 +120,11 @@ class TemplateDialog(QDialog):
         self._confirm_summary.setFont(self._body_font())
         self._confirm_summary.setWordWrap(True)
         v.addWidget(self._confirm_summary)
+        self._confirm_report = QLabel()
+        self._confirm_report.setFont(QFont(APP_FONT_FAMILY, 8))
+        self._confirm_report.setWordWrap(True)
+        self._confirm_report.setVisible(False)
+        v.addWidget(self._confirm_report)
         prompt_label = QLabel("Describe the presentation you need")
         prompt_label.setFont(self._body_font())
         v.addWidget(prompt_label)
@@ -142,7 +154,6 @@ class TemplateDialog(QDialog):
 
     # -- selection / confirm --
     def _refresh_templates(self, select_name: str | None = None) -> None:
-        from app.services.file_manipulator import ManipulationError
         self._sel_error.setVisible(False)
         try:
             self._templates = config.list_templates()
@@ -168,8 +179,11 @@ class TemplateDialog(QDialog):
             return
         self._select_current()
 
-    def _select_current(self) -> None:
-        name = self._template_list.currentItem().data(Qt.ItemDataRole.UserRole)
+    def _select_current(self, report: str = "") -> None:
+        item = self._template_list.currentItem()
+        if item is None:
+            return
+        name = item.data(Qt.ItemDataRole.UserRole)
         t = next((x for x in self._templates if x["name"] == name), None)
         if t is None:
             self._show_selection_error("That template could not be found.")
@@ -182,9 +196,79 @@ class TemplateDialog(QDialog):
             return
         self._manifest = manifest
         self._confirm_summary.setText(self._manifest_summary(manifest))
+        if report:
+            self._confirm_report.setText(report)
+            self._confirm_report.setVisible(True)
+        else:
+            self._confirm_report.setVisible(False)
         self._confirm_prompt.clear()
         self._set_confirm_status("", error=False)
         self._stack.setCurrentWidget(self._confirm_page)
+
+    def _on_upload(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select a .pptx", "", "PowerPoint files (*.pptx)"
+        )
+        if path:
+            self._do_import(path)
+
+    def _do_import(self, path: str) -> None:
+        """Import an uploaded deck (synchronous, wait cursor). Dispatches the
+        import_template status-dict / exception contract; no substring matching."""
+        self._clear_selection_error()
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            result = config.import_template(path)
+        except ValueError as exc:
+            logger.error("Template import rejected (bad file): %s", exc)
+            self._show_selection_error("That file is not a usable PowerPoint deck.")
+            return
+        except ManipulationError as exc:
+            logger.error("Template import write failure: %s", exc)
+            self._show_selection_error(
+                "Could not save the imported template. Check disk space and permissions."
+            )
+            return
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        status = result["status"]
+        if status == "exists":
+            self._show_selection_error(
+                f"A template named '{result['name']}' already exists. "
+                "Delete or rename it, then upload again."
+            )
+            return
+        if status == "hard_stop":
+            self._apply_hard_stop_choice(self._prompt_hard_stop(result["message"]))
+            return
+        if status != "ok":
+            logger.error("Unexpected import status: %r", status)
+            self._show_selection_error("Unexpected error during import. Please try again.")
+            return
+        self._refresh_templates(select_name=result["name"])
+        self._select_current(report=result.get("report", ""))
+
+    def _prompt_hard_stop(self, message: str) -> str:
+        builtin_available = any(t["source"] == "builtin" for t in self._templates)
+        dlg = HardStopDialog(message, builtin_available, parent=self)
+        dlg.exec()
+        return dlg.choice()
+
+    def _apply_hard_stop_choice(self, choice: str) -> None:
+        if choice == CHOICE_BUILTIN:
+            self._stack.setCurrentWidget(self._selection_page)
+            self._focus_first_builtin()
+        else:
+            self.reject()  # cancel and rebuild: abandon the flow
+
+    def _focus_first_builtin(self) -> None:
+        for i in range(self._template_list.count()):
+            name = self._template_list.item(i).data(Qt.ItemDataRole.UserRole)
+            t = next((x for x in self._templates if x["name"] == name), None)
+            if t and t["source"] == "builtin":
+                self._template_list.setCurrentRow(i)
+                return
 
     def _manifest_summary(self, manifest: Manifest) -> str:
         lines = [f"Template: {manifest.name}", "", "Slide types:"]
@@ -216,6 +300,9 @@ class TemplateDialog(QDialog):
     def _show_selection_error(self, msg: str) -> None:
         self._sel_error.setText(msg)
         self._sel_error.setVisible(True)
+
+    def _clear_selection_error(self) -> None:
+        self._sel_error.setVisible(False)
 
     def _set_confirm_status(self, msg: str, error: bool) -> None:
         self._confirm_status.setStyleSheet(
