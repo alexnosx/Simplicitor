@@ -3,7 +3,11 @@
 # Task 4a: scaffold - SELECTION + CONFIRM + generate_requested emission + close-block.
 # (Upload/import + hard-stop routing land in 4b; worker-result slots + editable
 #  preview + render land in 4c.)
+import json
 import logging
+import os
+from datetime import datetime
+from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
@@ -22,6 +26,8 @@ from app.services.file_manipulator import ManipulationError
 from app.widgets.hard_stop_dialog import CHOICE_BUILTIN, HardStopDialog
 from templates_engine import config
 from templates_engine.manifest import Manifest, load_manifest
+from templates_engine.render_pptx import render
+from templates_engine.validation import format_validation_errors, validate_content
 
 logger = logging.getLogger(__name__)
 
@@ -29,24 +35,34 @@ logger = logging.getLogger(__name__)
 class TemplateDialog(QDialog):
     """Modal multi-step template-based PPTX generation flow.
 
-    Task 4a scaffold: SELECTION and CONFIRM pages in a QStackedWidget. SELECTION
-    lists templates from config.list_templates() and advances to CONFIRM on
-    selection. CONFIRM shows a manifest-derived summary, takes a prompt, and emits
+    A QStackedWidget over SELECTION -> CONFIRM -> PREVIEW -> DONE, with a
+    hard-stop sub-dialog branching off the upload path. SELECTION lists and
+    uploads templates; CONFIRM shows the manifest summary and emits
     generate_requested(manifest, user_request) for a MainWindow-owned worker
-    (Task 6) to act on. The dialog blocks its own close while a generation is in
-    flight.
-
-    Upload/import + hard-stop routing (4b) and the worker-result slots + editable
-    preview + render (4c) are added in later commits.
+    (wired in Task 6); PREVIEW shows the validated content as editable JSON,
+    re-validated through the pipeline's validate_content before a synchronous
+    render; DONE offers to open the file. The dialog blocks its own close while
+    a generation is in flight. Import and render run synchronously (wait
+    cursor); only the generate step runs off-thread (the worker).
     """
 
     generate_requested = Signal(object, str)  # (Manifest, user_request)
+
+    _PHASE_DISPLAY = {
+        "generating": "Generating slides…",
+        "validating": "Checking the result…",
+        "repairing": "Fixing the result…",
+    }
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._settings = settings  # consumed in 4c for the render output path
         self._templates: list[dict] = []
         self._manifest: Manifest | None = None
+        self._selected: dict | None = None
+        self._template_dir: Path | None = None
+        self._out_path: Path | None = None
+        self._rendered_path: str = ""
         self._generating = False
         self.setWindowTitle("Create from a template")
         self.setMinimumSize(640, 520)
@@ -72,6 +88,10 @@ class TemplateDialog(QDialog):
         self._confirm_page = self._build_confirm_page()
         self._stack.addWidget(self._selection_page)
         self._stack.addWidget(self._confirm_page)
+        self._preview_page = self._build_preview_page()
+        self._done_page = self._build_done_page()
+        self._stack.addWidget(self._preview_page)
+        self._stack.addWidget(self._done_page)
         self._stack.setCurrentWidget(self._selection_page)
 
     def _build_selection_page(self) -> QWidget:
@@ -195,6 +215,8 @@ class TemplateDialog(QDialog):
             self._show_selection_error("That template's manifest could not be read.")
             return
         self._manifest = manifest
+        self._selected = t
+        self._template_dir = Path(t["path"])
         self._confirm_summary.setText(self._manifest_summary(manifest))
         if report:
             self._confirm_report.setText(report)
@@ -295,6 +317,136 @@ class TemplateDialog(QDialog):
         self._confirm_generate_btn.setEnabled(not flag)
         self._confirm_back_btn.setEnabled(not flag)
         self._confirm_generate_btn.setText("Generating…" if flag else "Generate")
+
+    def _build_preview_page(self) -> QWidget:
+        page = QWidget()
+        v = QVBoxLayout(page)
+        v.setContentsMargins(20, 20, 20, 20)
+        v.setSpacing(12)
+        heading = QLabel("Review and edit the content")
+        heading.setFont(self._heading_font())
+        v.addWidget(heading)
+        self._preview_edit = QPlainTextEdit()
+        self._preview_edit.setFont(QFont("Consolas", FONT_SIZE_BODY_PT))
+        v.addWidget(self._preview_edit, stretch=1)
+        self._preview_error = QLabel()
+        self._preview_error.setFont(self._body_font())
+        self._preview_error.setStyleSheet(f"color: {ERROR_COLOR};")
+        self._preview_error.setWordWrap(True)
+        self._preview_error.setVisible(False)
+        v.addWidget(self._preview_error)
+        row = QHBoxLayout()
+        back_btn = QPushButton("Back")
+        back_btn.setFont(self._body_font())
+        back_btn.clicked.connect(lambda: self._stack.setCurrentWidget(self._confirm_page))
+        self._render_btn = QPushButton("Render")
+        self._render_btn.setFont(self._heading_font())
+        self._render_btn.clicked.connect(self._on_render_clicked)
+        row.addWidget(back_btn)
+        row.addStretch()
+        row.addWidget(self._render_btn)
+        v.addLayout(row)
+        return page
+
+    def _build_done_page(self) -> QWidget:
+        page = QWidget()
+        v = QVBoxLayout(page)
+        v.setContentsMargins(20, 20, 20, 20)
+        v.setSpacing(12)
+        self._done_label = QLabel()
+        self._done_label.setFont(self._heading_font())
+        self._done_label.setWordWrap(True)
+        v.addWidget(self._done_label)
+        row = QHBoxLayout()
+        self._open_btn = QPushButton("Open file")
+        self._open_btn.setFont(self._body_font())
+        self._open_btn.clicked.connect(self._on_open_file)
+        close_btn = QPushButton("Close")
+        close_btn.setFont(self._body_font())
+        close_btn.clicked.connect(self.accept)
+        row.addWidget(self._open_btn)
+        row.addStretch()
+        row.addWidget(close_btn)
+        v.addLayout(row)
+        v.addStretch()
+        return page
+
+    # -- worker-result slots (called on the main thread; wired by MainWindow in Task 6) --
+    def on_generate_started(self) -> None:
+        self._set_generating(True)
+
+    def on_generate_progress(self, label: str) -> None:
+        self._set_confirm_status(self._PHASE_DISPLAY.get(label, "Working…"), error=False)
+
+    def on_generate_completed(self, content: object) -> None:
+        self._set_generating(False)
+        self._out_path = self._build_out_path()
+        self._preview_edit.setPlainText(json.dumps(content, indent=2))
+        self._clear_preview_error()
+        self._stack.setCurrentWidget(self._preview_page)
+
+    def on_generate_failed(self, msg: str) -> None:
+        self._set_generating(False)
+        self._set_confirm_status(msg, error=True)  # stay on CONFIRM
+
+    # -- preview / render --
+    def _on_render_clicked(self) -> None:
+        self._clear_preview_error()
+        try:
+            parsed = json.loads(self._preview_edit.toPlainText())
+        except json.JSONDecodeError as exc:
+            self._set_preview_error(
+                f"That is not valid JSON (line {exc.lineno}, column {exc.colno})."
+            )
+            return
+        ok, result = validate_content(self._manifest, parsed)
+        if not ok:
+            self._set_preview_error(format_validation_errors(result))
+            return
+        self._do_render(result)
+
+    def _do_render(self, content: dict) -> None:
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            result = render(self._manifest, content, self._out_path, self._template_dir)
+        except ManipulationError as exc:
+            logger.error("Render failed (manipulation): %s", exc)
+            self._set_preview_error(
+                "Could not save the presentation, or the template and its manifest "
+                "are out of sync."
+            )
+            return
+        except ValueError as exc:
+            logger.error("Render failed (template open): %s", exc)
+            self._set_preview_error("The template file could not be opened as a PowerPoint file.")
+            return
+        finally:
+            QApplication.restoreOverrideCursor()
+        self._rendered_path = str(result["path"])
+        msg = "Presentation created."
+        if result["issues"]:
+            msg += f"  ({len(result['issues'])} formatting note(s))"
+        self._done_label.setText(msg)
+        self._stack.setCurrentWidget(self._done_page)
+
+    def _build_out_path(self) -> Path:
+        base = self._selected["name"] if self._selected else "deck"
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return Path(self._settings.generated_dir) / f"{base}_{ts}.pptx"
+
+    def _on_open_file(self) -> None:
+        if self._rendered_path:
+            try:
+                os.startfile(self._rendered_path)
+            except OSError as exc:
+                logger.error("Could not open file %s: %s", self._rendered_path, exc)
+
+    def _set_preview_error(self, msg: str) -> None:
+        self._preview_error.setText(msg)
+        self._preview_error.setVisible(True)
+
+    def _clear_preview_error(self) -> None:
+        self._preview_error.setVisible(False)
 
     # -- inline status helpers --
     def _show_selection_error(self, msg: str) -> None:

@@ -1,5 +1,6 @@
 # tests/test_template_dialog.py
 # Phase K Task 4a: TemplateDialog scaffold (SELECTION + CONFIRM).
+import json
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -288,3 +289,108 @@ def test_do_import_hard_stop_cancel_end_to_end(dialog, monkeypatch):
     monkeypatch.setattr(dialog, "reject", lambda: rejected.append(True))
     dialog._do_import("x.pptx")
     assert rejected == [True]
+
+
+# --- 4c: worker-result slots + preview + render + done --------------------
+
+def test_completed_loads_content_into_preview(dialog):
+    _select_deck(dialog)
+    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "Hi"}}]})
+    assert dialog._stack.currentWidget() is dialog._preview_page
+    text = dialog._preview_edit.toPlainText()
+    assert "title_slide" in text and "Hi" in text
+
+
+def test_progress_maps_raw_labels_to_display(dialog):
+    dialog.on_generate_progress("generating")
+    assert dialog._confirm_status.text() == "Generating slides…"
+    dialog.on_generate_progress("validating")
+    assert dialog._confirm_status.text() == "Checking the result…"
+    dialog.on_generate_progress("repairing")
+    assert dialog._confirm_status.text() == "Fixing the result…"
+    dialog.on_generate_progress("wat")
+    assert dialog._confirm_status.text() == "Working…"
+
+
+def test_failed_returns_to_confirm_with_message(dialog):
+    _select_deck(dialog)
+    dialog.on_generate_started()
+    dialog.on_generate_failed("The AI engine stopped responding. Please check Ollama is running.")
+    assert dialog._stack.currentWidget() is dialog._confirm_page
+    assert "Ollama" in dialog._confirm_status.text()
+
+
+def test_render_uses_edited_content_not_stale(dialog):
+    # Proves the EDITED preview content drives the output, not the pre-edit content.
+    _select_deck(dialog)
+    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "INITIAL"}}]})
+    assert dialog._stack.currentWidget() is dialog._preview_page
+    edited = json.dumps({"slides": [{"type": "title_slide", "fields": {"title": "ZZZ-EDIT-42"}}]})
+    dialog._preview_edit.setPlainText(edited)
+    dialog._on_render_clicked()
+    assert dialog._stack.currentWidget() is dialog._done_page
+    assert Path(dialog._rendered_path).exists()
+    prs = Presentation(dialog._rendered_path)
+    rendered = " ".join(
+        shape.text_frame.text
+        for slide in prs.slides
+        for shape in slide.placeholders
+        if shape.has_text_frame
+    )
+    assert "ZZZ-EDIT-42" in rendered      # the edit flowed through to the placeholder
+    assert "INITIAL" not in rendered      # not stale pre-edit content
+
+
+def test_render_invalid_validation_stays_preview_no_file(dialog):
+    _select_deck(dialog)
+    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
+    dialog._preview_edit.setPlainText(json.dumps({"slides": [{"type": "title_slide", "fields": {}}]}))
+    dialog._on_render_clicked()
+    assert dialog._stack.currentWidget() is dialog._preview_page
+    assert dialog._preview_error.isVisible()
+    assert "title" in dialog._preview_error.text()
+    assert not dialog._out_path.exists()
+
+
+def test_render_invalid_json_stays_preview_no_file(dialog):
+    _select_deck(dialog)
+    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
+    dialog._preview_edit.setPlainText("{ not valid json")
+    dialog._on_render_clicked()
+    assert dialog._stack.currentWidget() is dialog._preview_page
+    assert "JSON" in dialog._preview_error.text()
+    assert not dialog._out_path.exists()
+
+
+def test_render_manipulation_error_stays_preview(dialog, monkeypatch):
+    _select_deck(dialog)
+    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
+    monkeypatch.setattr(
+        "app.widgets.template_dialog.render",
+        MagicMock(side_effect=ManipulationError("placeholder idx 7 not found")),
+    )
+    dialog._on_render_clicked()
+    assert dialog._stack.currentWidget() is dialog._preview_page
+    assert dialog._preview_error.isVisible()
+    assert "Could not save" in dialog._preview_error.text()
+
+
+def test_render_value_error_stays_preview(dialog, monkeypatch):
+    _select_deck(dialog)
+    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
+    monkeypatch.setattr(
+        "app.widgets.template_dialog.render",
+        MagicMock(side_effect=ValueError("not a pptx")),
+    )
+    dialog._on_render_clicked()
+    assert dialog._stack.currentWidget() is dialog._preview_page
+    assert "PowerPoint file" in dialog._preview_error.text()
+
+
+def test_open_file_invokes_os_startfile(dialog, monkeypatch):
+    called = {}
+    monkeypatch.setattr("app.widgets.template_dialog.os.startfile",
+                        lambda p: called.setdefault("p", p), raising=False)
+    dialog._rendered_path = "C:/x/out.pptx"
+    dialog._on_open_file()
+    assert called["p"] == "C:/x/out.pptx"
