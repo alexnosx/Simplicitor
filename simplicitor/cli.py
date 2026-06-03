@@ -56,6 +56,14 @@ def _cmd_import(args: argparse.Namespace) -> int:
         print(result["message"], file=sys.stderr)
         return 1
 
+    if result["status"] == "exists":
+        print(
+            f"Error: a template named '{result['name']}' already exists. "
+            "Delete or rename it before importing again.",
+            file=sys.stderr,
+        )
+        return 1
+
     print(f"Imported '{result['name']}' successfully.")
     print()
     print(result["report"])

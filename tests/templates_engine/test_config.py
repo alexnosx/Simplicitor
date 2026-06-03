@@ -244,12 +244,13 @@ def test_import_unusable_writes_nothing(tmp_path):
 # import_template — collision
 # ---------------------------------------------------------------------------
 
-def test_import_collision_raises_value_error(tmp_path):
+def test_import_collision_returns_exists_status(tmp_path):
     pptx = _make_pptx(tmp_path / "source.pptx")
     uroot = tmp_path / "user"
     import_template(pptx, user_root=uroot)  # first import succeeds
-    with pytest.raises(ValueError, match=r"already exists"):
-        import_template(pptx, user_root=uroot)  # second raises
+    result = import_template(pptx, user_root=uroot)  # second collides
+    assert result["status"] == "exists"
+    assert result["name"] == "source"
 
 
 # ---------------------------------------------------------------------------

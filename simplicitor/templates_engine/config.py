@@ -160,13 +160,13 @@ def import_template(
         user_root: Override the user root (useful in tests).
 
     Returns:
-        Success: {"status": "ok", "name": str, "path": Path,
-                  "report": str, "lint_warnings": list[str]}
+        Success:   {"status": "ok", "name": str, "path": Path,
+                    "report": str, "lint_warnings": list[str]}
         Hard stop: {"status": "hard_stop", "message": str}
+        Collision: {"status": "exists", "name": str}
 
     Raises:
-        ValueError: If pptx_path is invalid, or a same-named template already
-            exists in the user root.
+        ValueError: If pptx_path is invalid (missing, not a .pptx, or corrupt).
         ManipulationError: If the user root cannot be created, the template
             folder cannot be created, or a write fails. No partial folder
             is left behind.
@@ -197,10 +197,8 @@ def import_template(
     template_dir = uroot / name
 
     if template_dir.exists():
-        raise ValueError(
-            f"A template named '{name}' already exists in the user templates directory. "
-            "Delete or rename it before importing again."
-        )
+        logger.debug("Import skipped (name collision): '%s'.", name)
+        return {"status": "exists", "name": name}
 
     report = detection_report(inspection, scoring)
 
