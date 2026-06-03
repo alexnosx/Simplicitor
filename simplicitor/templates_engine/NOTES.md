@@ -111,3 +111,12 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    Ollama will report `OllamaConnectionError` where `OllamaTimeoutError` is more precise.
    Acceptable for Phase I. Fix in a future `OllamaClient` refactor (add `requests.Timeout` handling
    to all discovery methods).
+
+4. **`pipeline.generate_content` raises `ParseError` for a post-repair *validation* failure** (Phase K).
+   When the repair attempt returns parseable JSON that still fails manifest validation, the loop
+   raises `ParseError("Model returned invalid content after repair")` rather than a validation-specific
+   error. This conflates a schema failure with a parse failure. The Phase K GUI maps the `ParseError`
+   that is actually raised today, but the semantics are wrong: a schema failure is not a parse failure.
+   Phase M (error-handling audit) target: introduce a distinct validation-exhaustion error, or at least a
+   message naming the schema cause. The GUI's single ParseError mapping is NOT evidence the semantics
+   are correct - it is a deliberate accommodation of current behavior. (`pipeline.py`, attempt-2 branch.)

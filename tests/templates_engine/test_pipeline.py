@@ -127,3 +127,63 @@ def test_run_truncation_bump_passes_max_tokens(manifest, tmp_template):
     second_call_kwargs = mock_gen.call_args_list[1].kwargs
     assert "max_tokens" in second_call_kwargs, "Repair call must include max_tokens for truncation bump"
     assert second_call_kwargs["max_tokens"] >= OLLAMA_REPAIR_MAX_TOKENS
+
+
+# ---------------------------------------------------------------------------
+# Phase K: generate_content seam (render-free)
+# ---------------------------------------------------------------------------
+
+def test_generate_content_valid_first_attempt(manifest):
+    phases = []
+    with patch("templates_engine.llm.generate", return_value=VALID_CONTENT) as mock_gen:
+        content = pipeline.generate_content(
+            manifest, [{"role": "user", "content": "deck"}], "llama3",
+            progress=phases.append,
+        )
+    assert mock_gen.call_count == 1
+    assert content["slides"][0]["type"] == "title_slide"
+    assert content["slides"][0]["fields"]["title"] == "My Title"
+    assert phases == ["generating", "validating"]
+
+
+def test_generate_content_does_not_render(manifest):
+    with patch("templates_engine.llm.generate", return_value=VALID_CONTENT), \
+         patch("templates_engine.pipeline.render") as mock_render:
+        pipeline.generate_content(manifest, [{"role": "user", "content": "x"}], "llama3")
+    mock_render.assert_not_called()
+
+
+def test_generate_content_validation_repair_success(manifest):
+    with patch("templates_engine.llm.generate",
+               side_effect=[INVALID_CONTENT, VALID_CONTENT]) as mock_gen:
+        content = pipeline.generate_content(
+            manifest, [{"role": "user", "content": "x"}], "llama3"
+        )
+    assert mock_gen.call_count == 2
+    assert content["slides"][0]["fields"]["title"] == "My Title"
+
+
+def test_generate_content_post_repair_validation_raises_parseerror(manifest):
+    from app.parsers.llm_response_parser import ParseError
+    with patch("templates_engine.llm.generate",
+               side_effect=[INVALID_CONTENT, INVALID_CONTENT]):
+        with pytest.raises(ParseError, match="after repair"):
+            pipeline.generate_content(manifest, [{"role": "user", "content": "x"}], "llama3")
+
+
+def test_generate_content_post_repair_parse_raises_parseerror(manifest):
+    from app.parsers.llm_response_parser import ParseError
+    with patch("templates_engine.llm.generate", side_effect=["nope", "still nope"]):
+        with pytest.raises(ParseError, match="after repair"):
+            pipeline.generate_content(manifest, [{"role": "user", "content": "x"}], "llama3")
+
+
+def test_generate_content_emits_progress_phases(manifest):
+    phases = []
+    with patch("templates_engine.llm.generate",
+               side_effect=[INVALID_CONTENT, VALID_CONTENT]):
+        pipeline.generate_content(
+            manifest, [{"role": "user", "content": "x"}], "llama3",
+            progress=phases.append,
+        )
+    assert phases == ["generating", "validating", "repairing", "validating"]

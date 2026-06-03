@@ -2,6 +2,7 @@
 # Phase J: Generate-validate-repair-render pipeline.
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
 
 from app.config.defaults import OLLAMA_REPAIR_MAX_TOKENS
@@ -47,51 +48,55 @@ def _looks_truncated(cleaned: str, exc: json.JSONDecodeError) -> bool:
     return depth > 0
 
 
-def run(
+def generate_content(
     manifest: Manifest,
-    template_dir: Path | str,
     messages: list[dict],
     model: str,
-    out_path: Path | str,
     client=None,
+    progress: Callable[[str], None] | None = None,
 ) -> dict:
-    """Run the full generate → validate → (repair) → render pipeline.
+    """Run the generate -> validate -> (repair) loop and return validated content.
+
+    Returns the validated content dict {"slides": [...]}. Does NOT render.
 
     Args:
         manifest: Validated Manifest from load_manifest().
-        template_dir: Directory containing manifest.template_file.
         messages: OpenAI-format prompt from build_prompt().
         model: Ollama model name.
-        out_path: Destination .pptx path. .pptx suffix appended if absent.
-        client: Optional injected OllamaClient (for testing; None uses default).
-
-    Returns:
-        {"path": Path, "issues": list[str]} — same shape as render().
+        client: Optional injected OllamaClient (None uses default).
+        progress: Optional callback invoked with phase labels
+            ("generating", "validating", "repairing"). Invoked on the calling thread.
+            On a clean first attempt only "generating" and "validating" are emitted;
+            "repairing" and a second "validating" appear only when a repair attempt runs.
 
     Raises:
         ParseError: Model could not produce valid content after one repair attempt.
-        OllamaTimeoutError, OllamaConnectionError, OllamaGenerationError: propagated from llm.generate.
-        ManipulationError: propagated from render() on I/O failure or manifest/template mismatch.
-        ValueError: propagated from render() on corrupt/missing template.
+            NOTE: a post-repair *validation* failure (parseable JSON that still fails
+            the manifest) is also raised as ParseError today. See NOTES.md follow-up #4
+            (Phase M audit target) - this conflates a schema failure with a parse failure.
+        OllamaTimeoutError, OllamaConnectionError, OllamaGenerationError: from llm.generate.
     """
-    # ── Attempt 1 ────────────────────────────────────────────────────────────
+    def _emit(label: str) -> None:
+        if progress is not None:
+            progress(label)
+
+    # -- Attempt 1 ------------------------------------------------------------
+    _emit("generating")
     raw1 = llm.generate(messages, model, client=client)
     cleaned1, parsed1, parse_exc1 = _try_parse(raw1)
 
     if parsed1 is not None:
+        _emit("validating")
         ok, result = validate_content(manifest, parsed1)
         if ok:
-            return render(manifest, result, out_path, template_dir)
-        # Validation failed → build repair prompt with error list
+            return result
         logger.warning(
             "Content validation failed on attempt 1 (%d error(s)). Attempting repair.",
             len(result),
         )
         repair_msgs = build_repair_prompt(messages, raw1, errors=result)
         repair_max_tokens = None  # validation failures do not trigger token bump
-
     else:
-        # Parse failed → truncation check, repair with parse-failure correction
         truncated = _looks_truncated(cleaned1, parse_exc1)
         logger.warning(
             "JSON parse failed on attempt 1 (truncated=%s). Attempting repair.",
@@ -100,7 +105,8 @@ def run(
         repair_max_tokens = OLLAMA_REPAIR_MAX_TOKENS if truncated else None
         repair_msgs = build_repair_prompt(messages, raw1, errors=None)
 
-    # ── Attempt 2 (repair) ───────────────────────────────────────────────────
+    # -- Attempt 2 (repair) ---------------------------------------------------
+    _emit("repairing")
     raw2 = llm.generate(repair_msgs, model, max_tokens=repair_max_tokens, client=client)
     _, parsed2, parse_exc2 = _try_parse(raw2)
 
@@ -111,6 +117,7 @@ def run(
             details=str(parse_exc2),
         )
 
+    _emit("validating")
     ok2, result2 = validate_content(manifest, parsed2)
     if not ok2:
         logger.error("Content validation failed after repair. Giving up.")
@@ -119,4 +126,35 @@ def run(
             details=format_validation_errors(result2),
         )
 
-    return render(manifest, result2, out_path, template_dir)
+    return result2
+
+
+def run(
+    manifest: Manifest,
+    template_dir: Path | str,
+    messages: list[dict],
+    model: str,
+    out_path: Path | str,
+    client=None,
+) -> dict:
+    """Run the full generate -> validate -> (repair) -> render pipeline.
+
+    Args:
+        manifest: Validated Manifest from load_manifest().
+        template_dir: Directory containing manifest.template_file.
+        messages: OpenAI-format prompt from build_prompt().
+        model: Ollama model name.
+        out_path: Destination .pptx path. .pptx suffix appended if absent.
+        client: Optional injected OllamaClient (for testing; None uses default).
+
+    Returns:
+        {"path": Path, "issues": list[str]} - same shape as render().
+
+    Raises:
+        ParseError: Model could not produce valid content after one repair attempt.
+        OllamaTimeoutError, OllamaConnectionError, OllamaGenerationError: propagated from llm.generate.
+        ManipulationError: propagated from render() on I/O failure or manifest/template mismatch.
+        ValueError: propagated from render() on corrupt/missing template.
+    """
+    content = generate_content(manifest, messages, model, client=client)
+    return render(manifest, content, out_path, template_dir)
