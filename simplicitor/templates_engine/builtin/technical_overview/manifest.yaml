@@ -1,0 +1,48 @@
+# PROVISIONAL: layout_index and placeholder_idx values below must be verified
+# against the committed template.pptx before use.
+# Run: python scripts/inspect_template.py <path-to-template.pptx>
+# and reconcile each layout_index and placeholder_idx to what PowerPoint assigned.
+name: technical_overview
+type: pptx
+template_file: template.pptx
+description: Technical overview deck -- title, architecture, and bullet slides.
+slide_types:
+  title:
+    layout_index: 0
+    fields:
+      - name: title
+        placeholder_idx: 0
+        kind: text
+        required: true
+        max_chars: 60
+      - name: subtitle
+        placeholder_idx: 1
+        kind: text
+        required: false
+        max_chars: 120
+  architecture:
+    layout_index: 1
+    fields:
+      - name: heading
+        placeholder_idx: 0
+        kind: text
+        required: true
+        max_chars: 60
+      - name: components
+        placeholder_idx: 1
+        kind: bullets
+        required: true
+        max_items: 6
+  bullets:
+    layout_index: 2
+    fields:
+      - name: heading
+        placeholder_idx: 0
+        kind: text
+        required: true
+        max_chars: 60
+      - name: bullets
+        placeholder_idx: 1
+        kind: bullets
+        required: false
+        max_items: 6
