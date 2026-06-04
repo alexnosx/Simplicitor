@@ -817,3 +817,20 @@ def test_main_window_generate_auto_creates_output_dir(qtbot, tmp_path) -> None:
             pass
 
     assert new_dir.exists()
+
+
+def test_create_panel_template_button_disabled_by_default(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    assert not panel._from_template_btn.isEnabled()
+
+
+def test_create_panel_emits_template_requested(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    assert panel._from_template_btn.isEnabled()
+    with qtbot.waitSignal(panel.template_requested, timeout=1000):
+        panel._from_template_btn.click()

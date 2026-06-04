@@ -34,6 +34,7 @@ class CreatePanel(QFrame):
 
     generate_requested = Signal(str, str, str)  # file_type, save_path, prompt
     retry_requested = Signal()
+    template_requested = Signal()
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -126,6 +127,15 @@ class CreatePanel(QFrame):
         self._generate_btn.setEnabled(False)
         layout.addWidget(self._generate_btn)
 
+        # Secondary action: open the template-based PPTX flow (Phase K).
+        # Enabled only when Ollama is connected (see set_ollama_connected).
+        self._from_template_btn = QPushButton("From template…")
+        self._from_template_btn.setObjectName("from_template_btn")
+        self._from_template_btn.setFont(body_font)
+        self._from_template_btn.setFixedHeight(32)
+        self._from_template_btn.setEnabled(False)
+        layout.addWidget(self._from_template_btn)
+
         # Status banner (dismissible, hidden until needed)
         self._status_banner = StatusBanner()
         layout.addWidget(self._status_banner)
@@ -189,15 +199,15 @@ class CreatePanel(QFrame):
             f"QPushButton#generate_btn:disabled {{ background-color: {BORDER_COLOR}; "
             f"color: {DISABLED_COLOR}; }}"
             # Secondary buttons (Browse, Open file)
-            f"QPushButton#browse_btn, QPushButton#open_file_btn {{ background-color: {WHITE}; "
+            f"QPushButton#browse_btn, QPushButton#open_file_btn, QPushButton#from_template_btn {{ background-color: {WHITE}; "
             f"color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
             f"border-radius: {BORDER_RADIUS_PX}px; padding: 8px 14px; font-size: 13px; "
             f"font-weight: 500; }}"
-            f"QPushButton#browse_btn:hover, QPushButton#open_file_btn:hover {{ "
+            f"QPushButton#browse_btn:hover, QPushButton#open_file_btn:hover, QPushButton#from_template_btn:hover {{ "
             f"background-color: {PANEL_BG_COLOR}; border-color: #9CA3AF; }}"
-            f"QPushButton#browse_btn:pressed, QPushButton#open_file_btn:pressed {{ "
+            f"QPushButton#browse_btn:pressed, QPushButton#open_file_btn:pressed, QPushButton#from_template_btn:pressed {{ "
             f"background-color: {BORDER_COLOR}; }}"
-            f"QPushButton#browse_btn:disabled, QPushButton#open_file_btn:disabled {{ "
+            f"QPushButton#browse_btn:disabled, QPushButton#open_file_btn:disabled, QPushButton#from_template_btn:disabled {{ "
             f"color: {DISABLED_COLOR}; border-color: {BORDER_COLOR}; }}"
             # Retry button
             f"QPushButton#retry_btn {{ background-color: {BORDER_COLOR}; color: {BODY_TEXT_COLOR}; "
@@ -211,6 +221,7 @@ class CreatePanel(QFrame):
         self._prompt_edit.textChanged.connect(self._on_prompt_changed)
         self._generate_btn.clicked.connect(self._on_generate_clicked)
         self._retry_btn.clicked.connect(self.retry_requested)
+        self._from_template_btn.clicked.connect(self.template_requested)
         self._open_file_btn.clicked.connect(self._on_open_file)
 
     # ── Private handlers ──────────────────────────────────────────────────────
@@ -276,6 +287,7 @@ class CreatePanel(QFrame):
         """
         self._ollama_connected = connected
         self._update_generate_btn_state()
+        self._from_template_btn.setEnabled(connected)
         self._disconnected_widget.setVisible(not connected)
 
     def set_generating(self, in_progress: bool) -> None:
