@@ -21,9 +21,11 @@ from app.widgets.create_panel import CreatePanel
 from app.widgets.edit_panel import EditPanel
 from app.widgets.settings_dialog import SettingsDialog
 from app.widgets.status_bar import TopBar
+from app.widgets.template_dialog import TemplateDialog
 from app.workers.generate_worker import GenerateWorker
 from app.workers.manipulate_worker import ManipulateWorker
 from app.workers.ollama_worker import OllamaWorker
+from app.workers.template_worker import TemplateGenerateWorker
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +95,7 @@ class MainWindow(QMainWindow):
         self._top_bar.settings_requested.connect(self._open_settings)
         self._start_ollama_worker()
         self._create_panel.generate_requested.connect(self._on_generate_requested)
+        self._create_panel.template_requested.connect(self._on_template_requested)
         self._edit_panel.save_requested.connect(self._on_save_requested)
 
     def _apply_styles(self) -> None:
@@ -310,6 +313,73 @@ class MainWindow(QMainWindow):
         logger.error("Generation failed: %s", msg)
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
+    # ── Template flow (Phase K) ─────────────────────────────────────────────
+
+    def _on_template_requested(self) -> None:
+        """Open the template-based PPTX dialog. Guards on a running model
+        (same affordance as the freeform create flow)."""
+        if not self._current_model:
+            logger.warning("Template flow requested but no model selected")
+            self._create_panel.show_status(
+                "No model is currently running. Please start a model in Ollama.",
+                is_error=True,
+            )
+            return
+        dialog = TemplateDialog(self._settings, parent=self)
+        dialog.generate_requested.connect(
+            lambda manifest, request: self._start_template_worker(dialog, manifest, request)
+        )
+        dialog.exec()
+        # Dialog dismissed: tear down any worker thread it left behind.
+        self._teardown_template_thread()
+        self._recheck_connection.emit()
+
+    def _start_template_worker(self, dialog: TemplateDialog, manifest, request: str) -> None:
+        """Create and start the MainWindow-owned template worker thread, routing
+        its signals to the dialog's on_generate_* slots."""
+        if getattr(self, "_template_thread", None) is not None and self._template_thread.isRunning():
+            logger.warning("Template generation already running; ignoring")
+            return
+        self._template_worker = TemplateGenerateWorker(
+            manifest, request, self._current_model, self._ollama_client
+        )
+        self._template_thread = QThread(self)
+        self._template_worker.moveToThread(self._template_thread)
+
+        self._template_thread.started.connect(self._template_worker.run)
+        self._template_worker.started.connect(dialog.on_generate_started)
+        self._template_worker.progress.connect(dialog.on_generate_progress)
+        self._template_worker.completed.connect(dialog.on_generate_completed)
+        self._template_worker.failed.connect(dialog.on_generate_failed)
+        self._template_worker.completed.connect(self._template_thread.quit)
+        self._template_worker.failed.connect(self._template_thread.quit)
+        self._template_thread.finished.connect(self._template_worker.deleteLater)
+        self._template_thread.finished.connect(self._template_thread.deleteLater)
+        self._template_thread.finished.connect(self._on_template_thread_finished)
+
+        self._template_thread.start()
+        logger.info("Template generation started: model=%s", self._current_model)
+
+    def _on_template_thread_finished(self) -> None:
+        """Clear the thread and worker references once finished (their C++ objects
+        are deleteLater'd; null the Python refs so nothing touches a freed object)."""
+        self._template_thread = None
+        self._template_worker = None
+
+    def _teardown_template_thread(self) -> None:
+        """Quit + bounded-wait the template thread if still running. Safe if absent.
+
+        A blocked Ollama HTTP call cannot be interrupted; the bounded wait matches the
+        existing closeEvent pattern for the generate/manipulate threads. The dialog
+        blocks its own close during an in-flight generation, so this normally runs
+        against an idle/finished thread. See NOTES.md follow-up on the
+        blocked-call-at-app-quit limit (cancellation is out of Phase K scope)."""
+        thread = getattr(self, "_template_thread", None)
+        if thread is not None and thread.isRunning():
+            thread.quit()
+            thread.wait(2000)
+        self._template_thread = None
+
     def _on_save_requested(self, file_path: str, prompt: str) -> None:
         """Start the ManipulateWorker in response to edit_panel.save_requested.
 
@@ -419,4 +489,7 @@ class MainWindow(QMainWindow):
         if hasattr(self, "_manipulate_thread"):
             self._manipulate_thread.quit()
             self._manipulate_thread.wait(2000)
+        if getattr(self, "_template_thread", None) is not None:
+            self._template_thread.quit()
+            self._template_thread.wait(2000)
         super().closeEvent(event)

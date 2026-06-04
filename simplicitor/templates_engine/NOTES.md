@@ -120,3 +120,15 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    Phase M (error-handling audit) target: introduce a distinct validation-exhaustion error, or at least a
    message naming the schema cause. The GUI's single ParseError mapping is NOT evidence the semantics
    are correct - it is a deliberate accommodation of current behavior. (`pipeline.py`, attempt-2 branch.)
+
+5. **Blocked Ollama HTTP call is abandoned (not cancelled) at app quit** (Phase K).
+   The MainWindow worker pattern (OllamaWorker / GenerateWorker / ManipulateWorker and now
+   TemplateGenerateWorker) tears threads down in `closeEvent` with `quit()` + `wait(2000)`.
+   `quit()` stops a thread's event loop but cannot interrupt a worker blocked in a synchronous
+   Ollama HTTP request (up to OLLAMA_TIMEOUT_S). If the user quits the app mid-generation, the
+   bounded wait times out and the thread is abandoned to process exit. This is the existing,
+   accepted behavior for every worker; Phase K does not change it. TemplateDialog additionally
+   blocks its own dismissal while generating, so the only abandonment window is a full app quit.
+   A real fix is cooperative cancellation of the in-flight request (cancel token / short request
+   timeout with retry), which is out of Phase K scope. Phase M (error-handling/robustness audit)
+   target: add cancellation, or formally accept bounded-wait-and-abandon as final.
