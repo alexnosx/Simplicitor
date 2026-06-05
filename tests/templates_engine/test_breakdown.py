@@ -151,8 +151,8 @@ def test_inspect_bundled_template_smoke():
 # inspect_pptx — error paths (conventional Simplicitor errors)
 # ---------------------------------------------------------------------------
 
-def test_missing_file_raises_value_error(tmp_path):
-    with pytest.raises(ValueError, match=r"not found|missing"):
+def test_missing_file_raises_manipulation_error(tmp_path):
+    with pytest.raises(ManipulationError, match=r"not found|missing"):
         inspect_pptx(tmp_path / "ghost.pptx")
 
 

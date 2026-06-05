@@ -102,14 +102,20 @@ def _label_placeholders(placeholders: list[dict[str, Any]]) -> list[dict[str, An
 
 
 def _open_presentation(path: Path):
-    """Open a .pptx file, raising ValueError on missing, wrong extension, or corrupt file."""
+    """Open a .pptx file.
+
+    Raises:
+        ManipulationError: If the file is missing (path-target-missing is a file read failure).
+        ValueError: If the file does not have a .pptx extension, or cannot be opened
+            (corrupt or unreadable content).
+    """
     from pptx import Presentation
     from pptx.exceptions import InvalidXmlError, PackageNotFoundError
 
+    from app.services.file_manipulator import ManipulationError
+
     if not path.exists():
-        # TODO: raise ManipulationError here per NOTES.md (file read failure, not bad arg).
-        # Same correction applied to render_pptx._open_template in Phase H. Fix when touching this file.
-        raise ValueError(f"File not found: '{path}'.")
+        raise ManipulationError(f"File not found: '{path}'.")
     if path.suffix.lower() != ".pptx":
         raise ValueError(
             f"Expected a .pptx file, got '{path.suffix or '(no extension)'}' ('{path.name}')."
@@ -152,8 +158,9 @@ def inspect_pptx(path: str | Path) -> dict[str, Any]:
                     ``is_custom`` (bool, True when idx >= 10).
 
     Raises:
-        ValueError: If the file is missing, does not have a .pptx extension,
-            or cannot be opened as a PowerPoint presentation.
+        ManipulationError: If the file is missing.
+        ValueError: If the file does not have a .pptx extension, or cannot be
+            opened as a PowerPoint presentation (corrupt or invalid content).
     """
     path = Path(path)
     prs = _open_presentation(path)
@@ -236,9 +243,10 @@ def strip_to_template(path: str | Path, out_path: str | Path) -> None:
         out_path: Destination path for the stripped template.
 
     Raises:
-        ValueError: If path is missing, not a .pptx, or cannot be opened.
-        ManipulationError: If out_path cannot be written (permissions, disk).
-            No partial file is left behind on failure.
+        ManipulationError: If path is missing, or if out_path cannot be written
+            (permissions, disk). No partial file is left behind on a write failure.
+        ValueError: If path does not have a .pptx extension or cannot be opened
+            (corrupt or invalid content).
     """
     from app.services.file_manipulator import ManipulationError
 

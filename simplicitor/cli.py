@@ -12,11 +12,12 @@ from templates_engine.breakdown import format_inspection, inspect_pptx
 
 
 def _cmd_inspect(args: argparse.Namespace) -> int:
+    from app.services.file_manipulator import ManipulationError
     try:
         report = inspect_pptx(args.file)
         print(format_inspection(report))
         return 0
-    except ValueError as exc:
+    except (ValueError, ManipulationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 

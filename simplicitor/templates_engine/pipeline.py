@@ -71,9 +71,9 @@ def generate_content(
 
     Raises:
         ParseError: Model could not produce valid content after one repair attempt.
-            NOTE: a post-repair *validation* failure (parseable JSON that still fails
-            the manifest) is also raised as ParseError today. See NOTES.md follow-up #4
-            (Phase M audit target) - this conflates a schema failure with a parse failure.
+            A post-repair *validation* failure (parseable JSON that still fails the
+            manifest) is also raised as ParseError, with a message naming the schema
+            cause ("failed schema validation after repair"). See NOTES.md follow-up #4.
         OllamaTimeoutError, OllamaConnectionError, OllamaGenerationError: from llm.generate.
     """
     def _emit(label: str) -> None:
@@ -122,7 +122,7 @@ def generate_content(
     if not ok2:
         logger.error("Content validation failed after repair. Giving up.")
         raise ParseError(
-            "Model returned invalid content after repair",
+            "Model returned content that failed schema validation after repair",
             details=format_validation_errors(result2),
         )
 

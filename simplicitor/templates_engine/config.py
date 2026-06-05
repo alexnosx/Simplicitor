@@ -166,10 +166,10 @@ def import_template(
         Collision: {"status": "exists", "name": str}
 
     Raises:
-        ValueError: If pptx_path is invalid (missing, not a .pptx, or corrupt).
-        ManipulationError: If the user root cannot be created, the template
-            folder cannot be created, or a write fails. No partial folder
-            is left behind.
+        ManipulationError: If pptx_path is missing, the user root cannot be
+            created, the template folder cannot be created, or a write fails.
+            No partial folder is left behind.
+        ValueError: If pptx_path does not have a .pptx extension or is corrupt.
     """
     from app.services.file_manipulator import ManipulationError
     from templates_engine.breakdown import (
@@ -185,7 +185,8 @@ def import_template(
     pptx_path = Path(pptx_path)
     uroot = user_root if user_root is not None else get_user_root()
 
-    # Inspect and score (ValueError propagates for bad input).
+    # Inspect and score. ValueError propagates for bad input (wrong ext, corrupt);
+    # ManipulationError propagates for missing file.
     inspection = inspect_pptx(pptx_path)
     scoring = score_layouts(inspection)
 
