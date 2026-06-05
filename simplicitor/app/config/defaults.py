@@ -71,6 +71,9 @@ MANIPULATION_VISUAL_EXTENSIONS = {".pptx", ".docx"}
 
 # ── File Types ────────────────────────────────────────────────────────────────
 GENERATE_FILE_TYPES = ["Word (.docx)", "Excel (.xlsx)", "PowerPoint (.pptx)"]
+# The template engine fills PowerPoint layouts only; the "From template" button is
+# enabled only when this file type is selected.
+TEMPLATE_FILE_TYPE = "PowerPoint (.pptx)"
 EDIT_EXTENSIONS = [".docx", ".xlsx", ".pptx", ".txt", ".pdf"]
 EDIT_FILE_FILTER = "Supported Files (*.docx *.xlsx *.pptx *.txt *.pdf)"
 

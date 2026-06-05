@@ -831,6 +831,58 @@ def test_create_panel_emits_template_requested(qtbot, tmp_path) -> None:
     panel = CreatePanel(settings)
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
+    panel._type_combo.setCurrentText("PowerPoint (.pptx)")  # template flow is pptx-only
     assert panel._from_template_btn.isEnabled()
     with qtbot.waitSignal(panel.template_requested, timeout=1000):
         panel._from_template_btn.click()
+
+
+def test_create_panel_template_button_disabled_for_word_when_connected(qtbot, tmp_path) -> None:
+    """The template flow is PowerPoint-only: the button stays disabled for Word."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._type_combo.setCurrentText("Word (.docx)")
+    assert not panel._from_template_btn.isEnabled()
+
+
+def test_create_panel_template_button_disabled_for_excel_when_connected(qtbot, tmp_path) -> None:
+    """The template flow is PowerPoint-only: the button stays disabled for Excel."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._type_combo.setCurrentText("Excel (.xlsx)")
+    assert not panel._from_template_btn.isEnabled()
+
+
+def test_create_panel_template_button_enabled_for_pptx_when_connected(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    panel._type_combo.setCurrentText("PowerPoint (.pptx)")
+    assert panel._from_template_btn.isEnabled()
+
+
+def test_create_panel_template_button_disabled_for_pptx_when_disconnected(qtbot, tmp_path) -> None:
+    """PowerPoint selected but no Ollama: still disabled (connection is also required)."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel._type_combo.setCurrentText("PowerPoint (.pptx)")
+    assert not panel._from_template_btn.isEnabled()
+
+
+def test_create_panel_template_button_reacts_to_file_type_change(qtbot, tmp_path) -> None:
+    """Switching file type while connected toggles the template button live."""
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    panel.set_ollama_connected(True)
+    assert not panel._from_template_btn.isEnabled()  # default is Word
+    panel._type_combo.setCurrentText("PowerPoint (.pptx)")
+    assert panel._from_template_btn.isEnabled()
+    panel._type_combo.setCurrentText("Word (.docx)")
+    assert not panel._from_template_btn.isEnabled()

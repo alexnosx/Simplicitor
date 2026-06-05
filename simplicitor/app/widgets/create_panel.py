@@ -11,7 +11,7 @@ from PySide6.QtGui import QFont
 
 from app.config.defaults import (
     APP_FONT_FAMILY, FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
-    GENERATE_FILE_TYPES, PROMPT_PLACEHOLDERS, MAX_PROMPT_CHARS,
+    GENERATE_FILE_TYPES, TEMPLATE_FILE_TYPE, PROMPT_PLACEHOLDERS, MAX_PROMPT_CHARS,
     PANEL_BG_COLOR, PRIMARY_ACCENT_COLOR, BORDER_COLOR, BODY_TEXT_COLOR,
     DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
     HOVER_ACCENT_COLOR, BORDER_HOVER_COLOR,
@@ -128,7 +128,8 @@ class CreatePanel(QFrame):
         layout.addWidget(self._generate_btn)
 
         # Secondary action: open the template-based PPTX flow (Phase K).
-        # Enabled only when Ollama is connected (see set_ollama_connected).
+        # Enabled only when Ollama is connected AND the PowerPoint file type is
+        # selected (see _update_template_btn_state); the engine is pptx-only.
         self._from_template_btn = QPushButton("From template…")
         self._from_template_btn.setObjectName("from_template_btn")
         self._from_template_btn.setFont(body_font)
@@ -217,6 +218,7 @@ class CreatePanel(QFrame):
 
     def _connect_signals(self) -> None:
         self._type_combo.currentTextChanged.connect(self._update_placeholder)
+        self._type_combo.currentTextChanged.connect(self._update_template_btn_state)
         self._browse_btn.clicked.connect(self._browse_save_dir)
         self._prompt_edit.textChanged.connect(self._on_prompt_changed)
         self._generate_btn.clicked.connect(self._on_generate_clicked)
@@ -260,6 +262,13 @@ class CreatePanel(QFrame):
         prompt_filled = bool(self._prompt_edit.toPlainText().strip())
         self._generate_btn.setEnabled(self._ollama_connected and prompt_filled)
 
+    def _update_template_btn_state(self) -> None:
+        """Enable 'From template' only when Ollama is connected AND the file type is
+        PowerPoint. The template engine fills PowerPoint layouts only, so the button
+        is grayed out for Word and Excel."""
+        is_pptx = self._type_combo.currentText() == TEMPLATE_FILE_TYPE
+        self._from_template_btn.setEnabled(self._ollama_connected and is_pptx)
+
     def _update_tip_visibility(self) -> None:
         """Show inline tip if small model active AND prompt is long or contains styling keywords."""
         text = self._prompt_edit.toPlainText()
@@ -287,7 +296,7 @@ class CreatePanel(QFrame):
         """
         self._ollama_connected = connected
         self._update_generate_btn_state()
-        self._from_template_btn.setEnabled(connected)
+        self._update_template_btn_state()
         self._disconnected_widget.setVisible(not connected)
 
     def set_generating(self, in_progress: bool) -> None:
