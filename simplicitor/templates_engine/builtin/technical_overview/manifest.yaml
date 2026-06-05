@@ -1,7 +1,4 @@
-# PROVISIONAL: layout_index and placeholder_idx values below must be verified
-# against the committed template.pptx before use.
-# Run: python scripts/inspect_template.py <path-to-template.pptx>
-# and reconcile each layout_index and placeholder_idx to what PowerPoint assigned.
+# Indices reconciled to the committed template.pptx. If template.pptx is rebuilt, re-verify with scripts/inspect_template.py.
 name: technical_overview
 type: pptx
 template_file: template.pptx
@@ -34,7 +31,7 @@ slide_types:
         required: true
         max_items: 6
   bullets:
-    layout_index: 2
+    layout_index: 1
     fields:
       - name: heading
         placeholder_idx: 0
