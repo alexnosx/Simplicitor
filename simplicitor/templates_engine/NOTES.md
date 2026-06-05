@@ -92,7 +92,7 @@ logger = logging.getLogger(__name__)
 Items deferred out of scope — persist here so they don't evaporate with session context.
 
 1. **`breakdown.py` `_open_presentation()` raises `ValueError` for missing file** (Phase H regression).
-   **FIXED in Phase M.** `_open_presentation` now raises `ManipulationError` for missing file,
+   **FIXED in Phase M**, commit 65b0f10. `_open_presentation` now raises `ManipulationError` for missing file,
    matching `render_pptx._open_template`. `cli._cmd_inspect` updated to catch both.
    Wrong-extension and corrupt-file paths remain `ValueError` (bad content, not bad path).
 
@@ -114,13 +114,14 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    fixed timeout and all callers treat any connection failure the same way.
 
 4. **`pipeline.generate_content` raises `ParseError` for a post-repair *validation* failure** (Phase K).
-   **PARTIALLY RESOLVED in Phase M.** The message was changed from "Model returned invalid content
+   **CLOSED in Phase M**, commit 65b0f10. The message was changed from "Model returned invalid content
    after repair" to "Model returned content that failed schema validation after repair", which names
    the schema cause as specified. A distinct exception type was not introduced; ParseError remains the
    raised type. The GUI worker's single ParseError mapping is unchanged and correct. The `details`
    field already carries `format_validation_errors()` output for log visibility. If a separate
    validation-exhaustion exception type is ever desired, it should be a ParseError subclass so
    existing catch clauses continue to work. (`pipeline.py`, attempt-2 branch.)
+   Exception type remains ParseError by user direction; revisit during debug if the GUI mislabeling resurfaces.
 
 5. **Blocked Ollama HTTP call is abandoned (not cancelled) at app quit** (Phase K).
    The MainWindow worker pattern (OllamaWorker / GenerateWorker / ManipulateWorker and now
@@ -134,3 +135,7 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    with retry) requires redesigning the worker protocol and is out of scope for v1. If cancellation
    is ever added, the pattern is: pass a threading.Event into the worker; check it between retries;
    signal it from closeEvent before quit().
+
+6. **`closeEvent` crash on `deleteLater`'d `_generate_thread` and `_manipulate_thread`** (post-Phase-M).
+   Deferred to post-Phase-M debug by user decision. Open. Reproduction path: closing the app window
+   while a generate or manipulate operation is in flight.
