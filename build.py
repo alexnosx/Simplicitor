@@ -33,6 +33,9 @@ NUITKA_FLAGS = [
     # Bundle the pptx default template — python-pptx's internal copy is not
     # accessible inside a Nuitka onefile executable.
     "--include-data-dir=templates=templates",
+    # Bundle the curated default templates (business_pitch, technical_overview) so
+    # get_builtin_root() resolves at runtime and ensure_default_templates() can seed them.
+    "--include-data-dir=templates_engine/builtin=templates_engine/builtin",
     # Bundle the assets directory so icons are available at runtime.
     f"--include-data-dir={ASSETS_DIR}=assets",
     f"--windows-icon-from-ico={ICON}",

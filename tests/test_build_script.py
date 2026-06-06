@@ -31,6 +31,12 @@ def test_build_script_includes_prompts_dir() -> None:
     assert "prompts=prompts" in _content()
 
 
+def test_build_script_includes_builtin_templates_dir() -> None:
+    # The curated default templates must be bundled so get_builtin_root() resolves at
+    # runtime and ensure_default_templates() can seed them into the user's folder.
+    assert "templates_engine/builtin=templates_engine/builtin" in _content()
+
+
 def test_build_script_references_icon() -> None:
     assert "windows-icon-from-ico" in _content()
 
