@@ -15,6 +15,10 @@ TEMPLATE_PPTX_NAME = "template.pptx"
 MANIFEST_NAME = "manifest.yaml"
 _APP_NAME = "Simplicitor"
 
+# Curated templates that ship with the app and are always present in the user's
+# Templates folder (seeded from the bundled built-in source if missing).
+DEFAULT_TEMPLATE_NAMES = ("business_pitch", "technical_overview")
+
 
 # ---------------------------------------------------------------------------
 # Directory resolution
@@ -139,6 +143,81 @@ def list_templates(
 
     logger.debug("list_templates: %d template(s) found.", len(templates))
     return templates
+
+
+# ---------------------------------------------------------------------------
+# list_library / ensure_default_templates (single-folder GUI model)
+# ---------------------------------------------------------------------------
+
+def list_library(templates_root: str | Path) -> list[dict[str, Any]]:
+    """List templates in a single library folder, tagging defaults vs user uploads.
+
+    The GUI keeps all templates (seeded defaults + user uploads) in one configurable
+    folder rather than the two-root builtin/user split that the CLI uses.
+
+    Args:
+        templates_root: The folder to scan.
+
+    Returns:
+        A list of dicts (same shape as list_templates) with ``source`` set to "default"
+        for the curated defaults (names in DEFAULT_TEMPLATE_NAMES) and "user" otherwise.
+        Subdirectories missing either required file are skipped; an absent root yields [].
+    """
+    root = Path(templates_root)
+    templates: list[dict[str, Any]] = []
+    if not root.is_dir():
+        return templates
+    for entry in sorted(root.iterdir()):
+        if entry.is_dir() and _is_valid_template_dir(entry):
+            source = "default" if entry.name in DEFAULT_TEMPLATE_NAMES else "user"
+            templates.append({
+                "name": entry.name,
+                "source": source,
+                "path": entry,
+                "manifest_path": entry / MANIFEST_NAME,
+                "template_pptx": entry / TEMPLATE_PPTX_NAME,
+            })
+    logger.debug("list_library: %d template(s) in '%s'.", len(templates), root)
+    return templates
+
+
+def ensure_default_templates(templates_root: str | Path) -> None:
+    """Ensure the curated default templates exist in *templates_root*.
+
+    Creates the folder if absent, then copies each name in DEFAULT_TEMPLATE_NAMES from
+    the bundled built-in source if it is not already a valid template there. An existing
+    default (even if edited) is left untouched; a deleted one is restored on the next
+    call. Best-effort: a missing source default or a copy failure is logged and skipped,
+    never raised, so this is safe to call at startup.
+
+    Args:
+        templates_root: The user-facing Templates folder.
+    """
+    from app.services.file_manipulator import ManipulationError
+
+    root = Path(templates_root)
+    try:
+        _ensure_dir(root)
+    except ManipulationError as exc:
+        logger.error("Cannot prepare templates folder '%s': %s", root, exc)
+        return
+
+    builtin = get_builtin_root()
+    for name in DEFAULT_TEMPLATE_NAMES:
+        dest = root / name
+        if _is_valid_template_dir(dest):
+            continue
+        src = builtin / name
+        if not _is_valid_template_dir(src):
+            logger.warning("Default template source missing or invalid: '%s'.", src)
+            continue
+        try:
+            if dest.exists():
+                shutil.rmtree(dest)  # incomplete/partial folder: replace cleanly
+            shutil.copytree(src, dest)
+            logger.debug("Seeded default template '%s'.", name)
+        except OSError as exc:
+            logger.error("Could not seed default template '%s': %s", name, exc)
 
 
 # ---------------------------------------------------------------------------

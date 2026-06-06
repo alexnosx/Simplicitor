@@ -14,9 +14,9 @@ _SETTINGS_FILENAME = "settings.json"
 class Settings:
     """Persists application configuration to a JSON file.
 
-    Manages four directory paths: generated_dir, uploads_dir, backups_dir,
-    and logs_dir. All default to subfolders under ~/Documents/Simplicitor/
-    on first run.
+    Manages five directory paths: generated_dir, uploads_dir, backups_dir,
+    logs_dir, and templates_dir. All default to subfolders under
+    ~/Documents/Simplicitor/ on first run.
     """
 
     def __init__(self, config_dir: Path) -> None:
@@ -34,6 +34,7 @@ class Settings:
             "uploads_dir": str(base / "Uploads"),
             "backups_dir": str(base / "Backups"),
             "logs_dir": str(base / "Logs"),
+            "templates_dir": str(base / "Templates"),
         }
 
     def _load(self) -> None:
@@ -94,3 +95,8 @@ class Settings:
     def logs_dir(self) -> str:
         """Directory for log files."""
         return str(self._data.get("logs_dir", ""))
+
+    @property
+    def templates_dir(self) -> str:
+        """Directory for PPTX templates (seeded defaults + user uploads)."""
+        return str(self._data.get("templates_dir", ""))

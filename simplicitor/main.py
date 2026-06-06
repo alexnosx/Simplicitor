@@ -17,6 +17,7 @@ from app.config.settings import Settings
 from app.utils.logging_setup import setup_logging
 from app.utils.file_utils import resource_path
 from app.main_window import MainWindow
+from templates_engine.config import ensure_default_templates
 
 
 def _config_dir() -> Path:
@@ -33,6 +34,8 @@ def main() -> None:
     """Application entry point."""
     settings = Settings(_config_dir())
     setup_logging(settings.logs_dir)
+    # Ensure the curated default templates are present in the user's Templates folder.
+    ensure_default_templates(Path(settings.templates_dir))
 
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)

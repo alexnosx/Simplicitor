@@ -48,8 +48,9 @@ def test_template_requested_with_model_opens_picker(window, monkeypatch):
     seen = {}
 
     class FakeDialog:
-        def __init__(self, parent=None):
+        def __init__(self, templates_dir, parent=None):
             seen["constructed"] = True
+            seen["templates_dir"] = templates_dir
             self.template_selected = MagicMock()
 
         def exec(self):
@@ -60,6 +61,7 @@ def test_template_requested_with_model_opens_picker(window, monkeypatch):
     window._current_model = "llama3"
     window._on_template_requested()
     assert seen.get("constructed") and seen.get("exec")
+    assert seen["templates_dir"] == window._settings.templates_dir  # picker uses the setting
     assert window._loaded_template is None  # opening alone does not load a template
 
 

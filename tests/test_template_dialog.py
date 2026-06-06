@@ -33,7 +33,7 @@ def template_root(tmp_path, monkeypatch):
 
 @pytest.fixture
 def dialog(qtbot, template_root):
-    dlg = TemplateDialog()
+    dlg = TemplateDialog(templates_dir=str(template_root))
     qtbot.addWidget(dlg)
     return dlg
 
@@ -201,7 +201,7 @@ def test_apply_hard_stop_cancel_rejects(dialog, monkeypatch):
 def test_apply_hard_stop_builtin_returns_to_selection_with_focus(dialog):
     from PySide6.QtWidgets import QListWidgetItem
     dialog._templates = dialog._templates + [
-        {"name": "corp", "source": "builtin", "path": "x",
+        {"name": "corp", "source": "default", "path": "x",
          "manifest_path": "x", "template_pptx": "x"}
     ]
     item = QListWidgetItem("corp  (builtin)")
@@ -228,10 +228,10 @@ def test_prompt_hard_stop_builtin_available_reflects_templates(dialog, monkeypat
             return CHOICE_CANCEL
 
     monkeypatch.setattr("app.widgets.template_dialog.HardStopDialog", FakeHS)
-    dialog._refresh_templates()  # only a user template => no built-ins
+    dialog._refresh_templates()  # only a user template => no defaults present
     dialog._prompt_hard_stop("m")
     assert captured["ba"] is False
-    dialog._templates = dialog._templates + [{"name": "corp", "source": "builtin"}]
+    dialog._templates = dialog._templates + [{"name": "corp", "source": "default"}]
     dialog._prompt_hard_stop("m")
     assert captured["ba"] is True
 
@@ -244,6 +244,18 @@ def test_import_unexpected_status_shows_error_stays_selection(dialog, monkeypatc
     dialog._do_import("x.pptx")
     assert dialog._stack.currentWidget() is dialog._selection_page
     assert "Unexpected error" in dialog._sel_error.text()
+
+
+def test_do_import_uses_templates_dir(dialog, template_root, monkeypatch):
+    captured = {}
+
+    def fake_import(path, user_root=None):
+        captured["user_root"] = user_root
+        return {"status": "exists", "name": "deck"}
+
+    monkeypatch.setattr(config, "import_template", fake_import)
+    dialog._do_import("x.pptx")
+    assert captured["user_root"] == Path(str(template_root))
 
 
 def test_do_import_hard_stop_cancel_end_to_end(dialog, monkeypatch):

@@ -36,8 +36,9 @@ class TemplateDialog(QDialog):
 
     template_selected = Signal(object, object, str)  # (Manifest, template_dir, name)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, templates_dir: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._templates_dir = templates_dir
         self._templates: list[dict] = []
         self._manifest: Manifest | None = None
         self._selected: dict | None = None
@@ -139,7 +140,7 @@ class TemplateDialog(QDialog):
     def _refresh_templates(self, select_name: str | None = None) -> None:
         self._sel_error.setVisible(False)
         try:
-            self._templates = config.list_templates()
+            self._templates = config.list_library(Path(self._templates_dir))
         except (ValueError, ManipulationError) as exc:
             logger.error("Could not list templates: %s", exc)
             self._templates = []
@@ -201,7 +202,7 @@ class TemplateDialog(QDialog):
         self._clear_selection_error()
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
-            result = config.import_template(path)
+            result = config.import_template(path, user_root=Path(self._templates_dir))
         except ValueError as exc:
             logger.error("Template import rejected (bad file): %s", exc)
             self._show_selection_error("That file is not a usable PowerPoint deck.")
@@ -233,23 +234,23 @@ class TemplateDialog(QDialog):
         self._select_current(report=result.get("report", ""))
 
     def _prompt_hard_stop(self, message: str) -> str:
-        builtin_available = any(t["source"] == "builtin" for t in self._templates)
-        dlg = HardStopDialog(message, builtin_available, parent=self)
+        default_available = any(t["source"] == "default" for t in self._templates)
+        dlg = HardStopDialog(message, default_available, parent=self)
         dlg.exec()
         return dlg.choice()
 
     def _apply_hard_stop_choice(self, choice: str) -> None:
         if choice == CHOICE_BUILTIN:
             self._stack.setCurrentWidget(self._selection_page)
-            self._focus_first_builtin()
+            self._focus_first_default()
         else:
             self.reject()  # cancel and rebuild: abandon the flow
 
-    def _focus_first_builtin(self) -> None:
+    def _focus_first_default(self) -> None:
         for i in range(self._template_list.count()):
             name = self._template_list.item(i).data(Qt.ItemDataRole.UserRole)
             t = next((x for x in self._templates if x["name"] == name), None)
-            if t and t["source"] == "builtin":
+            if t and t["source"] == "default":
                 self._template_list.setCurrentRow(i)
                 return
 

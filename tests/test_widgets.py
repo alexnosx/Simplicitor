@@ -166,6 +166,33 @@ def test_settings_dialog_save_updates_settings(qtbot, tmp_path) -> None:
     assert settings.generated_dir == "/new/path"
 
 
+def test_settings_dialog_shows_templates_path(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    settings.set("templates_dir", "/my/templates")
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+    assert dialog._templates_edit.text() == "/my/templates"
+
+
+def test_settings_dialog_save_updates_templates(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+    dialog._templates_edit.setText("/new/templates")
+    dialog._on_save()
+    assert settings.templates_dir == "/new/templates"
+
+
+def test_settings_dialog_reset_restores_templates(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+    dialog._templates_edit.setText("/custom/templates")
+    dialog._reset_to_defaults()
+    assert "Templates" in dialog._templates_edit.text()
+    assert dialog._templates_edit.text() != "/custom/templates"
+
+
 def test_capability_banner_hidden_by_default(qtbot) -> None:
     banner = CapabilityBanner()
     qtbot.addWidget(banner)

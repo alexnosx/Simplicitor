@@ -69,3 +69,32 @@ def test_get_unknown_key_returns_default(tmp_path: Path) -> None:
 def test_get_returns_none_when_no_default_given(tmp_path: Path) -> None:
     s = Settings(tmp_path)
     assert s.get("nonexistent_key") is None
+
+
+def test_default_templates_dir(tmp_path: Path) -> None:
+    s = Settings(tmp_path)
+    assert "Simplicitor" in s.templates_dir
+    assert s.templates_dir.endswith("Templates")
+
+
+def test_templates_dir_is_string(tmp_path: Path) -> None:
+    s = Settings(tmp_path)
+    assert isinstance(s.templates_dir, str)
+
+
+def test_reset_restores_templates_dir(tmp_path: Path) -> None:
+    s = Settings(tmp_path)
+    s.set("templates_dir", "/custom/templates")
+    s.save()
+    s.reset_to_defaults()
+    assert s.templates_dir.endswith("Templates")
+    assert s.templates_dir != "/custom/templates"
+
+
+def test_old_settings_json_gains_templates_dir(tmp_path: Path) -> None:
+    import json
+    (tmp_path / "settings.json").write_text(
+        json.dumps({"generated_dir": "/x"}), encoding="utf-8"
+    )
+    s = Settings(tmp_path)
+    assert "Templates" in s.templates_dir

@@ -17,7 +17,7 @@ from app.config.settings import Settings
 class SettingsDialog(QDialog):
     """Modal settings dialog.
 
-    Presents four editable directory paths. Changes are applied and
+    Presents five editable directory paths. Changes are applied and
     persisted when the user clicks Save. Cancel discards changes.
     """
 
@@ -59,6 +59,9 @@ class SettingsDialog(QDialog):
         self._logs_edit = self._make_path_edit(
             self._settings.logs_dir, "Select Logs Location"
         )
+        self._templates_edit = self._make_path_edit(
+            self._settings.templates_dir, "Select Templates Location"
+        )
 
         def add_row(label: str, edit: QLineEdit) -> None:
             lbl = QLabel(label)
@@ -70,6 +73,7 @@ class SettingsDialog(QDialog):
         add_row("Uploaded files:", self._uploads_edit)
         add_row("Backups:", self._backups_edit)
         add_row("Logs:", self._logs_edit)
+        add_row("Templates:", self._templates_edit)
 
         layout.addLayout(form)
 
@@ -141,6 +145,7 @@ class SettingsDialog(QDialog):
         self._uploads_edit.setText(self._settings.uploads_dir)
         self._backups_edit.setText(self._settings.backups_dir)
         self._logs_edit.setText(self._settings.logs_dir)
+        self._templates_edit.setText(self._settings.templates_dir)
 
     def _on_save(self) -> None:
         """Persist edited paths to Settings and close."""
@@ -148,5 +153,6 @@ class SettingsDialog(QDialog):
         self._settings.set("uploads_dir", self._uploads_edit.text())
         self._settings.set("backups_dir", self._backups_edit.text())
         self._settings.set("logs_dir", self._logs_edit.text())
+        self._settings.set("templates_dir", self._templates_edit.text())
         self._settings.save()
         self.accept()

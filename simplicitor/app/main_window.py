@@ -337,7 +337,7 @@ class MainWindow(QMainWindow):
                 is_error=True,
             )
             return
-        dialog = TemplateDialog(parent=self)
+        dialog = TemplateDialog(self._settings.templates_dir, parent=self)
         dialog.template_selected.connect(self._on_template_selected)
         dialog.exec()
 
