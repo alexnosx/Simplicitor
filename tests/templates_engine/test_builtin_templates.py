@@ -50,9 +50,9 @@ def test_technical_overview_manifest_loads():
     assert manifest.type == "pptx"
 
 
-def test_business_pitch_has_four_slide_types():
+def test_business_pitch_has_three_slide_types():
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
-    assert set(manifest.slide_types.keys()) == {"title", "agenda", "content", "closing"}
+    assert set(manifest.slide_types.keys()) == {"title", "statement", "closing"}
 
 
 def test_technical_overview_has_three_slide_types():
@@ -70,22 +70,23 @@ def test_technical_overview_lint_clean():
     assert lint_manifest(manifest) == []
 
 
-def test_business_pitch_closing_contact_not_required():
+def test_business_pitch_title_subtitle_optional():
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
-    closing = manifest.slide_types["closing"]
-    contact = next(f for f in closing.fields if f.name == "contact")
-    assert contact.required is False
-    assert contact.kind == "text"
-    assert contact.max_chars == 80
+    title = manifest.slide_types["title"]
+    subtitle = next(f for f in title.fields if f.name == "subtitle")
+    assert subtitle.required is False
+    assert subtitle.kind == "text"
+    assert subtitle.max_chars == 80
 
 
-def test_business_pitch_agenda_items_required_max_five():
+def test_business_pitch_all_fields_are_text():
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
-    agenda = manifest.slide_types["agenda"]
-    items = next(f for f in agenda.fields if f.name == "items")
-    assert items.required is True
-    assert items.kind == "bullets"
-    assert items.max_items == 5
+    for slide_name, slide in manifest.slide_types.items():
+        for field in slide.fields:
+            assert field.kind == "text", (
+                f"{slide_name}.{field.name} is {field.kind!r}; "
+                "water-color layouts only have BODY placeholders, no bullet styling."
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -97,74 +98,61 @@ def test_business_pitch_title_slide_renders(tmp_path):
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
     content = {"slides": [{"type": "title", "fields": {"title": "Test Title"}}]}
     result = render(manifest, content, tmp_path / "out.pptx", _BP_DIR)
+    title_idx = next(
+        f.placeholder_idx
+        for f in manifest.slide_types["title"].fields
+        if f.name == "title"
+    )
     prs = Presentation(str(result["path"]))
-    assert prs.slides[0].placeholders[0].text == "Test Title"
+    assert prs.slides[0].placeholders[title_idx].text == "Test Title"
 
 
 @_skip_bp
-def test_business_pitch_all_four_slide_types_render(tmp_path):
+def test_business_pitch_all_three_slide_types_render(tmp_path):
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
     content = {
         "slides": [
-            {"type": "title",   "fields": {"title": "Title"}},
-            {"type": "agenda",  "fields": {"heading": "Agenda", "items": ["One", "Two", "Three"]}},
-            {"type": "content", "fields": {"heading": "Content", "bullets": ["A", "B"]}},
-            {"type": "closing", "fields": {"heading": "Close", "statement": "Thank you."}},
+            {"type": "title",     "fields": {"title": "Title"}},
+            {"type": "statement", "fields": {"heading": "Key idea"}},
+            {"type": "closing",   "fields": {"message": "Thank you"}},
         ]
     }
     result = render(manifest, content, tmp_path / "out.pptx", _BP_DIR)
     prs = Presentation(str(result["path"]))
-    assert len(prs.slides) == 4
+    assert len(prs.slides) == 3
 
 
 @_skip_bp
-def test_business_pitch_agenda_items_exact_order_and_count(tmp_path):
+def test_business_pitch_title_subtitle_absent_no_issues(tmp_path):
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
-    items = ["First item", "Second item", "Third item"]
-    content = {"slides": [{"type": "agenda", "fields": {"heading": "Agenda", "items": items}}]}
-    result = render(manifest, content, tmp_path / "out.pptx", _BP_DIR)
-    prs = Presentation(str(result["path"]))
-    agenda_idx = manifest.slide_types["agenda"].fields[1].placeholder_idx
-    texts = [
-        p.text
-        for p in prs.slides[0].placeholders[agenda_idx].text_frame.paragraphs
-        if p.text
-    ]
-    assert texts == items
-
-
-@_skip_bp
-def test_business_pitch_closing_contact_absent_no_issues(tmp_path):
-    manifest = load_manifest(_BP_DIR / "manifest.yaml")
-    content = {"slides": [{"type": "closing", "fields": {"heading": "Close", "statement": "Done."}}]}
+    content = {"slides": [{"type": "title", "fields": {"title": "Just a title"}}]}
     result = render(manifest, content, tmp_path / "out.pptx", _BP_DIR)
     assert result["issues"] == []
 
 
 @_skip_bp
-def test_business_pitch_closing_contact_written(tmp_path):
+def test_business_pitch_title_subtitle_written(tmp_path):
     manifest = load_manifest(_BP_DIR / "manifest.yaml")
-    contact_value = "alex@thursday.software"
+    subtitle_value = "A bold step forward"
     content = {
         "slides": [
             {
-                "type": "closing",
+                "type": "title",
                 "fields": {
-                    "heading": "Thank You",
-                    "statement": "Reach out any time.",
-                    "contact": contact_value,
+                    "title": "Acme Platform",
+                    "subtitle": subtitle_value,
                 },
             }
         ]
     }
     result = render(manifest, content, tmp_path / "out.pptx", _BP_DIR)
-    contact_idx = next(
+    subtitle_idx = next(
         f.placeholder_idx
-        for f in manifest.slide_types["closing"].fields
-        if f.name == "contact"
+        for f in manifest.slide_types["title"].fields
+        if f.name == "subtitle"
     )
     prs = Presentation(str(result["path"]))
-    assert prs.slides[0].placeholders[contact_idx].text == contact_value
+    assert prs.slides[0].placeholders[subtitle_idx].text == subtitle_value
 
 
 # ---------------------------------------------------------------------------

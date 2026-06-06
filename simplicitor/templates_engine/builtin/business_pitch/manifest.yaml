@@ -1,63 +1,46 @@
-# Indices reconciled to the committed template.pptx. If template.pptx is rebuilt, re-verify with scripts/inspect_template.py.
+# Indices reconciled to the committed template.pptx (Water-Colored-Splashes deck, sample slides stripped).
+# If template.pptx is rebuilt, re-verify with scripts/inspect_template.py.
 name: business_pitch
 type: pptx
 template_file: template.pptx
-description: Business pitch deck -- title, agenda, content, and closing slides.
+description: Business pitch deck with the Water-Colored Splashes design. Cover, key message, and thank-you slides.
 slide_types:
   title:
-    layout_index: 0
+    layout_index: 0          # Cover Slide layout
     fields:
       - name: title
-        placeholder_idx: 0
+        placeholder_idx: 10
         kind: text
         required: true
         max_chars: 60
       - name: subtitle
-        placeholder_idx: 1
+        placeholder_idx: 11
         kind: text
         required: false
-        max_chars: 120
-  agenda:
-    layout_index: 1
+        max_chars: 80
+  statement:
+    layout_index: 2          # 2_End Slide Layout (centered)
     fields:
       - name: heading
-        placeholder_idx: 0
+        placeholder_idx: 10
         kind: text
         required: true
         max_chars: 40
-      - name: items
-        placeholder_idx: 1
-        kind: bullets
-        required: true
-        max_items: 5
-  content:
-    layout_index: 1
-    fields:
-      - name: heading
-        placeholder_idx: 0
+      - name: subhead
+        placeholder_idx: 11
         kind: text
-        required: true
-        max_chars: 60
-      - name: bullets
-        placeholder_idx: 1
-        kind: bullets
         required: false
-        max_items: 6
+        max_chars: 80
   closing:
-    layout_index: 3
+    layout_index: 1          # End Slide Layout (Thank-you band)
     fields:
-      - name: heading
-        placeholder_idx: 0
+      - name: message
+        placeholder_idx: 10
         kind: text
         required: true
-        max_chars: 60
-      - name: statement
-        placeholder_idx: 1
-        kind: text
-        required: true
-        max_chars: 160
-      - name: contact
-        placeholder_idx: 2
+        max_chars: 40
+      - name: subtitle
+        placeholder_idx: 11
         kind: text
         required: false
         max_chars: 80
