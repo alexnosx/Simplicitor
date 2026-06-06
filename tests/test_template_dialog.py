@@ -1,13 +1,10 @@
 # tests/test_template_dialog.py
-# Phase K Task 4a: TemplateDialog scaffold (SELECTION + CONFIRM).
-import json
+# TemplateDialog is a picker: SELECTION + CONFIRM, emits template_selected on "Next".
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCloseEvent
 from pptx import Presentation
 
 from app.services.file_manipulator import ManipulationError
@@ -35,9 +32,8 @@ def template_root(tmp_path, monkeypatch):
 
 
 @pytest.fixture
-def dialog(qtbot, tmp_path, template_root):
-    settings = SimpleNamespace(generated_dir=str(tmp_path / "out"))
-    dlg = TemplateDialog(settings=settings)
+def dialog(qtbot, template_root):
+    dlg = TemplateDialog()
     qtbot.addWidget(dlg)
     return dlg
 
@@ -47,6 +43,8 @@ def _select_deck(dlg):
     dlg._template_list.setCurrentRow(0)
     dlg._on_select_next()
 
+
+# --- selection + confirm ---------------------------------------------------
 
 def test_selection_lists_user_template(dialog):
     names = [
@@ -72,49 +70,31 @@ def test_confirm_shows_manifest_summary(dialog):
     assert "*" in summary              # required-field marker
 
 
-def test_generate_requested_emitted_with_manifest_and_request(qtbot, dialog):
+def test_confirm_page_has_no_prompt_box(dialog):
+    """The second prompt was removed; the main Create prompt is the only one."""
+    assert not hasattr(dialog, "_confirm_prompt")
+
+
+def test_confirm_next_emits_template_selected_and_accepts(qtbot, dialog):
     _select_deck(dialog)
-    dialog._confirm_prompt.setPlainText("Make a deck")
-    with qtbot.waitSignal(dialog.generate_requested, timeout=2000) as blocker:
-        dialog._on_generate_clicked()
+    accepted = []
+    dialog.accepted.connect(lambda: accepted.append(True))
+    with qtbot.waitSignal(dialog.template_selected, timeout=2000) as blocker:
+        dialog._confirm_next_btn.click()
     assert blocker.args[0] is dialog._manifest
-    assert blocker.args[1] == "Make a deck"
+    assert blocker.args[1] == dialog._template_dir
+    assert blocker.args[2] == "deck"
+    assert accepted == [True]
 
 
-def test_empty_prompt_does_not_emit(qtbot, dialog):
-    _select_deck(dialog)
-    dialog._confirm_prompt.setPlainText("   ")
+def test_confirm_next_noop_without_selection(qtbot, dialog):
     emitted = []
-    dialog.generate_requested.connect(lambda *a: emitted.append(a))
-    dialog._on_generate_clicked()
+    dialog.template_selected.connect(lambda *a: emitted.append(a))
+    dialog._on_confirm_next()  # no template selected yet
     assert emitted == []
-    assert dialog._confirm_status.isVisible()
 
 
-def test_reject_blocked_while_generating(dialog):
-    dialog._generating = True
-    rejected = []
-    dialog.rejected.connect(lambda: rejected.append(True))
-    dialog.reject()
-    assert rejected == []
-    dialog._generating = False
-    dialog.reject()
-    assert rejected == [True]
-
-
-def test_close_event_ignored_while_generating(dialog):
-    dialog._generating = True
-    ev = QCloseEvent()
-    dialog.closeEvent(ev)
-    assert not ev.isAccepted()
-
-    dialog._generating = False
-    ev2 = QCloseEvent()
-    dialog.closeEvent(ev2)
-    assert ev2.isAccepted()
-
-
-# --- 4b: upload + import + hard-stop routing ------------------------------
+# --- upload + import + hard-stop routing -----------------------------------
 
 def test_on_upload_calls_do_import_with_chosen_path(dialog, monkeypatch):
     monkeypatch.setattr(
@@ -289,108 +269,3 @@ def test_do_import_hard_stop_cancel_end_to_end(dialog, monkeypatch):
     monkeypatch.setattr(dialog, "reject", lambda: rejected.append(True))
     dialog._do_import("x.pptx")
     assert rejected == [True]
-
-
-# --- 4c: worker-result slots + preview + render + done --------------------
-
-def test_completed_loads_content_into_preview(dialog):
-    _select_deck(dialog)
-    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "Hi"}}]})
-    assert dialog._stack.currentWidget() is dialog._preview_page
-    text = dialog._preview_edit.toPlainText()
-    assert "title_slide" in text and "Hi" in text
-
-
-def test_progress_maps_raw_labels_to_display(dialog):
-    dialog.on_generate_progress("generating")
-    assert dialog._confirm_status.text() == "Generating slides…"
-    dialog.on_generate_progress("validating")
-    assert dialog._confirm_status.text() == "Checking the result…"
-    dialog.on_generate_progress("repairing")
-    assert dialog._confirm_status.text() == "Fixing the result…"
-    dialog.on_generate_progress("wat")
-    assert dialog._confirm_status.text() == "Working…"
-
-
-def test_failed_returns_to_confirm_with_message(dialog):
-    _select_deck(dialog)
-    dialog.on_generate_started()
-    dialog.on_generate_failed("The AI engine stopped responding. Please check Ollama is running.")
-    assert dialog._stack.currentWidget() is dialog._confirm_page
-    assert "Ollama" in dialog._confirm_status.text()
-
-
-def test_render_uses_edited_content_not_stale(dialog):
-    # Proves the EDITED preview content drives the output, not the pre-edit content.
-    _select_deck(dialog)
-    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "INITIAL"}}]})
-    assert dialog._stack.currentWidget() is dialog._preview_page
-    edited = json.dumps({"slides": [{"type": "title_slide", "fields": {"title": "ZZZ-EDIT-42"}}]})
-    dialog._preview_edit.setPlainText(edited)
-    dialog._on_render_clicked()
-    assert dialog._stack.currentWidget() is dialog._done_page
-    assert Path(dialog._rendered_path).exists()
-    prs = Presentation(dialog._rendered_path)
-    rendered = " ".join(
-        shape.text_frame.text
-        for slide in prs.slides
-        for shape in slide.placeholders
-        if shape.has_text_frame
-    )
-    assert "ZZZ-EDIT-42" in rendered      # the edit flowed through to the placeholder
-    assert "INITIAL" not in rendered      # not stale pre-edit content
-
-
-def test_render_invalid_validation_stays_preview_no_file(dialog):
-    _select_deck(dialog)
-    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
-    dialog._preview_edit.setPlainText(json.dumps({"slides": [{"type": "title_slide", "fields": {}}]}))
-    dialog._on_render_clicked()
-    assert dialog._stack.currentWidget() is dialog._preview_page
-    assert dialog._preview_error.isVisible()
-    assert "title" in dialog._preview_error.text()
-    assert not dialog._out_path.exists()
-
-
-def test_render_invalid_json_stays_preview_no_file(dialog):
-    _select_deck(dialog)
-    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
-    dialog._preview_edit.setPlainText("{ not valid json")
-    dialog._on_render_clicked()
-    assert dialog._stack.currentWidget() is dialog._preview_page
-    assert "JSON" in dialog._preview_error.text()
-    assert not dialog._out_path.exists()
-
-
-def test_render_manipulation_error_stays_preview(dialog, monkeypatch):
-    _select_deck(dialog)
-    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
-    monkeypatch.setattr(
-        "app.widgets.template_dialog.render",
-        MagicMock(side_effect=ManipulationError("placeholder idx 7 not found")),
-    )
-    dialog._on_render_clicked()
-    assert dialog._stack.currentWidget() is dialog._preview_page
-    assert dialog._preview_error.isVisible()
-    assert "Could not save" in dialog._preview_error.text()
-
-
-def test_render_value_error_stays_preview(dialog, monkeypatch):
-    _select_deck(dialog)
-    dialog.on_generate_completed({"slides": [{"type": "title_slide", "fields": {"title": "ok"}}]})
-    monkeypatch.setattr(
-        "app.widgets.template_dialog.render",
-        MagicMock(side_effect=ValueError("not a pptx")),
-    )
-    dialog._on_render_clicked()
-    assert dialog._stack.currentWidget() is dialog._preview_page
-    assert "PowerPoint file" in dialog._preview_error.text()
-
-
-def test_open_file_invokes_os_startfile(dialog, monkeypatch):
-    called = {}
-    monkeypatch.setattr("app.widgets.template_dialog.os.startfile",
-                        lambda p: called.setdefault("p", p), raising=False)
-    dialog._rendered_path = "C:/x/out.pptx"
-    dialog._on_open_file()
-    assert called["p"] == "C:/x/out.pptx"

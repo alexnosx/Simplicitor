@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 from app.config.defaults import (
     APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
     WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, SMALL_MODEL_PARAM_THRESHOLD,
-    FILE_TYPE_EXTENSIONS,
+    FILE_TYPE_EXTENSIONS, TEMPLATE_FILE_TYPE,
 )
 from app.utils.file_utils import resource_path, truncate_path
 from app.config.settings import Settings
@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._settings = settings
+        self._loaded_template: dict | None = None
         self._build_ui()
         self._connect_signals()
         self._apply_styles()
@@ -96,6 +97,7 @@ class MainWindow(QMainWindow):
         self._start_ollama_worker()
         self._create_panel.generate_requested.connect(self._on_generate_requested)
         self._create_panel.template_requested.connect(self._on_template_requested)
+        self._create_panel.file_type_changed.connect(self._on_file_type_changed)
         self._edit_panel.save_requested.connect(self._on_save_requested)
 
     def _apply_styles(self) -> None:
@@ -250,6 +252,15 @@ class MainWindow(QMainWindow):
             return
         output_path = self._build_output_path(file_type, effective_save_dir, prompt)
 
+        # Route to the template engine when a template is loaded and PowerPoint is
+        # selected; otherwise the from-scratch generator handles all file types.
+        if self._loaded_template is not None and file_type == TEMPLATE_FILE_TYPE:
+            self._start_template_generation(output_path, prompt)
+            return
+        self._start_freeform_generation(file_type, output_path, prompt)
+
+    def _start_freeform_generation(self, file_type: str, output_path: str, prompt: str) -> None:
+        """Run the from-scratch GenerateWorker (Word / Excel / PowerPoint from scratch)."""
         self._generate_worker = GenerateWorker(
             file_type, output_path, prompt, self._current_model, self._ollama_client
         )
@@ -313,11 +324,12 @@ class MainWindow(QMainWindow):
         logger.error("Generation failed: %s", msg)
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
-    # ── Template flow (Phase K) ─────────────────────────────────────────────
+    # ── Template flow ────────────────────────────────────────────────────────
 
     def _on_template_requested(self) -> None:
-        """Open the template-based PPTX dialog. Guards on a running model
-        (same affordance as the freeform create flow)."""
+        """Open the template picker. Guards on a running model (same affordance as the
+        freeform create flow). Selecting a template loads it onto the Create screen;
+        generation then runs from the main Generate button."""
         if not self._current_model:
             logger.warning("Template flow requested but no model selected")
             self._create_panel.show_status(
@@ -325,60 +337,82 @@ class MainWindow(QMainWindow):
                 is_error=True,
             )
             return
-        dialog = TemplateDialog(self._settings, parent=self)
-        dialog.generate_requested.connect(
-            lambda manifest, request: self._start_template_worker(dialog, manifest, request)
-        )
+        dialog = TemplateDialog(parent=self)
+        dialog.template_selected.connect(self._on_template_selected)
         dialog.exec()
-        # Dialog dismissed: tear down any worker thread it left behind.
-        self._teardown_template_thread()
-        self._recheck_connection.emit()
 
-    def _start_template_worker(self, dialog: TemplateDialog, manifest, request: str) -> None:
-        """Create and start the MainWindow-owned template worker thread, routing
-        its signals to the dialog's on_generate_* slots."""
-        if getattr(self, "_template_thread", None) is not None and self._template_thread.isRunning():
-            logger.warning("Template generation already running; ignoring")
-            return
+    def _on_template_selected(self, manifest, template_dir, name: str) -> None:
+        """Store the picked template and relabel the Create panel button."""
+        self._loaded_template = {"manifest": manifest, "dir": template_dir, "name": name}
+        self._create_panel.set_template_loaded(True)
+        logger.info("Template loaded: %s", name)
+
+    def _on_file_type_changed(self, file_type: str) -> None:
+        """Clear the loaded template when the file type leaves PowerPoint."""
+        if file_type != TEMPLATE_FILE_TYPE and self._loaded_template is not None:
+            self._loaded_template = None
+            self._create_panel.set_template_loaded(False)
+            logger.debug("Loaded template cleared (file type now %s)", file_type)
+
+    def _start_template_generation(self, output_path: str, prompt: str) -> None:
+        """Run the loaded template through the generate + render pipeline off-thread."""
+        lt = self._loaded_template
         self._template_worker = TemplateGenerateWorker(
-            manifest, request, self._current_model, self._ollama_client
+            lt["manifest"], str(lt["dir"]), prompt, output_path,
+            self._current_model, self._ollama_client,
         )
         self._template_thread = QThread(self)
         self._template_worker.moveToThread(self._template_thread)
 
         self._template_thread.started.connect(self._template_worker.run)
-        self._template_worker.started.connect(dialog.on_generate_started)
-        self._template_worker.progress.connect(dialog.on_generate_progress)
-        self._template_worker.completed.connect(dialog.on_generate_completed)
-        self._template_worker.failed.connect(dialog.on_generate_failed)
+        self._template_worker.started.connect(self._on_template_started)
+        self._template_worker.completed.connect(self._on_template_completed)
+        self._template_worker.failed.connect(self._on_template_failed)
         self._template_worker.completed.connect(self._template_thread.quit)
         self._template_worker.failed.connect(self._template_thread.quit)
         self._template_thread.finished.connect(self._template_worker.deleteLater)
         self._template_thread.finished.connect(self._template_thread.deleteLater)
         self._template_thread.finished.connect(self._on_template_thread_finished)
 
+        self._generating = True
         self._template_thread.start()
         logger.info("Template generation started: model=%s", self._current_model)
+
+    def _on_template_started(self) -> None:
+        """Called when TemplateGenerateWorker begins execution."""
+        self._create_panel.set_generating(True)
+        self._create_panel.clear_status()
+
+    def _on_template_completed(self, path: str, issues: object) -> None:
+        """Called when the template pipeline writes the deck. Clears the loaded template
+        (reset-after-generate) and surfaces the result like the freeform flow."""
+        self._generating = False
+        self._create_panel.set_generating(False)
+        self._create_panel.clear_prompt()
+        primary = "File created successfully"
+        if issues:
+            primary += f" ({len(issues)} formatting note(s))"
+        self._create_panel.show_status(
+            primary, is_error=False, secondary=truncate_path(path), tooltip=path
+        )
+        self._create_panel.show_open_file_btn(path)
+        self._loaded_template = None
+        self._create_panel.set_template_loaded(False)
+        logger.info("Template generation completed: %s", path)
+
+    def _on_template_failed(self, msg: str) -> None:
+        """Called when the template pipeline fails. Keeps the loaded template for retry."""
+        self._generating = False
+        self._create_panel.set_generating(False)
+        self._create_panel.show_status(msg, is_error=True)
+        logger.error("Template generation failed: %s", msg)
+        self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
     def _on_template_thread_finished(self) -> None:
         """Clear the thread and worker references once finished (their C++ objects
         are deleteLater'd; null the Python refs so nothing touches a freed object)."""
         self._template_thread = None
         self._template_worker = None
-
-    def _teardown_template_thread(self) -> None:
-        """Quit + bounded-wait the template thread if still running. Safe if absent.
-
-        A blocked Ollama HTTP call cannot be interrupted; the bounded wait matches the
-        existing closeEvent pattern for the generate/manipulate threads. The dialog
-        blocks its own close during an in-flight generation, so this normally runs
-        against an idle/finished thread. See NOTES.md follow-up on the
-        blocked-call-at-app-quit limit (cancellation is out of Phase K scope)."""
-        thread = getattr(self, "_template_thread", None)
-        if thread is not None and thread.isRunning():
-            thread.quit()
-            thread.wait(2000)
-        self._template_thread = None
 
     def _on_save_requested(self, file_path: str, prompt: str) -> None:
         """Start the ManipulateWorker in response to edit_panel.save_requested.

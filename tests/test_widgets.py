@@ -886,3 +886,25 @@ def test_create_panel_template_button_reacts_to_file_type_change(qtbot, tmp_path
     assert panel._from_template_btn.isEnabled()
     panel._type_combo.setCurrentText("Word (.docx)")
     assert not panel._from_template_btn.isEnabled()
+
+
+def test_create_panel_set_template_loaded_toggles_label(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    assert "From template" in panel._from_template_btn.text()
+    panel.set_template_loaded(True)
+    assert panel._from_template_btn.text() == "From Template: selected"
+    panel.set_template_loaded(False)
+    assert "From template" in panel._from_template_btn.text()
+    assert panel._from_template_btn.text() != "From Template: selected"
+
+
+def test_create_panel_emits_file_type_changed(qtbot, tmp_path) -> None:
+    settings = Settings(tmp_path)
+    panel = CreatePanel(settings)
+    qtbot.addWidget(panel)
+    received = []
+    panel.file_type_changed.connect(received.append)
+    panel._type_combo.setCurrentText("Excel (.xlsx)")
+    assert received == ["Excel (.xlsx)"]

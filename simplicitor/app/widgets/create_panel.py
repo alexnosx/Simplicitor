@@ -23,6 +23,9 @@ from app.widgets.status_banner import StatusBanner
 
 logger = logging.getLogger(__name__)
 
+_TEMPLATE_BTN_DEFAULT = "From template…"
+_TEMPLATE_BTN_LOADED = "From Template: selected"
+
 
 class CreatePanel(QFrame):
     """Left panel: generate a new Office document from a prompt.
@@ -35,6 +38,7 @@ class CreatePanel(QFrame):
     generate_requested = Signal(str, str, str)  # file_type, save_path, prompt
     retry_requested = Signal()
     template_requested = Signal()
+    file_type_changed = Signal(str)  # selected file-type label
 
     def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -130,7 +134,7 @@ class CreatePanel(QFrame):
         # Secondary action: open the template-based PPTX flow (Phase K).
         # Enabled only when Ollama is connected AND the PowerPoint file type is
         # selected (see _update_template_btn_state); the engine is pptx-only.
-        self._from_template_btn = QPushButton("From template…")
+        self._from_template_btn = QPushButton(_TEMPLATE_BTN_DEFAULT)
         self._from_template_btn.setObjectName("from_template_btn")
         self._from_template_btn.setFont(body_font)
         self._from_template_btn.setFixedHeight(32)
@@ -219,6 +223,7 @@ class CreatePanel(QFrame):
     def _connect_signals(self) -> None:
         self._type_combo.currentTextChanged.connect(self._update_placeholder)
         self._type_combo.currentTextChanged.connect(self._update_template_btn_state)
+        self._type_combo.currentTextChanged.connect(self.file_type_changed)
         self._browse_btn.clicked.connect(self._browse_save_dir)
         self._prompt_edit.textChanged.connect(self._on_prompt_changed)
         self._generate_btn.clicked.connect(self._on_generate_clicked)
@@ -298,6 +303,16 @@ class CreatePanel(QFrame):
         self._update_generate_btn_state()
         self._update_template_btn_state()
         self._disconnected_widget.setVisible(not connected)
+
+    def set_template_loaded(self, loaded: bool) -> None:
+        """Reflect whether a template is loaded in the 'From template' button label.
+
+        Args:
+            loaded: True after a template is picked; False in the default state.
+        """
+        self._from_template_btn.setText(
+            _TEMPLATE_BTN_LOADED if loaded else _TEMPLATE_BTN_DEFAULT
+        )
 
     def set_generating(self, in_progress: bool) -> None:
         """Show or hide generation progress state.

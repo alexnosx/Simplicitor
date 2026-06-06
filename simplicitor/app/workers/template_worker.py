@@ -1,10 +1,12 @@
 # simplicitor/app/workers/template_worker.py
-# Phase K: Template-based PPTX content generation worker.
+# Template-based PPTX generation worker: runs the full generate + render pipeline
+# on a background QThread.
 import logging
 
 from PySide6.QtCore import QObject, Signal
 
 from app.parsers.llm_response_parser import ParseError
+from app.services.file_manipulator import ManipulationError
 from app.services.ollama_client import (
     OllamaClient,
     OllamaConnectionError,
@@ -19,53 +21,58 @@ logger = logging.getLogger(__name__)
 
 
 class TemplateGenerateWorker(QObject):
-    """Runs the template generate-validate-repair loop on a background QThread.
+    """Runs the template generate-validate-repair-render pipeline on a background QThread.
 
-    Reuses the moveToThread pattern (started/progress/completed/failed). Renders
-    nothing - the dialog renders synchronously after the editable preview. Touches
-    no widgets: run() only emits signals, and the progress callback passed into
-    pipeline.generate_content only emits a signal (queued to the main thread when
-    moved to a worker thread), preserving the no-QWidget-off-thread rule.
+    Reuses the moveToThread pattern (started/completed/failed). Builds the prompt from
+    the manifest and the user's request, then runs pipeline.run, which generates content,
+    validates and repairs it, and renders the deck to out_path. Touches no widgets: run()
+    only emits signals, preserving the no-QWidget-off-thread rule. File I/O (the render)
+    stays off the UI thread.
 
     Signals:
         started: emitted when run() begins.
-        progress: emitted with the raw phase label produced by
-            pipeline.generate_content ("generating" / "validating" / "repairing").
-            The dialog maps these labels to display text.
-        completed: emitted with the validated content dict {"slides": [...]}.
-        failed: emitted with a user-facing error message. Never contains raw
-            exception text or model content.
+        completed: emitted with (out_path: str, issues: list[str]) on success. issues are
+            non-fatal degrade warnings collected during rendering.
+        failed: emitted with a user-facing error message. Never contains raw exception
+            text or model content.
     """
 
     started = Signal()
-    progress = Signal(str)
-    completed = Signal(object)   # validated content dict
+    completed = Signal(str, object)   # (out_path, issues)
     failed = Signal(str)
 
     def __init__(
-        self, manifest: Manifest, user_request: str, model: str, client: OllamaClient
+        self,
+        manifest: Manifest,
+        template_dir: str,
+        user_request: str,
+        out_path: str,
+        model: str,
+        client: OllamaClient,
     ) -> None:
         super().__init__()
         self._manifest = manifest
+        self._template_dir = template_dir
         self._user_request = user_request
+        self._out_path = out_path
         self._model = model
         self._client = client
 
     def run(self) -> None:
-        """Execute the generate-validate-repair loop. Called via QThread.started.
+        """Execute generate-validate-repair-render. Called via QThread.started.
 
-        Emits started(), then progress() phase labels, and finally either
-        completed(content_dict) or failed(message).
+        Emits started(), then either completed(out_path, issues) or failed(message).
         """
         self.started.emit()
         messages = build_prompt(self._manifest, self._user_request)
         try:
-            content = pipeline.generate_content(
+            result = pipeline.run(
                 self._manifest,
+                self._template_dir,
                 messages,
                 self._model,
+                self._out_path,
                 client=self._client,
-                progress=self.progress.emit,
             )
         except OllamaTimeoutError as exc:  # subclass of OllamaConnectionError: catch FIRST
             logger.error("Ollama timed out during template generation: %s", exc)
@@ -90,6 +97,19 @@ class TemplateGenerateWorker(QObject):
                 "Try a simpler request or a different model."
             )
             return
+        except ManipulationError as exc:
+            # Render I/O failure or manifest/template index mismatch.
+            logger.error("Template render failed (manipulation): %s", exc)
+            self.failed.emit(
+                "Could not save the presentation, or the template and its manifest "
+                "are out of sync."
+            )
+            return
+        except ValueError as exc:
+            # Template file could not be opened as a PowerPoint file (corrupt/invalid).
+            logger.error("Template render failed (template open): %s", exc)
+            self.failed.emit("The template file could not be opened as a PowerPoint file.")
+            return
         except Exception as exc:  # defensive net; matches OllamaWorker/GenerateWorker
             logger.error("Unexpected error during template generation: %s", exc)
             self.failed.emit(
@@ -97,4 +117,4 @@ class TemplateGenerateWorker(QObject):
             )
             return
 
-        self.completed.emit(content)
+        self.completed.emit(str(result["path"]), result["issues"])

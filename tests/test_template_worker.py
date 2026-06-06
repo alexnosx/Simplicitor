@@ -1,11 +1,12 @@
 # tests/test_template_worker.py
-# Phase K: Tests for TemplateGenerateWorker.
+# Tests for TemplateGenerateWorker (runs the full generate + render pipeline off-thread).
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.parsers.llm_response_parser import ParseError
+from app.services.file_manipulator import ManipulationError
 from app.services.ollama_client import (
     OllamaConnectionError, OllamaGenerationError, OllamaTimeoutError,
 )
@@ -15,7 +16,6 @@ from templates_engine.manifest import load_manifest
 FIXTURE_MANIFEST = (
     Path(__file__).parent / "templates_engine" / "fixtures" / "render_manifest.yaml"
 )
-CONTENT = {"slides": [{"type": "title_slide", "fields": {"title": "My Title"}}]}
 
 
 @pytest.fixture
@@ -23,51 +23,39 @@ def manifest():
     return load_manifest(FIXTURE_MANIFEST)
 
 
-def make_worker(manifest, request="A deck", model="llama3", client=None):
-    return TemplateGenerateWorker(manifest, request, model, client or MagicMock())
+def make_worker(manifest, tmp_path, request="A deck", model="llama3", client=None):
+    return TemplateGenerateWorker(
+        manifest,
+        str(tmp_path),
+        request,
+        str(tmp_path / "out.pptx"),
+        model,
+        client or MagicMock(),
+    )
 
 
-def test_worker_emits_started(qtbot, manifest):
-    worker = make_worker(manifest)
+def test_worker_emits_started(qtbot, manifest, tmp_path):
+    worker = make_worker(manifest, tmp_path)
     started = []
     worker.started.connect(lambda: started.append(True))
-    with patch("templates_engine.pipeline.generate_content", return_value=CONTENT):
+    result = {"path": tmp_path / "out.pptx", "issues": []}
+    with patch("templates_engine.pipeline.run", return_value=result):
         with qtbot.waitSignal(worker.completed, timeout=5000):
             worker.run()
     assert started == [True]
 
 
-def test_worker_completed_carries_content_and_happy_path_progress(qtbot, manifest):
-    def fake(manifest_, messages, model, client=None, progress=None):
-        if progress:
-            progress("generating")
-            progress("validating")
-        return CONTENT
-
-    worker = make_worker(manifest)
-    phases = []
-    worker.progress.connect(phases.append)
-    with patch("templates_engine.pipeline.generate_content", side_effect=fake):
+def test_worker_completed_carries_path_and_issues(qtbot, manifest, tmp_path):
+    out = tmp_path / "out.pptx"
+    result = {"path": out, "issues": ["Slide 0, field 'title': text too long."]}
+    worker = make_worker(manifest, tmp_path)
+    with patch("templates_engine.pipeline.run", return_value=result) as run_mock:
         with qtbot.waitSignal(worker.completed, timeout=5000) as blocker:
             worker.run()
-    assert phases == ["generating", "validating"]
-    assert blocker.args[0] == CONTENT
-
-
-def test_worker_repair_path_progress_sequence(qtbot, manifest):
-    def fake(manifest_, messages, model, client=None, progress=None):
-        if progress:
-            for label in ("generating", "validating", "repairing", "validating"):
-                progress(label)
-        return CONTENT
-
-    worker = make_worker(manifest)
-    phases = []
-    worker.progress.connect(phases.append)
-    with patch("templates_engine.pipeline.generate_content", side_effect=fake):
-        with qtbot.waitSignal(worker.completed, timeout=5000):
-            worker.run()
-    assert phases == ["generating", "validating", "repairing", "validating"]
+    # pipeline.run is the boundary the worker drives (generate + render in one call).
+    assert run_mock.called
+    assert blocker.args[0] == str(out)
+    assert blocker.args[1] == ["Slide 0, field 'title': text too long."]
 
 
 @pytest.mark.parametrize("exc, raw, expect_substr, forbid_substr", [
@@ -76,13 +64,16 @@ def test_worker_repair_path_progress_sequence(qtbot, manifest):
     (OllamaGenerationError("status 500 Internal Server Error"), "500", "unexpected", None),
     (ParseError("Model returned invalid content after repair", details='{"slides": []}'),
      "after repair", "valid slide structure", "parse"),
+    (ManipulationError("placeholder idx 7 not found /secret/path"),
+     "secret", "out of sync", None),
+    (ValueError("not a pptx /secret/path"), "secret", "PowerPoint file", None),
     (RuntimeError("boom internal traceback detail"), "boom", "went wrong", None),
 ])
 def test_worker_maps_exception_to_friendly_message(
-    qtbot, manifest, exc, raw, expect_substr, forbid_substr
+    qtbot, manifest, tmp_path, exc, raw, expect_substr, forbid_substr
 ):
-    worker = make_worker(manifest)
-    with patch("templates_engine.pipeline.generate_content", side_effect=exc):
+    worker = make_worker(manifest, tmp_path)
+    with patch("templates_engine.pipeline.run", side_effect=exc):
         with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
             worker.run()
     msg = blocker.args[0]

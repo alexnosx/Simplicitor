@@ -1,5 +1,5 @@
 # tests/test_main_window_template.py
-# Phase K Task 6: MainWindow template-flow wiring.
+# MainWindow template-flow wiring: picker -> loaded state -> template-aware Generate.
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -7,15 +7,15 @@ import pytest
 
 from app.config.settings import Settings
 from app.main_window import MainWindow
-from app.parsers.llm_response_parser import ParseError
 from app.services.ollama_client import OllamaClient
-from app.widgets.template_dialog import TemplateDialog
 from templates_engine.manifest import load_manifest
 
 FIXTURE_MANIFEST = (
     Path(__file__).parent / "templates_engine" / "fixtures" / "render_manifest.yaml"
 )
-CONTENT = {"slides": [{"type": "title_slide", "fields": {"title": "X"}}]}
+
+WORD = "Word (.docx)"
+PPTX = "PowerPoint (.pptx)"
 
 
 @pytest.fixture
@@ -27,6 +27,8 @@ def window(qtbot, tmp_path, monkeypatch):
     yield win
     win.close()
 
+
+# --- picker open ------------------------------------------------------------
 
 def test_template_requested_without_model_does_not_open(window, monkeypatch):
     opened = []
@@ -42,13 +44,13 @@ def test_template_requested_without_model_does_not_open(window, monkeypatch):
     assert shown and shown[0][1] is True    # error affordance surfaced
 
 
-def test_template_requested_with_model_opens_dialog(window, monkeypatch):
+def test_template_requested_with_model_opens_picker(window, monkeypatch):
     seen = {}
 
     class FakeDialog:
-        def __init__(self, settings, parent=None):
+        def __init__(self, parent=None):
             seen["constructed"] = True
-            self.generate_requested = MagicMock()
+            self.template_selected = MagicMock()
 
         def exec(self):
             seen["exec"] = True
@@ -58,61 +60,123 @@ def test_template_requested_with_model_opens_dialog(window, monkeypatch):
     window._current_model = "llama3"
     window._on_template_requested()
     assert seen.get("constructed") and seen.get("exec")
-    assert getattr(window, "_template_thread", None) is None  # no generation triggered
+    assert window._loaded_template is None  # opening alone does not load a template
 
 
-def test_worker_routes_completed_to_dialog(window, qtbot, monkeypatch):
-    # Real worker + real dialog + MainWindow-owned thread; mock generate_content at the boundary.
+# --- loaded-template state --------------------------------------------------
+
+def test_template_selected_stores_and_relabels(window):
     manifest = load_manifest(FIXTURE_MANIFEST)
-    dialog = TemplateDialog(window._settings)
-    qtbot.addWidget(dialog)
+    window._on_template_selected(manifest, "C:/tmpl/deck", "deck")
+    assert window._loaded_template["name"] == "deck"
+    assert window._loaded_template["manifest"] is manifest
+    assert window._create_panel._from_template_btn.text() == "From Template: selected"
+
+
+def test_file_type_off_pptx_clears_loaded_template(window):
+    window._loaded_template = {"manifest": object(), "dir": "d", "name": "deck"}
+    window._create_panel.set_template_loaded(True)
+    window._on_file_type_changed(WORD)
+    assert window._loaded_template is None
+    assert "From template" in window._create_panel._from_template_btn.text()
+    assert window._create_panel._from_template_btn.text() != "From Template: selected"
+
+
+def test_file_type_pptx_keeps_loaded_template(window):
+    sentinel = {"manifest": object(), "dir": "d", "name": "deck"}
+    window._loaded_template = sentinel
+    window._on_file_type_changed(PPTX)
+    assert window._loaded_template is sentinel
+
+
+# --- Generate routing -------------------------------------------------------
+
+def test_generate_routes_to_template_when_loaded_and_pptx(window, tmp_path, monkeypatch):
+    calls = {"template": [], "freeform": []}
+    monkeypatch.setattr(window, "_start_template_generation",
+                        lambda out, prompt: calls["template"].append((out, prompt)))
+    monkeypatch.setattr(window, "_start_freeform_generation",
+                        lambda ft, out, prompt: calls["freeform"].append(ft))
+    window._current_model = "llama3"
+    window._loaded_template = {"manifest": object(), "dir": str(tmp_path), "name": "deck"}
+    window._on_generate_requested(PPTX, str(tmp_path), "make a deck")
+    assert len(calls["template"]) == 1
+    assert calls["freeform"] == []
+    assert calls["template"][0][1] == "make a deck"
+
+
+def test_generate_routes_to_freeform_when_loaded_but_not_pptx(window, tmp_path, monkeypatch):
+    calls = {"template": 0, "freeform": []}
+    monkeypatch.setattr(window, "_start_template_generation",
+                        lambda out, prompt: calls.__setitem__("template", calls["template"] + 1))
+    monkeypatch.setattr(window, "_start_freeform_generation",
+                        lambda ft, out, prompt: calls["freeform"].append(ft))
+    window._current_model = "llama3"
+    window._loaded_template = {"manifest": object(), "dir": str(tmp_path), "name": "deck"}
+    window._on_generate_requested(WORD, str(tmp_path), "make a doc")
+    assert calls["template"] == 0
+    assert calls["freeform"] == [WORD]
+
+
+def test_generate_routes_to_freeform_when_not_loaded(window, tmp_path, monkeypatch):
+    calls = {"template": 0, "freeform": []}
+    monkeypatch.setattr(window, "_start_template_generation",
+                        lambda out, prompt: calls.__setitem__("template", calls["template"] + 1))
+    monkeypatch.setattr(window, "_start_freeform_generation",
+                        lambda ft, out, prompt: calls["freeform"].append(ft))
+    window._current_model = "llama3"
+    window._loaded_template = None
+    window._on_generate_requested(PPTX, str(tmp_path), "make a deck")
+    assert calls["template"] == 0
+    assert calls["freeform"] == [PPTX]
+
+
+# --- template result handlers ----------------------------------------------
+
+def test_template_completed_shows_file_and_clears_loaded(window):
+    window._loaded_template = {"manifest": object(), "dir": "d", "name": "deck"}
+    window._create_panel.set_template_loaded(True)
+    window._generating = True
+    window._on_template_completed("C:/out/deck.pptx", [])
+    assert window._loaded_template is None
+    assert window._generating is False
+    assert window._create_panel._status_banner.isVisible()
+    assert "File created successfully" in window._create_panel._status_banner.text()
+    assert window._create_panel._open_file_btn.isVisible()
+    assert window._create_panel._from_template_btn.text() != "From Template: selected"
+
+
+def test_template_completed_notes_formatting_issues(window):
+    window._loaded_template = {"manifest": object(), "dir": "d", "name": "deck"}
+    window._generating = True
+    window._on_template_completed("C:/out/deck.pptx", ["a", "b"])
+    assert "2 formatting note" in window._create_panel._status_banner.text()
+
+
+def test_template_failed_keeps_loaded(window):
+    sentinel = {"manifest": object(), "dir": "d", "name": "deck"}
+    window._loaded_template = sentinel
+    window._generating = True
+    window._on_template_failed("The AI engine stopped responding. Please check Ollama is running.")
+    assert window._loaded_template is sentinel   # kept for retry
+    assert window._generating is False
+    assert window._create_panel._status_banner.isVisible()
+    assert "Ollama" in window._create_panel._status_banner.text()
+
+
+# --- end-to-end through the real worker + thread (pipeline mocked) ----------
+
+def test_template_generate_end_to_end_clears_loaded(window, qtbot, tmp_path, monkeypatch):
+    manifest = load_manifest(FIXTURE_MANIFEST)
+    out = tmp_path / "deck.pptx"
     monkeypatch.setattr(
-        "templates_engine.pipeline.generate_content", MagicMock(return_value=CONTENT)
+        "templates_engine.pipeline.run",
+        MagicMock(return_value={"path": str(out), "issues": []}),
     )
     window._current_model = "llama3"
-    window._start_template_worker(dialog, manifest, "make a deck")
-    qtbot.waitUntil(lambda: dialog._stack.currentWidget() is dialog._preview_page, timeout=5000)
-    assert "title_slide" in dialog._preview_edit.toPlainText()
-    assert dialog._generating is False   # on_generate_completed cleared the generating flag
-    window._teardown_template_thread()
-    assert window._template_thread is None
-
-
-def test_worker_routes_failed_to_dialog(window, qtbot, monkeypatch):
-    manifest = load_manifest(FIXTURE_MANIFEST)
-    dialog = TemplateDialog(window._settings)
-    qtbot.addWidget(dialog)
-    dialog._stack.setCurrentWidget(dialog._confirm_page)  # generation starts from CONFIRM
-    monkeypatch.setattr(
-        "templates_engine.pipeline.generate_content",
-        MagicMock(side_effect=ParseError("invalid after repair", details="x")),
-    )
-    window._current_model = "llama3"
-    window._start_template_worker(dialog, manifest, "make a deck")
-    qtbot.waitUntil(
-        lambda: dialog._confirm_status.isVisible()
-        and "valid slide structure" in dialog._confirm_status.text(),
-        timeout=5000,
-    )
-    assert dialog._stack.currentWidget() is dialog._confirm_page  # stayed on CONFIRM
-    window._teardown_template_thread()
-
-
-def test_template_thread_torn_down_on_close(window, qtbot, monkeypatch):
-    manifest = load_manifest(FIXTURE_MANIFEST)
-    dialog = TemplateDialog(window._settings)
-    qtbot.addWidget(dialog)
-    monkeypatch.setattr(
-        "templates_engine.pipeline.generate_content", MagicMock(return_value=CONTENT)
-    )
-    window._current_model = "llama3"
-    window._start_template_worker(dialog, manifest, "x")
-    qtbot.waitUntil(lambda: getattr(window, "_template_thread", None) is None, timeout=5000)
-    window.close()  # closeEvent must be safe with a finished/cleared thread
-    assert getattr(window, "_template_thread", None) is None
-
-
-def test_teardown_template_thread_safe_when_absent(window):
-    window._template_thread = None
-    window._teardown_template_thread()   # must not raise
-    assert window._template_thread is None
+    window._loaded_template = {"manifest": manifest, "dir": str(tmp_path), "name": "deck"}
+    window._create_panel.set_template_loaded(True)
+    window._on_generate_requested(PPTX, str(tmp_path), "make a deck")
+    qtbot.waitUntil(lambda: window._loaded_template is None, timeout=5000)
+    assert window._create_panel._open_file_btn.isVisible()
+    assert "From template" in window._create_panel._from_template_btn.text()
