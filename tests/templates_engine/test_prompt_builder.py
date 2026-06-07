@@ -66,65 +66,20 @@ def test_build_prompt_one_shot_assistant_uses_manifest_field_names(manifest):
         )
 
 
-def test_build_prompt_one_shot_duplicates_bullets_slide_types(manifest):
-    """A slide type with a kind:bullets field appears more than once in the one-shot.
+def test_one_shot_contains_each_slide_type_exactly_once_in_manifest_order(manifest):
+    """One-shot example emits every slide type exactly once, in manifest order.
 
-    Locks the design intent: the one-shot demonstrates content-type repeatability so
-    the model is not biased toward a minimum slide count. Asserts behavior (the
-    duplication rule), not a specific prompt string or overall slide count, so future
-    cosmetic edits to the example do not break this guard.
-    """
-    import json
-    messages = build_prompt(manifest, "Make a deck.")
-    data = json.loads(messages[2]["content"])
-    counts: dict[str, int] = {}
-    for slide in data["slides"]:
-        counts[slide["type"]] = counts.get(slide["type"], 0) + 1
-
-    bullets_types = [
-        name for name, sdef in manifest.slide_types.items()
-        if any(f.kind == "bullets" for f in sdef.fields)
-    ]
-    assert bullets_types, (
-        "Fixture must include at least one slide type with a kind:bullets field "
-        "for this test to be meaningful."
-    )
-    for type_name in bullets_types:
-        assert counts.get(type_name, 0) >= 2, (
-            f"Slide type '{type_name}' has a kind:bullets field but appears "
-            f"{counts.get(type_name, 0)} time(s) in the one-shot; design requires "
-            f"repeatability demonstration so the model does not anchor on minimum count."
-        )
-
-
-def test_one_shot_repeated_types_appear_consecutively(manifest):
-    """Each slide type's occurrences in the one-shot form a single contiguous run.
-
-    Guards the natural-deck-order property: if a type is duplicated, its second
-    occurrence sits immediately after the first rather than tacked onto the end of
-    the example. A future refactor that re-anchors the model on unnatural orderings
-    (e.g. content slides after a closing slide) will trip this test.
+    Locks the design that replaced the in-place duplication scheme (which produced
+    byte-for-byte identical adjacent slides and degenerated gemma4 in JSON mode).
+    The LENGTH block in the system message carries slide-count guidance on its own;
+    the one-shot only has to demonstrate the JSON shape, one example per type.
     """
     import json
     messages = build_prompt(manifest, "Make a deck.")
     data = json.loads(messages[2]["content"])
     types_in_order = [slide["type"] for slide in data["slides"]]
-
-    # Collect the set of distinct positions where each type appears. A contiguous run
-    # means those positions are sequential integers.
-    positions: dict[str, list[int]] = {}
-    for i, t in enumerate(types_in_order):
-        positions.setdefault(t, []).append(i)
-
-    for type_name, indices in positions.items():
-        if len(indices) < 2:
-            continue
-        gaps = [indices[i + 1] - indices[i] for i in range(len(indices) - 1)]
-        assert all(g == 1 for g in gaps), (
-            f"Slide type '{type_name}' appears at positions {indices} in the "
-            f"one-shot; expected a single contiguous run so duplicates sit next "
-            f"to the original and preserve natural deck order."
-        )
+    expected = list(manifest.slide_types.keys())
+    assert types_in_order == expected
 
 
 def test_build_prompt_last_message_contains_user_request(manifest):

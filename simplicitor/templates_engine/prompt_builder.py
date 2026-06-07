@@ -3,7 +3,7 @@
 import json
 import logging
 
-from templates_engine.manifest import Manifest, SlideTypeDef
+from templates_engine.manifest import Manifest
 from templates_engine.validation import format_validation_errors
 
 logger = logging.getLogger(__name__)
@@ -80,40 +80,33 @@ def _build_system_message(manifest: Manifest) -> str:
     return "\n".join(lines)
 
 
-def _has_bullets_field(slide_def: SlideTypeDef) -> bool:
-    """True if the slide type defines at least one field of kind 'bullets'."""
-    return any(f.kind == "bullets" for f in slide_def.fields)
-
-
 def _build_one_shot_assistant(manifest: Manifest) -> str:
-    """Build one-shot assistant JSON demonstrating type variety and content repeatability.
+    """Build one-shot assistant JSON demonstrating type variety.
 
-    Walks the manifest's slide types in order; for each type, emits it once, and if it
-    has at least one kind:bullets field, emits a second occurrence immediately after.
-    Repeats are placed in-place rather than appended at the end so the example preserves
-    a natural deck order (e.g. content slides do not appear after a closing slide). The
-    pattern shows the model that all schema types are available and that content-shaped
-    types can repeat in a single deck, without anchoring on a specific overall slide count.
+    Emits every slide type exactly once, in manifest order. Synthetic field content
+    varies by slide type (text fields include the slide name; bullets fields include
+    the slide name in each item) so adjacent slides are visibly distinct. The earlier
+    in-place duplication scheme produced byte-for-byte identical adjacent slides,
+    which degenerated gemma4 in JSON-constrained mode; the LENGTH guidance in the
+    system message now carries the slide-count intent on its own, and this one-shot
+    only has to demonstrate the JSON shape.
     """
-    slide_order: list[str] = []
-    for slide_name, slide_def in manifest.slide_types.items():
-        slide_order.append(slide_name)
-        if _has_bullets_field(slide_def):
-            slide_order.append(slide_name)
-
     example_slides = []
-    for slide_name in slide_order:
-        slide_def = manifest.slide_types[slide_name]
+    for slide_name, slide_def in manifest.slide_types.items():
         fields: dict = {}
         for field in slide_def.fields:
             if not field.required:
                 continue  # omit optional fields from example
             if field.kind == "text":
-                # Capitalise each word of the field name for readable synthetic content
+                # Capitalise each word of the field name for readable synthetic content;
+                # include the slide name so the example reads as distinct per-slide content.
                 label = field.name.replace("_", " ").title()
-                fields[field.name] = f"Example {label}"
+                fields[field.name] = f"Example {slide_name.title()} {label}"
             elif field.kind == "bullets":
-                fields[field.name] = ["First point", "Second point"]
+                fields[field.name] = [
+                    f"First {slide_name} point",
+                    f"Second {slide_name} point",
+                ]
             elif field.kind == "image":
                 fields[field.name] = "path/to/image.png"
             else:
