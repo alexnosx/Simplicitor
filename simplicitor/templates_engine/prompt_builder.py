@@ -3,7 +3,7 @@
 import json
 import logging
 
-from templates_engine.manifest import Manifest
+from templates_engine.manifest import Manifest, SlideTypeDef
 from templates_engine.validation import format_validation_errors
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def build_prompt(
         [system, user (one-shot), assistant (one-shot), user (actual request)]
     """
     system_content = _build_system_message(manifest)
-    one_shot_user = "Create a 2-slide overview deck."
+    one_shot_user = "Create a deck about machine learning fundamentals."
     one_shot_assistant = _build_one_shot_assistant(manifest)
     actual_user = _build_actual_user_message(user_request, source_text)
 
@@ -70,17 +70,38 @@ def _build_system_message(manifest: Manifest) -> str:
         "- bullets fields must be arrays of strings",
         "- omit optional fields if not needed",
         "- no extra keys beyond those listed in the schema",
+        "",
+        "LENGTH:",
+        "Produce as many slides as the request implies. Most decks have 3 to 7 slides. "
+        "Use a mix of the slide types provided. Content-shaped slide types (those with "
+        "bullets fields) can appear multiple times in a single deck.",
     ]
 
     return "\n".join(lines)
 
 
-def _build_one_shot_assistant(manifest: Manifest) -> str:
-    """Build one-shot assistant JSON using the first two slide types from the manifest."""
-    slide_names = list(manifest.slide_types.keys())
-    example_slides = []
+def _has_bullets_field(slide_def: SlideTypeDef) -> bool:
+    """True if the slide type defines at least one field of kind 'bullets'."""
+    return any(f.kind == "bullets" for f in slide_def.fields)
 
-    for slide_name in slide_names[:2]:
+
+def _build_one_shot_assistant(manifest: Manifest) -> str:
+    """Build one-shot assistant JSON demonstrating type variety and content repeatability.
+
+    Emits every slide type once in manifest order, then appends a second occurrence of
+    each slide type that has at least one kind:bullets field. The pattern shows the
+    model that all schema types are available and that content-shaped types can repeat
+    in a single deck, without anchoring on a specific overall slide count.
+    """
+    base_order: list[str] = list(manifest.slide_types.keys())
+    duplicates: list[str] = [
+        name for name in base_order
+        if _has_bullets_field(manifest.slide_types[name])
+    ]
+    slide_order = base_order + duplicates
+
+    example_slides = []
+    for slide_name in slide_order:
         slide_def = manifest.slide_types[slide_name]
         fields: dict = {}
         for field in slide_def.fields:

@@ -66,6 +66,37 @@ def test_build_prompt_one_shot_assistant_uses_manifest_field_names(manifest):
         )
 
 
+def test_build_prompt_one_shot_duplicates_bullets_slide_types(manifest):
+    """A slide type with a kind:bullets field appears more than once in the one-shot.
+
+    Locks the design intent: the one-shot demonstrates content-type repeatability so
+    the model is not biased toward a minimum slide count. Asserts behavior (the
+    duplication rule), not a specific prompt string or overall slide count, so future
+    cosmetic edits to the example do not break this guard.
+    """
+    import json
+    messages = build_prompt(manifest, "Make a deck.")
+    data = json.loads(messages[2]["content"])
+    counts: dict[str, int] = {}
+    for slide in data["slides"]:
+        counts[slide["type"]] = counts.get(slide["type"], 0) + 1
+
+    bullets_types = [
+        name for name, sdef in manifest.slide_types.items()
+        if any(f.kind == "bullets" for f in sdef.fields)
+    ]
+    assert bullets_types, (
+        "Fixture must include at least one slide type with a kind:bullets field "
+        "for this test to be meaningful."
+    )
+    for type_name in bullets_types:
+        assert counts.get(type_name, 0) >= 2, (
+            f"Slide type '{type_name}' has a kind:bullets field but appears "
+            f"{counts.get(type_name, 0)} time(s) in the one-shot; design requires "
+            f"repeatability demonstration so the model does not anchor on minimum count."
+        )
+
+
 def test_build_prompt_last_message_contains_user_request(manifest):
     request = "Build a deck about quarterly results"
     messages = build_prompt(manifest, request)
