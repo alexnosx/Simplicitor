@@ -57,6 +57,7 @@ def generate(
     model: str,
     temperature: float = 0.3,
     max_tokens: int | None = None,
+    timeout: int | None = None,
     client: OllamaClient | None = None,
 ) -> str:
     """Call Ollama chat completions and return the response content string.
@@ -67,6 +68,9 @@ def generate(
         temperature: Sampling temperature (default 0.3 for structured output).
         max_tokens: Maximum tokens to generate. None means Ollama's default applies.
             Pass an explicit value to raise the output budget on repair attempts.
+        timeout: HTTP timeout in seconds for the chat completion call. None means
+            OllamaClient's default (OLLAMA_TIMEOUT_S) applies. Pass a higher value
+            for paths that expect long wall-time runs (slow local models).
         client: Optional injected OllamaClient for testing.
 
     Returns:
@@ -80,4 +84,6 @@ def generate(
     kwargs: dict = {}
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    if timeout is not None:
+        kwargs["timeout"] = timeout
     return _client(client).chat_completion(messages, model, temperature, **kwargs)

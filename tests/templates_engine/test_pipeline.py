@@ -129,6 +129,44 @@ def test_run_truncation_bump_passes_max_tokens(manifest, tmp_template):
     assert second_call_kwargs["max_tokens"] >= OLLAMA_REPAIR_MAX_TOKENS
 
 
+def test_run_attempt_1_passes_max_tokens_budget(manifest, tmp_template):
+    """Attempt 1 sends max_tokens=OLLAMA_REPAIR_MAX_TOKENS so the heavier templated
+    prompt does not silently truncate against Ollama's default output budget."""
+    from app.config.defaults import OLLAMA_REPAIR_MAX_TOKENS
+
+    out_path = tmp_template / "output.pptx"
+    with patch("templates_engine.llm.generate", return_value=VALID_CONTENT) as mock_gen:
+        pipeline.run(manifest, tmp_template, [{"role": "user", "content": "deck"}], "llama3", out_path)
+
+    first_call_kwargs = mock_gen.call_args_list[0].kwargs
+    assert first_call_kwargs.get("max_tokens") == OLLAMA_REPAIR_MAX_TOKENS
+
+
+def test_run_attempt_1_passes_template_timeout(manifest, tmp_template):
+    """Attempt 1 sends timeout=OLLAMA_TEMPLATE_TIMEOUT_S so slow local models do not
+    hit the global 60s HTTP timeout on the heavier templated prompt."""
+    from app.config.defaults import OLLAMA_TEMPLATE_TIMEOUT_S
+
+    out_path = tmp_template / "output.pptx"
+    with patch("templates_engine.llm.generate", return_value=VALID_CONTENT) as mock_gen:
+        pipeline.run(manifest, tmp_template, [{"role": "user", "content": "deck"}], "llama3", out_path)
+
+    first_call_kwargs = mock_gen.call_args_list[0].kwargs
+    assert first_call_kwargs.get("timeout") == OLLAMA_TEMPLATE_TIMEOUT_S
+
+
+def test_run_repair_call_inherits_template_timeout(manifest, tmp_template):
+    """Repair attempt also uses OLLAMA_TEMPLATE_TIMEOUT_S, not the global default."""
+    from app.config.defaults import OLLAMA_TEMPLATE_TIMEOUT_S
+
+    out_path = tmp_template / "output.pptx"
+    with patch("templates_engine.llm.generate", side_effect=["not json", VALID_CONTENT]) as mock_gen:
+        pipeline.run(manifest, tmp_template, [{"role": "user", "content": "deck"}], "llama3", out_path)
+
+    second_call_kwargs = mock_gen.call_args_list[1].kwargs
+    assert second_call_kwargs.get("timeout") == OLLAMA_TEMPLATE_TIMEOUT_S
+
+
 # ---------------------------------------------------------------------------
 # Phase K: generate_content seam (render-free)
 # ---------------------------------------------------------------------------

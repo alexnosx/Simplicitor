@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable
 from pathlib import Path
 
-from app.config.defaults import OLLAMA_REPAIR_MAX_TOKENS
+from app.config.defaults import OLLAMA_REPAIR_MAX_TOKENS, OLLAMA_TEMPLATE_TIMEOUT_S
 from app.parsers.llm_response_parser import LlmResponseParser, ParseError
 from templates_engine import llm
 from templates_engine.manifest import Manifest
@@ -81,8 +81,18 @@ def generate_content(
             progress(label)
 
     # -- Attempt 1 ------------------------------------------------------------
+    # Templated generation requests a richer multi-slide JSON deck; on slow local
+    # models that exceeds Ollama's default output budget and the global 60s HTTP
+    # timeout. Pass an explicit floor for both on attempt 1 to avoid silent
+    # truncation and wall-time errors before the repair loop even runs.
     _emit("generating")
-    raw1 = llm.generate(messages, model, client=client)
+    raw1 = llm.generate(
+        messages,
+        model,
+        max_tokens=OLLAMA_REPAIR_MAX_TOKENS,
+        timeout=OLLAMA_TEMPLATE_TIMEOUT_S,
+        client=client,
+    )
     cleaned1, parsed1, parse_exc1 = _try_parse(raw1)
 
     if parsed1 is not None:
@@ -107,7 +117,13 @@ def generate_content(
 
     # -- Attempt 2 (repair) ---------------------------------------------------
     _emit("repairing")
-    raw2 = llm.generate(repair_msgs, model, max_tokens=repair_max_tokens, client=client)
+    raw2 = llm.generate(
+        repair_msgs,
+        model,
+        max_tokens=repair_max_tokens,
+        timeout=OLLAMA_TEMPLATE_TIMEOUT_S,
+        client=client,
+    )
     _, parsed2, parse_exc2 = _try_parse(raw2)
 
     if parsed2 is None:
