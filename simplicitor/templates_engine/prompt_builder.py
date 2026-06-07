@@ -88,17 +88,18 @@ def _has_bullets_field(slide_def: SlideTypeDef) -> bool:
 def _build_one_shot_assistant(manifest: Manifest) -> str:
     """Build one-shot assistant JSON demonstrating type variety and content repeatability.
 
-    Emits every slide type once in manifest order, then appends a second occurrence of
-    each slide type that has at least one kind:bullets field. The pattern shows the
-    model that all schema types are available and that content-shaped types can repeat
-    in a single deck, without anchoring on a specific overall slide count.
+    Walks the manifest's slide types in order; for each type, emits it once, and if it
+    has at least one kind:bullets field, emits a second occurrence immediately after.
+    Repeats are placed in-place rather than appended at the end so the example preserves
+    a natural deck order (e.g. content slides do not appear after a closing slide). The
+    pattern shows the model that all schema types are available and that content-shaped
+    types can repeat in a single deck, without anchoring on a specific overall slide count.
     """
-    base_order: list[str] = list(manifest.slide_types.keys())
-    duplicates: list[str] = [
-        name for name in base_order
-        if _has_bullets_field(manifest.slide_types[name])
-    ]
-    slide_order = base_order + duplicates
+    slide_order: list[str] = []
+    for slide_name, slide_def in manifest.slide_types.items():
+        slide_order.append(slide_name)
+        if _has_bullets_field(slide_def):
+            slide_order.append(slide_name)
 
     example_slides = []
     for slide_name in slide_order:

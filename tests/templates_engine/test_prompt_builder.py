@@ -97,6 +97,36 @@ def test_build_prompt_one_shot_duplicates_bullets_slide_types(manifest):
         )
 
 
+def test_one_shot_repeated_types_appear_consecutively(manifest):
+    """Each slide type's occurrences in the one-shot form a single contiguous run.
+
+    Guards the natural-deck-order property: if a type is duplicated, its second
+    occurrence sits immediately after the first rather than tacked onto the end of
+    the example. A future refactor that re-anchors the model on unnatural orderings
+    (e.g. content slides after a closing slide) will trip this test.
+    """
+    import json
+    messages = build_prompt(manifest, "Make a deck.")
+    data = json.loads(messages[2]["content"])
+    types_in_order = [slide["type"] for slide in data["slides"]]
+
+    # Collect the set of distinct positions where each type appears. A contiguous run
+    # means those positions are sequential integers.
+    positions: dict[str, list[int]] = {}
+    for i, t in enumerate(types_in_order):
+        positions.setdefault(t, []).append(i)
+
+    for type_name, indices in positions.items():
+        if len(indices) < 2:
+            continue
+        gaps = [indices[i + 1] - indices[i] for i in range(len(indices) - 1)]
+        assert all(g == 1 for g in gaps), (
+            f"Slide type '{type_name}' appears at positions {indices} in the "
+            f"one-shot; expected a single contiguous run so duplicates sit next "
+            f"to the original and preserve natural deck order."
+        )
+
+
 def test_build_prompt_last_message_contains_user_request(manifest):
     request = "Build a deck about quarterly results"
     messages = build_prompt(manifest, request)
