@@ -72,9 +72,12 @@ def _build_system_message(manifest: Manifest) -> str:
         "- no extra keys beyond those listed in the schema",
         "",
         "LENGTH:",
-        "Produce as many slides as the request implies. Most decks have 3 to 7 slides. "
-        "Use a mix of the slide types provided. Content-shaped slide types (those with "
-        "bullets fields) can appear multiple times in a single deck.",
+        "Match deck length to the depth of the user's request. For brief requests "
+        "(a sentence or two), produce 3 to 5 slides. For detailed requests (multiple "
+        "paragraphs, complex topics, structured arguments), produce 7 to 12 slides with "
+        "substantive content. Use a mix of the slide types provided. Content-shaped "
+        "slide types (those with bullets fields) can appear multiple times in a single "
+        "deck. Treat the user's level of detail as the floor, not the ceiling.",
     ]
 
     return "\n".join(lines)
