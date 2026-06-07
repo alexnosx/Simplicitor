@@ -167,6 +167,28 @@ def test_run_repair_call_inherits_template_timeout(manifest, tmp_template):
     assert second_call_kwargs.get("timeout") == OLLAMA_TEMPLATE_TIMEOUT_S
 
 
+def test_run_attempt_1_opts_out_of_json_mode(manifest, tmp_template):
+    """Templated path passes json_mode=False through to llm.generate so the underlying
+    chat_completion body omits response_format. Grammar-constrained JSON decoding
+    degenerates gemma4-class models; the prompt handles JSON discipline instead."""
+    out_path = tmp_template / "output.pptx"
+    with patch("templates_engine.llm.generate", return_value=VALID_CONTENT) as mock_gen:
+        pipeline.run(manifest, tmp_template, [{"role": "user", "content": "deck"}], "llama3", out_path)
+
+    first_call_kwargs = mock_gen.call_args_list[0].kwargs
+    assert first_call_kwargs.get("json_mode") is False
+
+
+def test_run_repair_call_also_opts_out_of_json_mode(manifest, tmp_template):
+    """Repair attempt inherits the json_mode=False opt-out."""
+    out_path = tmp_template / "output.pptx"
+    with patch("templates_engine.llm.generate", side_effect=["not json", VALID_CONTENT]) as mock_gen:
+        pipeline.run(manifest, tmp_template, [{"role": "user", "content": "deck"}], "llama3", out_path)
+
+    second_call_kwargs = mock_gen.call_args_list[1].kwargs
+    assert second_call_kwargs.get("json_mode") is False
+
+
 # ---------------------------------------------------------------------------
 # Phase K: generate_content seam (render-free)
 # ---------------------------------------------------------------------------

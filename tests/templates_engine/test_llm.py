@@ -91,3 +91,12 @@ def test_generate_threads_timeout_to_chat_completion():
     messages = [{"role": "user", "content": "Make a deck."}]
     generate(messages, "llama3", timeout=180, client=mock)
     mock.chat_completion.assert_called_once_with(messages, "llama3", 0.3, timeout=180)
+
+
+def test_generate_threads_json_mode_false_to_chat_completion():
+    """json_mode=False at the llm.generate call site propagates as a json_mode=False
+    kwarg to chat_completion (opt-out preserved through the facade)."""
+    mock = _mock_client(chat_return='{"slides": []}')
+    messages = [{"role": "user", "content": "Make a deck."}]
+    generate(messages, "llama3", json_mode=False, client=mock)
+    mock.chat_completion.assert_called_once_with(messages, "llama3", 0.3, json_mode=False)

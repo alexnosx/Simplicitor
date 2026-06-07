@@ -58,6 +58,7 @@ def generate(
     temperature: float = 0.3,
     max_tokens: int | None = None,
     timeout: int | None = None,
+    json_mode: bool = True,
     client: OllamaClient | None = None,
 ) -> str:
     """Call Ollama chat completions and return the response content string.
@@ -71,6 +72,9 @@ def generate(
         timeout: HTTP timeout in seconds for the chat completion call. None means
             OllamaClient's default (OLLAMA_TIMEOUT_S) applies. Pass a higher value
             for paths that expect long wall-time runs (slow local models).
+        json_mode: When True (default), grammar-constrained JSON decoding is requested
+            from Ollama. Pass False to opt out — the templated path opts out because
+            gemma4-class models degenerate inside constrained-decoding JSON mode.
         client: Optional injected OllamaClient for testing.
 
     Returns:
@@ -86,4 +90,8 @@ def generate(
         kwargs["max_tokens"] = max_tokens
     if timeout is not None:
         kwargs["timeout"] = timeout
+    if not json_mode:
+        # Match the existing opt-out-only pattern: omit the kwarg when it is at the
+        # default so call sites that do not care continue to see the same kwargs.
+        kwargs["json_mode"] = False
     return _client(client).chat_completion(messages, model, temperature, **kwargs)

@@ -84,13 +84,17 @@ def generate_content(
     # Templated generation requests a richer multi-slide JSON deck; on slow local
     # models that exceeds Ollama's default output budget and the global 60s HTTP
     # timeout. Pass an explicit floor for both on attempt 1 to avoid silent
-    # truncation and wall-time errors before the repair loop even runs.
+    # truncation and wall-time errors before the repair loop even runs. Opt out
+    # of Ollama's grammar-constrained JSON mode (json_mode=False); the prompt
+    # instructs the model to return JSON only, and constrained decoding has been
+    # observed to degenerate gemma4-class models into dead-end token streams.
     _emit("generating")
     raw1 = llm.generate(
         messages,
         model,
         max_tokens=OLLAMA_REPAIR_MAX_TOKENS,
         timeout=OLLAMA_TEMPLATE_TIMEOUT_S,
+        json_mode=False,
         client=client,
     )
     cleaned1, parsed1, parse_exc1 = _try_parse(raw1)
@@ -122,6 +126,7 @@ def generate_content(
         model,
         max_tokens=repair_max_tokens,
         timeout=OLLAMA_TEMPLATE_TIMEOUT_S,
+        json_mode=False,
         client=client,
     )
     _, parsed2, parse_exc2 = _try_parse(raw2)
@@ -136,7 +141,10 @@ def generate_content(
     _emit("validating")
     ok2, result2 = validate_content(manifest, parsed2)
     if not ok2:
-        logger.error("Content validation failed after repair. Giving up.")
+        logger.error(
+            "Content validation failed after repair. Giving up. Errors: %s",
+            "; ".join(result2),
+        )
         raise ParseError(
             "Model returned content that failed schema validation after repair",
             details=format_validation_errors(result2),

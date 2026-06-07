@@ -428,3 +428,26 @@ class TestChatCompletion:
             client.chat_completion(self.MESSAGES, "llama3", max_tokens=None)
         body = mock_post.call_args[1]["json"]
         assert "max_tokens" not in body
+
+    def test_chat_completion_response_format_present_when_json_mode_true(self):
+        """Default (json_mode=True) includes response_format: json_object in the body."""
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(200, {
+            "choices": [{"message": {"content": '{"slides": []}'}}]
+        })
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp) as mock_post:
+            client.chat_completion(self.MESSAGES, "llama3")  # default json_mode
+        body = mock_post.call_args[1]["json"]
+        assert body.get("response_format") == {"type": "json_object"}
+
+    def test_chat_completion_response_format_absent_when_json_mode_false(self):
+        """Opt-out (json_mode=False) omits response_format from the body so Ollama does
+        not apply grammar-constrained decoding — the path gemma4 degenerates inside."""
+        client = OllamaClient(BASE_URL)
+        mock_resp = _mock_response(200, {
+            "choices": [{"message": {"content": '{"slides": []}'}}]
+        })
+        with patch("app.services.ollama_client.requests.post", return_value=mock_resp) as mock_post:
+            client.chat_completion(self.MESSAGES, "llama3", json_mode=False)
+        body = mock_post.call_args[1]["json"]
+        assert "response_format" not in body
