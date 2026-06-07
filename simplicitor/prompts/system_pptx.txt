@@ -16,4 +16,7 @@ Rules:
 - First slide must be type "title"
 - Section divider slides use type "section" with empty bullets array
 - Content slides use type "content"
-- Keep bullet points concise (one idea per bullet)
+- Each bullet expresses one idea; expand to multiple slides when the topic warrants more than 6 bullets.
+
+LENGTH:
+Match deck length to the depth of the user's request. For brief requests (a sentence or two), produce 3 to 5 slides. For detailed requests (multiple paragraphs, complex topics, structured arguments), produce 7 to 12 slides with substantive bullets. Use "section" type slides to separate major topics. Treat the user's level of detail as the floor, not the ceiling. An extensive, detailed request should produce a substantive deck.
