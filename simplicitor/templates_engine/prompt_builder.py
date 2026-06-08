@@ -72,12 +72,19 @@ def _build_system_message(manifest: Manifest) -> str:
         "- no extra keys beyond those listed in the schema",
         "",
         "LENGTH:",
-        "Match deck length to the depth of the user's request. For brief requests "
-        "(a sentence or two), produce 3 to 5 slides. For detailed requests (multiple "
-        "paragraphs, complex topics, structured arguments), produce 7 to 12 slides with "
-        "substantive content. Use a mix of the slide types provided. Content-shaped "
-        "slide types (those with bullets fields) can appear multiple times in a single "
-        "deck. Treat the user's level of detail as the floor, not the ceiling.",
+        "Produce a substantive deck. Default to 8 to 12 slides covering the topic "
+        "with depth, regardless of how briefly or lengthily the user phrased the "
+        "request. A short prompt about a substantive topic still deserves a thorough deck.",
+        "",
+        "Honor explicit length signals in the user's request:",
+        '- Words like "brief", "quick", "summary", "overview", "short": produce 4 to 6 slides',
+        '- Words like "comprehensive", "detailed", "in-depth", "thorough", "deep dive": produce 12 to 16 slides',
+        '- An explicit slide count ("5-slide deck", "10 slides", etc.): honor it exactly',
+        "- Otherwise: 8 to 12 slides",
+        "",
+        "When in a range, target the upper end. Each slide covers one focused topic "
+        "with substantive content. Use a mix of the slide types provided. Content-shaped "
+        "slide types (those with bullets fields) can appear multiple times in a single deck.",
     ]
 
     return "\n".join(lines)
