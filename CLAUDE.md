@@ -4,7 +4,7 @@
 
 Simplicitor is a native Windows desktop application that connects to a locally running Ollama instance and lets non-technical users generate and manipulate Office documents (Word, Excel, PowerPoint) through natural language prompts. Two-panel UI: Create (generate new files) and Edit (manipulate existing files). No cloud, no browser, no terminal. Double-click .exe, it works.
 
-v1.2 adds a PPTX template engine: instead of building slides from scratch, it fills the layout placeholders of a real PowerPoint design (a built-in template or one the user uploads), so the output keeps that deck's branding. Complete and tested. See the `Template Engine (PPTX)` section below; the authoritative notes are in `simplicitor/templates_engine/NOTES.md`.
+v1.2 adds a PPTX template engine: instead of building slides from scratch, it fills the layout placeholders of a real PowerPoint design (a built-in template or one the user uploads), so the output keeps that deck's branding. Built across Phases A through M; functional, with ongoing prompt-engineering iteration as new models surface new biases. See the `Template Engine (PPTX)` section below; the authoritative notes are in `simplicitor/templates_engine/NOTES.md`.
 
 Full requirements: `docs/Simplicitor_PRD_v1.2.docx`
 Build phases: `docs/Simplicitor_Implementation_Guide.md`
@@ -143,6 +143,16 @@ simplicitor/
 - Use Ollama's `format` / OpenAI-compat `response_format` for structured JSON output by default. The templated path opts out (`json_mode=False`) because grammar-constrained decoding degenerated gemma4-class models in testing; the prompt's "Return ONLY valid JSON" instruction plus the parse-and-clean path is sufficient there.
 - Connection drop mid-operation: abort, show error, preserve prompt in text area
 
+## Known small-model behaviors
+
+Empirical lessons from debugging Simplicitor against gemma4-class local models. Apply when changing prompts in `prompts/` or `templates_engine/prompt_builder.py`.
+
+- **Low-end-of-range bias.** Small local models pick the low end of stated ranges. "7 to 12 slides" lands at 7. Pair every range with explicit "target the upper end" or with a substantive default that biases toward fuller output.
+- **Few-shot examples anchor output structure.** A one-shot demonstrating N slides causes the model to produce N. Make one-shot examples representative of natural variety, not of minimum viable output.
+- **Identical adjacent items dead-end small models.** When a one-shot contains two byte-for-byte identical adjacent slides, gemma4 treats it as "repeat verbatim" and degenerates into whitespace stalls. Vary synthetic content per slide type so duplicates are not identical.
+- **Input length is not a proxy for desired output length.** A short prompt about a deep topic still wants a substantive deck. Length guidance should be intent-based (keywords like "brief" or "comprehensive", explicit slide counts) rather than tied to character-count thresholds.
+- **Non-templated and templated paths share failure modes.** When one path needs a prompt fix, check whether the other carries the same gap. The system prompt in `prompts/system_pptx.txt` and the `_build_system_message` in `prompt_builder.py` should carry the same conceptual LENGTH guidance.
+
 ## LLM Contract Design (Critical)
 
 The LLM produces content and basic structure. Python code handles all formatting, colors, and layout. DO NOT ask the LLM to produce complex styling JSON. Keep it simple.
@@ -191,7 +201,7 @@ If LLM response fails to parse, retry ONCE with simplified prompt, then fail gra
 
 ## Template Engine (PPTX)
 
-A second PowerPoint path, complete and tested (built across Phases A through M; 211 passing tests in `tests/templates_engine/`, plus the CLI test in `simplicitor/tests/test_cli.py`). The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
+A second PowerPoint path built across Phases A through M, with full test coverage in `tests/templates_engine/` and a CLI test in `simplicitor/tests/test_cli.py`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
 
 **Read before changing the engine:** `simplicitor/templates_engine/NOTES.md` holds the Phase A repo orientation, the error-handling contract every module conforms to, and the list of deferred follow-ups (each marked ACCEPTED, FIXED, CLOSED, or Open). To add a template: `simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md`.
 
@@ -219,7 +229,7 @@ Override the user root via `simplicitor.toml` under `[templates] user_dir`. Buil
 | `manifest.py` | Frozen pydantic schema (`Manifest` / `SlideTypeDef` / `FieldDef`); `load_manifest` (YAML to validated, names the failing field on a bad manifest); `lint_manifest` (non-fatal warnings) |
 | `validation.py` | `build_content_model`; `validate_content` (collects every error in one pass, each names the offending field); `format_validation_errors` (feeds the repair loop) |
 | `breakdown.py` | `inspect_pptx` (read-only layout/placeholder map), `format_inspection`, `strip_to_template`, `score_layouts` (usable = has a non-title, non-decorative content placeholder), `generate_draft_manifest` (auto-labels idx 0 to title, PICTURE to image, same-type duplicates to `NEEDS_LABEL_<idx>`), `detection_report`, `hard_stop_result` |
-| `render_pptx.py` | `render(manifest, content, out_path, template_dir)`: one slide per layout, populate by idx (text sets `.text`; bullets clear the frame then one paragraph each; image `insert_picture` and capture the returned placeholder). Writes to a temp file then renames, so no partial file is left on failure. |
+| `render_pptx.py` | `render(manifest, content, out_path, template_dir)`: iterates the content's `slides` array, creating each slide from the layout named by its `type` and populating placeholders by idx (text sets `.text`; bullets clear the frame then one paragraph each; image `insert_picture` and capture the returned placeholder). Writes to a temp file then renames, so no partial file is left on failure. |
 | `prompt_builder.py` | `build_prompt` (4 messages: JSON-only system schema, one worked example, then request plus optional source); `build_repair_prompt` (distinct parse-error vs validation-error variants) |
 | `llm.py` | Facade over `OllamaClient`: `preflight` (Ollama reachable and the model present, with tag-aware name matching) and `generate` (chat completions, temperature 0.3, optional `max_tokens`) |
 | `pipeline.py` | `generate_content` (generate, parse, validate, one repair, else fail) and `run` (the same, then render) |
@@ -253,7 +263,7 @@ The engine conforms to Simplicitor's existing conventions (the NOTES.md contract
 
 **Degrade vs fail (render).** Data and template-content faults degrade: a warning is logged and collected into a per-slide `issues` list returned with the result. Missing optional field skipped, text over `max_chars` warned, bullets over `max_items` warned, missing image skipped. Genuine faults fail conventionally with no output file: template unopenable, a manifest `layout_index` or `placeholder_idx` absent in the `.pptx`, or an unwritable output path.
 
-**Hard stop.** A deck whose slides are manual text boxes (no layout placeholders) cannot be templated. This is a normal returned result (`status: "hard_stop"` plus a verbatim user-facing message), not an exception. It represents expected user input, not a fault.
+**Hard stop.** A deck whose slides are manual text boxes (no layout placeholders) cannot be templated. This is a normal returned result (`status: "hard_stop"` plus a verbatim user-facing message), not an exception. In practice, most real-world decks built by humans use manual text boxes rather than layout placeholders, so this status is common rather than rare. The templated path covers a narrow input shape (decks authored against PowerPoint's layout placeholder system, which is uncommon in the wild). Broader real-world coverage is a v2 concern, not a v1 fault.
 
 ### GUI integration
 
@@ -281,6 +291,8 @@ Read `docs/Simplicitor_Implementation_Guide.md` for detailed tasks. Build in ord
 6. **Phase 6: Package** - Nuitka compilation
 
 Complete each phase fully before the next. Each phase must produce a runnable app.
+
+The PPTX template engine has a separate phase track (A through M) covering its design, build, and audit, documented in `simplicitor/templates_engine/NOTES.md`. That track is functionally complete; ongoing work is incremental prompt engineering, not new phases.
 
 ## What NOT to Build
 
