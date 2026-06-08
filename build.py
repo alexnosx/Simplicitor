@@ -40,7 +40,7 @@ NUITKA_FLAGS = [
     f"--include-data-dir={ASSETS_DIR}=assets",
     f"--windows-icon-from-ico={ICON}",
     "--windows-product-name=Simplicitor",
-    "--windows-product-version=1.0.0.0",
+    "--windows-product-version=1.2.0.0",
     "--windows-company-name=Simplicitor",
     "--windows-file-description=AI-powered Office document generator",
     f"--output-dir={DIST_DIR}",

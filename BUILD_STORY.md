@@ -65,3 +65,20 @@ The human role in this project was PM, architect, code reviewer, and tester. Not
 What AI-assisted development at this scale actually feels like: it is collaborative but not symmetric. The AI is fast, consistent, and does not get bored of boilerplate. The human has to stay oriented — maintaining the mental model of the system, catching the places where an implementation is technically correct but architecturally wrong, and deciding when something that works is not yet something that is good. The human is the product judgment. The AI is the execution.
 
 Approximately 1.4 million tokens of generation went into this project. Zero lines of code were written by hand.
+
+## v1.2 — the template engine
+
+The v1.0 release shipped with PowerPoint generation that built slides from a blank canvas. The result worked, but it never looked like something a designer made. Adding a templated path solved that without trading away the simple-LLM-contract design that made the from-scratch path reliable.
+
+The architecture stayed the same: the LLM produces content and structure only, Python handles styling. The change was where the styling came from. Instead of being controlled by Python code, it is now controlled by a real `.pptx` template. The LLM is given a per-manifest JSON schema (slide types, field names, bullet limits) and a one-shot example assembled from that manifest. It produces validated content. Python renders the content into the template's layouts by placeholder index. The template's masters, layouts, and theme are the source of truth for every visual decision.
+
+The engine was built across 13 phases (A through M), each with its own spec document and implementation plan in `docs/superpowers/`. Notable design calls:
+
+- **Manifest-driven schema.** Adding a template means writing a YAML file that maps slide types to layout indices and fields to placeholder indices. No code change. The same engine runs across all templates.
+- **Two default templates shipped:** `business_pitch` (charts 16x9) and `technical_overview`. Both seed into the user's Templates folder on first launch and are restored if deleted.
+- **User uploads are first-class.** The picker accepts any `.pptx`. The engine inspects layouts, scores them, strips sample content, and writes a draft manifest. Decks built from hand-placed text boxes (no real placeholders) are rejected with a clear user-facing message.
+- **One repair attempt on schema failure.** If the model returns malformed JSON or content that fails validation, the pipeline feeds the specific errors back and tries once more before failing cleanly. No partial output file is written on failure.
+
+The hardest debugging session of v1.2 was a degenerate-output failure on gemma4-class models in the templated path. Ollama's OpenAI-compatible `/v1/chat/completions` endpoint applies grammar-constrained decoding when `response_format=json_object` is set, and smaller models can enter dead-end token states under that constraint. The fix was an opt-in flag (`json_mode`) on `chat_completion`: the templated path opts out and relies on the prompt's JSON instruction plus the existing parse-and-clean path. The non-templated path keeps the default behavior. The diagnostic chain that led to this fix is documented in the commits between `f1022ca` and `3f84d15`.
+
+The other v1.2 lesson was about LLM length guidance. The system message had to be specific about scaling output to input depth — vague phrases like "produce as many slides as the request implies" left small models defaulting to the floor of any range. The final shape gives concrete defaults (8-12 slides), honors explicit length keywords ("brief", "comprehensive", "5-slide deck"), and tells the model to target the upper end of any range. Output sizes now match what the input warrants.

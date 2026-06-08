@@ -4,7 +4,7 @@
 
 Simplicitor is a native Windows desktop application that connects to a locally running Ollama instance and lets non-technical users generate and manipulate Office documents (Word, Excel, PowerPoint) through natural language prompts. Two-panel UI: Create (generate new files) and Edit (manipulate existing files). No cloud, no browser, no terminal. Double-click .exe, it works.
 
-After v1, a PPTX template engine was added: instead of building slides from scratch, it fills the layout placeholders of a real PowerPoint design (a built-in template or one the user uploads), so the output keeps that deck's branding. It is complete and tested (211 tests in `tests/templates_engine/`). See the `Template Engine (PPTX)` section below; the authoritative notes are in `simplicitor/templates_engine/NOTES.md`.
+v1.2 adds a PPTX template engine: instead of building slides from scratch, it fills the layout placeholders of a real PowerPoint design (a built-in template or one the user uploads), so the output keeps that deck's branding. Complete and tested. See the `Template Engine (PPTX)` section below; the authoritative notes are in `simplicitor/templates_engine/NOTES.md`.
 
 Full requirements: `docs/Simplicitor_PRD_v1.2.docx`
 Build phases: `docs/Simplicitor_Implementation_Guide.md`
@@ -139,8 +139,8 @@ simplicitor/
 - Model metadata: `POST /api/show` with `{"name": "model_name"}`
 - Generate: `POST /api/generate` or `POST /api/chat`
 - Connection polling: every 5 seconds when disconnected
-- Timeout: 60 seconds on generation/manipulation calls
-- Use Ollama's `format` parameter with JSON schema for structured output
+- Timeout: 60s default; 120s on manipulation calls (file content payload); 180s on templated generation (heavier prompts on slow local models)
+- Use Ollama's `format` / OpenAI-compat `response_format` for structured JSON output by default. The templated path opts out (`json_mode=False`) because grammar-constrained decoding degenerated gemma4-class models in testing; the prompt's "Return ONLY valid JSON" instruction plus the parse-and-clean path is sufficient there.
 - Connection drop mid-operation: abort, show error, preserve prompt in text area
 
 ## LLM Contract Design (Critical)
