@@ -26,6 +26,7 @@ from app.workers.generate_worker import GenerateWorker
 from app.workers.manipulate_worker import ManipulateWorker
 from app.workers.ollama_worker import OllamaWorker
 from app.workers.template_worker import TemplateGenerateWorker
+from templates_engine.config import ensure_default_templates
 
 logger = logging.getLogger(__name__)
 
@@ -337,6 +338,11 @@ class MainWindow(QMainWindow):
                 is_error=True,
             )
             return
+        # Startup seeds the defaults once; re-seed here so a Templates folder changed
+        # in Settings after launch is never empty (keeps the picker populated and the
+        # hard-stop dialog's use-a-built-in recovery branch available). Idempotent:
+        # existing defaults, even edited ones, are left untouched.
+        ensure_default_templates(Path(self._settings.templates_dir))
         dialog = TemplateDialog(self._settings.templates_dir, parent=self)
         dialog.template_selected.connect(self._on_template_selected)
         dialog.exec()

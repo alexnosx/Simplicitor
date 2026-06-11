@@ -22,7 +22,11 @@ PPTX = "PowerPoint (.pptx)"
 def window(qtbot, tmp_path, monkeypatch):
     # Keep the connectivity poll cheap and offline.
     monkeypatch.setattr(OllamaClient, "check_connection", lambda self: False)
-    win = MainWindow(Settings(tmp_path))
+    settings = Settings(tmp_path)
+    # Keep the picker-open seeding hermetic: the default templates_dir points at the
+    # real ~/Documents, which _on_template_requested now seeds.
+    settings.set("templates_dir", str(tmp_path / "templates"))
+    win = MainWindow(settings)
     qtbot.addWidget(win)
     yield win
     win.close()
@@ -63,6 +67,32 @@ def test_template_requested_with_model_opens_picker(window, monkeypatch):
     assert seen.get("constructed") and seen.get("exec")
     assert seen["templates_dir"] == window._settings.templates_dir  # picker uses the setting
     assert window._loaded_template is None  # opening alone does not load a template
+
+
+def test_template_requested_seeds_defaults_into_configured_folder(window, tmp_path, monkeypatch):
+    """Changing the Templates folder in Settings after startup must not dead-end the
+    picker: opening it re-seeds the curated defaults into the configured folder."""
+    from templates_engine.config import DEFAULT_TEMPLATE_NAMES, list_library
+
+    fresh_root = tmp_path / "fresh_templates"  # folder changed in Settings; never seeded
+    window._settings.set("templates_dir", str(fresh_root))
+
+    class FakeDialog:
+        def __init__(self, templates_dir, parent=None):
+            self.template_selected = MagicMock()
+
+        def exec(self):
+            return 0
+
+    monkeypatch.setattr("app.main_window.TemplateDialog", FakeDialog)
+    window._current_model = "llama3"
+    window._on_template_requested()
+    names = {t["name"] for t in list_library(fresh_root)}
+    assert names == set(DEFAULT_TEMPLATE_NAMES)
+
+    window._on_template_requested()  # idempotency smoke: re-open must not raise
+    names_after = {t["name"] for t in list_library(fresh_root)}
+    assert names_after == set(DEFAULT_TEMPLATE_NAMES)
 
 
 # --- loaded-template state --------------------------------------------------
