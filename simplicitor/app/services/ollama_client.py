@@ -299,7 +299,7 @@ class OllamaClient:
             choice = data["choices"][0]
             content = choice["message"]["content"]
             finish_reason = choice.get("finish_reason", "unknown")
-        except (KeyError, IndexError) as exc:
+        except (KeyError, IndexError, ValueError) as exc:
             raise OllamaGenerationError(
                 f"Unexpected response format from Ollama chat completion: {exc}"
             ) from exc

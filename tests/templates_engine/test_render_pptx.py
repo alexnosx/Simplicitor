@@ -309,13 +309,13 @@ def test_render_save_failure_leaves_no_partial_file(tmp_path, tmp_template):
 
 
 def test_render_rename_failure_leaves_no_temp_file(tmp_path, tmp_template):
-    """Atomic rename raises OSError — ManipulationError raised, no out_path or .pptx.tmp left."""
+    """Atomic replace raises OSError — ManipulationError raised, no out_path or .pptx.tmp left."""
     manifest = load_manifest(tmp_template / "manifest.yaml")
     content = {"slides": [{"type": "title_slide", "fields": {"title": "Hi"}}]}
     out_path = tmp_path / "out.pptx"
     tmp_file = out_path.with_suffix(".pptx.tmp")
 
-    with patch("pathlib.Path.rename", side_effect=OSError("rename failed")):
+    with patch("pathlib.Path.replace", side_effect=OSError("replace failed")):
         with pytest.raises(ManipulationError):
             render(manifest, content, out_path, tmp_template)
 

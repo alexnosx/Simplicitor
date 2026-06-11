@@ -141,7 +141,7 @@ class TemplateDialog(QDialog):
         self._sel_error.setVisible(False)
         try:
             self._templates = config.list_library(Path(self._templates_dir))
-        except (ValueError, ManipulationError) as exc:
+        except (ValueError, ManipulationError, OSError) as exc:
             logger.error("Could not list templates: %s", exc)
             self._templates = []
             self._show_selection_error("Could not read your templates folder.")

@@ -8,6 +8,8 @@ from pathlib import Path
 # Mirror main.py: put simplicitor/ on sys.path so bare package imports work.
 sys.path.insert(0, str(Path(__file__).parent))
 
+from app.parsers.llm_response_parser import ParseError
+from app.services.file_manipulator import ManipulationError
 from templates_engine.breakdown import format_inspection, inspect_pptx
 
 
@@ -174,8 +176,6 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 print()
             return 0
 
-        from app.parsers.llm_response_parser import ParseError
-        from app.services.file_manipulator import ManipulationError
         from templates_engine import pipeline
 
         llm.preflight(args.model)
@@ -185,7 +185,7 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             print(f"Warning: {issue}")
         return 0
 
-    except (ValueError, ParseError, ManipulationError,
+    except (ValueError, OSError, ParseError, ManipulationError,
             OllamaConnectionError, OllamaTimeoutError, OllamaGenerationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

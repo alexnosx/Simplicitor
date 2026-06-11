@@ -187,7 +187,7 @@ def render(
     try:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         prs.save(str(tmp_file))
-        tmp_file.rename(out_path)
+        tmp_file.replace(out_path)
     except OSError as exc:
         try:
             tmp_file.unlink(missing_ok=True)
