@@ -5,8 +5,8 @@
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QCloseEvent, QFont
 from PySide6.QtWidgets import (
     QApplication, QDialog, QFileDialog, QHBoxLayout, QLabel, QListWidget,
     QListWidgetItem, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
@@ -18,6 +18,7 @@ from app.config.defaults import (
 )
 from app.services.file_manipulator import ManipulationError
 from app.widgets.hard_stop_dialog import CHOICE_BUILTIN, HardStopDialog
+from app.workers.template_import_worker import TemplateImportWorker
 from templates_engine import config
 from templates_engine.manifest import Manifest, load_manifest
 
@@ -43,6 +44,9 @@ class TemplateDialog(QDialog):
         self._manifest: Manifest | None = None
         self._selected: dict | None = None
         self._template_dir: Path | None = None
+        self._import_thread: QThread | None = None
+        self._import_worker: TemplateImportWorker | None = None
+        self._importing: bool = False
         self.setWindowTitle("Create from a template")
         self.setMinimumSize(640, 520)
         self._build_ui()
@@ -197,25 +201,41 @@ class TemplateDialog(QDialog):
             self._do_import(path)
 
     def _do_import(self, path: str) -> None:
-        """Import an uploaded deck (synchronous, wait cursor). Dispatches the
-        import_template status-dict / exception contract; no substring matching."""
+        """Import an uploaded deck on a background QThread. The inspect + strip +
+        re-save of a large .pptx would freeze the UI if run in this slot; the
+        import_template status-dict / exception contract is dispatched on the GUI
+        thread in _on_import_completed / _on_import_failed."""
         self._clear_selection_error()
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        try:
-            result = config.import_template(path, user_root=Path(self._templates_dir))
-        except ValueError as exc:
-            logger.error("Template import rejected (bad file): %s", exc)
-            self._show_selection_error("That file is not a usable PowerPoint deck.")
-            return
-        except ManipulationError as exc:
-            logger.error("Template import write failure: %s", exc)
-            self._show_selection_error(
-                "Could not save the imported template. Check disk space and permissions."
-            )
-            return
-        finally:
+        self._set_importing(True)
+        self._import_worker = TemplateImportWorker(path, str(self._templates_dir))
+        self._import_thread = QThread(self)
+        self._import_worker.moveToThread(self._import_thread)
+
+        self._import_thread.started.connect(self._import_worker.run)
+        self._import_worker.completed.connect(self._on_import_completed)
+        self._import_worker.failed.connect(self._on_import_failed)
+        self._import_worker.completed.connect(self._import_thread.quit)
+        self._import_worker.failed.connect(self._import_thread.quit)
+        self._import_thread.finished.connect(self._import_worker.deleteLater)
+        self._import_thread.finished.connect(self._import_thread.deleteLater)
+        self._import_thread.finished.connect(self._on_import_thread_finished)
+
+        self._import_thread.start()
+
+    def _set_importing(self, importing: bool) -> None:
+        """Toggle the import-in-progress UI state: upload/next disabled, wait
+        cursor shown, dismissal blocked (see reject/closeEvent)."""
+        self._importing = importing
+        self._sel_upload_btn.setEnabled(not importing)
+        self._sel_next_btn.setEnabled(not importing)
+        if importing:
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        else:
             QApplication.restoreOverrideCursor()
 
+    def _on_import_completed(self, result: dict) -> None:
+        """Dispatch the import_template status dict (GUI thread)."""
+        self._set_importing(False)
         status = result["status"]
         if status == "exists":
             self._show_selection_error(
@@ -232,6 +252,31 @@ class TemplateDialog(QDialog):
             return
         self._refresh_templates(select_name=result["name"])
         self._select_current(report=result.get("report", ""))
+
+    def _on_import_failed(self, msg: str) -> None:
+        """Show the worker's user-facing failure message (GUI thread)."""
+        self._set_importing(False)
+        self._show_selection_error(msg)
+
+    def _on_import_thread_finished(self) -> None:
+        """Clear the thread and worker references once finished (their C++ objects
+        are deleteLater'd; null the Python refs so nothing touches a freed object)."""
+        self._import_thread = None
+        self._import_worker = None
+
+    def reject(self) -> None:
+        """Block dismissal while an import is running: the worker would be orphaned
+        mid-write. Esc lands here; the title-bar X lands in closeEvent."""
+        if self._importing:
+            return
+        super().reject()
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """Block the title-bar X while an import is running (mirrors reject)."""
+        if self._importing:
+            event.ignore()
+            return
+        super().closeEvent(event)
 
     def _prompt_hard_stop(self, message: str) -> str:
         default_available = any(t["source"] == "default" for t in self._templates)
