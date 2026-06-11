@@ -277,6 +277,7 @@ class MainWindow(QMainWindow):
         self._generate_worker.failed.connect(self._generate_thread.quit)
         self._generate_thread.finished.connect(self._generate_worker.deleteLater)
         self._generate_thread.finished.connect(self._generate_thread.deleteLater)
+        self._generate_thread.finished.connect(self._on_generate_thread_finished)
 
         self._generating = True
         self._generate_thread.start()
@@ -324,6 +325,12 @@ class MainWindow(QMainWindow):
         self._create_panel.show_status(msg, is_error=True)
         logger.error("Generation failed: %s", msg)
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
+
+    def _on_generate_thread_finished(self) -> None:
+        """Clear the thread and worker references once finished (their C++ objects
+        are deleteLater'd; null the Python refs so nothing touches a freed object)."""
+        self._generate_thread = None
+        self._generate_worker = None
 
     # ── Template flow ────────────────────────────────────────────────────────
 
@@ -435,7 +442,8 @@ class MainWindow(QMainWindow):
             )
             return
 
-        if hasattr(self, "_manipulate_thread") and self._manipulate_thread.isRunning():
+        if (getattr(self, "_manipulate_thread", None) is not None
+                and self._manipulate_thread.isRunning()):
             logger.warning("Save requested while previous manipulation still running; ignoring")
             return
 
@@ -458,6 +466,7 @@ class MainWindow(QMainWindow):
         self._manipulate_worker.failed.connect(self._manipulate_thread.quit)
         self._manipulate_thread.finished.connect(self._manipulate_worker.deleteLater)
         self._manipulate_thread.finished.connect(self._manipulate_thread.deleteLater)
+        self._manipulate_thread.finished.connect(self._on_manipulate_thread_finished)
 
         self._manipulate_thread.start()
         logger.info("Manipulation started: file=%s, model=%s", file_path, self._current_model)
@@ -508,6 +517,12 @@ class MainWindow(QMainWindow):
         logger.error("Manipulation failed: %s", msg)
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
+    def _on_manipulate_thread_finished(self) -> None:
+        """Clear the thread and worker references once finished (their C++ objects
+        are deleteLater'd; null the Python refs so nothing touches a freed object)."""
+        self._manipulate_thread = None
+        self._manipulate_worker = None
+
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
         dialog = SettingsDialog(self._settings, parent=self)
@@ -523,10 +538,10 @@ class MainWindow(QMainWindow):
         if hasattr(self, "_ollama_thread"):
             self._ollama_thread.quit()
             self._ollama_thread.wait(2000)
-        if hasattr(self, "_generate_thread"):
+        if getattr(self, "_generate_thread", None) is not None:
             self._generate_thread.quit()
             self._generate_thread.wait(2000)
-        if hasattr(self, "_manipulate_thread"):
+        if getattr(self, "_manipulate_thread", None) is not None:
             self._manipulate_thread.quit()
             self._manipulate_thread.wait(2000)
         if getattr(self, "_template_thread", None) is not None:

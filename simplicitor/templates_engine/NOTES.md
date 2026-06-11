@@ -137,5 +137,11 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    signal it from closeEvent before quit().
 
 6. **`closeEvent` crash on `deleteLater`'d `_generate_thread` and `_manipulate_thread`** (post-Phase-M).
-   Deferred to post-Phase-M debug by user decision. Open. Reproduction path: closing the app window
-   while a generate or manipulate operation is in flight.
+   **FIXED post-v1.2.0** (v1.2 code-review follow-up). The actual reproduction was closing the window
+   AFTER a completed generate or manipulate (the deleteLater'd QThread raises RuntimeError on quit()),
+   not mid-flight. Both threads now mirror the template thread's teardown: a thread-finished handler
+   nulls the Python refs, and closeEvent guards with `getattr(...) is not None` instead of `hasattr`.
+   The same stale ref also broke `_on_save_requested`'s `isRunning()` in-flight guard (RuntimeError on
+   the freed thread aborted every post-first Save of a session; slot exceptions are printed and
+   swallowed in production, so it surfaced as a silent no-op). Its guard now null-checks first.
+   Regression tests: `tests/test_main_window_teardown.py`, verified failing pre-fix.
