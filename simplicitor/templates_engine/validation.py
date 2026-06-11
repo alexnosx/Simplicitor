@@ -133,6 +133,11 @@ def validate_content(
         if slide_type is None:
             errors.append(f"{prefix}.type: required field is missing.")
             continue
+        if not isinstance(slide_type, str):
+            errors.append(
+                f"{prefix}.type: expected string, got {type(slide_type).__name__}."
+            )
+            continue
         if slide_type not in valid_types:
             known = ", ".join(sorted(valid_types))
             errors.append(

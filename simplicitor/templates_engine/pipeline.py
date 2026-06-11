@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 def _try_parse(raw: str) -> tuple[str, dict | None, json.JSONDecodeError | None]:
-    """Clean raw LLM output and attempt to parse it as JSON. Never raises.
+    """Clean raw LLM output and attempt to parse it as a JSON object. Never raises.
+
+    A degenerate model can emit valid JSON that is not an object ("null", a list,
+    a bare scalar). That is a parse failure for our purposes: a synthetic
+    JSONDecodeError (pos=0, so _looks_truncated reads it as malformed-in-shape,
+    not truncated) routes it through the repair loop.
 
     Returns:
         (cleaned_text, parsed_dict, None) on success.
@@ -25,9 +30,17 @@ def _try_parse(raw: str) -> tuple[str, dict | None, json.JSONDecodeError | None]
     """
     cleaned = LlmResponseParser.clean(raw)
     try:
-        return cleaned, json.loads(cleaned), None
+        parsed = json.loads(cleaned)
     except json.JSONDecodeError as exc:
         return cleaned, None, exc
+    if not isinstance(parsed, dict):
+        exc = json.JSONDecodeError(
+            f"Expected JSON object at top level, got {type(parsed).__name__}",
+            cleaned,
+            0,
+        )
+        return cleaned, None, exc
+    return cleaned, parsed, None
 
 
 def _looks_truncated(cleaned: str, exc: json.JSONDecodeError) -> bool:

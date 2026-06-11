@@ -146,6 +146,27 @@ def test_unknown_slide_type_names_the_type(manifest):
 
 
 # ---------------------------------------------------------------------------
+# validate_content — non-string slide type (unhashable: must collect, not raise)
+# ---------------------------------------------------------------------------
+
+def test_list_slide_type_collected_as_error_not_raised(manifest):
+    content = {"slides": [{"type": ["content"], "fields": {}}]}
+    ok, errors = validate_content(manifest, content)
+    assert ok is False
+    assert errors
+    assert any("slides[0].type" in e for e in errors), \
+        f"Expected 'slides[0].type' in errors: {errors}"
+
+
+def test_dict_slide_type_collected_as_error_not_raised(manifest):
+    content = {"slides": [{"type": {"name": "content"}, "fields": {}}]}
+    ok, errors = validate_content(manifest, content)
+    assert ok is False
+    assert any("slides[0].type" in e for e in errors), \
+        f"Expected 'slides[0].type' in errors: {errors}"
+
+
+# ---------------------------------------------------------------------------
 # validate_content — too many bullets (max_items)
 # ---------------------------------------------------------------------------
 

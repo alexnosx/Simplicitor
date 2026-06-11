@@ -66,6 +66,30 @@ def test_run_parse_failure_repair_success(manifest, tmp_template):
 
 
 # ---------------------------------------------------------------------------
+# Repair on non-dict JSON output (degenerate model output)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("degenerate", ["null", "[1, 2, 3]", "42"])
+def test_generate_content_non_dict_output_routes_through_repair(manifest, degenerate):
+    """Valid JSON that is not an object ("null", a list, a bare scalar) is a parse
+    failure, not a crash: attempt 1 routes through the repair loop and the pipeline
+    succeeds when the repair returns valid content."""
+    with patch("templates_engine.llm.generate",
+               side_effect=[degenerate, VALID_CONTENT]) as mock_gen:
+        content = pipeline.generate_content(
+            manifest, [{"role": "user", "content": "deck"}], "llama3"
+        )
+    assert mock_gen.call_count == 2  # attempt 1 + exactly one repair
+    assert content["slides"][0]["fields"]["title"] == "My Title"
+    # The repair must carry the parse-failure correction, and malformed-in-shape
+    # output must not trigger the truncation token bump (synthetic exc has pos=0).
+    second_call = mock_gen.call_args_list[1]
+    correction_text = second_call.args[0][-1]["content"]
+    assert "could not be parsed" in correction_text
+    assert second_call.kwargs.get("max_tokens") is None
+
+
+# ---------------------------------------------------------------------------
 # Repair on validation failure
 # ---------------------------------------------------------------------------
 
