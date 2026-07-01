@@ -5,8 +5,41 @@ everything after it is overwritten on regeneration. Regenerate after
 structural changes: `python scripts/gen_repo_map.py`
 
 <!-- MANUAL:BEGIN -->
-TODO: add author-maintained orientation notes here (architecture summary,
-invariants, gotchas). Content between the MANUAL markers survives regeneration.
+## Orientation notes (manual)
+
+**Architecture intent.** Windows desktop app (PySide6) turning a local
+Ollama model into an Office document generator: no cloud, no chat, no terminal
+(README "What it is"). Load-bearing contract: the LLM produces content and
+structure only; Python owns all formatting, the split that keeps 4B-class
+local models reliable (BUILD_STORY "Key architectural decisions"). v1.2 adds a
+manifest-driven PPTX template engine (Phases A to M) where the template's
+masters, layouts, and theme own every visual decision (templates_engine/CLAUDE.md).
+
+**Module responsibilities.**
+
+| Module | Owns |
+|--------|------|
+| `app/main_window.py` | Wiring; QThread lifecycle; freeform vs templated routing |
+| `app/services/ollama_client.py` | All Ollama HTTP; Ollama* exception taxonomy |
+| `app/parsers/llm_response_parser.py` | Clean, validate freeform LLM JSON |
+| `app/generators/` | Write docx/xlsx/pptx from parsed dicts |
+| `app/services/file_manipulator.py` | Edit path: extract text, write back |
+| `app/services/backup_service.py` | One-time pre-manipulation backups |
+| `templates_engine/` | Manifest schema; deck import; prompt; validate; one-repair pipeline; render |
+| `app/config/defaults.py` | Every constant, timeout, color |
+
+**Invariants the code enforces.**
+
+- Workers are QObjects on QThreads, never subclassed; UI touched only via signals. <!-- evidence: CLAUDE.md Coding Conventions; simplicitor/app/workers/ollama_worker.py:16-18; simplicitor/app/workers/template_worker.py:29-32 -->
+- `check_connection()` never raises; all other network methods raise Ollama* exceptions. <!-- evidence: simplicitor/app/services/ollama_client.py:68-78; NOTES.md check_connection contract -->
+- `OllamaTimeoutError` subclasses `OllamaConnectionError`: catch it first. <!-- evidence: simplicitor/app/services/ollama_client.py:26; simplicitor/app/workers/template_worker.py:77 -->
+- `failed(str)` carries user-facing text only, never raw exceptions. <!-- evidence: NOTES.md user-facing error surface; simplicitor/app/workers/template_worker.py:36-38 -->
+- No partial file: render writes a temp file then atomic replace; a failed import removes its folder. <!-- evidence: simplicitor/templates_engine/render_pptx.py:185-199; simplicitor/templates_engine/config.py:308-314; NOTES.md no-partial-file discipline -->
+- One backup per file, never overwritten. <!-- evidence: simplicitor/app/services/backup_service.py:39-44 -->
+- File content and user prompt text are never logged. <!-- evidence: simplicitor/app/utils/logging_setup.py:15-16; NOTES.md logging convention -->
+- One repair attempt, then fail with no output; untemplatable decks return a `hard_stop` status, not an exception. <!-- evidence: simplicitor/templates_engine/pipeline.py:135-166; simplicitor/templates_engine/breakdown.py:468-481 -->
+- Styling manipulation prompts are rejected before any file I/O or backup. <!-- evidence: simplicitor/app/workers/manipulate_worker.py:69-85; BUILD_STORY "The silent success bug" -->
+- Manifests are frozen pydantic models; the templated path opts out of Ollama JSON mode (gemma4 degeneration). <!-- evidence: simplicitor/templates_engine/manifest.py:17-43; simplicitor/templates_engine/pipeline.py:104-112; commit 3f84d15 -->
 <!-- MANUAL:END -->
 
 ## Directory tree
@@ -186,6 +219,7 @@ CHANGELOG.md
 CLAUDE.md
 LICENSE
 LICENSE_NOTICE.md
+OPEN_QUESTIONS.md
 PRD.md
 README.md
 SECURITY.md
@@ -1160,6 +1194,7 @@ requirements.txt
 - CLAUDE.md: md, 193 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
+- OPEN_QUESTIONS.md: md, 66 lines
 - PRD.md: md, 252 lines
 - README.md: md, 98 lines
 - SECURITY.md: md, 13 lines
