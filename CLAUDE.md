@@ -4,12 +4,42 @@
 
 Simplicitor is a native Windows desktop application that connects to a locally running Ollama instance and lets non-technical users generate and manipulate Office documents (Word, Excel, PowerPoint) through natural language prompts. Two-panel UI: Create (generate new files) and Edit (manipulate existing files). No cloud, no browser, no terminal. Double-click .exe, it works.
 
-v1.2 adds a PPTX template engine: instead of building slides from scratch, it fills the layout placeholders of a real PowerPoint design (a built-in template or one the user uploads), so the output keeps that deck's branding. Built across Phases A through M; functional, with ongoing prompt-engineering iteration as new models surface new biases. See the `Template Engine (PPTX)` section below; the authoritative notes are in `simplicitor/templates_engine/NOTES.md`.
+v1.2 adds a PPTX template engine: instead of building slides from scratch, it fills the layout placeholders of a real PowerPoint design (a built-in template or one the user uploads), so the output keeps that deck's branding. Built across Phases A through M; functional, with ongoing prompt-engineering iteration as new models surface new biases. See the `Template Engine (PPTX)` section below; the primary design-intent notes for the engine are in `simplicitor/templates_engine/NOTES.md`.
 
 Full requirements: `docs/Simplicitor_PRD_v1.2.docx`
 Build phases: `docs/Simplicitor_Implementation_Guide.md`
 
-The PRD is the source of truth. If something is ambiguous, ask rather than guess.
+Source-of-truth ordering is defined in the Source of Truth section. When anything is ambiguous, ask rather than guess.
+
+## Ways of Working
+
+How we collaborate on this repo. These govern every session by default.
+
+- One task per session, one atomic reviewable commit per task. Stop after the task. Never chain into the next task without an explicit "Proceed" from Alex.
+- Every closeout report states the commit hash and the test count (passed of total).
+- Decisions are Alex's. When anything is ambiguous or a scope or approach fork appears, STOP and ask with concrete options and a recommendation. Do not pick silently. When Alex pushes back, treat it as signal and re-examine rather than defend.
+- Never git commit, push, amend, switch branches, or open a PR unless Alex explicitly asks, per action. Approval for one action never implies another.
+- Stay in scope. Do only what was asked. No "while I am here" edits or unrequested refactors. Anything not in the PRD is flagged as scope creep and confirmed before building (see What NOT to Build).
+- No new third-party dependency without Alex's explicit, per-library approval. Prefer the standard library or a minimal hand-rolled solution, and propose the library with a no-library alternative rather than adding it.
+
+## Source of Truth
+
+When sources conflict, the higher rung wins, always.
+
+1. Code and tests. The running code and its passing tests are ground truth. Read the code before asserting behavior and cite file and line. Never claim behavior you have not read.
+2. Runtime behavior. Observed output of the running app over described behavior.
+3. The PRD (docs/Simplicitor_PRD_v1.2.docx). Governs product scope and requirements. A lead to verify against the code, not an override of the code. If the PRD and the code disagree on what the code does, the code wins and the drift is flagged.
+4. NOTES.md and this CLAUDE.md. Design intent and repo orientation. Leads to verify, may be stale. NOTES.md is authoritative for template-engine design intent only where the PRD is silent. It never overrides the PRD on scope or the code on behavior.
+5. AI output, this agent's or an earlier one's. Lowest. Re-derive from a higher rung before trusting it.
+
+Make no claim you cannot trace to rung 1 or rung 2. If you cannot verify, say "unverified" or "I do not know." Never fabricate.
+
+## Verification
+
+- Evidence over assertion. Show the command or test output. Never claim success without running it.
+- No "probably" or "should work." Verify it, or label it explicitly as unverified.
+- Report failures plainly: failed tests, skipped steps, dead ends.
+- Never disable or skip a test or linter to make something pass. Fix the root cause.
 
 ## Tech Stack
 
