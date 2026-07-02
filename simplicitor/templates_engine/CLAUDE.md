@@ -8,7 +8,7 @@ conflict between this file, NOTES.md, and the code.
 
 ## Template Engine (PPTX)
 
-A second PowerPoint path built across Phases A through M, with full test coverage in `tests/templates_engine/`. The canonical test tree is `tests/` (pytest collects only it, per `testpaths`); `simplicitor/tests/` is a stale duplicate scheduled for removal, with its `test_cli.py` to be migrated into `tests/`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
+A second PowerPoint path built across Phases A through M, with full test coverage in `tests/templates_engine/` and CLI tests in `tests/test_cli.py`. The canonical (and only) test tree is `tests/`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
 
 **Read before changing the engine:** `simplicitor/templates_engine/NOTES.md` holds the Phase A repo orientation, the error-handling contract every module conforms to, and the list of deferred follow-ups (each marked ACCEPTED, FIXED, CLOSED, or Open). To add a template: `simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md`.
 
@@ -20,16 +20,9 @@ A folder with exactly two files:
 
 Manifest shape: `name`, `type` (`pptx`), `template_file`, `description`, and `slide_types`. Each slide type has a `layout_index` and a list of `fields`. Each field has `name`, `placeholder_idx`, `kind` (`text` | `bullets` | `image`), `required`, and optional `max_chars` (text only) / `max_items` (bullets only). Field names become the JSON keys the LLM fills.
 
-### Two template directories
+### Template directory (unified root)
 
-| Source | Location | Writable |
-|--------|----------|----------|
-| Built-in | `simplicitor/templates_engine/builtin/<name>/` | No, ships with the app |
-| User | `%APPDATA%\Simplicitor\templates\<name>\` (fallback `~/.simplicitor/templates`) | Yes, created on first run |
-
-Override the user root via `simplicitor.toml` under `[templates] user_dir`. Built-ins shipped: `business_pitch` and `technical_overview`. A folder missing either required file is silently skipped. Rebuilding a built-in `.pptx` means re-verifying its indices: `python simplicitor/cli.py inspect` or `scripts/inspect_template.py` both print them.
-
-Note: the APPDATA root above is the CLI's; the GUI resolves user templates through `Settings.templates_dir` (default `Documents\Simplicitor\Templates`), so imports through one surface are invisible to the other. Decided direction: `Settings.templates_dir` becomes the single authoritative template root and the APPDATA CLI root will be retired. Until that lands, this table describes the CLI behavior only.
+All templates live in one folder: `Settings.templates_dir` (default `Documents\Simplicitor\Templates`, configurable in the app's Settings dialog). The curated defaults (`business_pitch`, `technical_overview`) are seeded into it from the bundled built-in source (`simplicitor/templates_engine/builtin/<name>/`, read-only, ships with the app); user imports land next to them, tagged "user" by `list_library`. The CLI resolves the same folder by reading the persisted `settings.json` in the per-user data dir (`get_app_data_dir()`), falling back to the documented default when no settings file exists, and prints a one-line notice if templates are still found in the retired legacy root `%APPDATA%\Simplicitor\templates` (nothing is auto-moved). The old `simplicitor.toml` override is gone with that root. A folder missing either required file is silently skipped. Rebuilding a built-in `.pptx` means re-verifying its indices: `python simplicitor/cli.py inspect` or `scripts/inspect_template.py` both print them.
 
 ### Modules (`simplicitor/templates_engine/`)
 
@@ -42,7 +35,7 @@ Note: the APPDATA root above is the CLI's; the GUI resolves user templates throu
 | `prompt_builder.py` | `build_prompt` (4 messages: JSON-only system schema, one worked example, then request plus optional source); `build_repair_prompt` (distinct parse-error vs validation-error variants) |
 | `llm.py` | Facade over `OllamaClient`: `preflight` (Ollama reachable and the model present, with tag-aware name matching) and `generate` (chat completions, temperature 0.3, optional `max_tokens`) |
 | `pipeline.py` | `generate_content` (generate, parse, validate, one repair, else fail) and `run` (the same, then render) |
-| `config.py` | `get_builtin_root` / `get_user_root`, `list_templates` (merge and tag both roots), `import_template` |
+| `config.py` | `get_builtin_root` / `get_app_data_dir`, `list_library` / `ensure_default_templates` (unified root), `list_templates` (explicit roots, test use), `import_template` (root passed in) |
 
 ### CLI
 

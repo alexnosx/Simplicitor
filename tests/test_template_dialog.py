@@ -26,7 +26,6 @@ def template_root(tmp_path, monkeypatch):
     (tdir / "manifest.yaml").write_bytes(FIXTURE_MANIFEST.read_bytes())
     empty_builtin = tmp_path / "builtin_empty"
     empty_builtin.mkdir()
-    monkeypatch.setattr(config, "get_user_root", lambda: root)
     monkeypatch.setattr(config, "get_builtin_root", lambda: empty_builtin)
     return root
 

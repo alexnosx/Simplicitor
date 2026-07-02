@@ -94,9 +94,10 @@ def _render_slide(
         elif field.kind == "image":
             img_path = Path(value)
             if not img_path.exists():
+                # The path value is model output; never put it in a log line.
                 msg = (
-                    f"Slide {slide_idx}, field '{name}': image path '{img_path}' "
-                    f"not found, field skipped."
+                    f"Slide {slide_idx}, field '{name}': image file not found, "
+                    f"field skipped."
                 )
                 logger.warning("%s", msg)
                 issues.append(msg)

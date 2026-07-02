@@ -33,36 +33,15 @@ def get_app_data_dir() -> Path:
     """Return the per-user Simplicitor data root. No side effects.
 
     ``%APPDATA%\\Simplicitor`` when APPDATA is set, otherwise ``~/.simplicitor``.
-    Shared resolver: settings live directly in this directory (see main.py),
-    user templates under ``templates/`` (see ``get_user_root``).
+    Settings (settings.json) live directly in this directory (see main.py).
+    Template resolution is unified on ``Settings.templates_dir``; the old
+    ``templates/`` subfolder here is retired (the CLI prints a notice if
+    templates are still found in it).
     """
     appdata = os.environ.get("APPDATA")
     if appdata:
         return Path(appdata) / _APP_NAME
     return Path.home() / f".{_APP_NAME.lower()}"
-
-
-def get_user_root() -> Path:
-    """Return the writable user templates root, creating it on first call.
-
-    Uses %APPDATA%\\Simplicitor\\templates on Windows, or
-    ~/.simplicitor/templates as fallback. Can be overridden via
-    simplicitor.toml (``[templates] user_dir = "..."``).
-
-    Raises:
-        ManipulationError: If the directory cannot be created (permissions/disk).
-    """
-    override = _config_override("user_dir")
-    if override is not None:
-        if not isinstance(override, str) or not override.strip():
-            raise ValueError(
-                "simplicitor.toml [templates] user_dir must be a non-empty string."
-            )
-        root = Path(override)
-    else:
-        root = get_app_data_dir() / "templates"
-    _ensure_dir(root)
-    return root
 
 
 def _ensure_dir(path: Path) -> None:
@@ -75,25 +54,6 @@ def _ensure_dir(path: Path) -> None:
         raise ManipulationError(
             f"Cannot create user templates directory: {exc}"
         ) from exc
-
-
-def _config_override(key: str) -> str | None:
-    """Read an optional value from simplicitor.toml under [templates], if present."""
-    import tomllib
-    appdata = os.environ.get("APPDATA")
-    candidates: list[Path] = []
-    if appdata:
-        candidates.append(Path(appdata) / _APP_NAME / "simplicitor.toml")
-    candidates.append(Path.home() / f".{_APP_NAME.lower()}" / "simplicitor.toml")
-    for config_path in candidates:
-        if config_path.exists():
-            try:
-                with open(config_path, "rb") as f:
-                    data = tomllib.load(f)
-                return data.get("templates", {}).get(key)
-            except Exception:
-                logger.warning("Could not read config from '%s'.", config_path.name)
-    return None
 
 
 # ---------------------------------------------------------------------------
@@ -117,10 +77,12 @@ def list_templates(
     user_root: Path | None = None,
     builtin_root: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Return all templates from both roots, tagged with their source.
+    """Return templates from the given roots, tagged with their source.
 
     Args:
-        user_root: Override the user root (default: get_user_root()).
+        user_root: The user templates root to scan; None scans built-ins only.
+            There is no implicit user root: resolution is unified on
+            Settings.templates_dir and callers pass it explicitly.
         builtin_root: Override the built-in root (default: get_builtin_root()).
 
     Returns:
@@ -134,10 +96,13 @@ def list_templates(
         Subdirectories that lack either required file are silently skipped.
     """
     broot = builtin_root if builtin_root is not None else get_builtin_root()
-    uroot = user_root if user_root is not None else get_user_root()
+
+    roots: list[tuple[str, Path]] = [("builtin", broot)]
+    if user_root is not None:
+        roots.append(("user", user_root))
 
     templates: list[dict[str, Any]] = []
-    for source, root in (("builtin", broot), ("user", uroot)):
+    for source, root in roots:
         if not root.is_dir():
             continue
         for entry in sorted(root.iterdir()):
@@ -235,7 +200,7 @@ def ensure_default_templates(templates_root: str | Path) -> None:
 
 def import_template(
     pptx_path: str | Path,
-    user_root: Path | None = None,
+    user_root: Path,
 ) -> dict[str, Any]:
     """Import a .pptx file as a user template.
 
@@ -245,7 +210,8 @@ def import_template(
 
     Args:
         pptx_path: Path to the source .pptx.
-        user_root: Override the user root (useful in tests).
+        user_root: The templates root to import into. Callers resolve it
+            explicitly (the app and CLI both use Settings.templates_dir).
 
     Returns:
         Success:   {"status": "ok", "name": str, "path": Path,
@@ -271,7 +237,7 @@ def import_template(
     from templates_engine.manifest import lint_manifest, load_manifest
 
     pptx_path = Path(pptx_path)
-    uroot = user_root if user_root is not None else get_user_root()
+    uroot = Path(user_root)
 
     # Inspect and score. ValueError propagates for bad input (wrong ext, corrupt);
     # ManipulationError propagates for missing file.

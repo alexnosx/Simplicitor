@@ -154,9 +154,12 @@ def generate_content(
     _emit("validating")
     ok2, result2 = validate_content(manifest, parsed2)
     if not ok2:
+        # Error strings can embed model output (e.g. an unknown slide-type
+        # value); log the count only. The full errors still reach the
+        # repair prompt and the ParseError details.
         logger.error(
-            "Content validation failed after repair. Giving up. Errors: %s",
-            "; ".join(result2),
+            "Content validation failed after repair (%d error(s)). Giving up.",
+            len(result2),
         )
         raise ParseError(
             "Model returned content that failed schema validation after repair",

@@ -41,7 +41,7 @@ masters, layouts, and theme own every visual decision (templates_engine/CLAUDE.m
 - Styling manipulation prompts are rejected before any file I/O or backup. <!-- evidence: simplicitor/app/workers/manipulate_worker.py:69-85; BUILD_STORY "The silent success bug" -->
 - Manifests are frozen pydantic models; the templated path opts out of Ollama JSON mode (gemma4 degeneration). <!-- evidence: simplicitor/templates_engine/manifest.py:17-43; simplicitor/templates_engine/pipeline.py:104-112; commit 3f84d15 -->
 - Docx manipulation formatting loss is deliberate v1 simplicity; do not add formatting preservation. <!-- evidence: author decision Q6, 2026-07-02 review; NOTES.md follow-up 7; simplicitor/app/services/file_manipulator.py:147-154 -->
-- `Settings.templates_dir` is the single authoritative template root; the CLI's APPDATA root will be retired (unification pending). <!-- evidence: author decision Q1, 2026-07-02 review; simplicitor/templates_engine/CLAUDE.md, Two template directories note -->
+- `Settings.templates_dir` is the single authoritative template root; the GUI and CLI resolve the same folder and the legacy APPDATA root is retired (CLI prints a notice if templates remain there). <!-- evidence: author decision Q1, 2026-07-02 review; simplicitor/cli.py _templates_root and _warn_if_legacy_root; simplicitor/templates_engine/CLAUDE.md, Template directory section -->
 <!-- MANUAL:END -->
 
 ## Directory tree
@@ -168,10 +168,6 @@ simplicitor/
         prompt_builder.py
         render_pptx.py
         validation.py
-    tests/
-        templates_engine/
-            test_pipeline.py
-        test_cli.py
     __init__.py
     cli.py
     main.py
@@ -197,6 +193,7 @@ tests/
     conftest.py
     test_backup_service.py
     test_build_script.py
+    test_cli.py
     test_file_generator.py
     test_file_manipulator.py
     test_file_utils.py
@@ -430,6 +427,9 @@ requirements.txt
 
 ### simplicitor/cli.py
 
+- def _templates_root() -> Path: Resolve the single authoritative templates root (Settings.templates_dir).
+- def _warn_if_legacy_root(active_root: Path) -> None: Print a one-line notice if templates still sit in the retired APPDATA root.
+- def _load_library() -> list[dict]: Resolve the unified templates root, seed the defaults, and list it.
 - def _cmd_inspect(args: argparse.Namespace) -> int
 - def _cmd_list_templates(args: argparse.Namespace) -> int
 - def _cmd_import(args: argparse.Namespace) -> int
@@ -465,15 +465,13 @@ requirements.txt
 
 - def get_builtin_root() -> Path: Return the read-only built-in templates root (ships with the app).
 - def get_app_data_dir() -> Path: Return the per-user Simplicitor data root. No side effects.
-- def get_user_root() -> Path: Return the writable user templates root, creating it on first call.
 - def _ensure_dir(path: Path) -> None: Create *path* and all parents, raising ManipulationError on failure.
-- def _config_override(key: str) -> str | None: Read an optional value from simplicitor.toml under [templates], if present.
 - def _slugify(text: str) -> str
 - def _is_valid_template_dir(path: Path) -> bool: True if *path* contains both template.pptx and manifest.yaml.
-- def list_templates(user_root: Path | None=None, builtin_root: Path | None=None) -> list[dict[str, Any]]: Return all templates from both roots, tagged with their source.
+- def list_templates(user_root: Path | None=None, builtin_root: Path | None=None) -> list[dict[str, Any]]: Return templates from the given roots, tagged with their source.
 - def list_library(templates_root: str | Path) -> list[dict[str, Any]]: List templates in a single library folder, tagging defaults vs user uploads.
 - def ensure_default_templates(templates_root: str | Path) -> None: Ensure the curated default templates exist in *templates_root*.
-- def import_template(pptx_path: str | Path, user_root: Path | None=None) -> dict[str, Any]: Import a .pptx file as a user template.
+- def import_template(pptx_path: str | Path, user_root: Path) -> dict[str, Any]: Import a .pptx file as a user template.
 
 ### simplicitor/templates_engine/llm.py
 
@@ -518,21 +516,6 @@ requirements.txt
 - def build_content_model(manifest: Manifest) -> type[BaseModel]: Return a Pydantic model class for the structural shape of content JSON.
 - def validate_content(manifest: Manifest, raw_json: Any) -> tuple[bool, Any]: Validate raw content JSON against the manifest.
 - def format_validation_errors(errors: list[str]) -> str: Format validation errors as a compact, model-readable string.
-
-### simplicitor/tests/templates_engine/test_pipeline.py
-
-- def manifest()
-- def _assert_rendered_title(out_path: Path) -> None: Open out_path and assert the first slide's title placeholder contains 'My Title'.
-- def test_run_valid_first_attempt(manifest, tmp_template): Pipeline succeeds on first attempt with no repair needed.
-- def test_run_parse_failure_repair_success(manifest, tmp_template): Attempt 1 returns unparseable text; attempt 2 returns valid JSON. File is written.
-- def test_run_validation_failure_repair_success(manifest, tmp_template): Attempt 1 passes parse but fails validation; attempt 2 returns valid JSON.
-- def test_run_repair_still_fails_parse(manifest, tmp_template): Both attempts return unparseable text → ParseError raised.
-- def test_run_repair_still_fails_validation(manifest, tmp_template): Both attempts produce parseable JSON that fails validation → ParseError raised.
-- def test_run_truncation_bump_passes_max_tokens(manifest, tmp_template): Truncated JSON on attempt 1 triggers max_tokens bump on the repair call.
-
-### simplicitor/tests/test_cli.py
-
-- def test_generate_requires_out_when_not_dry_run(capsys): --out is required when not in dry-run mode; omitting it prints an error and returns 1.
 
 ### tests/__init__.py
 
@@ -843,6 +826,16 @@ requirements.txt
 - def test_build_script_references_icon() -> None
 - def test_build_script_sets_product_name() -> None
 - def test_build_bat_exists() -> None
+
+### tests/test_cli.py
+
+- def test_generate_requires_out_when_not_dry_run(capsys): --out is required when not in dry-run mode; omitting it prints an error and returns 1.
+- def test_templates_root_falls_back_to_documents_default(tmp_path, monkeypatch): No settings.json: the documented default Documents\Simplicitor\Templates.
+- def test_templates_root_reads_persisted_settings(tmp_path, monkeypatch): The CLI resolves the same settings.json the app writes.
+- def test_list_templates_uses_unified_root(tmp_path, monkeypatch, capsys): list-templates scans the unified root: a user template there is listed.
+- def _make_stub_template(folder: Path) -> None
+- def test_legacy_root_notice_names_both_paths(tmp_path, monkeypatch, capsys): Templates left in the retired APPDATA root produce a notice naming both paths.
+- def test_no_legacy_notice_when_root_absent(tmp_path, monkeypatch, capsys): No legacy folder: no notice.
 
 ### tests/test_file_generator.py
 
@@ -1248,7 +1241,7 @@ requirements.txt
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines
 - simplicitor/prompts/system_word.txt: txt, 19 lines
 - simplicitor/templates/pptx_default.pptx: pptx (binary)
-- simplicitor/templates_engine/CLAUDE.md: md, 81 lines
+- simplicitor/templates_engine/CLAUDE.md: md, 74 lines
 - simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md: md, 183 lines
 - simplicitor/templates_engine/NOTES.md: md, 155 lines
 - simplicitor/templates_engine/builtin/.gitkeep: text, 0 lines

@@ -13,6 +13,50 @@ from app.services.file_manipulator import ManipulationError
 from templates_engine.breakdown import format_inspection, inspect_pptx
 
 
+def _templates_root() -> Path:
+    """Resolve the single authoritative templates root (Settings.templates_dir).
+
+    Reads the persisted settings file the app writes (settings.json in the
+    per-user data dir); when none exists, Settings falls back to the
+    documented default, Documents\\Simplicitor\\Templates.
+    """
+    from app.config.settings import Settings
+    from templates_engine.config import get_app_data_dir
+    return Path(Settings(get_app_data_dir()).templates_dir)
+
+
+def _warn_if_legacy_root(active_root: Path) -> None:
+    """Print a one-line notice if templates still sit in the retired APPDATA root."""
+    from templates_engine.config import MANIFEST_NAME, TEMPLATE_PPTX_NAME, get_app_data_dir
+    legacy = get_app_data_dir() / "templates"
+    try:
+        if legacy.resolve() == active_root.resolve():
+            return
+        has_templates = legacy.is_dir() and any(
+            entry.is_dir()
+            and (entry / TEMPLATE_PPTX_NAME).is_file()
+            and (entry / MANIFEST_NAME).is_file()
+            for entry in legacy.iterdir()
+        )
+    except OSError:
+        return
+    if has_templates:
+        print(
+            f"Note: templates in the retired root '{legacy}' are no longer used; "
+            f"the active templates folder is '{active_root}'. Move them there to keep using them.",
+            file=sys.stderr,
+        )
+
+
+def _load_library() -> list[dict]:
+    """Resolve the unified templates root, seed the defaults, and list it."""
+    from templates_engine.config import ensure_default_templates, list_library
+    root = _templates_root()
+    _warn_if_legacy_root(root)
+    ensure_default_templates(root)
+    return list_library(root)
+
+
 def _cmd_inspect(args: argparse.Namespace) -> int:
     from app.services.file_manipulator import ManipulationError
     try:
@@ -25,11 +69,10 @@ def _cmd_inspect(args: argparse.Namespace) -> int:
 
 
 def _cmd_list_templates(args: argparse.Namespace) -> int:
-    from templates_engine.config import list_templates
     from app.services.file_manipulator import ManipulationError
 
     try:
-        templates = list_templates()
+        templates = _load_library()
     except (ValueError, ManipulationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
@@ -50,7 +93,9 @@ def _cmd_import(args: argparse.Namespace) -> int:
     from app.services.file_manipulator import ManipulationError
 
     try:
-        result = import_template(args.file)
+        root = _templates_root()
+        _warn_if_legacy_root(root)
+        result = import_template(args.file, user_root=root)
     except (ValueError, ManipulationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
@@ -84,13 +129,12 @@ def _cmd_render(args: argparse.Namespace) -> int:
     import json
 
     from app.services.file_manipulator import ManipulationError
-    from templates_engine.config import list_templates
     from templates_engine.manifest import load_manifest
     from templates_engine.render_pptx import render
     from templates_engine.validation import format_validation_errors, validate_content
 
     try:
-        templates = list_templates()
+        templates = _load_library()
         match = next((t for t in templates if t["name"] == args.template), None)
         if match is None:
             raise ValueError(f"Template '{args.template}' not found.")
@@ -137,13 +181,12 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         OllamaGenerationError,
         OllamaTimeoutError,
     )
-    from templates_engine.config import list_templates
     from templates_engine.manifest import load_manifest
     from templates_engine.prompt_builder import build_prompt
     from templates_engine import llm
 
     try:
-        templates = list_templates()
+        templates = _load_library()
         match = next((t for t in templates if t["name"] == args.template), None)
         if match is None:
             raise ValueError(f"Template '{args.template}' not found.")

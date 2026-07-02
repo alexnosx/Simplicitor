@@ -15,7 +15,6 @@ from templates_engine.config import (
     ensure_default_templates,
     get_app_data_dir,
     get_builtin_root,
-    get_user_root,
     import_template,
     list_library,
     list_templates,
@@ -66,7 +65,7 @@ def test_builtin_root_points_inside_package():
 
 
 # ---------------------------------------------------------------------------
-# get_user_root
+# _ensure_dir (directory creation shared by import/list paths)
 # ---------------------------------------------------------------------------
 
 def test_user_root_creates_dir_if_missing(tmp_path):
