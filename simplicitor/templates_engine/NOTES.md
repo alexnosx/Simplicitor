@@ -153,3 +153,14 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    2026-07-02 review). Docx manipulation is intentionally simple; do not "fix" it by adding
    formatting preservation. If v2 revisits this, the pptx path is the model: reopen the
    original and edit in place rather than rebuilding from extracted text.
+
+8. **Template-root unification removed the toml override, a breaking change** (Q1, commit f3d4337).
+   `get_user_root` and the `simplicitor.toml` `[templates] user_dir` override were removed
+   outright when template resolution unified on `Settings.templates_dir`. A CLI user who
+   relied on a toml-overridden template path loses that channel, and the migration notice
+   checks only the default legacy root (`%APPDATA%\Simplicitor\templates`), so a
+   toml-overridden location is not detected and its templates silently stop appearing.
+   **ACCEPTED for v1** (author decision, 2026-07-02 arc closeout): the product is GUI-first
+   and there are no known users of the override. If it ever resurfaces, the fix is a
+   one-time startup check for a `simplicitor.toml` in the data dir that prints the same
+   style of migration notice pointing at the overridden path.

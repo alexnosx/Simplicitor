@@ -1243,7 +1243,7 @@ requirements.txt
 - simplicitor/templates/pptx_default.pptx: pptx (binary)
 - simplicitor/templates_engine/CLAUDE.md: md, 74 lines
 - simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md: md, 183 lines
-- simplicitor/templates_engine/NOTES.md: md, 155 lines
+- simplicitor/templates_engine/NOTES.md: md, 166 lines
 - simplicitor/templates_engine/builtin/.gitkeep: text, 0 lines
 - simplicitor/templates_engine/builtin/business_pitch/manifest.yaml: yaml, 59 lines
 - simplicitor/templates_engine/builtin/business_pitch/template.pptx: pptx (binary)
