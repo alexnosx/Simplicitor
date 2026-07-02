@@ -8,7 +8,7 @@ conflict between this file, NOTES.md, and the code.
 
 ## Template Engine (PPTX)
 
-A second PowerPoint path built across Phases A through M, with full test coverage in `tests/templates_engine/` and a CLI test in `simplicitor/tests/test_cli.py`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
+A second PowerPoint path built across Phases A through M, with full test coverage in `tests/templates_engine/`. The canonical test tree is `tests/` (pytest collects only it, per `testpaths`); `simplicitor/tests/` is a stale duplicate scheduled for removal, with its `test_cli.py` to be migrated into `tests/`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
 
 **Read before changing the engine:** `simplicitor/templates_engine/NOTES.md` holds the Phase A repo orientation, the error-handling contract every module conforms to, and the list of deferred follow-ups (each marked ACCEPTED, FIXED, CLOSED, or Open). To add a template: `simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md`.
 
@@ -28,6 +28,8 @@ Manifest shape: `name`, `type` (`pptx`), `template_file`, `description`, and `sl
 | User | `%APPDATA%\Simplicitor\templates\<name>\` (fallback `~/.simplicitor/templates`) | Yes, created on first run |
 
 Override the user root via `simplicitor.toml` under `[templates] user_dir`. Built-ins shipped: `business_pitch` and `technical_overview`. A folder missing either required file is silently skipped. Rebuilding a built-in `.pptx` means re-verifying its indices: `python simplicitor/cli.py inspect` or `scripts/inspect_template.py` both print them.
+
+Note: the APPDATA root above is the CLI's; the GUI resolves user templates through `Settings.templates_dir` (default `Documents\Simplicitor\Templates`), so imports through one surface are invisible to the other. Decided direction: `Settings.templates_dir` becomes the single authoritative template root and the APPDATA CLI root will be retired. Until that lands, this table describes the CLI behavior only.
 
 ### Modules (`simplicitor/templates_engine/`)
 

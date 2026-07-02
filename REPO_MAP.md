@@ -36,10 +36,12 @@ masters, layouts, and theme own every visual decision (templates_engine/CLAUDE.m
 - `failed(str)` carries user-facing text only, never raw exceptions. <!-- evidence: NOTES.md user-facing error surface; simplicitor/app/workers/template_worker.py:36-38 -->
 - No partial file: render writes a temp file then atomic replace; a failed import removes its folder. <!-- evidence: simplicitor/templates_engine/render_pptx.py:185-199; simplicitor/templates_engine/config.py:308-314; NOTES.md no-partial-file discipline -->
 - One backup per file, never overwritten. <!-- evidence: simplicitor/app/services/backup_service.py:39-44 -->
-- File content and user prompt text are never logged. <!-- evidence: simplicitor/app/utils/logging_setup.py:15-16; NOTES.md logging convention -->
+- File content, user prompts, and LLM output are never logged; logging is metadata only (length, parse outcome, exception type, model, duration). No content-logging path exists, not even opt-in. Known violation: file_generator.py:56, fix pending (Session 2). <!-- evidence: author decision Q2, 2026-07-02 review; simplicitor/app/utils/logging_setup.py:15-16; violation simplicitor/app/services/file_generator.py:56 -->
 - One repair attempt, then fail with no output; untemplatable decks return a `hard_stop` status, not an exception. <!-- evidence: simplicitor/templates_engine/pipeline.py:135-166; simplicitor/templates_engine/breakdown.py:468-481 -->
 - Styling manipulation prompts are rejected before any file I/O or backup. <!-- evidence: simplicitor/app/workers/manipulate_worker.py:69-85; BUILD_STORY "The silent success bug" -->
 - Manifests are frozen pydantic models; the templated path opts out of Ollama JSON mode (gemma4 degeneration). <!-- evidence: simplicitor/templates_engine/manifest.py:17-43; simplicitor/templates_engine/pipeline.py:104-112; commit 3f84d15 -->
+- Docx manipulation formatting loss is deliberate v1 simplicity; do not add formatting preservation. <!-- evidence: author decision Q6, 2026-07-02 review; NOTES.md follow-up 7; simplicitor/app/services/file_manipulator.py:147-154 -->
+- `Settings.templates_dir` is the single authoritative template root; the CLI's APPDATA root will be retired (unification pending). <!-- evidence: author decision Q1, 2026-07-02 review; simplicitor/templates_engine/CLAUDE.md, Two template directories note -->
 <!-- MANUAL:END -->
 
 ## Directory tree
@@ -219,7 +221,6 @@ CHANGELOG.md
 CLAUDE.md
 LICENSE
 LICENSE_NOTICE.md
-OPEN_QUESTIONS.md
 PRD.md
 README.md
 SECURITY.md
@@ -1194,7 +1195,6 @@ requirements.txt
 - CLAUDE.md: md, 193 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- OPEN_QUESTIONS.md: md, 66 lines
 - PRD.md: md, 252 lines
 - README.md: md, 98 lines
 - SECURITY.md: md, 13 lines
@@ -1241,9 +1241,9 @@ requirements.txt
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines
 - simplicitor/prompts/system_word.txt: txt, 19 lines
 - simplicitor/templates/pptx_default.pptx: pptx (binary)
-- simplicitor/templates_engine/CLAUDE.md: md, 79 lines
+- simplicitor/templates_engine/CLAUDE.md: md, 81 lines
 - simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md: md, 183 lines
-- simplicitor/templates_engine/NOTES.md: md, 147 lines
+- simplicitor/templates_engine/NOTES.md: md, 155 lines
 - simplicitor/templates_engine/builtin/.gitkeep: text, 0 lines
 - simplicitor/templates_engine/builtin/business_pitch/manifest.yaml: yaml, 59 lines
 - simplicitor/templates_engine/builtin/business_pitch/template.pptx: pptx (binary)

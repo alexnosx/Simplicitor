@@ -145,3 +145,11 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
    the freed thread aborted every post-first Save of a session; slot exceptions are printed and
    swallowed in production, so it surfaced as a silent no-op). Its guard now null-checks first.
    Regression tests: `tests/test_main_window_teardown.py`, verified failing pre-fix.
+
+7. **docx/pptx manipulation formatting asymmetry** (v1.2 doc review).
+   `FileManipulator._apply_docx` writes a brand-new plain-paragraph Document, discarding the
+   original file's styles, tables, and images, while `_apply_pptx` deliberately reopens the
+   existing file to preserve its theme. **ACCEPTED as deliberate v1 behavior** (author decision,
+   2026-07-02 review). Docx manipulation is intentionally simple; do not "fix" it by adding
+   formatting preservation. If v2 revisits this, the pptx path is the model: reopen the
+   original and edit in place rather than rebuilding from extracted text.
