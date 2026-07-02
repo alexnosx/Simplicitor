@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from app.workers.ollama_worker import OllamaWorker
+from app.config.defaults import OLLAMA_POLL_TIMEOUT_S
 from app.services.ollama_client import OllamaClient
 
 
@@ -275,3 +276,15 @@ def test_model_params_ready_emits_empty_when_model_unloaded(qtbot) -> None:
 
     assert len(params_signals) == 2
     assert params_signals[1] == ("", 0)
+
+
+def test_poll_uses_short_timeouts(qtbot) -> None:
+    """Poll-loop discovery calls pass the short poll timeout, not the 60 s default."""
+    worker = _make_worker(qtbot, connected=True, models=["llama3:8b"], running_model="llama3:8b")
+    with qtbot.waitSignal(worker.connected, timeout=1000):
+        worker._poll()
+    worker._client.get_models.assert_called_once_with(timeout=OLLAMA_POLL_TIMEOUT_S)
+    worker._client.get_running_model.assert_called_once_with(timeout=OLLAMA_POLL_TIMEOUT_S)
+    worker._client.get_model_params.assert_called_once_with(
+        "llama3:8b", timeout=OLLAMA_POLL_TIMEOUT_S
+    )

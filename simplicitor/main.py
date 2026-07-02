@@ -17,22 +17,14 @@ from app.config.settings import Settings
 from app.utils.logging_setup import setup_logging
 from app.utils.file_utils import resource_path
 from app.main_window import MainWindow
-from templates_engine.config import ensure_default_templates
-
-
-def _config_dir() -> Path:
-    """Return the per-user config directory for Simplicitor settings.
-
-    Uses %APPDATA%/Simplicitor on Windows, falling back to ~/.simplicitor.
-    """
-    appdata = Path.home() / "AppData" / "Roaming" / "Simplicitor"
-    appdata.mkdir(parents=True, exist_ok=True)
-    return appdata
+from templates_engine.config import ensure_default_templates, get_app_data_dir
 
 
 def main() -> None:
     """Application entry point."""
-    settings = Settings(_config_dir())
+    config_dir = get_app_data_dir()
+    config_dir.mkdir(parents=True, exist_ok=True)
+    settings = Settings(config_dir)
     setup_logging(settings.logs_dir)
     # Ensure the curated default templates are present in the user's Templates folder.
     ensure_default_templates(Path(settings.templates_dir))

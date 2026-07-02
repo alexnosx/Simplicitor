@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
+from app.config.defaults import OLLAMA_POLL_TIMEOUT_S
 from app.services.ollama_client import (
     OllamaClient,
     OllamaConnectionError,
@@ -108,7 +109,7 @@ class TestCheckConnection:
     def test_hits_correct_endpoint(self, mock_get: MagicMock) -> None:
         mock_get.return_value = _mock_response(200)
         OllamaClient(BASE_URL).check_connection()
-        mock_get.assert_called_once_with(f"{BASE_URL}/api/tags", timeout=3)
+        mock_get.assert_called_once_with(f"{BASE_URL}/api/tags", timeout=OLLAMA_POLL_TIMEOUT_S)
 
     @patch("app.services.ollama_client.requests.get", side_effect=requests.RequestException)
     def test_does_not_raise(self, _mock_get: MagicMock) -> None:
@@ -451,3 +452,35 @@ class TestChatCompletion:
             client.chat_completion(self.MESSAGES, "llama3", json_mode=False)
         body = mock_post.call_args[1]["json"]
         assert "response_format" not in body
+
+
+# ---------------------------------------------------------------------------
+# Poll timeouts (Q5): discovery calls accept a short per-call timeout
+# ---------------------------------------------------------------------------
+
+class TestPollTimeouts:
+    @patch("app.services.ollama_client.requests.get")
+    def test_check_connection_uses_poll_timeout_constant(self, mock_get: MagicMock) -> None:
+        mock_get.return_value = _mock_response(200)
+        OllamaClient(BASE_URL).check_connection()
+        assert mock_get.call_args.kwargs["timeout"] == OLLAMA_POLL_TIMEOUT_S
+
+    @patch("app.services.ollama_client.requests.get")
+    def test_get_models_forwards_timeout(self, mock_get: MagicMock) -> None:
+        mock_get.return_value = _mock_response(200, {"models": []})
+        OllamaClient(BASE_URL).get_models(timeout=OLLAMA_POLL_TIMEOUT_S)
+        assert mock_get.call_args.kwargs["timeout"] == OLLAMA_POLL_TIMEOUT_S
+
+    @patch("app.services.ollama_client.requests.get")
+    def test_get_running_model_forwards_timeout(self, mock_get: MagicMock) -> None:
+        mock_get.return_value = _mock_response(200, {"models": []})
+        OllamaClient(BASE_URL).get_running_model(timeout=OLLAMA_POLL_TIMEOUT_S)
+        assert mock_get.call_args.kwargs["timeout"] == OLLAMA_POLL_TIMEOUT_S
+
+    @patch("app.services.ollama_client.requests.post")
+    def test_get_model_params_forwards_timeout(self, mock_post: MagicMock) -> None:
+        mock_post.return_value = _mock_response(
+            200, {"modelinfo": {"general.parameter_count": 7000000000}}
+        )
+        OllamaClient(BASE_URL).get_model_params("llama3", timeout=OLLAMA_POLL_TIMEOUT_S)
+        assert mock_post.call_args.kwargs["timeout"] == OLLAMA_POLL_TIMEOUT_S

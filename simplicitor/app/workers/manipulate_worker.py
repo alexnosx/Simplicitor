@@ -1,5 +1,6 @@
 # simplicitor/app/workers/manipulate_worker.py
 import logging
+import re
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
@@ -21,6 +22,13 @@ logger = logging.getLogger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent.parent.parent / "prompts"
 _SYSTEM_PROMPT_FILE = "system_manipulate.txt"
+
+# Word-boundary matcher for out-of-scope keywords: "color" matches "color"/"colors"
+# but no longer "Colorado"; "style" no longer matches "lifestyle". The optional
+# trailing "s" keeps plural requests ("change the colors") rejected.
+_OUT_OF_SCOPE_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(kw) for kw in MANIPULATION_OUT_OF_SCOPE_KEYWORDS) + r")s?\b"
+)
 
 
 class ManipulateWorker(QObject):
@@ -73,7 +81,7 @@ class ManipulateWorker(QObject):
         file_suffix = Path(self.file_path).suffix.lower()
         if file_suffix in MANIPULATION_VISUAL_EXTENSIONS:
             prompt_lower = self.prompt.lower()
-            if any(kw in prompt_lower for kw in MANIPULATION_OUT_OF_SCOPE_KEYWORDS):
+            if _OUT_OF_SCOPE_RE.search(prompt_lower):
                 logger.warning(
                     "Out-of-scope manipulation request (styling keywords in prompt) for %s",
                     self.file_path,

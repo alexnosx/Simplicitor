@@ -11,6 +11,7 @@ from app.config.defaults import (
     OLLAMA_PS_ENDPOINT,
     OLLAMA_SHOW_ENDPOINT,
     OLLAMA_TAGS_ENDPOINT,
+    OLLAMA_POLL_TIMEOUT_S,
     OLLAMA_TIMEOUT_S,
     OLLAMA_MANIPULATION_TIMEOUT_S,
 )
@@ -68,11 +69,11 @@ class OllamaClient:
     def check_connection(self) -> bool:
         """Return ``True`` if Ollama is reachable, ``False`` otherwise.
 
-        Performs a GET to ``/api/tags`` with a 3-second timeout.  Never raises;
-        any exception is caught and results in ``False``.
+        Performs a GET to ``/api/tags`` with the short ``OLLAMA_POLL_TIMEOUT_S``
+        timeout.  Never raises; any exception is caught and results in ``False``.
         """
         try:
-            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}", timeout=3)
+            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}", timeout=OLLAMA_POLL_TIMEOUT_S)
             return response.status_code == 200
         except Exception:
             return False
@@ -81,8 +82,11 @@ class OllamaClient:
     # Model discovery
     # ------------------------------------------------------------------
 
-    def get_models(self) -> list[str]:
+    def get_models(self, timeout: int = OLLAMA_TIMEOUT_S) -> list[str]:
         """Return the list of installed model names from ``/api/tags``.
+
+        Args:
+            timeout: Request timeout in seconds (poll loops pass a short one).
 
         Returns:
             A list of model name strings (may be empty).
@@ -91,15 +95,18 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}", timeout=OLLAMA_TIMEOUT_S)
+            response = requests.get(f"{self._base_url}{OLLAMA_TAGS_ENDPOINT}", timeout=timeout)
             response.raise_for_status()
             models = response.json()["models"]
             return [m["name"] for m in models]
         except requests.RequestException as exc:
             raise OllamaConnectionError(f"Could not reach Ollama at {self._base_url}: {exc}") from exc
 
-    def get_running_model(self) -> str:
+    def get_running_model(self, timeout: int = OLLAMA_TIMEOUT_S) -> str:
         """Return the name of the currently loaded model from ``/api/ps``.
+
+        Args:
+            timeout: Request timeout in seconds (poll loops pass a short one).
 
         Returns:
             The model name string, or ``""`` if no model is currently running.
@@ -108,18 +115,19 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.get(f"{self._base_url}{OLLAMA_PS_ENDPOINT}", timeout=OLLAMA_TIMEOUT_S)
+            response = requests.get(f"{self._base_url}{OLLAMA_PS_ENDPOINT}", timeout=timeout)
             response.raise_for_status()
             models = response.json()["models"]
             return models[0]["name"] if models else ""
         except requests.RequestException as exc:
             raise OllamaConnectionError(f"Could not reach Ollama at {self._base_url}: {exc}") from exc
 
-    def get_model_info(self, name: str) -> dict:
+    def get_model_info(self, name: str, timeout: int = OLLAMA_TIMEOUT_S) -> dict:
         """Return the raw info dict for a model via ``POST /api/show``.
 
         Args:
             name: The model name to query (e.g. ``"llama3"``).
+            timeout: Request timeout in seconds (poll loops pass a short one).
 
         Returns:
             The response JSON as a ``dict``.
@@ -128,24 +136,28 @@ class OllamaClient:
             OllamaConnectionError: If the request fails for any network reason.
         """
         try:
-            response = requests.post(f"{self._base_url}{OLLAMA_SHOW_ENDPOINT}", json={"name": name}, timeout=OLLAMA_TIMEOUT_S)
+            response = requests.post(f"{self._base_url}{OLLAMA_SHOW_ENDPOINT}", json={"name": name}, timeout=timeout)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as exc:
             raise OllamaConnectionError(f"Could not reach Ollama at {self._base_url}: {exc}") from exc
 
-    def get_model_params(self, model_name: str) -> int:
+    def get_model_params(self, model_name: str, timeout: int = OLLAMA_TIMEOUT_S) -> int:
         """Return the parameter count for a model.
 
         Tries ``info["modelinfo"]["general.parameter_count"]`` first, then falls
         back to parsing ``info["details"]["parameter_size"]`` (e.g. ``"7.2B"``).
+
+        Args:
+            model_name: The model to query.
+            timeout: Request timeout in seconds (poll loops pass a short one).
 
         Returns:
             Integer parameter count, or ``0`` if it cannot be determined.
             Never raises.
         """
         try:
-            info = self.get_model_info(model_name)
+            info = self.get_model_info(model_name, timeout=timeout)
         except OllamaConnectionError:
             return 0
 

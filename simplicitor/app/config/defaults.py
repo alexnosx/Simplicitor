@@ -28,6 +28,7 @@ OLLAMA_GENERATE_ENDPOINT = "/api/generate"
 OLLAMA_CHAT_ENDPOINT = "/api/chat"
 OLLAMA_CHAT_COMPLETIONS_ENDPOINT = "/v1/chat/completions"
 OLLAMA_POLL_INTERVAL_MS = 5000
+OLLAMA_POLL_TIMEOUT_S = 3            # connectivity probe + poll-loop discovery calls; must stay under the poll interval
 OLLAMA_TIMEOUT_S = 60
 OLLAMA_MANIPULATION_TIMEOUT_S = 120  # manipulation sends file content → needs more time
 OLLAMA_TEMPLATE_TIMEOUT_S = 180      # templated path: heavier prompt + larger expected output (slow local models)

@@ -210,3 +210,52 @@ def test_scope_check_does_not_block_pptx_with_safe_prompt(qtbot, tmp_path):
         worker.run()
 
     client.generate.assert_called_once()
+
+
+def test_scope_check_allows_word_containing_keyword(qtbot, tmp_path):
+    """Keyword embedded in a longer word ("Colorado", "lifestyle") must not trigger."""
+    pptx_file = tmp_path / "deck.pptx"
+    _make_valid_pptx(pptx_file)
+    client = MagicMock()
+    client.generate.return_value = "[Slide 1]\nNew Title\nBullet one"
+
+    worker = ManipulateWorker(
+        str(pptx_file),
+        "add a slide about lifestyle trends in Colorado",
+        "llama3", client, str(tmp_path / "bk"),
+    )
+    with qtbot.waitSignal(worker.completed, timeout=5000):
+        worker.run()
+
+    client.generate.assert_called_once()
+
+
+def test_scope_check_still_rejects_plural_keyword(qtbot, tmp_path):
+    """Plural forms of out-of-scope keywords stay rejected."""
+    pptx_file = tmp_path / "deck.pptx"
+    _make_valid_pptx(pptx_file)
+    client = MagicMock()
+
+    worker = ManipulateWorker(
+        str(pptx_file), "change the colors on every slide", "llama3", client, str(tmp_path / "bk")
+    )
+    with qtbot.waitSignal(worker.failed, timeout=5000) as blocker:
+        worker.run()
+
+    assert "cannot" in blocker.args[0].lower()
+    client.generate.assert_not_called()
+
+
+def test_scope_check_is_case_insensitive(qtbot, tmp_path):
+    """Uppercase keywords are still caught."""
+    pptx_file = tmp_path / "deck.pptx"
+    _make_valid_pptx(pptx_file)
+    client = MagicMock()
+
+    worker = ManipulateWorker(
+        str(pptx_file), "Change the THEME of this presentation", "llama3", client, str(tmp_path / "bk")
+    )
+    with qtbot.waitSignal(worker.failed, timeout=5000):
+        worker.run()
+
+    client.generate.assert_not_called()

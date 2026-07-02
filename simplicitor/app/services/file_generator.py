@@ -52,13 +52,17 @@ class FileGenerator:
         parser_fn, generator_cls, extension = self._DISPATCH[file_type]
         output_path = Path(output_path)
 
-        logger.debug("Parsing LLM response for file type %r", file_type)
-        logger.debug("Raw LLM response (first 500 chars): %.500s", llm_response)
+        # Metadata only: never log LLM output, prompts, or file content.
+        logger.debug("Parsing LLM response for file type %r (%d chars)", file_type, len(llm_response))
         try:
             parsed = parser_fn(llm_response)
         except ParseError as exc:
-            logger.error("Failed to parse LLM response for %r: %s", file_type, exc)
+            logger.error(
+                "Failed to parse LLM response for %r (%d chars, %s): %s",
+                file_type, len(llm_response), type(exc).__name__, exc,
+            )
             raise FileGenerationError(f"Could not parse LLM response: {exc}") from exc
+        logger.debug("LLM response parsed successfully for %r", file_type)
 
         logger.debug("Writing %r file to %s", file_type, output_path)
         try:

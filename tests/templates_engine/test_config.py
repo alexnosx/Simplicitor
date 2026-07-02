@@ -13,6 +13,7 @@ from templates_engine.config import (
     MANIFEST_NAME,
     TEMPLATE_PPTX_NAME,
     ensure_default_templates,
+    get_app_data_dir,
     get_builtin_root,
     get_user_root,
     import_template,
@@ -384,3 +385,15 @@ def test_list_library_entry_has_required_keys(tmp_path):
     entry = list_library(troot)[0]
     for key in ("name", "source", "path", "manifest_path", "template_pptx"):
         assert key in entry
+
+
+# ── get_app_data_dir (shared config-dir resolver) ─────────────────────────────
+
+def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path):
+    monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
+    assert get_app_data_dir() == tmp_path / "Roaming" / "Simplicitor"
+
+
+def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch):
+    monkeypatch.delenv("APPDATA", raising=False)
+    assert get_app_data_dir() == Path.home() / ".simplicitor"

@@ -36,7 +36,7 @@ masters, layouts, and theme own every visual decision (templates_engine/CLAUDE.m
 - `failed(str)` carries user-facing text only, never raw exceptions. <!-- evidence: NOTES.md user-facing error surface; simplicitor/app/workers/template_worker.py:36-38 -->
 - No partial file: render writes a temp file then atomic replace; a failed import removes its folder. <!-- evidence: simplicitor/templates_engine/render_pptx.py:185-199; simplicitor/templates_engine/config.py:308-314; NOTES.md no-partial-file discipline -->
 - One backup per file, never overwritten. <!-- evidence: simplicitor/app/services/backup_service.py:39-44 -->
-- File content, user prompts, and LLM output are never logged; logging is metadata only (length, parse outcome, exception type, model, duration). No content-logging path exists, not even opt-in. Known violation: file_generator.py:56, fix pending (Session 2). <!-- evidence: author decision Q2, 2026-07-02 review; simplicitor/app/utils/logging_setup.py:15-16; violation simplicitor/app/services/file_generator.py:56 -->
+- File content, user prompts, and LLM output are never logged; logging is metadata only (length, parse outcome, exception type, model, duration). No content-logging path exists, not even opt-in. <!-- evidence: author decision Q2, 2026-07-02 review; simplicitor/app/utils/logging_setup.py:15-16; simplicitor/app/services/file_generator.py generate() metadata-only logging -->
 - One repair attempt, then fail with no output; untemplatable decks return a `hard_stop` status, not an exception. <!-- evidence: simplicitor/templates_engine/pipeline.py:135-166; simplicitor/templates_engine/breakdown.py:468-481 -->
 - Styling manipulation prompts are rejected before any file I/O or backup. <!-- evidence: simplicitor/app/workers/manipulate_worker.py:69-85; BUILD_STORY "The silent success bug" -->
 - Manifests are frozen pydantic models; the templated path opts out of Ollama JSON mode (gemma4 degeneration). <!-- evidence: simplicitor/templates_engine/manifest.py:17-43; simplicitor/templates_engine/pipeline.py:104-112; commit 3f84d15 -->
@@ -440,7 +440,6 @@ requirements.txt
 
 ### simplicitor/main.py
 
-- def _config_dir() -> Path: Return the per-user config directory for Simplicitor settings.
 - def main() -> None: Application entry point.
 
 ### simplicitor/templates_engine/__init__.py
@@ -465,6 +464,7 @@ requirements.txt
 ### simplicitor/templates_engine/config.py
 
 - def get_builtin_root() -> Path: Return the read-only built-in templates root (ships with the app).
+- def get_app_data_dir() -> Path: Return the per-user Simplicitor data root. No side effects.
 - def get_user_root() -> Path: Return the writable user templates root, creating it on first call.
 - def _ensure_dir(path: Path) -> None: Create *path* and all parents, raising ManipulationError on failure.
 - def _config_override(key: str) -> str | None: Read an optional value from simplicitor.toml under [templates], if present.
@@ -677,6 +677,8 @@ requirements.txt
 - def test_list_library_skips_invalid(tmp_path)
 - def test_list_library_absent_root_returns_empty(tmp_path)
 - def test_list_library_entry_has_required_keys(tmp_path)
+- def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path)
+- def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch)
 
 ### tests/templates_engine/test_llm.py
 
@@ -982,6 +984,9 @@ requirements.txt
 - def test_scope_check_rejects_styling_prompt_for_docx(qtbot, tmp_path): Styling keyword in prompt + .docx → same scope rejection.
 - def test_scope_check_does_not_block_txt_with_styling_keyword(qtbot, tmp_path): Styling keyword in prompt + .txt → scope check does NOT fire; Ollama IS called.
 - def test_scope_check_does_not_block_pptx_with_safe_prompt(qtbot, tmp_path): Non-styling prompt + .pptx → scope check passes; pipeline continues normally.
+- def test_scope_check_allows_word_containing_keyword(qtbot, tmp_path): Keyword embedded in a longer word ("Colorado", "lifestyle") must not trigger.
+- def test_scope_check_still_rejects_plural_keyword(qtbot, tmp_path): Plural forms of out-of-scope keywords stay rejected.
+- def test_scope_check_is_case_insensitive(qtbot, tmp_path): Uppercase keywords are still caught.
 
 ### tests/test_ollama_client.py
 
@@ -996,6 +1001,7 @@ requirements.txt
 - class TestGetModelParams
 - class TestGenerate
 - class TestChatCompletion
+- class TestPollTimeouts
 
 ### tests/test_ollama_worker.py
 
@@ -1019,6 +1025,7 @@ requirements.txt
 - def test_model_params_ready_emitted_on_model_change_while_connected(qtbot) -> None: model_params_ready must fire when the running model changes mid-session.
 - def test_model_params_ready_not_emitted_when_model_unchanged(qtbot) -> None: model_params_ready must NOT fire on every poll when the running model is stable.
 - def test_model_params_ready_emits_empty_when_model_unloaded(qtbot) -> None: When running model drops to empty, emit model_params_ready('', 0) to hide banner.
+- def test_poll_uses_short_timeouts(qtbot) -> None: Poll-loop discovery calls pass the short poll timeout, not the 60 s default.
 
 ### tests/test_settings.py
 

@@ -1,6 +1,7 @@
 # simplicitor/app/workers/generate_worker.py
 # Phase 3: File generation worker
 import logging
+import time
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
@@ -88,6 +89,7 @@ class GenerateWorker(QObject):
         # Call Ollama without a format constraint: Qwen3 and other thinking models return empty
         # responses when Ollama's json mode is active (the two features conflict). Instead we
         # rely on the system prompt's JSON-only instruction and .clean()'s extraction logic.
+        start = time.monotonic()
         try:
             llm_response = self._client.generate(self.model, self.prompt, system_prompt)
         except OllamaConnectionError as exc:
@@ -100,6 +102,12 @@ class GenerateWorker(QObject):
             logger.error("Ollama generation error: %s", exc)
             self.failed.emit("The AI returned an unexpected response. Please try again.")
             return
+
+        # Metadata only: model, duration, and length. Never the response text.
+        logger.info(
+            "LLM generation complete: model=%s duration=%.1fs response_chars=%d",
+            self.model, time.monotonic() - start, len(llm_response),
+        )
 
         self.progress.emit("Generating file\u2026")
 
@@ -114,8 +122,13 @@ class GenerateWorker(QObject):
             )
             self.progress.emit("Retrying with simplified prompt\u2026")
             simplified = f"Generate a simple {self.file_type} document about: {self.prompt[:200]}"
+            retry_start = time.monotonic()
             try:
                 llm_response2 = self._client.generate(self.model, simplified, system_prompt)
+                logger.info(
+                    "LLM retry generation complete: model=%s duration=%.1fs response_chars=%d",
+                    self.model, time.monotonic() - retry_start, len(llm_response2),
+                )
                 result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
             except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
                 logger.error("Retry Ollama call failed: %s", retry_exc)

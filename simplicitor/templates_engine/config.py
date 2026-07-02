@@ -29,6 +29,19 @@ def get_builtin_root() -> Path:
     return Path(__file__).parent / "builtin"
 
 
+def get_app_data_dir() -> Path:
+    """Return the per-user Simplicitor data root. No side effects.
+
+    ``%APPDATA%\\Simplicitor`` when APPDATA is set, otherwise ``~/.simplicitor``.
+    Shared resolver: settings live directly in this directory (see main.py),
+    user templates under ``templates/`` (see ``get_user_root``).
+    """
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        return Path(appdata) / _APP_NAME
+    return Path.home() / f".{_APP_NAME.lower()}"
+
+
 def get_user_root() -> Path:
     """Return the writable user templates root, creating it on first call.
 
@@ -47,11 +60,7 @@ def get_user_root() -> Path:
             )
         root = Path(override)
     else:
-        appdata = os.environ.get("APPDATA")
-        if appdata:
-            root = Path(appdata) / _APP_NAME / "templates"
-        else:
-            root = Path.home() / f".{_APP_NAME.lower()}" / "templates"
+        root = get_app_data_dir() / "templates"
     _ensure_dir(root)
     return root
 

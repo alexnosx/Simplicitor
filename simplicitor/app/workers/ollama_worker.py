@@ -4,7 +4,7 @@ import logging
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
-from app.config.defaults import OLLAMA_POLL_INTERVAL_MS
+from app.config.defaults import OLLAMA_POLL_INTERVAL_MS, OLLAMA_POLL_TIMEOUT_S
 from app.services.ollama_client import OllamaClient
 
 logger = logging.getLogger(__name__)
@@ -84,8 +84,10 @@ class OllamaWorker(QObject):
             is_connected = self._client.check_connection()
 
             if is_connected:
-                models: list[str] = self._client.get_models()
-                running_model: str = self._client.get_running_model()
+                # Short timeouts: a hung Ollama socket must not stall a poll
+                # tick for the full OLLAMA_TIMEOUT_S.
+                models: list[str] = self._client.get_models(timeout=OLLAMA_POLL_TIMEOUT_S)
+                running_model: str = self._client.get_running_model(timeout=OLLAMA_POLL_TIMEOUT_S)
 
                 first_connection = not self._was_connected
                 model_changed = running_model != self._last_running_model
@@ -93,7 +95,9 @@ class OllamaWorker(QObject):
                 if first_connection or model_changed:
                     if running_model:
                         try:
-                            param_count: int = self._client.get_model_params(running_model)
+                            param_count: int = self._client.get_model_params(
+                                running_model, timeout=OLLAMA_POLL_TIMEOUT_S
+                            )
                             self.model_params_ready.emit(running_model, param_count)
                         except Exception as exc:  # noqa: BLE001
                             logger.warning("Could not fetch model params: %s", exc)
