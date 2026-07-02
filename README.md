@@ -37,7 +37,7 @@ python resources/create_icon.py
 python build.py
 ```
 
-The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files and pptx template, and writes `dist\Simplicitor.exe`. Build time is 5–10 minutes on a modern machine.
+The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files, the default pptx template, and the built-in templates, and writes `dist\Simplicitor.exe`. Build time is 5–10 minutes on a modern machine.
 
 ## Requirements
 
@@ -83,7 +83,7 @@ Simplicitor was built PRD-first: a v1.0 PRD was written before any code, iterate
 - **One-to-one backup logic** — first manipulation of a file creates a backup; subsequent manipulations of the same file do not; the backup always represents the original state
 - **Model capability guidance, not gatekeeping** — sub-7B models show a non-blocking info banner; the app coaches users instead of blocking them
 - **Nuitka over PyInstaller** — native C compilation produces a smaller binary (~30 MB) with dramatically fewer antivirus false positives
-- **No cloud, no telemetry** — all communication is localhost Ollama only; log files record metadata (timestamps, file type, success/error) but never prompt text or file content
+- **No cloud, no telemetry** — all communication is localhost Ollama only; log files record metadata (timestamps, file type, response length, success/error) but never prompt text, file content, or model output
 
 ## License
 
