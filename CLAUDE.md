@@ -82,7 +82,7 @@ The directory tree and per-file API map are generated into REPO_MAP.md by script
   - Borders: #E5E7EB
   - Info banner background: #EFF6FF
 - Font: Segoe UI. Regular for body, semibold for headings/buttons.
-- No gradients, no deep shadows, max 4px border radius.
+- No gradients, no deep shadows, max 4px border radius (`BORDER_RADIUS_PX`).
 - Dismissible banners for errors and info (colored strip + text + X button).
 - All long-running operations show a spinner and disable the triggering button.
 
@@ -93,8 +93,8 @@ The directory tree and per-file API map are generated into REPO_MAP.md by script
 - Running model: `GET /api/ps`
 - Model metadata: `POST /api/show` with `{"name": "model_name"}`
 - Generate: `POST /api/generate` or `POST /api/chat`
-- Connection polling: every 5 seconds when disconnected
-- Timeout: 60s default; 120s on manipulation calls (file content payload); 180s on templated generation (heavier prompts on slow local models)
+- Connection polling when disconnected: `OLLAMA_POLL_INTERVAL_MS`
+- Timeout: `OLLAMA_TIMEOUT_S` default; `OLLAMA_MANIPULATION_TIMEOUT_S` on manipulation calls (file content payload); `OLLAMA_TEMPLATE_TIMEOUT_S` on templated generation (heavier prompts on slow local models). All in `app/config/defaults.py`
 - Use Ollama's `format` / OpenAI-compat `response_format` for structured JSON output by default. The templated path opts out (`json_mode=False`) because grammar-constrained decoding degenerated gemma4-class models in testing; the prompt's "Return ONLY valid JSON" instruction plus the parse-and-clean path is sufficient there.
 - Connection drop mid-operation: abort, show error, preserve prompt in text area
 

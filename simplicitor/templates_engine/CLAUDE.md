@@ -51,7 +51,7 @@ Run as `python simplicitor/cli.py <command>` (no installed console script):
 
 ### Generate pipeline
 
-preflight -> build prompt -> call model -> strip code fences and parse JSON -> validate against the manifest -> on failure run ONE repair attempt with the specific errors fed back -> success renders; an exhausted retry fails with a conventional error and writes no file. A parse failure that looks truncated raises the repair `max_tokens` to the `OLLAMA_REPAIR_MAX_TOKENS` floor (4096 in `app/config/defaults.py`). A `--source` file, when given, is included in the prompt verbatim. There is no summarization or retrieval step (both were descoped).
+preflight -> build prompt -> call model -> strip code fences and parse JSON -> validate against the manifest -> on failure run ONE repair attempt with the specific errors fed back -> success renders; an exhausted retry fails with a conventional error and writes no file. A parse failure that looks truncated raises the repair `max_tokens` to the `OLLAMA_REPAIR_MAX_TOKENS` floor (`app/config/defaults.py`). A `--source` file, when given, is included in the prompt verbatim. There is no summarization or retrieval step (both were descoped).
 
 ### Error handling
 
