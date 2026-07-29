@@ -65,7 +65,7 @@ Both seed on first launch into `Documents\Simplicitor\Templates` (the location i
 
 **Uploading your own template:**
 
-Click **Upload a .pptx...** in the picker. Simplicitor inspects the deck, scores its layouts, strips the sample content, and writes a draft manifest mapping each layout to a slide type. Decks built entirely from hand-placed text boxes (no real placeholders) are rejected with a clear explanation — the engine fills placeholders, not free-form shapes.
+Click **Upload a .pptx...** in the picker. Simplicitor scores the layouts and writes a draft manifest. Your deck needs a layout with a content placeholder beyond the title, or it is rejected: check Home > Layout or View > Slide Master for a body, content, or picture area. The result keeps the deck's theme and layouts; your slides are stripped.
 
 **What the LLM sees:**
 
