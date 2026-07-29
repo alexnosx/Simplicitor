@@ -15,11 +15,10 @@ _DECORATIVE_TYPES = frozenset({"DATE", "FOOTER", "SLIDE_NUMBER"})
 
 _HARD_STOP_MESSAGE = (
     "This presentation can't be used as a template. Simplicitor builds slides by filling "
-    "content placeholders defined in a presentation's layouts. This deck's slides use "
-    "manually placed text boxes rather than layout placeholders, so there's no structure "
-    "to fill. This is normal for hand-built decks - nothing is wrong with your file. You "
-    "can use one of Simplicitor's built-in templates, or rebuild this deck using "
-    "PowerPoint's slide layouts, then upload again."
+    "content placeholders defined in a presentation's layouts, and none of this file's "
+    "layouts offer a content area, so there's no structure to fill. Nothing is wrong with "
+    "your file. You can use one of Simplicitor's built-in templates, or start from a "
+    "PowerPoint theme whose layouts include body or content areas, then upload again."
 )
 
 

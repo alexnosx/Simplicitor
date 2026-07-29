@@ -676,8 +676,8 @@ def test_hard_stop_result_has_hard_stop_status():
 def test_hard_stop_result_contains_verbatim_phrases():
     message = hard_stop_result()["message"]
     assert "can't be used as a template" in message
-    assert "manually placed text boxes" in message
-    assert "PowerPoint's slide layouts" in message
+    assert "none of this file's layouts offer a content area" in message
+    assert "layouts include body or content areas" in message
 
 
 def test_hard_stop_result_is_returned_not_raised():
