@@ -71,6 +71,8 @@ The directory tree and per-file API map are generated into REPO_MAP.md by script
 
 ## UI Design Rules
 
+Color values below mirror app/config/defaults.py:4-12; that file is authoritative.
+
 - Colors (light theme only, dark mode is v2):
   - Background: #FAFAFA
   - Panel backgrounds: #F5F5F5
