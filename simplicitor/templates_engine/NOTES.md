@@ -149,10 +149,12 @@ Items deferred out of scope — persist here so they don't evaporate with sessio
 7. **docx/pptx manipulation formatting asymmetry** (v1.2 doc review).
    `FileManipulator._apply_docx` writes a brand-new plain-paragraph Document, discarding the
    original file's styles, tables, and images, while `_apply_pptx` deliberately reopens the
-   existing file to preserve its theme. **ACCEPTED as deliberate v1 behavior** (author decision,
-   2026-07-02 review). Docx manipulation is intentionally simple; do not "fix" it by adding
-   formatting preservation. If v2 revisits this, the pptx path is the model: reopen the
-   original and edit in place rather than rebuilding from extracted text.
+   existing file to preserve its theme, then deletes and rebuilds its slides. **Historically
+   accepted for v1** (author decision, 2026-07-02). **Superseded as a product requirement on
+   2026-10-07**: root `PRD.md` now requires selective editing with preservation of unselected
+   content and supported document features. Reopening a PPTX alone does not establish slide
+   preservation. The current reconstruction code remains unchanged until that work is designed
+   and implemented.
 
 8. **Template-root unification removed the toml override, a breaking change** (Q1, commit f3d4337).
    `get_user_root` and the `simplicitor.toml` `[templates] user_dir` override were removed

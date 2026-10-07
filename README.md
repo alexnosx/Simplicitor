@@ -1,18 +1,26 @@
 # Simplicitor
 
-*Native Windows app that turns a local Ollama LLM into an Office document generator.*
+*Windows document work with local Ollama. The next release will focus on confidential, selective editing.*
 
 [![License: Polyform Noncommercial 1.0](https://img.shields.io/badge/license-Polyform%20Noncommercial%201.0-blue)](LICENSE) [![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey)](https://github.com/alexnosx/Simplicitor/releases) [![Built with: Python + PySide6 + Ollama](https://img.shields.io/badge/built%20with-Python%20%2B%20PySide6%20%2B%20Ollama-informational)]()
 
 ## What it is
 
-Simplicitor generates and edits Word, Excel, and PowerPoint files from natural language prompts. You type what you want, select a file type, and the app talks to a locally running Ollama instance to produce the file. For existing documents, you drag a file in, describe the change, and Simplicitor applies it and saves a backup. PowerPoint decks can be generated from scratch or from a styled template (built-in or your own). Single `.exe`, no installation, no Python required, no cloud.
+The current v1.2 source generates Word, Excel, and PowerPoint files through Ollama, including PowerPoint decks from built-in or uploaded templates. Its legacy Edit workflow extracts text and reconstructs files; it does not yet support verified selective edits or preservation of the rest of a document. Current downloads are unsigned onefile executables.
+
+## Approved next direction
+
+Simplicitor will serve nontechnical Windows users who already have Ollama and a usable local model. The main workflow will be confidential editing: select the parts to change, describe the modification, review a saved draft and its changes, then approve a new version. Creation remains supported. Sales proposals, contractor timesheets with personal IDs, and privacy documents are representative use cases.
+
+The approved packaging route is a free standalone application with an NSIS installer as the main download and a portable ZIP as the secondary option, distributed through GitHub Releases and linked from `simplicitor.com`. Microsoft Store publication and paid signing are outside this route. Unsigned Windows warnings or blocks can remain.
+
+**These are approved requirements, not shipped features.** See [active requirements](PRD.md), [packaging](docs/code-signing.md), and [project status](docs/PROJECT_STATUS.md) for the implementation state, preservation gaps, and remaining decisions. The current Noncommercial license remains in effect; business-use licensing has not been changed.
 
 Simplicitor is not a chat interface. It is not a RAG tool. It is not a model manager or a general-purpose AI assistant. It does one thing: it turns a local LLM into a document production tool with a file output you can actually use.
 
 ## Why this exists
 
-The local AI space is saturated with chat interfaces. Chat is the commodity. What is missing is the step after the conversation — the actual file, the deliverable, the thing a non-technical user can take somewhere. Simplicitor exists because the "I installed Ollama, now what?" gap is real and unaddressed. Users go through the effort of running a local model and then have nowhere productive to take it. This app closes that gap: pick a file type, describe what you need, get a file.
+People who already run a local model need a familiar way to work with confidential business documents. Simplicitor aims to make document tasks usable without scripts or agent configuration, while keeping processing local and proposed changes reviewable. The next requirements focus on modifying existing files without losing unselected content.
 
 ## Screenshot
 
@@ -22,7 +30,7 @@ The local AI space is saturated with chat interfaces. Chat is the commodity. Wha
 
 ### Download the binary
 
-Download `Simplicitor.exe` from the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. The binary is currently unsigned — Windows SmartScreen will show a warning on first run. To run it anyway: click **More info**, then **Run anyway**.
+Current releases provide an unsigned `Simplicitor.exe` on the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. Windows may warn or block it. An installer and portable ZIP are planned but are not available from the current build workflow. See [packaging and known trust limits](docs/code-signing.md); a new installer alone will not prove that a security detection is resolved.
 
 ### Build from source
 
@@ -37,14 +45,14 @@ python resources/create_icon.py
 python build.py
 ```
 
-The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files, the default pptx template, and the built-in templates, and writes `dist\Simplicitor.exe`. Build time is 5–10 minutes on a modern machine.
+The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files, the default pptx template, and the built-in templates, and writes `dist\Simplicitor.exe`. Build duration depends on the compiler and machine; installer support is not yet configured in this script.
 
 ## Requirements
 
 - Windows 10 or 11 (64-bit)
 - A running Ollama instance reachable at `localhost:11434`
 - At least one model pulled (`ollama pull <model>`)
-- Recommended: 7B+ parameter model for reliable structured output (4B works with degraded output quality on complex documents)
+- Model quality depends on the model and task. Tested model/runtime combinations and hardware requirements remain to be established. The current sub-7B info banner is guidance, not a reliability guarantee.
 
 ## Generate from a template (PowerPoint)
 
@@ -77,13 +85,13 @@ Simplicitor was built PRD-first: a v1.0 PRD was written before any code, iterate
 
 ## Architecture at a glance
 
-- **LLM produces content and structure only** — Python handles all formatting, colors, and layout; this is what makes the app work reliably on 4B models
+- **Content and rendering are separate**: the LLM produces content and structure; Python handles formatting, colors, and layout. Model quality still requires evaluation on the chosen tasks.
 - **Templates fill placeholders, never repaint** — for PowerPoint, the LLM emits content keyed to a manifest's fields and Python renders it into a real `.pptx` design; the template's masters, layouts, and theme are the source of truth for styling
 - **Scope detection on manipulation** — out-of-scope prompts (theme colors, visual styling) are detected and rejected before any file is touched; no silent failures
-- **One-to-one backup logic** — first manipulation of a file creates a backup; subsequent manipulations of the same file do not; the backup always represents the original state
+- **Legacy backups** use a filename-based destination and reuse existing backups. Same-named source files can collide; this remains a file-safety gap to fix.
 - **Model capability guidance, not gatekeeping** — sub-7B models show a non-blocking info banner; the app coaches users instead of blocking them
-- **Nuitka over PyInstaller** — native C compilation produces a smaller binary (~30 MB) with dramatically fewer antivirus false positives
-- **No cloud, no telemetry** — all communication is localhost Ollama only; log files record metadata (timestamps, file type, response length, success/error) but never prompt text, file content, or model output
+- **Nuitka packaging** currently produces a onefile executable; the approved next route uses a standalone payload and a free NSIS installer.
+- **Local processing is the requirement**: application inference calls target localhost Ollama. Verify that the chosen model also runs locally. Metadata-only logging is the policy, but content-bearing error paths remain a known privacy gap; see [project status](docs/PROJECT_STATUS.md).
 
 ## License
 

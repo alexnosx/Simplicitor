@@ -5,43 +5,64 @@ everything after it is overwritten on regeneration. Regenerate after
 structural changes: `python scripts/gen_repo_map.py`
 
 <!-- MANUAL:BEGIN -->
-## Orientation notes (manual)
+## Orientation notes
 
-**Architecture intent.** Windows desktop app (PySide6) turning a local
-Ollama model into an Office document generator: no cloud, no chat, no terminal
-(README "What it is"). Load-bearing contract: the LLM produces content and
-structure only; Python owns all formatting, the split that keeps 4B-class
-local models reliable (BUILD_STORY "Key architectural decisions"). v1.2 adds a
-manifest-driven PPTX template engine (Phases A to M) where the template's
-masters, layouts, and theme own every visual decision (templates_engine/CLAUDE.md).
+**Approved direction.** Free Windows document work for nontechnical users with local
+Ollama and a usable model. Root `PRD.md` makes confidential selective editing primary:
+confirm targets, patch a separate candidate, validate and preview it, then approve a new
+version. Creation remains supported. Packaging will use a standalone Nuitka payload,
+free NSIS installer, and portable ZIP, without Store publication or paid signing.
+Installer convenience does not guarantee removal of unsigned Windows warnings.
 
-**Module responsibilities.**
+**Current implementation.** v1.2 has Create and legacy Edit panels plus a manifest-driven
+PowerPoint template engine. Selective preservation, preview/approval, and the installer
+are not implemented. The model supplies content; Python renders it. The template's
+masters, layouts, and theme control PowerPoint styling. Do not infer model quality or
+Office fidelity from this separation alone.
 
-| Module | Owns |
-|--------|------|
-| `app/main_window.py` | Wiring; QThread lifecycle; freeform vs templated routing |
-| `app/services/ollama_client.py` | All Ollama HTTP; Ollama* exception taxonomy |
-| `app/parsers/llm_response_parser.py` | Clean, validate freeform LLM JSON |
-| `app/generators/` | Write docx/xlsx/pptx from parsed dicts |
-| `app/services/file_manipulator.py` | Edit path: extract text, write back |
-| `app/services/backup_service.py` | One-time pre-manipulation backups |
-| `templates_engine/` | Manifest schema; deck import; prompt; validate; one-repair pipeline; render |
-| `app/config/defaults.py` | Every constant, timeout, color |
+**Documentation.** `PRD.md` is the active requirements source. Shared agent policy is
+byte-identical in root `AGENTS.md` and `CLAUDE.md`. `docs/PROJECT_STATUS.md` records evidence
+and open decisions; `docs/code-signing.md` covers packaging. The archived PRD, original
+DOCX PRD, implementation guide, and BUILD_STORY are history. Explicitly read the engine's
+`CLAUDE.md` and `NOTES.md` before working there; their historical formatting-loss decision
+no longer governs the approved selective editor.
 
-**Invariants the code enforces.**
+**Module responsibilities.** Paths below are relative to `simplicitor/`.
 
-- Workers are QObjects on QThreads, never subclassed; UI touched only via signals. <!-- evidence: CLAUDE.md Coding Conventions; simplicitor/app/workers/ollama_worker.py:16-18; simplicitor/app/workers/template_worker.py:29-32 -->
-- `check_connection()` never raises; all other network methods raise Ollama* exceptions. <!-- evidence: simplicitor/app/services/ollama_client.py:68-78; NOTES.md check_connection contract -->
-- `OllamaTimeoutError` subclasses `OllamaConnectionError`: catch it first. <!-- evidence: simplicitor/app/services/ollama_client.py:26; simplicitor/app/workers/template_worker.py:77 -->
-- `failed(str)` carries user-facing text only, never raw exceptions. <!-- evidence: NOTES.md user-facing error surface; simplicitor/app/workers/template_worker.py:36-38 -->
-- No partial file: render writes a temp file then atomic replace; a failed import removes its folder. <!-- evidence: simplicitor/templates_engine/render_pptx.py:185-199; simplicitor/templates_engine/config.py:308-314; NOTES.md no-partial-file discipline -->
-- One backup per file, never overwritten. <!-- evidence: simplicitor/app/services/backup_service.py:39-44 -->
-- File content, user prompts, and LLM output are never logged; logging is metadata only (length, parse outcome, exception type, model, duration). No content-logging path exists, not even opt-in. <!-- evidence: author decision Q2, 2026-07-02 review; simplicitor/app/utils/logging_setup.py:15-16; simplicitor/app/services/file_generator.py generate() metadata-only logging -->
-- One repair attempt, then fail with no output; untemplatable decks return a `hard_stop` status, not an exception. <!-- evidence: simplicitor/templates_engine/pipeline.py:135-166; simplicitor/templates_engine/breakdown.py:468-481 -->
-- Styling manipulation prompts are rejected before any file I/O or backup. <!-- evidence: simplicitor/app/workers/manipulate_worker.py:69-85; BUILD_STORY "The silent success bug" -->
-- Manifests are frozen pydantic models; the templated path opts out of Ollama JSON mode (gemma4 degeneration). <!-- evidence: simplicitor/templates_engine/manifest.py:17-43; simplicitor/templates_engine/pipeline.py:104-112; commit 3f84d15 -->
-- Docx manipulation formatting loss is deliberate v1 simplicity; do not add formatting preservation. <!-- evidence: author decision Q6, 2026-07-02 review; NOTES.md follow-up 7; simplicitor/app/services/file_manipulator.py:147-154 -->
-- `Settings.templates_dir` is the single authoritative template root; the GUI and CLI resolve the same folder and the legacy APPDATA root is retired (CLI prints a notice if templates remain there). <!-- evidence: author decision Q1, 2026-07-02 review; simplicitor/cli.py _templates_root and _warn_if_legacy_root; simplicitor/templates_engine/CLAUDE.md, Template directory section -->
+| Module | Current responsibility |
+|--------|------------------------|
+| `app/main_window.py` | UI wiring, worker/thread lifecycle, freeform/template routing. |
+| `app/services/ollama_client.py` | Ollama HTTP client and network exception taxonomy. |
+| `app/parsers/llm_response_parser.py` | Clean and validate freeform model JSON. |
+| `app/generators/` | Write DOCX/XLSX/PPTX from parsed generation content. |
+| `app/services/file_manipulator.py` | Legacy text extraction and whole-file reconstruction. |
+| `app/services/backup_service.py` | Filename-based backup creation and destination reuse. |
+| `templates_engine/` | Manifest, import, prompt, validation, repair pipeline, rendering. |
+| `app/config/defaults.py` | Shared UI, timeout, and content-limit constants. |
+
+**Behavior and limitations to retain when reviewing changes.**
+
+- Workers use QObject/QThread and signals for UI communication.
+- `check_connection()` catches exceptions and returns a bool. Other HTTP methods have
+  domain exception wrappers; inspect actual malformed-response behavior rather than
+  assuming every failure is converted.
+- `OllamaTimeoutError` subclasses `OllamaConnectionError`; catch it first when messages differ.
+- Template rendering saves to a temporary file and replaces the output. Failed imports
+  attempt to remove their partial folder. This is not a guarantee for the legacy writers.
+- Template generation validates and repairs once; unusable imported layouts return a
+  `hard_stop` result. Freeform generation has a different retry; manipulation has none.
+- Freeform and legacy manipulation omit a format constraint; template generation explicitly
+  disables JSON mode. Manifests use frozen pydantic models.
+- Styling-keyword rejection occurs before legacy DOCX/PPTX manipulation I/O. It does not
+  establish a supported selective-editing or formatting-preservation contract.
+- Upload and backup destinations depend on basenames; different source files can collide.
+- Logging is intended to contain metadata only. Error messages, filenames, and paths can
+  carry confidential values. The privacy gaps in project status remain unresolved.
+- Legacy DOCX/XLSX edits reconstruct documents; PPTX edits preserve the theme but rebuild
+  slides. New requirements supersede accepting that loss, not the unchanged code.
+- `Settings.templates_dir` is the shared GUI/CLI template root. The legacy APPDATA template
+  root is retired, with a CLI migration notice for remaining templates there.
+
 <!-- MANUAL:END -->
 
 ## Directory tree
@@ -62,6 +83,8 @@ assets/
         simplicitor_512.png
         simplicitor_64.png
 docs/
+    archive/
+        PRD_v1.2.md
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -81,6 +104,7 @@ docs/
             2026-06-06-templates-folder-setting-design.md
             2026-06-07-business-pitch-charts-design.md
             2026-06-07-business-pitch-watercolor-design.md
+    PROJECT_STATUS.md
     Simplicitor_BugFixes_and_Features.md
     Simplicitor_Implementation_Guide.md
     Simplicitor_PRD_v1.2.docx
@@ -213,6 +237,7 @@ tests/
     test_template_worker.py
     test_widgets.py
 .gitignore
+AGENTS.md
 BUILD_STORY.md
 CHANGELOG.md
 CLAUDE.md
@@ -1190,14 +1215,15 @@ requirements.txt
 
 - .github/workflows/build.yml: yml, 47 lines
 - .gitignore: text, 84 lines
+- AGENTS.md: md, 174 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 33 lines
-- CLAUDE.md: md, 193 lines
+- CHANGELOG.md: md, 40 lines
+- CLAUDE.md: md, 174 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- PRD.md: md, 252 lines
-- README.md: md, 98 lines
-- SECURITY.md: md, 13 lines
+- PRD.md: md, 112 lines
+- README.md: md, 106 lines
+- SECURITY.md: md, 23 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
 - assets/icons/simplicitor_16.png: png (binary)
@@ -1208,12 +1234,14 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
+- docs/PROJECT_STATUS.md: md, 73 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
 - docs/Simplicitor_UI_Fixes_Round2.md: md, 144 lines
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
-- docs/code-signing.md: md, 91 lines
+- docs/archive/PRD_v1.2.md: md, 252 lines
+- docs/code-signing.md: md, 56 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
@@ -1241,9 +1269,9 @@ requirements.txt
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines
 - simplicitor/prompts/system_word.txt: txt, 19 lines
 - simplicitor/templates/pptx_default.pptx: pptx (binary)
-- simplicitor/templates_engine/CLAUDE.md: md, 74 lines
+- simplicitor/templates_engine/CLAUDE.md: md, 75 lines
 - simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md: md, 183 lines
-- simplicitor/templates_engine/NOTES.md: md, 166 lines
+- simplicitor/templates_engine/NOTES.md: md, 168 lines
 - simplicitor/templates_engine/builtin/.gitkeep: text, 0 lines
 - simplicitor/templates_engine/builtin/business_pitch/manifest.yaml: yaml, 59 lines
 - simplicitor/templates_engine/builtin/business_pitch/template.pptx: pptx (binary)

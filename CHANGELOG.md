@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased documentation
+
+- Record the approved transformation to confidential selective Office editing for nontechnical local-model users, retaining creation features.
+- Record free direct-download packaging through a standalone Nuitka payload, NSIS installer, and portable ZIP; no Store or paid signing requirement.
+- Refresh shared agent guidance and add matching `AGENTS.md`; archive the original PRD and record project status.
+- Installer support and selective editing remain unimplemented. No application, dependency, license, or build configuration changes in this documentation update.
+
 ## v1.2 — June 2026
 
 **PowerPoint template engine.** A second PowerPoint generation path: instead of building slides from scratch, the LLM fills the layout placeholders of a real `.pptx` design. The output keeps the template's masters, layouts, and theme.

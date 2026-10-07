@@ -1,6 +1,6 @@
 # Simplicitor Implementation Guide
 
-This document breaks the PRD into concrete build phases. Each phase produces a runnable application. Complete each phase fully before starting the next.
+Historical v1 implementation guide. These phases describe the original build and are not the next implementation plan. Current requirements are in [PRD.md](../PRD.md), packaging decisions in [code-signing.md](code-signing.md), and progress in [PROJECT_STATUS.md](PROJECT_STATUS.md). Historical preservation and signing assumptions below are superseded by those documents.
 
 ---
 

@@ -1,14 +1,15 @@
 # Template Engine (PPTX): engine-scoped notes
 
-Operational reference for the PPTX template engine. Auto-loads when working in
-simplicitor/templates_engine/. The whole-repo rules (Ways of Working, Source of Truth,
-Verification, scope) live in the root CLAUDE.md and still govern here. Design intent and
-deferred follow-ups live in NOTES.md. Source-of-truth ordering from the root resolves any
-conflict between this file, NOTES.md, and the code.
+Operational reference for the existing PPTX template engine. Read it explicitly when
+working in this directory; automatic loading is harness-dependent. Shared project policy is
+mirrored in root `CLAUDE.md` and `AGENTS.md`. Root `PRD.md` governs the approved next product
+direction; `docs/PROJECT_STATUS.md` distinguishes requirements from implemented behavior.
+Design history and deferred follow-ups remain in `NOTES.md`. The planned selective editor
+and installer are separate workstreams, not implemented template-engine capabilities.
 
 ## Template Engine (PPTX)
 
-A second PowerPoint path built across Phases A through M, with full test coverage in `tests/templates_engine/` and CLI tests in `tests/test_cli.py`. The canonical (and only) test tree is `tests/`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
+A second PowerPoint path built across Phases A through M, with regression tests in `tests/templates_engine/` and CLI tests in `tests/test_cli.py`. Passing these tests is not proof of complete feature coverage or Office fidelity. The canonical (and only) test tree is `tests/`. The v1 PPTX path generates slides from scratch and Python controls all styling. The template engine instead fills the layout placeholders of a real, professionally designed `.pptx`, so output keeps the template's branding. The user picks a built-in template or uploads a deck; the LLM produces content JSON keyed to named placeholder fields; Python renders it into the template.
 
 **Read before changing the engine:** `simplicitor/templates_engine/NOTES.md` holds the Phase A repo orientation, the error-handling contract every module conforms to, and the list of deferred follow-ups (each marked ACCEPTED, FIXED, CLOSED, or Open). To add a template: `simplicitor/templates_engine/HOWTO_ADD_TEMPLATE.md`.
 

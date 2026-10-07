@@ -1,91 +1,56 @@
-# Code Signing Simplicitor.exe
+# Packaging and distribution
 
-Unsigned executables trigger Windows SmartScreen ("Windows protected your PC") and may be quarantined by antivirus software. Code signing eliminates these warnings for end users.
+Updated 2026-10-07. This file retains its existing path for links, but replaces the former paid EV certificate runbook.
 
-## Certificate Type
+## Approved distribution route
 
-Purchase an **EV (Extended Validation) code signing certificate**. Standard OV (Organization Validation) certificates no longer suppress SmartScreen automatically as of Windows 11 23H2.
+Simplicitor will use a free direct-download installer, with a portable ZIP as a secondary option. Microsoft Store publication, paid certificates, and paid signing services are outside the agreed scope. This packaging is not implemented yet: `build.py` and the GitHub workflow currently produce an unsigned onefile `Simplicitor.exe`.
 
-Recommended certificate authorities (prices approximate):
-
-| CA | URL | Price/year |
+| Artifact | Purpose | Planned contents |
 |---|---|---|
-| DigiCert | https://www.digicert.com | ~$500 |
-| Sectigo | https://www.sectigo.com | ~$400 |
-| GlobalSign | https://www.globalsign.com | ~$450 |
+| Windows setup executable | Main download for nontechnical users. | NSIS installer for the standalone application, shortcuts, version information, and uninstaller. |
+| Portable ZIP | Secondary download and diagnostic fallback. | The same standalone application folder, extracted before launch. |
 
-EV certificates require identity verification (1–5 business days) and are delivered on a hardware USB token.
+The final artifact names will be fixed during implementation. The current executable remains distinct from the proposed installer.
 
-## Prerequisites
+## Build approach
 
-- Windows SDK installed (includes `signtool.exe`)
-- EV certificate installed from the USB token
+Keep Nuitka and its PySide6 plugin. Build in standalone mode so the installed application uses its bundled files instead of extracting a onefile payload at each launch. Bundle prompts, the default PowerPoint template, built-in templates, icons, and all required runtime dependencies. Users must not need Python or build tools.
 
-## Sign the Executable
+Nuitka's current documentation describes NSIS installer generation with `--windows-create-installer` starting in version 4.2. Evaluate this support with Simplicitor before writing a separate NSIS packaging script. The existing `nuitka>=2.0` dependency does not guarantee this feature; select and verify a suitable build version during implementation. No dependency or build-script changes are made by this document.
 
-After building `dist\Simplicitor.exe`:
+Install for the current user without requesting administrator privileges where the tested installation supports it. Provide Start menu access and an uninstaller. Keep application files separate from user settings and documents. Upgrades and uninstall must preserve user data unless the user explicitly chooses its removal.
 
-```bat
-signtool sign ^
-  /tr http://timestamp.digicert.com ^
-  /td sha256 ^
-  /fd sha256 ^
-  /a ^
-  dist\Simplicitor.exe
-```
+NSIS has no purchase requirement for this use. No signing certificate, Store account, or subscription is required to create the unsigned installer. Distribution still requires testing; a successful compile is not a release acceptance check.
 
-| Flag | Meaning |
-|---|---|
-| `/tr` | RFC 3161 timestamp server URL (keeps signature valid after cert expiry) |
-| `/td sha256` | Timestamp digest algorithm |
-| `/fd sha256` | File digest algorithm |
-| `/a` | Auto-select best certificate from the store |
+## Windows trust and antivirus behavior
 
-## Verify the Signature
+Packaging convenience and publisher trust are separate concerns. An unsigned NSIS installer, its application executable, and the portable ZIP's executable can still trigger SmartScreen, Smart App Control, or antivirus blocks. A ZIP does not bypass Windows trust checks. Changing build mode is not proof that a detection is resolved.
 
-```bat
-signtool verify /pa dist\Simplicitor.exe
-```
+The user reports that Windows or antivirus blocks the current executable. The specific warning or detection name is still needed to distinguish reputation checks from a malware detection. Record the artifact version, exact message, affected file, and security product during investigation. Do not disable antivirus or weaken Windows protection as a distribution strategy.
 
-Expected output: `Successfully verified: dist\Simplicitor.exe`
+EV signing no longer guarantees an immediate SmartScreen bypass. The previous instruction to buy an EV certificate and the claim that signing eliminates warnings are superseded. Self-signed certificates do not establish public trust on ordinary user machines. Any future signing sponsorship would require a separate eligibility review and approval; it is not a prerequisite of this route.
 
-## Full Build + Sign Workflow
+## Release verification
 
-```bat
-REM 1. Build
-python build.py
+Before distribution, record evidence for:
 
-REM 2. Sign
-signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist\Simplicitor.exe
+1. Clean installation and application launch on the supported Windows versions with default security settings and no development Python installation.
+2. Local Ollama connection with a usable model, and clear behavior when the service or model is unavailable.
+3. Presence and loading of prompts, icons, default templates, built-in templates, and document-library resources outside the repository checkout.
+4. Installer and portable ZIP behavior using the same standalone payload.
+5. Upgrade and uninstall, including preservation of documents, settings, templates, and backups.
+6. Relevant application regression checks and file-integrity hashes for the published artifacts.
+7. Actual SmartScreen or antivirus results, including unresolved warnings or detections.
 
-REM 3. Verify
-signtool verify /pa dist\Simplicitor.exe
+Publish artifacts through GitHub Releases and link them from `simplicitor.com`. Describe remaining warnings honestly. File hashes identify an artifact; they do not supply a trusted publisher signature. Commit, push, tagging, and publishing remain separately authorized actions.
 
-REM 4. Distribute dist\Simplicitor.exe
-```
+## Official references
 
-## AV Vendor Submission
+Checked 2026-10-07:
 
-Even signed executables may trigger false positives on first release. Submit `dist\Simplicitor.exe` to major vendors:
+- [Nuitka installer support](https://nuitka.net/user-documentation/user-manual.html#installer) describes standalone builds and NSIS installer generation.
+- [NSIS license](https://nsis.sourceforge.io/License) permits use without a purchase requirement, including commercial applications.
+- [Microsoft SmartScreen guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) explains reputation checks, unsigned-file warnings, and the removal of automatic EV trust.
 
-| Vendor | Submission URL |
-|---|---|
-| Microsoft Defender | https://www.microsoft.com/en-us/wdsi/filesubmission |
-| Kaspersky | https://opentip.kaspersky.com |
-| ESET | https://www.eset.com/int/about/virus-lab/ |
-| Bitdefender | https://www.bitdefender.com/submit |
-| Avast | https://www.avast.com/false-positive-file-form.php |
-
-Allow 1–5 business days per vendor. Repeat with each new release.
-
-## Startup Time
-
-Target: under 3 seconds on a modern machine.
-
-Nuitka onefile extracts to a temp directory on first run. Subsequent runs reuse the extraction if the exe has not changed. If startup is slow, consider adding this flag to `build.py`:
-
-```python
-"--onefile-tempdir-spec={CACHE_DIR}/{PRODUCT}/{VERSION}",
-```
-
-This persists the extraction across runs and eliminates the extraction overhead after first launch.
+The packaging tools do not change Simplicitor's own license. Business-use licensing remains an open product decision in `PRD.md`.
