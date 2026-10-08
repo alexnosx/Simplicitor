@@ -14,8 +14,11 @@ def resource_path(relative: str) -> Path:
     Returns:
         Absolute Path to the resource.
     """
-    if getattr(sys, "frozen", False):
-        # Nuitka onefile sets this; fall back to the exe directory
+    compiled = globals().get("__compiled__")
+    if compiled is not None:
+        # Nuitka does not set sys.frozen. Resources accompany the standalone payload.
+        base = Path(compiled.containing_dir)
+    elif getattr(sys, "frozen", False):
         base = Path(sys.executable).parent
     else:
         # In development, the repo root is two levels up from this file:

@@ -72,6 +72,8 @@ assets/
 docs/
     archive/
         PRD_v1.2.md
+    builds/
+        2026-10-08-task5.json
     design/
         document-workspace.html
     evaluation/
@@ -350,7 +352,11 @@ requirements.txt
 
 ### build.py
 
-- def main() -> int
+- def _sha256(path: Path) -> str
+- def correct_uninstall(script: str, payload: Path) -> str: Replace the pinned backend's exact recursive removal with owned-file removal.
+- def rebuild_installer(payload: Path, installer: Path) -> None: Correct Nuitka's generated script and compile it with the same NSIS tool.
+- def package_payload(payload: Path, installer: Path) -> None: Validate resources and archive exactly the payload supplied to NSIS.
+- def main() -> int: Compile once with Nuitka's NSIS backend, then package the same payload.
 
 ### resources/create_icon.py
 
@@ -1179,16 +1185,17 @@ requirements.txt
 
 ### tests/test_build_script.py
 
-- def _content() -> str
-- def test_build_script_exists() -> None
-- def test_build_script_uses_onefile() -> None
-- def test_build_script_disables_console() -> None
-- def test_build_script_enables_pyside6_plugin() -> None
-- def test_build_script_includes_prompts_dir() -> None
-- def test_build_script_includes_builtin_templates_dir() -> None
-- def test_build_script_references_icon() -> None
-- def test_build_script_sets_product_name() -> None
-- def test_build_bat_exists() -> None
+- def payload(tmp_path, monkeypatch)
+- def make_payload(payload)
+- def make_script(payload)
+- def test_corrected_uninstall_removes_only_packaged_files_and_empty_directories(tmp_path)
+- def test_unexpected_nuitka_uninstall_script_fails_closed(tmp_path, script)
+- def test_build_produces_matching_portable_payload_and_installer(payload, monkeypatch)
+- def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch, missing)
+- def test_compiler_failure_is_propagated(payload, monkeypatch)
+- def test_missing_icon_fails_before_compilation(payload, monkeypatch)
+- def test_unsafe_installer_is_removed_if_correction_cannot_be_applied(payload, monkeypatch)
+- def test_cached_nsis_selects_nuitkas_root_entry_not_duplicate_bin(payload, monkeypatch)
 
 ### tests/test_cli.py
 
@@ -1204,6 +1211,7 @@ requirements.txt
 
 - def panel(qtbot, tmp_path)
 - def saved_candidate(tmp_path, *, flagged=True, coverage=False)
+- def test_review_uses_saved_number_format_and_file_without_record(panel, tmp_path, value, kind, expected)
 - def test_source_picker_preserves_duplicate_attachments_without_copying(panel, monkeypatch)
 - def test_columns_add_edit_remove_and_freeze_before_extract(panel)
 - def test_numeric_defaults_overrides_and_conditional_date_order(panel)
@@ -1278,6 +1286,7 @@ requirements.txt
 
 ### tests/test_file_utils.py
 
+- def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch)
 - def test_sanitize_removes_special_chars() -> None
 - def test_sanitize_replaces_spaces_with_underscores() -> None
 - def test_sanitize_truncates_to_max_length() -> None
@@ -1585,11 +1594,11 @@ requirements.txt
 
 ## Other files
 
-- .github/workflows/build.yml: yml, 47 lines
+- .github/workflows/build.yml: yml, 53 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 60 lines
+- CHANGELOG.md: md, 63 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1605,7 +1614,7 @@ requirements.txt
 - assets/icons/simplicitor_48.png: png (binary)
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
-- build.bat: bat, 6 lines
+- build.bat: bat, 10 lines
 - docs/PROJECT_STATUS.md: md, 42 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
@@ -1613,7 +1622,8 @@ requirements.txt
 - docs/Simplicitor_UI_Fixes_Round2.md: md, 144 lines
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
-- docs/code-signing.md: md, 41 lines
+- docs/builds/2026-10-08-task5.json: json, 62 lines
+- docs/code-signing.md: md, 51 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
@@ -1632,7 +1642,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 179 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 181 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

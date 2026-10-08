@@ -44,6 +44,37 @@ def saved_candidate(tmp_path, *, flagged=True, coverage=False):
                            tmp_path / "candidate.xlsx")
 
 
+@pytest.mark.parametrize("value,kind,expected", [
+    ("12500.00", "decimal", "12500.00"),
+    ("12.5000", "decimal", "12.5000"),
+    ("-2.50", "decimal", "-2.50"),
+    ("123.100000000000000", "decimal", "123.100000000000000"),
+    ("9999999999999.9000", "decimal", "9999999999999.9000"),
+    ("0.00000000000000001", "decimal", "1E-17"),
+    ("12500", "integer", "12500"),
+    ("000452", "text", "000452"),
+])
+def test_review_uses_saved_number_format_and_file_without_record(panel, tmp_path,
+                                                                value, kind, expected):
+    from decimal import Decimal
+    typed = Decimal(value) if kind == "decimal" else int(value) if kind == "integer" else value
+    field = FieldResult(FieldProposal(value, value, "source-1#p:0"), typed, False, ())
+    result = ExtractionResult(("source-1",), {("source-1", "value"): field},
+                              {"source-1": tmp_path / "source.docx"}, (), {})
+    candidate = write_candidate(result, (ColumnSpec("value", "Value", "Value", kind),),
+                                tmp_path / "candidate.xlsx")
+    panel.show_candidate(candidate, read_candidate(candidate))
+    assert panel._grid.columnCount() == 2
+    assert panel._grid.horizontalHeaderItem(0).text() == "File"
+    assert panel._grid.item(0, 0).text() == "source.docx"
+    assert panel._grid.item(0, 1).text() == expected
+    panel._grid.setCurrentCell(0, 1)
+    assert "Record: source-1" in panel._evidence.toPlainText()
+    book = load_workbook(candidate.path)
+    assert book["Evidence"]["B1"].value == "Record"
+    book.close()
+
+
 def test_source_picker_preserves_duplicate_attachments_without_copying(panel, monkeypatch):
     path = panel._paths[0]
     monkeypatch.setattr(QFileDialog, "getOpenFileNames", lambda *a, **k:
@@ -164,10 +195,10 @@ def test_saved_grid_literal_flags_evidence_acknowledgement_and_rerun_reset(panel
     panel.set_columns((ColumnSpec("id", "ID", "Identifier"),))
     panel._confirm_btn.click()
     panel.show_candidate(candidate, read_candidate(candidate))
-    cell = panel._grid.item(0, 2)
+    cell = panel._grid.item(0, 1)
     assert cell.text() == "000452" and cell.background().color().isValid()
     assert panel._grid.editTriggers() == QTableWidget.EditTrigger.NoEditTriggers
-    panel._grid.setCurrentCell(0, 2)
+    panel._grid.setCurrentCell(0, 1)
     assert "ID 000452" in panel._evidence.toPlainText()
     assert "leading_zero" in panel._evidence.toPlainText()
     assert "A section failed." in panel._coverage_view.toPlainText()
@@ -354,7 +385,7 @@ def test_complete_column_review_extract_save_and_confirmed_overwrite(window, tmp
     window._start_extraction("extract", panel.snapshot())  # duplicate ignored
     qtbot.waitUntil(lambda: window._extraction_thread is None)
     candidate = panel._candidate
-    assert candidate and panel._grid.item(0, 2).text() == "00123"
+    assert candidate and panel._grid.item(0, 1).text() == "00123"
     assert "ID 00123" in panel._evidence.toPlainText()
     assert client.calls == 2
     destination = tmp_path / "output.xlsx"

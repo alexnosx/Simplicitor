@@ -1,5 +1,6 @@
 """Source setup, confirmed columns, and read-only saved workbook review."""
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal, Slot
@@ -392,18 +393,29 @@ class ExtractionPanel(QWidget):
     def show_candidate(self, candidate: Candidate, cells: tuple[ReviewCell, ...]) -> None:
         """Display saved values, types, flags, and evidence without reconstructing extraction."""
         self._candidate = candidate
-        self._cells = {(c.row - 2, c.column - 1): c for c in cells}
+        self._cells = {(c.row - 2, c.column - 2): c for c in cells}
         rows = max((c.row - 1 for c in cells), default=0)
-        cols = max((c.column for c in cells), default=2)
+        cols = max((c.column - 1 for c in cells), default=1)
         self._grid.setRowCount(rows)
         self._grid.setColumnCount(cols)
-        labels = ["Record", "File"] + [""] * (cols - 2)
+        labels = ["File"] + [""] * (cols - 1)
         for (row, col), cell in self._cells.items():
             entry = cell.evidence[0]
             labels[col] = entry["Field"]
-            self._grid.setItem(row, 0, QTableWidgetItem(entry["Record"]))
-            self._grid.setItem(row, 1, QTableWidgetItem(entry["File"]))
+            self._grid.setItem(row, 0, QTableWidgetItem(entry["File"]))
             text = cell.value.isoformat()[:10] if isinstance(cell.value, date) else str(cell.value)
+            if cell.data_type == "n" and isinstance(cell.value, (int, float)):
+                # These are the numeric formats owned by the candidate writer.
+                number = Decimal(str(cell.value))
+                if cell.number_format == "0":
+                    text = format(number, ".0f")
+                elif cell.number_format.startswith("0."):
+                    places = cell.number_format[2:]
+                    if places and set(places) == {"0"}:
+                        text = format(number, f".{len(places)}f")
+                    elif cell.number_format == "0.##############E+00":
+                        mantissa, exponent = format(number, ".14E").split("E")
+                        text = mantissa.rstrip("0").rstrip(".") + f"E{int(exponent):+03d}"
             item = QTableWidgetItem("" if cell.value is None else text)
             if any(e["Status"] == "flagged" for e in cell.evidence):
                 item.setBackground(QColor(EXTRACTION_FLAG_COLOR))
@@ -417,8 +429,8 @@ class ExtractionPanel(QWidget):
         self._ack_checkbox.setVisible(bool(candidate.issues))
         self.show_status("Workbook ready. Select values to review their evidence.")
         if cells:
-            self._grid.setCurrentCell(0, 2)
-            self._show_evidence(0, 2)
+            self._grid.setCurrentCell(0, 1)
+            self._show_evidence(0, 1)
         self._refresh_actions()
 
     def _show_evidence(self, row: int, col: int, *_args) -> None:

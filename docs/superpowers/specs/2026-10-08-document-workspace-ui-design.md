@@ -25,7 +25,7 @@ A revised request/source list clears column confirmation and any prior review. C
 
 Disable duplicate submission and setup changes while busy. Show file/section progress, retain instructions after failure, and show cooperative cancellation state. Invalidate the previous review when a rerun starts; a late or failed run cannot revive it.
 
-Build the read-only grid from the saved workbook. Valid fields use their saved typed values. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues appear above the grid in a bounded, scrollable view, retaining source and page/unit anchors so long issue lists keep the controls accessible.
+Build the read-only grid from the saved workbook. The grid starts with File and omits Record; Record remains in the workbook Evidence sheet and Evidence panel. Valid fields use their saved typed values and saved number formats, including decimal trailing zeros. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues appear above the grid in a bounded, scrollable view, retaining source and page/unit anchors so long issue lists keep the controls accessible.
 
 There is no PDF rendering pane, cell editor, approval token, or candidate-version selection.
 

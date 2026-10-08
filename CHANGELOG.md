@@ -7,6 +7,9 @@
 
 ## Unreleased extraction development
 
+- Show saved numeric formats in the review grid and omit its Record column, retaining Record in Evidence.
+- Prepare standalone packaging with pinned Nuitka 4.2.2 built-in current-user NSIS support, portable ZIP from the same payload, and SHA-256 inventories. Correct compiled resource lookup and replace recursive uninstall deletion with fail-closed, payload-only removal under the approved fallback. Installation and clean-Windows qualification remain pending; nothing published.
+
 - Add the Task 4 Create workspace: source extraction first, editable/confirmed columns, background workers, saved grid/Evidence review, non-blocking selected-model guidance, and native XLSX Save As. Preserve existing prompt/template creation in From prompt; hide legacy Edit.
 - Preserve numeric leading-zero proposals with leading_zero flags, save unrepresentable numbers as highlighted literals with excel_precision, and require a case-insensitive .xlsx Save As suffix.
 - Add Task 3's typed/literal Data and Evidence writer, saved-file review mapping, owned temporary jobs, acknowledged Save As copying, source-path refusal, and age-based cleanup. Native dialogs and review UI remain Task 4.

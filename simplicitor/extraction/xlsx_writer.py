@@ -221,6 +221,7 @@ def read_candidate(candidate: Candidate) -> tuple[ReviewCell, ...]:
         return tuple(ReviewCell(
             cell.row, cell.column, cell.value, cell.data_type,
             tuple(by_cell[cell.coordinate] + by_record[data.cell(cell.row, 1).value]),
+            cell.number_format,
         ) for row in data.iter_rows(min_row=2, min_col=3) for cell in row)
     finally:
         workbook.close()

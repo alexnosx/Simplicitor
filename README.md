@@ -33,7 +33,7 @@ python resources/create_icon.py
 python build.py
 ```
 
-The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files, the default pptx template, and the built-in templates, and writes `dist\Simplicitor.exe`. Build duration depends on the compiler and machine; installer support is not yet configured in this script.
+The build script (`build.py`) uses pinned Nuitka 4.2.2 with the PySide6 plugin to compile a standalone payload, create a current-user NSIS installer, and archive that same payload. Outputs are `dist\Simplicitor-setup.exe`, `dist\Simplicitor-portable.zip`, and `dist\SHA256SUMS.json`. No installer is run by the build. See [packaging procedures and qualification limits](docs/code-signing.md) before testing or distributing these unpublished artifacts.
 
 ### Run from source without building
 
@@ -58,7 +58,7 @@ Try one synthetic extraction:
 2. Enter: `Extract the invoice number, customer name, gross total, and due date.`
 3. Click **Suggest columns**. Edit the names/descriptions/types if needed. Keep identifiers as text. If a date column has ambiguous numeric dates, choose the day/month order in its details.
 4. Click **Confirm columns**, then **Extract to Excel**.
-5. Select grid values to inspect their saved quotes, anchors, and issues. This fixture should retain invoice ID `00123` as text, gross total `12500` as a number, and due date `2026-04-14` as a date.
+5. Select grid values to inspect their saved quotes, anchors, and issues. This fixture should retain invoice ID `00123` as text, gross total `12500.00` as a number, and due date `2026-04-14` as a date.
 6. If output is flagged or incomplete, review it and check the acknowledgement. Use **Save As** to choose a new `.xlsx` file. Windows asks before replacing an existing output; source files cannot be replaced.
 
 **From prompt** hosts the existing document generation and PowerPoint template flow. These source-run checks do not qualify the future installer or replace the full-pipeline release evaluation.

@@ -122,6 +122,7 @@ class ReviewCell:
     value: str | int | float | date | None
     data_type: str
     evidence: tuple[Mapping[str, str | None], ...]
+    number_format: str = "General"
 
 
 def build_response_schema(

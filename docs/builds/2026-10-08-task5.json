@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-08",
+  "published": false,
+  "qualification_complete": false,
+  "build": {
+    "command": ".venv/Scripts/python.exe build.py",
+    "exit_code": 0,
+    "python": "3.12.14",
+    "nuitka": "4.2.2",
+    "nsis": "3.11",
+    "compiler": "MSVC cl 14.5",
+    "product_version": "1.2.1.0",
+    "product_version_note": "Existing development metadata retained; no new release version selected.",
+    "installer_executed": false,
+    "host_installation_changes": false
+  },
+  "artifacts": {
+    "Simplicitor-setup.exe": {
+      "sha256": "98d1a48472e4b5308b78119c14bd35d12672d97a5a13183c0b9e4ee36cde3b45",
+      "bytes": 86577260
+    },
+    "Simplicitor-portable.zip": {
+      "sha256": "ba2a44f9df68c9ce977e7b9caef891fbf316dcabcdf43227867d198d6f1f0526",
+      "bytes": 86847868
+    }
+  },
+  "checks": {
+    "source_tests": {
+      "passed": 968,
+      "failed": 0,
+      "command": "python -m pytest -q (isolated profile)"
+    },
+    "build_tests": {
+      "passed": 15,
+      "failed": 0
+    },
+    "payload_files": 896,
+    "zip_payload_and_manifest_hashes": "all match",
+    "generated_installer": "current-user scope; default LOCALAPPDATA/Programs/Simplicitor; no directory chooser; Desktop and Start Menu shortcuts; HKCU uninstall registration",
+    "uninstall_correction": "Exact recursive-removal text replaced; Delete list equals 896 payload files plus uninstall.exe, directory removal non-recursive; NSIS compilation passed.",
+    "template_drift": "missing/changed/duplicate recursive-removal marker fails build; unsafe artifact discarded",
+    "signature": "NotSigned",
+    "portable_startup": "Passed from working directory C:/Windows; extracted ZIP under repository scratch, isolated USERPROFILE/APPDATA/LOCALAPPDATA.",
+    "runtime_modules": "Bundled Python runtime, zero external Python modules, three bundled Qt DLLs observed.",
+    "builtin_templates": "Both seeded templates and manifests byte-match bundled resources.",
+    "normal_close": "Isolated app exited after Alt+F4; zero extraction jobs.",
+    "packaged_extraction_walkthrough": "Not completed: native automation captured a clipped window and could not reliably drive offscreen controls. No display/system settings changed."
+  },
+  "pending": [
+    "Install, shortcuts, registration and launch through shortcut",
+    "Upgrade from installed version and preservation of synthetic settings/templates/documents",
+    "Uninstall/reinstall and actual preservation of external and extra runtime-directory files",
+    "Full packaged extraction/generation/template/Save As/cancel/failure walkthrough",
+    "Clean Windows without developer Python or Office; missing Ollama/model checks",
+    "Downloaded-artifact Windows/antivirus/SmartScreen behavior with default protection"
+  ],
+  "constraints": "No clean environment available. Alex forbids installer execution or PC installation/registry/shortcut changes without new explicit approval. No tag, release, publication, or Task 6 work.",
+  "build_warnings": [
+    "pdfminer imports unittest; PIL.ImageTk omitted (Qt application)",
+    "NSIS built-in MultiUser current-user helper functions/privilege variable unused (6010/6001)"
+  ]
+}

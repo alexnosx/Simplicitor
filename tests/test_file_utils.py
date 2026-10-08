@@ -4,6 +4,21 @@ import pytest
 from app.utils.file_utils import sanitize_filename, ensure_dir
 
 
+def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from app.utils import file_utils
+    payload = tmp_path / "portable" / "Simplicitor"
+    icon = payload / "assets" / "icons" / "simplicitor.ico"
+    icon.parent.mkdir(parents=True)
+    icon.write_bytes(b"icon")
+    monkeypatch.setattr(file_utils, "__compiled__", SimpleNamespace(containing_dir=str(payload)),
+                        raising=False)
+    monkeypatch.setattr(file_utils, "__file__", str(payload / "app/utils/file_utils.py"))
+    monkeypatch.chdir(tmp_path)
+    assert file_utils.resource_path("assets/icons/simplicitor.ico") == icon
+    assert file_utils.resource_path("assets/icons/simplicitor.ico").read_bytes() == b"icon"
+
+
 def test_sanitize_removes_special_chars() -> None:
     assert sanitize_filename("Hello, World!") == "Hello_World"
 

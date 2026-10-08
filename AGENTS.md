@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 3 and their fixes are accepted; v1.2.1 is published. Current authorization covers Task 4's Create workspace, column editor, extraction worker/review, selected-model warning, and native .xlsx Save As. Commit/push to main are authorized for this scope. Stop before Task 5. Further tags or publication require a new explicit go.
+- Tasks 0 through 4 and their fixes are accepted; v1.2.1 is published. Current authorization covers the two saved-grid UI fixes and Task 5 packaging. Commit/push to main are authorized. Do not tag, publish, or start Task 6. Alex has no clean Windows environment: do not execute installers, modify registry/shortcuts, or uninstall on his PC without new explicit approval.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.
