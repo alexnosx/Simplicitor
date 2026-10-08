@@ -1,56 +1,37 @@
-# Packaging and distribution
+# Packaging procedure
 
-Updated 2026-10-07. This file retains its existing path for links, but replaces the former paid EV certificate runbook.
+Release artifacts, prerequisites, privacy boundaries, signing policy, and data-preservation requirements are owned by [PRD.md](../PRD.md#packaging). Current build state and the unresolved Windows block are in [project status](PROJECT_STATUS.md). The [first-release plan](superpowers/plans/2026-10-08-first-release-extraction.md#task-6-package-in-parallel-qualify-after-integration) schedules this work.
 
-## Approved distribution route
+## Standalone build
 
-Simplicitor will use a free direct-download installer, with a portable ZIP as a secondary option. Microsoft Store publication, paid certificates, and paid signing services are outside the agreed scope. This packaging is not implemented yet: `build.py` and the GitHub workflow currently produce an unsigned onefile `Simplicitor.exe`.
+Retain build.py, the PySide6 plugin, and existing resource discovery. Change the build mode during implementation and bundle prompts, icons, current template resources, and the extraction modules/libraries. Run the resulting application outside the checkout to expose accidental source-directory dependencies.
 
-| Artifact | Purpose | Planned contents |
-|---|---|---|
-| Windows setup executable | Main download for nontechnical users. | NSIS installer for the standalone application, shortcuts, version information, and uninstaller. |
-| Portable ZIP | Secondary download and diagnostic fallback. | The same standalone application folder, extracted before launch. |
+Nuitka documents built-in NSIS installer generation from version 4.2 with --windows-create-installer. Evaluate that route with a pinned tested build version before adding a separate NSIS script; the current nuitka>=2.0 declaration does not select it. Check actual options against that version during implementation.
 
-The final artifact names will be fixed during implementation. The current executable remains distinct from the proposed installer.
+Produce installer and portable archives from the same successful payload. Keep runtime files separate from settings and user data. Test shortcuts and uninstaller behavior, including upgrades from the previous layout.
 
-## Build approach
+## Qualification procedure
 
-Keep Nuitka and its PySide6 plugin. Build in standalone mode so the installed application uses its bundled files instead of extracting a onefile payload at each launch. Bundle prompts, the default PowerPoint template, built-in templates, icons, and all required runtime dependencies. Users must not need Python or build tools.
+1. Build and launch from a directory outside the checkout, using fresh application settings.
+2. Test on clean Windows with the prerequisites stated in PRD.md and without a developer Python environment.
+3. Run existing generation/template smoke checks and the new extraction/review/save scenario using synthetic files.
+4. Check missing-runtime/model messages, cancellation/failure, and new-output collisions.
+5. Install, upgrade, and uninstall while checking user settings, templates, and documents survive.
+6. Compare payload/resource inventories and record artifact SHA-256 hashes.
+7. Record the exact Windows/antivirus warning or detection, artifact version, affected file, and security product with default protection enabled.
 
-Nuitka's current documentation describes NSIS installer generation with `--windows-create-installer` starting in version 4.2. Evaluate this support with Simplicitor before writing a separate NSIS packaging script. The existing `nuitka>=2.0` dependency does not guarantee this feature; select and verify a suitable build version during implementation. No dependency or build-script changes are made by this document.
+A compiled executable alone is not this qualification evidence. Do not tag or publish artifacts during build preparation. Publishing remains an explicitly authorized action after release gates.
 
-Install for the current user without requesting administrator privileges where the tested installation supports it. Provide Start menu access and an uninstaller. Keep application files separate from user settings and documents. Upgrades and uninstall must preserve user data unless the user explicitly chooses its removal.
+## Windows trust investigation
 
-NSIS has no purchase requirement for this use. No signing certificate, Store account, or subscription is required to create the unsigned installer. Distribution still requires testing; a successful compile is not a release acceptance check.
+Distinguish publisher reputation warnings from a malware detection and policy blocks. Packaging mode does not prove that any one of these is fixed. Record the actual result on each tested Windows configuration; do not ask users to weaken protection.
 
-## Windows trust and antivirus behavior
+Microsoft documents that EV signing no longer automatically bypasses SmartScreen. Self-signing does not establish public publisher trust. Any change to the current signing/distribution policy needs Alex's decision rather than being inserted into build work.
 
-Packaging convenience and publisher trust are separate concerns. An unsigned NSIS installer, its application executable, and the portable ZIP's executable can still trigger SmartScreen, Smart App Control, or antivirus blocks. A ZIP does not bypass Windows trust checks. Changing build mode is not proof that a detection is resolved.
+## References
 
-The user reports that Windows or antivirus blocks the current executable. The specific warning or detection name is still needed to distinguish reputation checks from a malware detection. Record the artifact version, exact message, affected file, and security product during investigation. Do not disable antivirus or weaken Windows protection as a distribution strategy.
+- [Nuitka installer support](https://nuitka.net/user-documentation/user-manual.html#installer).
+- [NSIS license](https://nsis.sourceforge.io/License).
+- [Microsoft SmartScreen guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation).
 
-EV signing no longer guarantees an immediate SmartScreen bypass. The previous instruction to buy an EV certificate and the claim that signing eliminates warnings are superseded. Self-signed certificates do not establish public trust on ordinary user machines. Any future signing sponsorship would require a separate eligibility review and approval; it is not a prerequisite of this route.
-
-## Release verification
-
-Before distribution, record evidence for:
-
-1. Clean installation and application launch on the supported Windows versions with default security settings and no development Python installation.
-2. Local Ollama connection with a usable model, and clear behavior when the service or model is unavailable.
-3. Presence and loading of prompts, icons, default templates, built-in templates, and document-library resources outside the repository checkout.
-4. Installer and portable ZIP behavior using the same standalone payload.
-5. Upgrade and uninstall, including preservation of documents, settings, templates, and backups.
-6. Relevant application regression checks and file-integrity hashes for the published artifacts.
-7. Actual SmartScreen or antivirus results, including unresolved warnings or detections.
-
-Publish artifacts through GitHub Releases and link them from `simplicitor.com`. Describe remaining warnings honestly. File hashes identify an artifact; they do not supply a trusted publisher signature. Commit, push, tagging, and publishing remain separately authorized actions.
-
-## Official references
-
-Checked 2026-10-07:
-
-- [Nuitka installer support](https://nuitka.net/user-documentation/user-manual.html#installer) describes standalone builds and NSIS installer generation.
-- [NSIS license](https://nsis.sourceforge.io/License) permits use without a purchase requirement, including commercial applications.
-- [Microsoft SmartScreen guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) explains reputation checks, unsigned-file warnings, and the removal of automatic EV trust.
-
-The packaging tools do not change Simplicitor's own license. Business-use licensing remains an open product decision in `PRD.md`.
+These are build/trust references. Simplicitor's licensing decision remains owned by [PRD.md](../PRD.md#license-decision).

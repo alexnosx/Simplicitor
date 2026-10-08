@@ -2,10 +2,9 @@
 
 ## Unreleased documentation
 
-- Record the approved transformation to confidential selective Office editing for nontechnical local-model users, retaining creation features.
-- Record free direct-download packaging through a standalone Nuitka payload, NSIS installer, and portable ZIP; no Store or paid signing requirement.
-- Refresh shared agent guidance and add matching `AGENTS.md`; archive the original PRD and record project status.
-- Installer support and selective editing remain unimplemented. No application, dependency, license, or build configuration changes in this documentation update.
+- Consolidate the revised first-release contract in PRD.md and add one implementation plan.
+- Update architecture, UI guidance, document ownership, and CLAUDE's import of AGENTS.md.
+- Preserve historical release notes below; current behavior and open decisions live in docs/PROJECT_STATUS.md.
 
 ## v1.2 — June 2026
 

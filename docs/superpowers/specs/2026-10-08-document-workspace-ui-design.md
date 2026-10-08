@@ -1,75 +1,39 @@
-# Simplicitor document workspace design
+# Simplicitor first-release UI design
 
-Updated 2026-10-08. UI design proposal with an interactive example, not an implemented application feature. Alex requested committing and pushing the proposal. Application implementation remains a separate task.
+Release scope, default mode, permitted inputs/outputs, record modes, review rules, and metrics are owned by [PRD.md](../../../PRD.md). [Architecture](2026-10-08-document-architecture-design.md) describes the backing components; [project status](../../PROJECT_STATUS.md) records current implementation.
 
-## Purpose
+## Create workspace
 
-Give nontechnical people with local Ollama a consistent way to create and selectively edit confidential Word, Excel, and PowerPoint documents. Contracts, financial workbooks, proposals, policies, and presentations are representative documents. Timesheets are one example, not the product's identity.
+Mount a Create workspace in MainWindow rather than the old equal Create/Edit panes. Do not mount EditPanel. Keep the existing top-bar model state and Settings, with shared styling from defaults.py.
 
-The user has endorsed the Edit document and Create new modes and selecting what may change. On 2026-10-08 Alex also confirmed prompt-only creation, creation from supplied source files, and selective editing as the three intended workflows. This proposal develops that direction into a shared workspace. Active product requirements remain in [PRD.md](../../../PRD.md); the [architecture proposal](2026-10-08-document-architecture-design.md) includes source ingestion and analysis.
+Within Create, use a local choice between From source files and From prompt. Source extraction is the initial view; From prompt hosts the existing CreatePanel, including its current output choices and PowerPoint template picker. Its signals continue to route to the existing workers.
 
-## Interactive example
+## Source extraction view
 
-Open [document-workspace.html](../../design/document-workspace.html) in a browser. No server or installation is required. The HTML file is also the editable source of the example.
+Use the available width for source inspection and the eventual workbook grid, with a compact control area for the request and schema.
 
-Use Open document to switch between a Word contract, an Excel forecast, and a PowerPoint briefing. Explore selection, comparisons, draft preview, revision, and approval. Create new demonstrates the same workspace for document generation.
+1. Add files through a multi-file picker or drop area. List each source separately, including same-named files; do not use the legacy upload-copy path.
+2. Show the request and the output appropriate to the PRD release scope. Offer the PRD record modes with file mode selected initially.
+3. Show editable column names, descriptions, and type choices. Text is the safe initial type. Ask for numeric/date interpretation only when relevant. Confirm columns before model extraction.
+4. In table mode, inspect detected tables and confirm the header/column mapping. If no supported table exists, show the issue and let the user change mode or sources.
+5. Show per-source/page issues, limit information, and structural coverage. Unreadable pages remain visible throughout review.
 
-Use sample data only. Responses are preset and do not interpret instructions. The document views are illustrative HTML, not Office renderings. Model readiness and save results are simulated; no AI service is called and no document is written. The standalone example has no external resource dependencies. Drafts and selections survive switching between examples during the current browser session; this is not persistent document storage. The current example does not demonstrate source attachments or source-based reporting; the requirements below extend its Create design.
+Use familiar controls and short labels; model/context parameters belong outside the document workflow. Preserve Segoe UI, the light theme, restrained borders, and existing status styling.
 
-## Shared layout
+## Extract and review
 
-- Top bar: Simplicitor, Edit document, Create new, a compact local-model state, and Settings. Edit document is the default.
-- Document area: approximately 65 percent of the workspace, with file identity, document view, selection highlights, and review tabs.
-- Instruction area: approximately 35 percent, with the exact allowed targets, the request, and one primary next action.
-- Progress: Choose parts, Review draft, Save new version. Create substitutes Describe document for the first step.
-- Appearance: retain Segoe UI, the existing blue accent and light theme, restrained borders, and consistent spacing. Production values belong in `simplicitor/app/config/defaults.py`.
+Run processing through the extraction worker. Disable duplicate submission and source/schema changes during a job. Show source/section progress, retained instructions, and cooperative cancellation state. Failed jobs keep the user's setup for correction.
 
-Use a resizable split in the desktop application. At narrow widths, the example stacks the controls; this does not add mobile platform support. Avoid permanent file lists and duplicate connection messages that take space from the document.
+Read the saved candidate into a Qt table model. Data is read-only; flagged cells are highlighted and selecting a cell populates a nearby Evidence panel with the proposed value, quote, anchor, and reason. Coverage issues remain visible above the grid. Review must not display a newly regenerated approximation of the candidate.
 
-## Edit document
+Revising setup creates another candidate and removes approval. The final action chooses a new file and approves the current candidate. Flagged or partial results require explicit acknowledgement. A collision or save failure retains the review and offers recovery; it never shows saved success.
 
-1. Open a source file and inspect its supported content without changing it.
-2. Select exact targets. Show their identity under Allowed to change. Surrounding context can inform the request without gaining write permission.
-3. Describe the modification and choose Propose changes. The production flow validates replacements and patches a separate candidate.
-4. Review original and proposed values, then inspect the saved candidate's layout. Changes and Draft preview share the document area.
-5. Choose Save new version, confirm the destination, and approve that candidate. Reject source overwrites and output collisions.
+Source anchors and quotes provide the evidence view, following [PRD review requirements](../../../PRD.md#first-release-ui).
 
-Revise request invalidates the previous candidate's approval. Keep the user's request and selection after failure. Switching modes or documents must not silently discard a draft. During processing, show neutral progress and prevent duplicate operations; completion is green, warnings amber, and failures actionable. These processing and failure states are requirements, not demonstrated integrations in the example.
+## Historical mockup
 
-## Format specific selection
+[document-workspace.html](../../design/document-workspace.html) is an earlier interactive concept for the later editing direction. It is not the first-release screen specification and does not implement extraction. Keep it as design history; do not build its Edit mode for this release.
 
-| Format | First editing scope | Selection details |
-|---|---|---|
-| Word | Supported plain text spans or paragraphs. | Show the passage and its location. Reject unsupported rich text rather than flattening it. |
-| Excel | Literal cell values. | Show worksheet, address, original value, and type. Preserve text identifiers, unselected formulas, and workbook features. |
-| PowerPoint | Supported text spans or existing text shapes. | Show slide and shape identity. Selecting a slide does not authorize every object on it. |
+## UI acceptance
 
-Formula edits, structural changes, chart updates, and layout redesign are outside the initial selective editing scope. Longer text can change Word pagination or overflow PowerPoint shapes. Text comparison alone cannot prove layout or preservation.
-
-## Create new
-
-Reuse the document area, instruction area, review, and save actions. Show Describe your document, Output type, and Source files (optional). The same mode supports both a prompt alone and a prompt with local source files. Preserve existing PowerPoint template generation; do not imply that Word or Excel template engines already exist.
-
-| User action | Workflow |
-|---|---|
-| Create new, with a prompt | Generate a document from the instructions. |
-| Create new, with a prompt and source files | Read the sources and create a new document using their information. |
-| Edit document | Modify approved parts of an existing document. |
-
-Attached sources are visibly read-only. When necessary, use the document area to inspect sheets, tables, or passages and confirm source scope before generating. Show which sources, ranges, and period the report covers. A relevant clarification is preferable to silently choosing a reporting scope.
-
-For Excel-to-Word reporting, the local analysis computes supported figures and the model writes the explanation. Review must expose source references, numerical evidence, missing data, and coverage limitations alongside the output preview. The user approves the new Word file; the source workbook remains unchanged. These controls do not grant permission to edit source files.
-
-The same mode also supports large Word/PDF-to-Excel extraction. With Excel selected as output, propose or confirm columns, field types, and what one row represents. Review the saved workbook grid alongside source passages or PDF pages, with record/field references, coverage, and uncertain values visible. Scanned and mixed PDFs need local OCR/vision; show unsupported or unreadable pages/regions instead of an apparently complete empty result. This does not introduce PDF editing or another main mode. The existing HTML example does not demonstrate these extraction controls.
-
-## Implementation boundaries
-
-Retain PySide6, existing shared styling, connection discovery, and QObject workers with QThread signals. Use stacked views for modes and workflow states, a splitter for document and instructions, and format-specific document views behind the shared controls.
-
-Replacing the legacy whole-file reconstruction is essential before the UI can promise selective editing. Preview rendering, support envelopes, candidate identity, retention, and cancellation still need concrete subsystem designs. The preview must render the saved candidate that approval will publish, and source changes must invalidate stale targets and approval.
-
-## Verification
-
-Before committing, check the standalone example's Word, Excel, and PowerPoint selection and review flows, Create mode, revision, mode switching, source-overwrite and output-collision rejection, and browser script errors. Check layout at desktop width and at 360 pixels. Verify documentation links and regenerate the repository map.
-
-These checks demonstrate the design example only. They do not establish Office preservation, model quality, actual local inference, installation, or deployment. Application acceptance remains governed by PRD.md.
+The [plan](../plans/2026-10-08-first-release-extraction.md) owns exact checks. Observe the PRD default mode and visibility, preserved legacy Create/template routing, column confirmation, evidence selection, partial-output acknowledgement, cancellation, collision handling, and agreement between the saved workbook and grid.

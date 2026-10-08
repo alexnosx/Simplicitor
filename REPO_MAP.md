@@ -7,66 +7,37 @@ structural changes: `python scripts/gen_repo_map.py`
 <!-- MANUAL:BEGIN -->
 ## Orientation notes
 
-**Approved direction.** Free Windows document work for nontechnical users with local
-Ollama, a usable model, and installed desktop Microsoft Office. Root `PRD.md` defines
-creation from a prompt, creation from read-only source files, and selective editing.
-All produce a separate candidate for validation, preview, approval, and a new output.
-Source-based examples include XLSX-to-DOCX reporting and large DOCX/PDF-to-XLSX
-extraction. PDFs are read-only sources; scanned/mixed sources need tested local OCR/vision.
-Packaging will use a standalone Nuitka payload,
-free NSIS installer, and portable ZIP, without Store publication or paid signing.
-Installer convenience does not guarantee removal of unsigned Windows warnings.
+PRD.md owns product requirements and the single workflow table. PROJECT_STATUS.md in
+docs/ owns implementation state and open decisions. Root AGENTS.md owns agent policy;
+CLAUDE.md imports it. Do not treat historical PRDs or phase plans as current scope.
 
-**Current implementation.** v1.2 has Create and legacy Edit panels plus a manifest-driven
-PowerPoint template engine. Source-based creation, selective preservation, preview/approval, and the installer
-are not implemented. The model supplies content; Python renders it. The template's
-masters, layouts, and theme control PowerPoint styling. Do not infer model quality or
-Office fidelity from this separation alone.
+The active design files are docs/superpowers/specs/2026-10-08-document-architecture-design.md
+and 2026-10-08-document-workspace-ui-design.md. The one first-release execution plan is
+docs/superpowers/plans/2026-10-08-first-release-extraction.md. They link to requirements
+rather than maintaining competing scope or metric tables.
 
-**Documentation.** `PRD.md` is the active requirements source. Shared agent policy is
-byte-identical in root `AGENTS.md` and `CLAUDE.md`. `docs/PROJECT_STATUS.md` records evidence
-and open decisions; `docs/code-signing.md` covers packaging. The architecture proposal is
-`docs/superpowers/specs/2026-10-08-document-architecture-design.md`; the UI proposal is
-`docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md`. The archived PRD, original
-DOCX PRD, implementation guide, and BUILD_STORY are history. Explicitly read the engine's
-`CLAUDE.md` and `NOTES.md` before working there; their historical formatting-loss decision
-no longer governs the approved selective editor.
+The module map below describes existing source. Proposed extraction modules are listed
+in the architecture/plan until implemented.
 
-**Module responsibilities.** Paths below are relative to `simplicitor/`.
+| Module under simplicitor/ | Current responsibility |
+|---|---|
+| app/main_window.py | UI wiring, worker/thread lifecycle, generation/template/legacy Edit routing. |
+| app/services/ollama_client.py | Ollama HTTP client; generate supports output_format but existing generation callers omit it. |
+| app/parsers/llm_response_parser.py | Freeform generation parsing. |
+| app/generators/ | Existing Word/Excel/PowerPoint generation. |
+| app/services/file_manipulator.py | Legacy text extraction and whole-file reconstruction; new readers must be independent. |
+| app/services/backup_service.py | Legacy filename-based backups. |
+| templates_engine/ | Manifest/import/prompt/validation/repair/rendering pipeline. |
+| app/config/defaults.py | Shared styling, timeouts, and limits. |
 
-| Module | Current responsibility |
-|--------|------------------------|
-| `app/main_window.py` | UI wiring, worker/thread lifecycle, freeform/template routing. |
-| `app/services/ollama_client.py` | Ollama HTTP client and network exception taxonomy. |
-| `app/parsers/llm_response_parser.py` | Clean and validate freeform model JSON. |
-| `app/generators/` | Write DOCX/XLSX/PPTX from parsed generation content. |
-| `app/services/file_manipulator.py` | Legacy text extraction and whole-file reconstruction. |
-| `app/services/backup_service.py` | Filename-based backup creation and destination reuse. |
-| `templates_engine/` | Manifest, import, prompt, validation, repair pipeline, rendering. |
-| `app/config/defaults.py` | Shared UI, timeout, and content-limit constants. |
+Workers use QObject/QThread and signals. OllamaTimeoutError subclasses
+OllamaConnectionError, so catch it first when messages differ. Templates use a distinct
+chat-completion path and frozen manifests. Template rendering uses temporary output and
+replacement; its exception imports still depend on file_manipulator.py. The safety patch
+must preserve those imports. Settings.templates_dir is the shared GUI/CLI template root.
 
-**Behavior and limitations to retain when reviewing changes.**
-
-- Workers use QObject/QThread and signals for UI communication.
-- `check_connection()` catches exceptions and returns a bool. Other HTTP methods have
-  domain exception wrappers; inspect actual malformed-response behavior rather than
-  assuming every failure is converted.
-- `OllamaTimeoutError` subclasses `OllamaConnectionError`; catch it first when messages differ.
-- Template rendering saves to a temporary file and replaces the output. Failed imports
-  attempt to remove their partial folder. This is not a guarantee for the legacy writers.
-- Template generation validates and repairs once; unusable imported layouts return a
-  `hard_stop` result. Freeform generation has a different retry; manipulation has none.
-- Freeform and legacy manipulation omit a format constraint; template generation explicitly
-  disables JSON mode. Manifests use frozen pydantic models.
-- Styling-keyword rejection occurs before legacy DOCX/PPTX manipulation I/O. It does not
-  establish a supported selective-editing or formatting-preservation contract.
-- Upload and backup destinations depend on basenames; different source files can collide.
-- Logging is intended to contain metadata only. Error messages, filenames, and paths can
-  carry confidential values. The privacy gaps in project status remain unresolved.
-- Legacy DOCX/XLSX edits reconstruct documents; PPTX edits preserve the theme but rebuild
-  slides. New requirements supersede accepting that loss, not the unchanged code.
-- `Settings.templates_dir` is the shared GUI/CLI template root. The legacy APPDATA template
-  root is retired, with a CLI migration notice for remaining templates there.
+Before engine work explicitly read its CLAUDE.md and NOTES.md. Consult PROJECT_STATUS.md
+for known defects; passing old tests does not negate reproduced behavior.
 
 <!-- MANUAL:END -->
 
@@ -102,6 +73,7 @@ docs/
             2026-06-01-phase-i-prompt-builder.md
             2026-06-02-phase-j-pipeline.md
             2026-06-02-phase-k-gui-integration.md
+            2026-10-08-first-release-extraction.md
         specs/
             2026-05-29-phase-h-renderer-design.md
             2026-06-01-phase-i-prompt-builder-design.md
@@ -1224,15 +1196,15 @@ requirements.txt
 
 - .github/workflows/build.yml: yml, 47 lines
 - .gitignore: text, 84 lines
-- AGENTS.md: md, 183 lines
+- AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 40 lines
-- CLAUDE.md: md, 183 lines
+- CHANGELOG.md: md, 39 lines
+- CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- PRD.md: md, 150 lines
-- README.md: md, 114 lines
-- SECURITY.md: md, 23 lines
+- PRD.md: md, 123 lines
+- README.md: md, 83 lines
+- SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
 - assets/icons/simplicitor_16.png: png (binary)
@@ -1243,14 +1215,14 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 106 lines
+- docs/PROJECT_STATUS.md: md, 42 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
 - docs/Simplicitor_UI_Fixes_Round2.md: md, 144 lines
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
-- docs/code-signing.md: md, 56 lines
+- docs/code-signing.md: md, 37 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
@@ -1261,6 +1233,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 168 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1269,8 +1242,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 141 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 75 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 86 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 39 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines
 - requirements-dev.txt: txt, 3 lines

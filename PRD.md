@@ -1,150 +1,123 @@
 # Simplicitor product requirements
 
-Updated 2026-10-08. Approved product direction; the installer and selective editing workflow are not implemented yet.
+Updated 2026-10-08. Alex's revised decisions supersede the earlier Office-backed proposal. This file owns requirements. [Project status](docs/PROJECT_STATUS.md) owns implementation state and open decisions; [architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) and the [first-release plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md) describe implementation.
 
-## Purpose and audience
+## Purpose
 
-Simplicitor is a free Windows desktop application for nontechnical people who already have Ollama and a usable local model. It creates confidential Word, Excel, and PowerPoint documents from prompts or supplied source files, and selectively edits approved parts of existing documents while preserving the rest.
+Make local AI useful for confidential documents without scripts or agent configuration. General document creation and selective editing remain the longer-term identity. The first release adds structured extraction into Excel; contracts and invoices are examples, not a restriction to accounting.
 
-Users should work with files and instructions, without configuring an agent harness, writing scripts, or learning model parameters. Sales staff, accounting staff, and privacy staff are representative users. Simplicitor does not make a GDPR compliance guarantee.
+## Workflow scope
 
-The first release in this direction assumes Ollama, a usable local model, and the Microsoft Word, Excel, and PowerPoint desktop applications are already installed. Alex confirmed the desktop Office prerequisite on 2026-10-08. Detect and explain missing or unusable prerequisites; do not bundle Office or build model installation or management into this scope. No specific model, minimum hardware profile, or replacement agent harness has been selected. Requiring Office does not establish that the proposed automation or preview integration works.
+This is the single workflow table. Other documents link here.
 
-## Current implementation and requirements authority
-
-The v1.2 source has Create and Edit panels, local Ollama integration, Office generators, and a manifest-driven PowerPoint template engine. Its legacy Edit path extracts text and reconstructs files. It does not provide target selection, a draft preview, approval before publication, or verified preservation of unselected content.
-
-The current build produces an unsigned Nuitka onefile executable. The agreed installer and portable ZIP are future deliverables. Documentation of a requirement is not evidence that the application meets it.
-
-This file governs the new product requirements. [The archived v1.2 PRD](docs/archive/PRD_v1.2.md), `docs/Simplicitor_PRD_v1.2.docx`, and [the original implementation guide](docs/Simplicitor_Implementation_Guide.md) remain historical references. New user decisions supersede historical scope restrictions. [Project status](docs/PROJECT_STATUS.md) records implementation evidence and remaining decisions.
-
-## Three agreed workflows
-
-Alex confirmed these workflows on 2026-10-08. They share two main UI modes; source-based creation does not introduce a third mode.
-
-| User action | Workflow |
+| Workflow | Release scope |
 |---|---|
-| Create new, with a prompt | Generate a document from the instructions. |
-| Create new, with a prompt and source files | Read the sources and create a new document using their information. |
-| Edit document | Modify approved parts of an existing document. |
+| Existing prompt-only Create | Preserve existing behavior. |
+| Existing PowerPoint template creation | Preserve existing behavior. |
+| Create new from DOCX and text-layer PDF sources into XLSX | The only new workflow in the first release. |
+| Selective editing of DOCX, XLSX, PPTX | Next milestone after extraction; preservation contract below. |
+| XLSX-to-DOCX reporting | Post-first-release; blocked on the closed operation set below. |
+| Local OCR/vision for scanned PDFs | Separate post-first-release milestone. |
 
-All three workflows produce a separate candidate for review and approval before saving a new output. Prompt-only generation exists in v1.2; source-based creation and the common candidate-review workflow are requirements, not implemented features. The [architecture proposal](docs/superpowers/specs/2026-10-08-document-architecture-design.md) describes how to reuse the existing engines.
+First-release prerequisites are Windows, local Ollama, and a usable local model. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; the new output is XLSX only. Existing Create does not acquire a new approval pipeline.
 
-## Creation workflow
+A separate v1.2 safety patch must disable legacy Edit or prevent destructive failures. The plan selects disabling the UI and worker entry points until selective editing replaces them. Do not rewrite legacy manipulation while implementing source readers.
 
-1. Describe the required document and choose its output type.
-2. Optionally attach local source files. Source inputs are read-only and distinct from an Edit document target.
-3. Inspect the sources and confirm the relevant content, worksheets, tables, ranges, and reporting period when needed. Ask a focused question if ambiguity would materially change the result.
-4. Extract typed information locally. Compute requested totals, differences, percentages, or other supported measures deterministically using code or Excel. The model explains and organizes the resulting evidence.
-5. Generate a separate candidate using the existing output engines, validate it, and preview the saved document.
-6. Review the content, numerical evidence, source references, and layout, then approve that candidate and save a new output. Sources remain unchanged.
+## First-release UI
 
-The required cross-format example is an accounting XLSX workbook used to create a DOCX report. Preserve text identifiers and distinguish raw inputs, formula expressions, calculated values, missing values, and stale calculation results. Do not invent missing rates, currencies, dates, or amounts. Retain traceability from reported figures to source snapshots, worksheet/range references, and calculations, using source labels rather than exposing absolute paths in reports by default. Grounding and validation do not replace review of the model's narrative.
+Create new is the default mode. Edit document is not shown. Preserve existing prompt-only creation and PowerPoint templates. The extraction route collects sources, a request, confirmed columns, and a record mode.
 
-The reverse direction is also required: create an XLSX from a large DOCX or PDF source. PDF is a read-only source format; this does not add PDF editing or write-back. The user describes the fields to extract, such as contract number, parties, dates, currency, and amounts. Propose or confirm the columns, types, and what one row represents before extraction when the request is ambiguous. Extract from narrative passages as well as tables, retaining the relationships between fields and records.
+Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data cells; selecting a cell shows its proposed value, quote, source anchor, and issue. Show coverage issues separately. Changing sources, columns, mode, or request invalidates the candidate and approval. No PDF preview is needed.
 
-Process the complete selected source scope in bounded sections with coverage accounting. Reconcile records and tables that continue across sections or pages, handle repeated headers, and avoid introducing duplicate rows from overlapping processing. Preserve genuine repeated records. Each output record must retain traceable source references; important fields need supporting evidence. Show missing, ambiguous, contradictory, or unreadable values for review rather than inventing them. Preserve text identifiers and original date/number evidence; normalization must follow confirmed types, locale, and units. Write extracted text as literal Excel values rather than activating formulas or links embedded in source or model text.
+## Source reading and anchors
 
-Inspect PDFs at page/region level and use reliable existing text layers where available. Scanned, image-only, or mixed content without usable text requires a local OCR or local vision path, with an engine and support envelope still to be selected and tested. Until it is available, report affected pages/regions and block a claim of complete extraction; never treat unreadable content as empty or use cloud OCR. Review the candidate Excel grid with source passages/page references and coverage before approval. Original Word/PDF inputs remain unchanged.
+Reuse python-docx and pdfplumber, and pypdf where suitable within its existing dependency. Start from the reading logic in simplicitor/app/services/file_manipulator.py, but put new readers in an independent small module. Return structured units, not a joined string. Source reading never calls _truncate and never changes supplied files.
 
-Large sources must be inspected and processed within an explicit scope. Deterministic extraction and aggregation may cover more rows than fit in a model prompt. Do not silently truncate relevant records, omit material information, or treat a partial report as complete. Narrow the scope or report a limitation when the request cannot be supported.
+Read DOCX body paragraphs and tables in document order, retaining stable indices including empty units. Anchor body paragraphs as source_id#p:index and table cells as source_id#t:table:r:row:c:cell, with zero-based indices. Read physical cells once where merged cells have aliases. Disclose body scope and flag ambiguous or unsupported structure instead of claiming whole-document coverage.
 
-Source-based creation is local document work, not persistent indexing or a RAG system. Define supported source formats, Office features, and input/output combinations before claiming coverage. The three workflows do not imply that every format conversion is already supported.
+Anchor PDF page text as source_id#page:number, with one-based page numbers. Where tables are found, use source_id#page:number:t:table:r:row, with zero-based table/row indices. Retain table cells and header structure. Source IDs are unique within a job and bound to snapshot hashes, not just filenames.
 
-## Representative workflows
+Inspect every PDF page's extracted non-whitespace character count against the proposed threshold below. List zero/near-zero-text pages in review and Evidence; never presume they are empty. They block a claim of complete extraction. A fully unreadable source fails preflight; partially readable output needs explicit acknowledgement of incomplete coverage. This screen does not certify reading order or recognize image-borne text on otherwise text-bearing pages.
 
-| User | Input and requested change | Content to preserve |
-|---|---|---|
-| Sales | Adapt specified customer details and passages in a proposal. | Unselected terms, tables, branding, and embedded assets. |
-| Accounting | Check a contractor timesheet against a supplied billing period and rates; propose corrections to specified entries. | Personal IDs, their associations, leading zeroes, unselected cells, formulas, and workbook structure. |
-| Privacy | Revise specified policy passages or replace identified personal information. | Unselected text, document structure, and supported formatting. |
+## Records and sectioning
 
-Accounting calculations must use deterministic code and supplied data. The model can interpret headings and explain discrepancies. Missing rates, ambiguous matches, or incomplete inputs must remain visible rather than being invented. The full timesheet reconciliation workflow is a use case to design, not an implemented feature or an expansion of the first editing slice.
+Support two record modes:
 
-## Selective editing workflow
+- One record per file, the main case. Each attachment defines a row, even when files contain identical text. The known file record can accumulate fields across sections; discovering multiple implicit narrative records is deferred.
+- One record per table row, including continued tables and repeated headers across pages. Use confirmed header/column mappings. Carry pending incomplete rows across section boundaries; flag ambiguous continuations rather than guessing a merge.
 
-1. Open a local source file without overwriting it or a different file with the same name.
-2. Identify and confirm exact editable targets. The application may suggest targets, but ambiguous selections require clarification.
-3. Describe the modification. The model proposes replacement content for the confirmed targets.
-4. Validate the proposal and apply it to a separate candidate file using deterministic document operations.
-5. Reopen and validate the saved candidate. Show the changed targets, before and after values, and a preview of the candidate.
-6. Obtain approval for that candidate version and save a new output version. Further changes require another review.
-7. Preserve the source on rejection, cancellation, malformed model output, stale targets, or write failure.
+Split only at paragraph, table-row, or page boundaries, with no overlap. Carry open record state and anchors forward. Do not split a table row's cell units across sections. There is no record-deduplication requirement. Field conflicts still require review; repeated headers are structure, not records. Consume the mode's page or table view without submitting duplicate representations.
 
-Context needed to interpret a target may be read locally. Permission to read context does not authorize changing it. Show the scope of a requested edit and stop if the source changed after inspection.
+Track every selected unit as processed, structurally excluded, or failed, with a reason. An oversized unit or failed section produces a visible coverage issue, never truncation. Code enumerates record identities from files/table rows; model output cannot silently remove them.
 
-## First editing slice
+## Columns and grounding
 
-| Format | Initial operation | Boundaries |
-|---|---|---|
-| Word `.docx` | Replace selected plain text within a supported paragraph or text span. | Preserve unselected content and supported styles; define the rich-text support envelope before implementation. |
-| Excel `.xlsx` | Replace selected literal cell values. | Preserve cell types and identifiers, unselected formulas, styles, sheets, and supported workbook objects. |
-| PowerPoint `.pptx` | Replace selected text within an existing supported text shape or span. | Preserve unselected shapes, slides, layouts, themes, and assets. |
+Confirm names, descriptions, and types before extraction. Proposed initial types are text, integer, decimal, and date. Numeric separators and ambiguous date order require explicit interpretation. Text identifiers remain text; missing values differ from zero.
 
-Formula modification, row or column insertion, new slides, chart updates, and layout redesign are outside this first slice. Each needs defined targets and preservation checks before inclusion. Existing generation features, including PowerPoint templates, remain available independently of selective editing.
+For every field the model returns value, quote, and anchor. Its value is a nullable string so code owns type conversion. Code verifies that:
 
-Do not rebuild an entire document from extracted text to implement a selective edit. Reject unsupported features or operations before publishing a candidate. Library support alone does not prove preservation.
+1. The anchor belongs to an allowed unit of the record's source snapshot.
+2. The verbatim quote occurs in that unit after whitespace normalization only.
+3. The value derives from the quote under the confirmed type: a literal text substring, a finite number under the confirmed numeric grammar, or a date under the confirmed date grammar. No inferred arithmetic, unrelated-unit joining, or invented normalization is allowed.
 
-## Preservation and review
+Build JSON schema from confirmed columns and permitted record IDs; pass it through OllamaClient.generate(output_format=...). Validate the response again in code. Do not bypass a schema failure with unconstrained prose. Model/source text cannot execute commands or formulas.
 
-For supported inputs, only approved targets may change. Compare unselected content, formulas, formatting, relationships, and embedded assets before and after. Do not require a byte-identical ZIP container; define the permitted package and metadata changes as part of each format's support envelope.
+Missing fields, invalid schema, unknown anchors, unsupported conversions, conflicting values, and failed grounding remain present and flagged. Preserve the requested record/column roster. Grounding proves evidence consistency, not semantic correctness: an invoice date used as a due date can pass literal checks. The labelled evaluation gate must catch unflagged semantic errors.
 
-Longer text can change Word pagination or overflow PowerPoint shapes even when styles survive. The preview must expose those effects. Unsupported features and preservation failures must produce actionable errors, without a success message or published output.
+## Workbook and publication
 
-Source and candidate identity must not depend only on a filename. Keep same-named files distinct. Version and retention rules are still to be designed; do not treat the current `_backup` filename convention as a safe identity mechanism.
+Use openpyxl for a new candidate, not ExcelGenerator._coerce_value. Type grounded values from the confirmed schema. Reject non-finite numbers and unapproved grammars. Do not coerce identifiers, NaN, inf, or 1_000 merely because Python accepts them.
+
+Data has one row per known record and the confirmed columns. Flagged fields remain present as highlighted blank cells; Evidence retains their proposed values. Evidence columns are record, field, value, quote, source anchor, status, and issue. Record references identify the corresponding Data row and stable record ID; source references include a readable file label and anchor without absolute paths. Coverage issues are distinguished from model-derived fields. Every Data cell resolves its Evidence entry.
+
+Force text cells to string type after assignment, including text/quotes beginning with =. Do not activate formulas or hyperlinks from source/model text. Reopen the saved workbook and verify types, records, evidence, and flags before review. Cell-length, unsafe numeric-precision, and control-character violations fail visibly; values and evidence are never silently clipped or rounded to fit Excel.
+
+Keep immutable source units in memory and candidates in a private local application-data job directory with unique identity. Publish only the exact approved candidate after checking its hash and observed source changes. Destination collisions fail without replacement; write failures cannot publish partial outputs or emit success. Exporting flagged/incomplete output requires acknowledgement and retains its issues in Evidence.
+
+Clean owned temporary files on normal save/discard/close after worker/reader handles close. After a crash, never automatically publish an orphan; offer removal of identified owned job directories. Never delete arbitrary directories or follow reparse points outside the workspace.
+
+## Proposed limits and evaluation gates
+
+All numbers and profile choices here are proposals for Alex's approval, not measured performance. After approval, runtime constants and the evaluation manifest trace to this section.
+
+| Measure | Proposal and definition |
+|---|---|
+| Maximum source size per job | 300 pages total. PDF uses actual pages. DOCX uses max(1, ceil(extracted_characters / 3000)) page equivalents per file, including body paragraph/table text. Display estimates; do not trust stale DOCX page metadata or require Office pagination. |
+| File/allocation protection | 50 MiB per input file, 100 MiB input bytes per job, 100 MiB declared uncompressed DOCX package content per file. Reject excess before expensive processing; never truncate. |
+| PDF near-zero threshold | Fewer than 40 non-whitespace extracted characters per page. Retain counts/reasons for review. |
+| Model request budget | Up to 8000 UTF-8 source bytes per structural section, plus a request/schema/carry-state budget check. Oversized units fail visibly. Initial profile: context 16384, output 4096 tokens, temperature 0, seed 0, HTTP timeout 180 seconds. Freeze a supported model-specific thinking setting before scoring. |
+| Labelled fixtures | About 20 synthetic DOCX/text-PDF documents with at least 200 scored field slots across both record modes, contracts, and invoices. Include missing fields, competing dates, formula-like strings, and continued tables. |
+| Field accuracy | At least 95% correct final Data values under confirmed types. Missing records/fields count as incorrect except labelled absent values. Flagging does not make a wrong value correct. |
+| Wrong-value visibility | 100% of incorrect slots must be flagged or fail grounding: zero unflagged incorrect fields on the fixture set. Flags come from extraction/validation, never scoring labels. Report wrong-value counts even when zero. |
+| Review burden | Report flag rates for correct values and expected missing values separately. Flagging everything is not a usability pass. |
+| Time per page | Measure cold-start and warm p50/p95 seconds per PDF page or DOCX page equivalent on B1 for each named model/configuration. Fix and approve the selected configuration's numeric target after measurement; none is claimed yet. |
+
+Locally discovered candidate models: qwen3.8:27b (Q4_K_M), qwen3.6:27b (Q4_K_M), and gemma4:12b-it-q8_0 (Q8_0). [Project status](docs/PROJECT_STATUS.md#benchmark-environment) defines B1. Record model digests, runtime versions, configuration, errors, and timings in the evaluation report.
+
+Evaluate models before extraction UI. If none passes both quality gates, stop and report; do not lower thresholds or proceed to UI. Early model-only evaluation can use independently authored canonical fixture units before production readers exist. The selected configuration must pass again on actual fixture files and the production sectioner before writer/UI work.
 
 ## Privacy and failure behavior
 
-- Document inference and processing stay local. No cloud fallback, remote OCR, remote preview service, or automatic upload of documents.
-- Confirm that Ollama uses a local model; a localhost endpoint alone is not sufficient proof of local inference.
-- Keep client data, prompts, model responses, and sensitive identifiers out of tracked files and diagnostic logs. Review filenames, paths, exception messages, and HTTP error bodies for content leakage.
-- Define storage and retention for sources, candidates, previews, and backups. Disclose those local copies.
-- Use synthetic or suitably sanitized fixtures for development and tests.
-- Keep long operations off the UI thread. Show progress and actionable errors, retain user instructions after failure, and never report success after a failed downstream write.
+Processing stays local with a confirmed local model and local-only runtime configuration. No cloud fallback or remote OCR. Keep contents, prompts, responses, quotes, identifiers, and sensitive paths out of diagnostics. Use synthetic fixtures, never client records.
 
-The existing implementation has privacy and file-safety gaps recorded in project status. They remain unresolved by this documentation update.
+Use existing QObject/QThread patterns. Retain requests after failure, prevent duplicate jobs, and check cancellation between units and model calls. Cancellation is cooperative while blocking HTTP completes or times out; do not claim immediate cancellation or kill QThreads. Cancelled jobs cannot publish.
 
-## Packaging and distribution
+## Packaging
 
-The approved route is a zero-cost direct download, with no Microsoft Store registration or purchased signing service.
+Use the existing Nuitka/PySide6 foundation, a standalone payload, NSIS installer, and portable ZIP. Distribute through GitHub Releases and simplicitor.com. No Microsoft Store or paid signing. Customers need no Python, Office, OCR runtime, or agent configuration for the new workflow.
 
-- Build a standalone Nuitka application with its runtime dependencies and resources bundled.
-- Produce a conventional NSIS installer as the main download, with per-user installation, shortcuts, and an uninstaller.
-- Evaluate Nuitka 4.2 or newer's built-in NSIS installer support before adding a separate packaging script. Choose and verify the build version during implementation.
-- Offer a portable ZIP of the same standalone payload as a secondary download.
-- Use GitHub Releases for artifacts and `simplicitor.com` as the download entry point.
-- Preserve documents and settings during upgrade and uninstall; any data-removal option must be explicit.
-- Keep releases unsigned unless a separately approved zero-cost signing route becomes available. Self-signing is not a public trust solution.
+Preserve settings, templates, and user documents during upgrades/uninstall. Unsigned artifacts can still warn or be blocked; investigate the reported block and test default Windows protection without disabling it. [Packaging procedures](docs/code-signing.md) may progress alongside feature work, subject to the model stop gate.
 
-An installer does not guarantee removal of SmartScreen warnings or antivirus blocks. Identify the actual block and test release artifacts with default Windows security settings. Do not ask users to disable protection. Full packaging details and official references are in [Packaging and distribution](docs/code-signing.md).
+## Post-first-release requirements
 
-## Acceptance checks
+Selective editing is the next milestone after extraction. Confirm exact targets, patch a separate candidate, and review before publication. Apply edits directly to OOXML parts: w:t, a:t, cell values, and shared strings. Every unedited package part's bytes remain identical; edited parts differ only at approved target nodes. Define shared-string alias handling so a selected cell edit cannot affect other cells using that entry. Do not rebuild or broadly reserialize unrelated content.
 
-1. A nontechnical user with working local Ollama and desktop Microsoft Office can install and launch without Python, a terminal, or agent configuration. Missing prerequisites produce actionable messages.
-2. Installer launch, application launch, local model and Office connection, upgrade, and uninstall pass on clean Windows test environments with the stated prerequisites. Record the tested versions and any security warning or block.
-3. Installer and portable ZIP contain the same tested application resources and work independently of a development checkout.
-4. Exact targets and original values are validated. Ambiguous, stale, or unsupported edits cannot silently proceed.
-5. Approved replacements are correct, and preservation fixtures show that unaffected content, formulas, styles, media, and relationships survive.
-6. IDs with leading zeroes remain text with the same identity and associations. Calculations use supplied inputs and deterministic computation.
-7. The candidate opens in Microsoft Office without a repair prompt, and preview identifies relevant reflow or overflow.
-8. Approval applies to the reviewed candidate version. Failure, rejection, or cancellation does not change the original or publish incomplete output.
-9. Network and logging checks show local processing and no document-content leakage for the tested configuration.
-10. Existing generation and template behavior remains covered by regression checks.
-11. Prompt-only creation, creation from source files, and selective editing all use candidate validation, preview, approval, and saving of a new output. Read-only source attachments never gain edit permission.
-12. An accounting XLSX can produce a reviewed DOCX report with correct supported calculations, traceable figures, and unchanged sources. Ambiguous periods, missing data, stale results, and incomplete coverage are visible rather than invented or silently omitted.
-13. Large DOCX and PDF sources can produce a reviewed XLSX with the agreed columns, record boundaries, types, source references, and complete declared coverage. Check narrative and table extraction, multipage records, repeated headers, chunk boundaries, identifiers, dates, amounts, uncertain fields, and scanned/mixed PDF handling. Unsupported OCR content cannot silently disappear from the result.
+Office COM is reserved for later PDF preview export and Excel recalculation on disposable copies. It is not the editing backend, and COM-saved copies cannot replace preserved patched output. Feature support and allowed node changes need a later design.
 
-## Decisions still needed
+XLSX-to-DOCX reporting is blocked on a closed operation set: sum, count, average, difference, and percent, filtered by period or group over a confirmed range. The model selects a structured query; code validates and executes it. Do not build reporting before that contract exists.
 
-- Office integration and preview technology, fidelity expectations, and supported Office versions. Installed desktop Office is required initially; this prerequisite is no longer an open decision.
-- Supported rich-text and Office feature envelopes for each editing format.
-- Supported source-ingestion features and input/output combinations, numerical evidence validation, calculation/recalculation rules, and handling of large or incomplete sources.
-- DOCX/PDF extraction schemas and provenance, record reconciliation, text-layer quality checks, and the local OCR/vision engine and tested scanning support envelope.
-- Candidate naming, version identity, storage, retention, and cancellation behavior.
-- Tested model/runtime combinations and practical hardware requirements.
-- Exact Windows or antivirus detection blocking the current executable.
-- License terms that permit the intended business use. The existing PolyForm Noncommercial license remains unchanged until Alex decides otherwise.
+OCR/vision, scanned/mixed-PDF recognition, and discovery of multiple narrative records across sections are later milestones. PDF write-back, general agents, RAG/indexing, model management, cloud services, and other platforms remain outside this release.
 
-## Work outside this scope
+## License decision
 
-A general-purpose agent, a chat platform, persistent agent memory, a RAG system, model management, cloud services, plugins, batch automation, automatic updates, PDF write-back, and Mac/Linux support are not part of the agreed first scope. Any expansion requires an explicit user decision. Packaging and selective editing are separate implementation workstreams; approving these documents does not authorize publication or unrelated features.
+PolyForm Noncommercial conflicts with the business audience. Alex owns this decision. Leave LICENSE and existing rights unchanged; free distribution does not imply business-use permission.
