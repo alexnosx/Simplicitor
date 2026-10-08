@@ -37,6 +37,8 @@ The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 pl
 
 ## Requirements
 
+A GPU with 8 GB VRAM is recommended, not required or checked.
+
 See [release prerequisites](PRD.md#workflow-scope) and the [model evaluation requirements](PRD.md#limits-and-evaluation-gates). For the existing application, start Ollama locally and pull a model with `ollama pull <model>`.
 
 ## Generate from a template (PowerPoint)

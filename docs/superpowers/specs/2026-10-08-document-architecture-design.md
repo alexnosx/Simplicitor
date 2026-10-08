@@ -1,118 +1,105 @@
 # Simplicitor first-release architecture
 
-[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns implementation state and the recorded benchmark machine. Exact interfaces and execution checks belong to the [single plan](../plans/2026-10-08-first-release-extraction.md). This revision follows Alex's review of f565f81.
+[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [single plan](../plans/2026-10-08-first-release-extraction.md) owns signatures and checks. This revision follows Alex's review of a1cd16f.
 
 ## Structure
 
-Keep the Python/PySide6 application and existing Create/template engines. Add a small plain-Python extraction package with a Qt worker adapter. The same worker can inspect sources, propose columns, and extract using frozen confirmed settings; these are separate actions. Existing generation keeps its current workers.
+Keep Python/PySide6 and existing Create/template workers. Add a small plain-Python extraction package and one Qt adapter for source inspection, column suggestions, and extraction.
 
 ~~~mermaid
 flowchart TD
     UI[Create workspace] --> OLD[Existing Create and template workers]
     UI --> WORKER[Extraction QObject worker]
-    WORKER --> READERS[Anchored source readers]
-    READERS --> PROPOSE[Model proposes columns from first source]
-    PROPOSE --> CONFIRM[User edits and confirms columns]
-    CONFIRM --> CORE[Sectioned extraction and grounding]
-    CORE --> MODEL[Existing OllamaClient]
-    CORE --> WRITE[Dedicated XLSX candidate writer]
-    WRITE --> GRID[Saved workbook grid and evidence]
+    WORKER --> READERS[Anchored DOCX and PDF readers]
+    READERS --> COLUMNS[Suggest and confirm columns]
+    COLUMNS --> PIPE[Sectioned extraction and grounding]
+    PIPE --> OLLAMA[Existing OllamaClient]
+    PIPE --> XLSX[Data and Evidence workbook]
+    XLSX --> GRID[Saved workbook grid]
     GRID --> SAVE[Native Save As and staged copy]
 ~~~
 
-The extraction core has no Qt dependency. Code enumerates one record per attachment, with a job-local ID independent of its filename. Source snapshots stay in memory during a run.
+The core has no Qt dependency. Readers open sources read-only, close handles, and retain extracted units rather than uploaded file copies. Code owns one record per attachment, identified independently of filename.
 
 ## Module responsibilities
 
-| Path proposed for implementation | Responsibility |
+| Proposed path | Responsibility |
 |---|---|
-| simplicitor/extraction/models.py | Column, source, file-record, proposal/result, issue, section, profile, candidate, and review-cell contracts; JSON schema builders. |
-| simplicitor/extraction/grounding.py | Whitespace-normalized quote matching and deterministic English typed derivation. |
-| simplicitor/extraction/source_readers.py | Independent DOCX/PDF readers adapted from legacy primitives, with anchors, limits, and coverage. |
-| simplicitor/extraction/sectioning.py | Non-overlapping structural sections and file-record carry state. |
-| simplicitor/extraction/pipeline.py | Column proposals, confirmed-schema calls, validation/merging, coverage, and cancellation. |
-| simplicitor/extraction/xlsx_writer.py | Data/Evidence writing and reading the saved candidate for grid review. |
-| simplicitor/extraction/jobs.py | One candidate per app-data job, staged Save As copying, source-path refusal, and age-based cleanup. |
-| scripts/evaluate_extraction.py | Independent labels, model eligibility, aggregate scoring, and optional informational timings. |
-| simplicitor/app/workers/extraction_worker.py | QObject/QThread adapter around core actions. |
-| simplicitor/app/widgets/extraction_panel.py | Sources, request, proposed-column editor, progress, grid/evidence, and Save As. |
+| simplicitor/extraction/models.py | Small shared source, column, field, issue, result, and candidate contracts; response schema. |
+| simplicitor/extraction/source_readers.py | DOCX/PDF reading adapted from legacy primitives, with stable anchors and coverage. |
+| simplicitor/extraction/grounding.py | Source quote matching, literal value-in-quote check, then English type conversion. |
+| scripts/evaluate_extraction.py | Actual-file evaluation with direct Ollama HTTP calls, independent labels, and aggregate scoring. |
+| simplicitor/extraction/sectioning.py | Non-overlapping structural sections for large production inputs. |
+| simplicitor/extraction/pipeline.py | Column proposals, sectioned calls, field accumulation, issues, and cancellation. |
+| simplicitor/extraction/xlsx_writer.py | Dedicated typed/literal workbook writing and saved-grid data reading. |
+| simplicitor/extraction/jobs.py | Candidate folder, Save As copying, source-path refusal, and age-based cleanup. |
+| simplicitor/app/workers/extraction_worker.py | QObject adapter for core actions. |
+| simplicitor/app/widgets/extraction_panel.py | Sources, request, column editor, saved grid/evidence, and Save As. |
 | simplicitor/app/widgets/create_workspace.py | Host extraction and the existing CreatePanel. |
 
-Reuse existing document libraries and the Ollama client. Shared configuration belongs in simplicitor/app/config/defaults.py. The legacy manipulator stays available to existing tests and template exception imports; new readers do not depend on it.
+Reuse declared document libraries. Configuration stays in defaults.py. The legacy manipulator remains for its tests and template exception imports; new readers are independent.
 
 ## Source reading and sectioning
 
-Adapt _extract_docx/_extract_pdf into an independent reader module, without their joined-string/truncation contract. Read immutable bytes after allocation checks.
+Adapt _extract_docx/_extract_pdf into structured readers without truncation. DOCX body paragraphs use source_id#p:index; cells use source_id#t:table:r:row:c:cell with zero-based indices including empty units. Traverse paragraphs/tables in document order and enumerate physical cells once. Report unsupported structures.
 
-DOCX body paragraphs use source_id#p:index; cells use source_id#t:table:r:row:c:cell, with zero-based structural indices including empty units. Read body paragraphs/tables in document order. Read each physical cell once when library views alias a merged cell; this is unit enumeration, not row continuation or record discovery. Flag unsupported structures rather than pretending whole-document coverage.
+PDF page text uses source_id#page:number with one-based page numbers. Call each pdfplumber page's extract_text(); retain page counts and zero/near-zero-text issues. File mode needs no PDF table extraction.
 
-PDF page text uses source_id#page:number with one-based page numbers. Call page.extract_text() on each pdfplumber page; no PDF table detector or alternate table view is required. Retain page counts and unreadable-page issues.
+record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sections split at paragraph, DOCX table-row, or PDF page boundaries without overlap. Carry the file's accumulated values/anchors; retain agreeing evidence and flag conflicts. Oversized indivisible units become coverage issues.
 
-Known record_id equals source_id. Same-named and identical-content files keep separate IDs and rows. Sections split only at paragraph, DOCX table-row, or PDF page boundaries, without overlapping source text. Keep a DOCX row's anchored cells together. Carry verified partial file fields/anchors across sections; agreeing values retain the first evidence and conflicts stay flagged. An oversized indivisible unit fails visibly. No record-deduplication subsystem is needed.
+## Implementation settings
 
-## Proposed implementation limits
-
-These are implementation proposals reviewed with the plan, not PRD requirements or measurements. Store accepted settings once in defaults.py and reference them from the evaluation manifest.
+Review these proposals with the plan and store accepted values once in defaults.py.
 
 | Setting | Proposal |
 |---|---|
-| DOCX page-equivalent accounting | max(1, ceil(extracted_body_characters / 3000)) per file, including supported table cells. Display estimates; do not use stale DOCX pagination metadata. |
-| Allocation limits | 50 MiB per input file; 100 MiB input bytes per job; 100 MiB declared uncompressed DOCX package content per file. Check before expensive work. |
+| DOCX page equivalents | max(1, ceil(extracted_body_characters / 3000)) per file, including supported table cells. Display estimates. |
+| Input file limit | 50 MiB per file. The aggregate page limit belongs to PRD.md. |
 | PDF near-zero text | Fewer than 40 non-whitespace extracted characters per page. |
-| Structural section budget | Up to 8000 UTF-8 source bytes, plus a conservative schema/request/carry-state context check. Reject oversized units without cutting text. |
-| Generation profile | num_ctx=16384, num_predict=4096, temperature=0, seed=0, HTTP timeout=180 seconds. Freeze supported thinking settings per model before scoring. |
-| Fit accounting | Interpret the supported 8 GB GPU class as 8 GiB (8192 MiB) for measured allocation checks. Record bytes as well as MiB. |
-| Runtime setup for fit runs | One loaded candidate, one concurrent request; record Ollama parallelism, Flash Attention, and KV-cache type. Start with f16 KV cache; any alternative must be frozen and reevaluated. |
+| Production section budget | Up to 8000 UTF-8 source bytes, with room for schema and carried fields in the request context. Oversized units fail visibly. |
+| Request settings | num_ctx=16384, num_predict=4096, temperature=0, seed=0, think=False, HTTP timeout=180 seconds. |
 
-The timeout bounds a failed request; it is not a speed acceptance target. Proposal input uses the first source's leading complete structural units within the same budget, explicitly labelled a sample. Large first sources are still read fully for subsequent extraction. An empty/unreadable sample fails visibly; source content is never silently discarded from extraction.
+The early fixtures fit whole in one request and do not use sectioning. Production column suggestions use the first source's leading complete units within the request budget, labelled a sample; extraction still covers all supported units.
 
-## Model profile and fit check
+## Model requests
 
-Initial eligible candidates to test are [qwen3:8b-q4_K_M](https://ollama.com/library/qwen3:8b-q4_K_M) and [llama3.1:8b-instruct-q4_K_M](https://ollama.com/library/llama3.1:8b-instruct-q4_K_M). These are registry-verified tags/quantizations, not verified fits or quality results. Record local digest and /api/show details on the actual run.
+[PRD.md](../../../PRD.md#limits-and-evaluation-gates) names the evaluation candidates and reference-only policy. The selected-model parameter-size lookup uses existing /api/show metadata parsing. It drives the product warning and the evaluation candidate-size rule; no other hardware/model validation is added.
 
-For each candidate, load and exercise the exact generation profile above on B1, including a near-budget request. Inspect /api/ps for the matching digest: require context_length to match num_ctx, positive size, size_vram equal to size, and reported running allocation within the fit ceiling above. Missing fields, a different context, CPU offload, or an over-budget allocation makes it ineligible. Record observed process GPU allocation/headroom alongside the API snapshot; if the runtime's size accounting cannot establish weights plus KV-cache fit, report eligibility unverified. A small download alone is insufficient evidence.
+Task 1's CLI calls /api/generate directly through requests.Session with trust_env=False and a loopback URL check. It submits all anchored units of each fixture in one request, with confirmed fixture columns and a JSON response schema. Thinking is always off.
 
-B1 has more VRAM than the support minimum. Loading wholly onto B1 alone is insufficient: the measured footprint must also satisfy the minimum-class budget. Record runtime versions, weight quantization, KV-cache type, parallelism, context, and thinking settings; do not change them between fit verification and scoring. Accuracy is evaluated on that configuration, not inferred from B1's GPU or a larger model.
+Task 3 adds optional options, think, and local_only arguments to OllamaClient.generate while preserving existing callers. Extraction calls use output_format for schema, think=False, and local_only for the same loopback/trust_env=False transport. Column suggestions use these same settings. Diagnostics contain aggregate metadata and short errors, not document content or raw response bodies.
 
-Optional reference runs may use the previously discovered qwen3.8:27b/Q4_K_M, qwen3.6:27b/Q4_K_M, and gemma4:12b-it-q8_0/Q8_0. Mark reference-only in the report and exclude them from configuration selection regardless of score. Follow the PRD stop gate when eligible models fail.
+## Grounding and conversion
 
-For the product warning, query the selected model's /api/show details, reuse existing metadata parsing, and handle unknown size explicitly. Selection changes must request that model's metadata even if a different model is loaded. Do not infer size from a tag or convert this warning into a generation block.
+Check the anchor against the file's extracted units and match the quote after whitespace normalization. Then require the model value to be a literal, case-sensitive substring of its quote for every type. Do not normalize the model value before this check. Code converts the verified span using confirmed English numeric/date settings; conversion failure retains the proposal as flagged text.
 
-## Model and grounding boundary
+Test quotes with currency symbols, codes, and labels around the value, including the PRD amount example. A correctly quoted value assigned to the wrong column still counts as a semantic error in scoring.
 
-Column proposals consume the request and first-source sample, with a constrained column-proposal schema. User-confirmed columns then determine the extraction response schema and record IDs. Malformed overall proposals produce an editable empty setup/error; a missing or unrecognized column type falls back to text.
+Column suggestions consume the request and first-source sample. Users edit/confirm names and types; missing/unrecognized types fall back to text. Malformed suggestions retain editable setup. English date/number settings follow PRD.md.
 
-Use the existing client's output_format argument. Optional extraction-only options/think/local_only arguments preserve existing generation callers. Parsing is strict JSON. Grounding validates against anchored snapshot units and the confirmed column type; labels never influence flags.
+## Workbook and Save As
 
-Implement English numeric/date grammar without process-locale dependence. Apply PRD separator defaults, English full/abbreviated month names, and numeric formats; detect genuinely ambiguous numeric dates during source inspection. Prompt for order only for affected date columns. Invalid proposed types fall back to text, preserving the ability to edit. Conflicting or unsupported conversions stay literal and flagged rather than being coerced.
+Use a dedicated openpyxl writer. Valid fields use confirmed types; flagged proposals use highlighted literal strings, and absent proposals are highlighted blanks. Evidence maps every Data cell to its quote, anchor, and issue. Force text to data_type s, including formula-like strings.
 
-## Workbook, review, and Save As
+Each app-data job has one candidate.xlsx. Rerunning clears review and replaces that candidate; a failed run cannot revive the old review. Read grid values/Evidence from the saved workbook.
 
-Use a dedicated openpyxl writer, not ExcelGenerator._coerce_value. Valid fields use confirmed types; failed fields with proposals use literal proposed strings and highlighted Data cells. Absent proposals are highlighted blanks. Evidence stores the proposal, quote, anchor, and issue. Force all text to data_type s after assignment, including formula-like content in both sheets.
+Native Save As handles overwrite confirmation. Refuse a normalized source path, copy through a destination-folder temporary file, close it, then rename/replace. Write failure retains the previous destination and review, without saved success. Normal close removes the job after workers/handles finish; startup removes only owned jobs older than the PRD retention period.
 
-Each job owns one candidate.xlsx under the app-data jobs directory. On a rerun, clear the old review immediately and replace the same candidate only after successful writing; an old candidate is never offered as the new result after failure. Reopen the saved workbook to produce review cells and Evidence mappings.
-
-A native QFileDialog Save As provides normal overwrite confirmation. Pass the returned destination to the copy operation; refuse any normalized source path, including an existing source alias. Copy to a temporary file in the destination directory, close it, then rename/replace the chosen destination. An error leaves the previous destination intact, removes the temporary file when possible, and retains the review without a success banner. Cancellation of the dialog changes no files.
-
-Normal close deletes the job after worker/reader handles finish. Startup scans only Simplicitor's job directories and removes those older than the retention period owned by PRD.md; younger jobs and unrelated files stay untouched. There is no orphan-recovery UI or separate approval ledger.
-
-Workers use existing QObject/QThread patterns; cancellation is cooperative and late responses are ignored. No Office process isolation is part of this design.
+Use existing QObject/QThread patterns and cooperative cancellation. The source readers never write back to supplied files.
 
 ## Evaluation and release order
 
-The early CLI checks models against independently authored canonical fixture units, confirmed columns, and known file records before production readers/UI exist. Keep expected labels only in the scorer. Repeat the selected model on actual files and production sectioning before writer/UI work.
+Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.
 
-Evaluate the PRD accuracy and unflagged-error fractions against all scored slots, without rounding percentages before comparison. A semantic substitution that passes grounding is still an unflagged error. Record correct-value flag rates separately. Optional timings do not influence pass/fail, selection, publication, or release claims.
+After it passes, implement the production pipeline and UI. Task 3 has unit checks only. Task 7 adds the CLI's --full-pipeline option to run the same actual-file corpus through production sectioning/extraction as the final release check. Both paths use the same scorer; optional timings decide nothing.
 
-The v1.2.1 safety patch uses the existing build route, independently of extraction and its gates. Qualify its own artifact and prepare release notes; request Alex's explicit go before creating the publication-triggering tag. New installer preparation can run alongside model work and stops if the extraction gate fails.
+The v1.2.1 safety release uses the existing build route and its own checks, independently of extraction. Publication requires Alex's explicit go. New installer preparation may run alongside extraction and stops if the early gate fails.
 
 ## Later architecture and references
 
-Retained editing/reporting/recognition contracts live under [post-first-release requirements](../../../PRD.md#post-first-release-requirements). Later editing uses bounded OOXML patches and package-part preservation checks; Office assists disposable preview/recalculation copies only.
+[Post-first-release requirements](../../../PRD.md#post-first-release-requirements) retain editing, reporting, and recognition contracts. Later editing patches bounded OOXML nodes; Office supports disposable preview/recalculation copies only.
 
 - [python-docx document order and tables](https://python-docx.readthedocs.io/en/latest/api/document.html).
-- [pdfplumber extraction capabilities](https://github.com/jsvine/pdfplumber#comparison-to-other-libraries).
-- [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs), [generate API](https://docs.ollama.com/api/generate), [running-model fields](https://docs.ollama.com/api/ps), and [KV-cache/parallelism settings](https://docs.ollama.com/faq).
-- [openpyxl cell binding and string typing](https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/cell/cell.html).
-
-Runtime/packaged verification remains necessary; references alone are not fit or accuracy evidence.
+- [pdfplumber text extraction](https://github.com/jsvine/pdfplumber#comparison-to-other-libraries).
+- [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs) and [generate API](https://docs.ollama.com/api/generate).
+- [openpyxl string typing](https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/cell/cell.html).

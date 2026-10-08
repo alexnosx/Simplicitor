@@ -1,6 +1,6 @@
 # Simplicitor first-release UI design
 
-[PRD.md](../../../PRD.md) owns scope, supported hardware/language, warning copy, record semantics, review/save rules, and acceptance values. [Architecture](2026-10-08-document-architecture-design.md) owns technical detail; [project status](../../PROJECT_STATUS.md) records current implementation.
+[PRD.md](../../../PRD.md) owns scope, hardware recommendations, language, warning copy, record semantics, review/save rules, and acceptance values. [Architecture](2026-10-08-document-architecture-design.md) owns technical detail; [project status](../../PROJECT_STATUS.md) records current implementation.
 
 ## Create workspace
 
@@ -8,7 +8,7 @@ Mount CreateWorkspace in MainWindow; do not mount EditPanel. Keep the top-bar mo
 
 Within Create, offer From source files and From prompt. Source extraction is the initial view. From prompt hosts the existing CreatePanel, including current output choices and PowerPoint template picker, routing to its existing workers.
 
-Show the PRD's dismissible, non-blocking warning for an undersized or unknown selected model. Update it on model selection and metadata results, not only when a model becomes loaded. Metadata lookup must not freeze the UI or disable generation.
+Use one /api/show parameter-size lookup for the selected model to show the PRD's dismissible, non-blocking warning when appropriate. Update on selection and ignore stale results. Metadata lookup must not freeze the UI or disable generation; no hardware checks or controls are added.
 
 ## Sources and proposed columns
 
@@ -25,7 +25,7 @@ A revised request/source list clears column confirmation and any prior review. C
 
 Disable duplicate submission and setup changes while busy. Show file/section progress, retain instructions after failure, and show cooperative cancellation state. Invalidate the previous review when a rerun starts; a late or failed run cannot revive it.
 
-Build the read-only grid from the saved workbook. Valid fields use their saved typed values. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved quote, anchor, and issue in the Evidence panel. Coverage issues stay visible above the grid.
+Build the read-only grid from the saved workbook. Valid fields use their saved typed values. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues stay visible above the grid.
 
 There is no PDF rendering pane, cell editor, approval token, or candidate-version selection.
 

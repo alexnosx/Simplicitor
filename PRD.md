@@ -1,6 +1,6 @@
 # Simplicitor product requirements
 
-Updated 2026-10-08 after Alex's review of f565f81. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [single implementation plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
+Updated 2026-10-08 after Alex's review of a1cd16f. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [single implementation plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
 
 ## Purpose
 
@@ -20,7 +20,7 @@ This is the single workflow table. Other documents link here.
 | XLSX-to-DOCX reporting | Post-first-release; blocked on the closed operation set below. |
 | Local OCR/vision for scanned PDFs | Separate post-first-release milestone. |
 
-First-release prerequisites are Windows, local Ollama, a compatible GPU with at least 8 GB VRAM, and a local model of at least 8B parameters. There is no CPU-only support target. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; the new output is XLSX only. Existing Create does not acquire a new approval pipeline.
+First-release prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; the new output is XLSX only. Existing Create does not acquire a new approval pipeline.
 
 English is the target language. Other languages may work but are not tested or claimed.
 
@@ -30,7 +30,7 @@ A separate v1.2.1 safety release must disable legacy Edit before extraction ship
 
 Create new is the default mode. Edit document is not shown. The extraction route collects sources and a request, proposes columns, then lets the user edit, add, remove, and confirm them.
 
-When the selected model's reported size is below the minimum above or unknown, show this non-blocking warning: **Simplicitor is designed for models of 8B parameters or more.** Read reported size from Ollama model metadata, not the model's name. Do not disable actions because of this warning.
+Read the selected model's parameter size from Ollama metadata (/api/show). Below 8B or unknown, show this non-blocking warning: **Simplicitor works best with models of 8B parameters or more.** This is the product's only model check. Do not infer size from a name, check hardware, or disable actions because of the warning. Thinking is off for all extraction calls, including column suggestions.
 
 Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data cells; selecting any cell shows its value/proposal, quote, source anchor, and issue. Show coverage issues separately. Re-running replaces the job candidate and resets review and acknowledgement. No PDF preview is needed.
 
@@ -50,7 +50,7 @@ The model proposes column names, descriptions, and types from the request and fi
 
 Use English numeric defaults: comma thousands separator and full-stop decimal separator, changeable per column. Accept numeric dates and English month-name forms, including "15 March 2026", "March 15, 2026", and "15-Mar-2026". Ask for day/month order only when the source contains ambiguous numeric dates. Preserve text identifiers and distinguish missing values from zero.
 
-For every field, require a nullable string value, a verbatim quote, and a stable anchor. Code checks that the anchor is an allowed unit of that file, the quote occurs there after whitespace normalization, and the value derives from the quote under the confirmed column type. No inferred arithmetic or invented normalization is allowed.
+For every field, require a nullable string value, a verbatim quote, and a stable anchor. Code checks that the anchor belongs to that file and the quote occurs in its unit after whitespace normalization. For every column type, the value must appear word for word inside the quote. Only then does code convert that literal value to the confirmed column type; the model never normalizes it. For example, quote "Total: USD 12,500.00" with value "12,500.00" passes, and code converts it to 12500.00. A model value of "12500.00" does not pass that quote.
 
 Build JSON schema from confirmed columns and permitted file record IDs; use the existing Ollama format argument and validate responses in code. Missing fields, schema failures, bad evidence, unsupported conversions, and conflicts remain present and flagged. Source/model text cannot execute commands or formulas.
 
@@ -60,7 +60,7 @@ Grounding checks evidence consistency, not semantic correctness. A correctly quo
 
 Write a dedicated Data/Evidence workbook. Data contains one row per file and all confirmed columns. Write grounded values under the confirmed types. Write flagged proposed values as literal text, highlighted, with their issues in Evidence. Fields with no proposal remain blank and flagged. Exporting flagged or incomplete output requires acknowledgement.
 
-Evidence contains record, field, value, quote, source anchor, status, and issue; each Data cell resolves its entry. Include file labels and stable row references without absolute paths. Distinguish coverage issues from model fields.
+Evidence contains record, field, verbatim model value, quote, source anchor, status, and issue; each Data cell resolves its entry. Include file labels and stable row references without absolute paths. Distinguish coverage issues from model fields.
 
 Keep identifiers and formula-like text literal in both sheets. Never activate formulas/hyperlinks or silently clip, round, or coerce values to fit Excel. Unrepresentable values/evidence cause a visible error before saving a candidate.
 
@@ -77,11 +77,11 @@ Delete job folders on normal close after handles/workers finish. At startup, del
 | Field accuracy | At least 95% correct Data values against independent labels under confirmed column types. Missing records/fields count as incorrect except labelled absent values. Flagging alone does not make a wrong value correct. |
 | Unflagged wrong values | At most 1% of all scored slots, including semantic errors that pass grounding. At 200 slots, at most two; fail at three. Flags come from extraction/validation, never labels. |
 | Review burden | Report flag rates on correct values and expected missing values separately. Flagging everything is not a usability pass. |
-| Model eligibility | Evaluate at least two models meeting the supported minimum and fitting wholly in the minimum VRAM at the architecture's evaluation context, including KV cache. Larger configurations are reference-only and cannot be selected. |
+| Evaluation candidates | qwen3:8b and llama3.1:8b at Q4_K_M, with reported parameter size of 8B or more. Larger models are optional reference results and cannot be selected. |
 
-Run accuracy evaluation on [B1](docs/PROJECT_STATUS.md#benchmark-environment) with the exact eligible model, quantization, context, and settings. A larger GPU does not establish eligibility or change the tested model's accuracy. Verify the running allocation rather than relying on model file size; [architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md#model-profile-and-fit-check) owns the protocol.
+Run evaluation on [B1](docs/PROJECT_STATUS.md#benchmark-environment) using the actual English fixture files, anchored readers, and shared grounding/scorer. Each whole fixture fits one request. Record the candidate, quantization, and fixed settings described in [architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md#model-requests).
 
-Evaluate before extraction UI. Stop and report if no eligible configuration passes, including when only a reference model passes; Alex decides any scope change. Repeat the selected configuration's gate on actual fixture readers and production sectioning before writer/UI work. Timings may be recorded for information only; speed is not a release criterion and these measurements are not performance claims.
+Task 1 is the single early stop gate on actual fixture files, before production pipeline/UI work. Stop and report if neither candidate passes, including when only a reference model passes; Alex decides any scope change. Task 7 reruns the corpus through the full production pipeline as the release check. Timings may be recorded for information only; speed is not a release criterion and these measurements are not performance claims.
 
 ## Privacy and failure behavior
 
