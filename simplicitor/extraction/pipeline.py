@@ -8,7 +8,7 @@ from typing import Callable
 from app.config.defaults import EXTRACTION_MAX_JOB_PAGES
 from app.services.ollama_client import (
     OllamaClient, OllamaConnectionError, OllamaGenerationError,
-    OllamaOutputLimitError, OllamaTimeoutError,
+    OllamaContextLimitError, OllamaOutputLimitError, OllamaTimeoutError,
 )
 from extraction.grounding import parse_fields
 from extraction.models import (
@@ -32,10 +32,18 @@ _COLUMN_SCHEMA = {
             "required": ["label", "description", "kind"], "additionalProperties": False}}},
     "required": ["columns"], "additionalProperties": False,
 }
+_GROUNDING_FAILURES = frozenset({
+    "unknown_anchor", "quote_not_in_source", "value_not_verbatim",
+    "invalid_value_type", "conversion_failed",
+})
 
 
 class ExtractionError(ValueError):
     """A sanitized, actionable setup or column-proposal failure."""
+
+    def __init__(self, message: str, issues: tuple[Issue, ...] = ()) -> None:
+        super().__init__(message)
+        self.issues = issues
 
 
 class ExtractionCancelled(ExtractionError):
@@ -80,6 +88,12 @@ def propose_columns(
                         ensure_ascii=False)
     try:
         response = _call(prompt, _COLUMN_SYSTEM, _COLUMN_SCHEMA, profile, client, cancel)
+    except OllamaContextLimitError:
+        issues = tuple(Issue("context_truncated", first_source.source_id, unit["anchor"],
+                             "The column-suggestion input reached its context limit; coverage is incomplete.")
+                       for unit in sample)
+        raise ExtractionError("Column suggestion was truncated. Increase context or use manual columns.",
+                              issues) from None
     except (OllamaConnectionError, OllamaGenerationError):
         raise ExtractionError("Could not suggest columns. Check Ollama, retry, or enter them manually.") from None
     try:
@@ -126,6 +140,9 @@ def _merge(previous: FieldResult, current: FieldResult) -> FieldResult:
         issues = tuple(dict.fromkeys(previous.issues + current.issues))
         return replace(retained, typed_value=None, flagged=True, issues=issues)
     alternatives = previous.alternatives + (current.proposal,) + current.alternatives
+    if (not previous.flagged and current.flagged and current.issues
+            and set(current.issues) <= _GROUNDING_FAILURES):
+        return replace(previous, alternatives=alternatives)
     if not previous.flagged and not current.flagged and previous.typed_value == current.typed_value:
         return replace(previous, alternatives=alternatives)
     reason = "conflict" if previous.data_value != current.data_value else "unverified_proposal"
@@ -195,6 +212,8 @@ def extract(
                 failure, response = "", ""
                 try:
                     response = _call(prompt, SYSTEM_PROMPT, schema, profile, client, cancel)
+                except OllamaContextLimitError as exc:
+                    failure, response = "context_truncated", exc.response_text
                 except OllamaOutputLimitError as exc:
                     failure, response = "output_limit", exc.response_text
                 except OllamaTimeoutError:

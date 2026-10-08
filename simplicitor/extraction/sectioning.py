@@ -1,5 +1,5 @@
 """Whole-file-first planning with a conservative context-derived token estimate."""
-import json
+from math import ceil
 
 from app.config.defaults import EXTRACTION_TEMPLATE_TOKEN_RESERVE
 from extraction.models import (
@@ -13,12 +13,11 @@ class ContextBudgetError(ValueError):
 
 
 def request_fits(system: str, prompt: str, schema: dict, profile: ExtractionProfile) -> bool:
-    """Estimate one token per UTF-8 byte plus template and reserved output tokens."""
+    """Estimate prompt tokens at 2.5 UTF-8 bytes each; schema constrains output only."""
     context, output = profile.options.get("num_ctx"), profile.options.get("num_predict")
     if type(context) is not int or type(output) is not int or context <= 0 or output <= 0:
         raise ContextBudgetError("Choose positive context and output token budgets.")
-    estimate = sum(len(text.encode("utf-8")) for text in
-                   (system, prompt, json.dumps(schema, ensure_ascii=False)))
+    estimate = ceil(sum(len(text.encode("utf-8")) for text in (system, prompt)) / 2.5)
     return estimate + EXTRACTION_TEMPLATE_TOKEN_RESERVE + output <= context
 
 

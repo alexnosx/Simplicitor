@@ -8,6 +8,8 @@ from urllib.parse import urlsplit
 import requests
 
 from app.config.defaults import (
+    EXTRACTION_NUM_CTX,
+    EXTRACTION_NUM_PREDICT,
     OLLAMA_CHAT_COMPLETIONS_ENDPOINT,
     OLLAMA_GENERATE_ENDPOINT,
     OLLAMA_PS_ENDPOINT,
@@ -41,6 +43,14 @@ class OllamaOutputLimitError(OllamaGenerationError):
 
     def __init__(self, response_text: str) -> None:
         super().__init__("The model reached its output limit. Review the incomplete result.")
+        self.response_text = response_text
+
+
+class OllamaContextLimitError(OllamaGenerationError):
+    """Actual prompt usage reached the input budget; preserve the reply for flagged review."""
+
+    def __init__(self, response_text: str) -> None:
+        super().__init__("The model input reached its context limit. Increase context or reduce the request.")
         self.response_text = response_text
 
 
@@ -298,6 +308,14 @@ class OllamaClient:
             raise OllamaGenerationError("The local model returned invalid JSON. Retry the request.") from None
         if not isinstance(data, dict) or not isinstance(data.get("response"), str):
             raise OllamaGenerationError("The local model returned an invalid response. Retry.")
+        prompt_count = data.get("prompt_eval_count")
+        if type(prompt_count) is not int or prompt_count < 0:
+            raise OllamaGenerationError("The local model did not report valid prompt token usage. Retry.")
+        options = body.get("options", {})
+        context = options.get("num_ctx", EXTRACTION_NUM_CTX)
+        output = options.get("num_predict", EXTRACTION_NUM_PREDICT)
+        if prompt_count >= context - output:
+            raise OllamaContextLimitError(data["response"])
         if data.get("done_reason") == "length" or data.get("done") is False:
             raise OllamaOutputLimitError(data["response"])
         return data["response"]

@@ -17,7 +17,7 @@ Updated 2026-10-08. [PRD.md](../PRD.md) owns release requirements; [architecture
 | Later extraction/editing/reporting/recognition | Deferred under PRD scope, with separate designs required. |
 | Documentation and plan | Tasks 0 and 1 approved; Task 2 authorized after the selected-model rerun. Tasks remain numbered 0 to 6. |
 
-The current source passed 793 tests with isolated user folders. Existing Create/template regressions pass. Task 2 has unit/integration-style checks with controlled model replies; live-model accuracy is the separate Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new readers do not share legacy extraction behavior. Source tests and the synthetic model gate do not establish packaged UI or clean-machine readiness.
+The current source passed 805 tests with isolated user folders. Existing Create/template regressions pass. Task 2 checks include the corrected context estimate, actual prompt-usage truncation, and retaining verified values over failed grounding alternatives. These use controlled model replies; live-model accuracy remains the accepted Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new readers do not share legacy extraction behavior. Source tests and the synthetic model gate do not establish packaged UI or clean-machine readiness.
 
 ## Benchmark environment
 

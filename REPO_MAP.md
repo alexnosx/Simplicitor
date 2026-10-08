@@ -463,6 +463,7 @@ requirements.txt
 - class OllamaTimeoutError(OllamaConnectionError): Raised when an Ollama API call exceeds its timeout.
 - class OllamaGenerationError(Exception): Raised when the Ollama API returns an unexpected or error response during generation.
 - class OllamaOutputLimitError(OllamaGenerationError): A bounded extraction reply ended early; retain its proposal text for review.
+- class OllamaContextLimitError(OllamaGenerationError): Actual prompt usage reached the input budget; preserve the reply for flagged review.
 - class OllamaStatus: Snapshot of Ollama connectivity state.
 - class OllamaClient: HTTP client for the Ollama local API.
 
@@ -607,7 +608,7 @@ requirements.txt
 ### simplicitor/extraction/sectioning.py
 
 - class ContextBudgetError(ValueError): The configured request leaves no source budget; setup must be changed.
-- def request_fits(system: str, prompt: str, schema: dict, profile: ExtractionProfile) -> bool: Estimate one token per UTF-8 byte plus template and reserved output tokens.
+- def request_fits(system: str, prompt: str, schema: dict, profile: ExtractionProfile) -> bool: Estimate prompt tokens at 2.5 UTF-8 bytes each; schema constrains output only.
 - def make_sections(documents: tuple[SourceDocument, ...], profile: ExtractionProfile, *, columns: tuple[ColumnSpec, ...]=(), request: str='', carried_fields: dict | None=None) -> tuple[Section, ...]: Keep whole files when estimated to fit; otherwise preserve structural groups.
 
 ### simplicitor/extraction/source_readers.py
@@ -766,12 +767,18 @@ requirements.txt
 - def test_source_coverage_issues_survive_a_successful_model_call()
 - def test_section_schema_failure_cannot_disappear_behind_a_valid_value(bad_first, bad_kind)
 - def test_prepared_documents_still_obey_the_aggregate_job_page_limit(last_pages, too_large)
+- def test_failed_grounding_alternative_cannot_demote_a_verified_value()
+- def test_two_verified_disagreeing_values_still_form_a_flagged_conflict()
+- def test_truncated_extraction_flags_proposals_and_records_failed_coverage(monkeypatch)
+- def test_truncated_column_suggestion_fails_with_sample_coverage_issues(monkeypatch)
+- def test_context_truncation_cannot_be_hidden_by_the_verified_value_merge_rule(monkeypatch)
 
 ### tests/extraction/test_sectioning.py
 
 - def source(texts, groups=None)
 - def profile(context=4096, output=256)
-- def test_request_boundary_counts_system_prompt_schema_and_reserved_output()
+- def test_request_boundary_uses_bytes_per_token_and_ignores_output_schema()
+- def test_dense_pdf_page_can_go_whole_with_ten_columns()
 - def test_whole_file_larger_than_old_byte_limit_is_one_request_when_context_allows()
 - def test_small_context_sections_without_overlap_or_dropped_units()
 - def test_table_row_cells_stay_together_and_oversized_group_is_visible()
@@ -1447,11 +1454,11 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 56 lines
+- CHANGELOG.md: md, 57 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- PRD.md: md, 114 lines
+- PRD.md: md, 116 lines
 - README.md: md, 87 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
@@ -1490,7 +1497,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 173 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 175 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1499,7 +1506,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 112 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 114 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines

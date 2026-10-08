@@ -366,7 +366,9 @@ class TestGenerate:
     def test_local_extraction_uses_schema_options_and_proxy_free_session(self):
         session = MagicMock()
         session.__enter__.return_value = session
-        session.post.return_value = _mock_response(200, {"response": "result", "done_reason": "stop"})
+        session.post.return_value = _mock_response(200, {
+            "response": "result", "done_reason": "stop", "prompt_eval_count": 100,
+        })
         schema = {"type": "object"}
         options = {"num_ctx": 16384, "num_predict": 4096}
         with patch("app.services.ollama_client.requests.Session", return_value=session):
@@ -394,7 +396,7 @@ class TestGenerate:
         session = MagicMock()
         session.__enter__.return_value = session
         session.post.return_value = _mock_response(200, {
-            "response": '{"records":', "done_reason": "length",
+            "response": '{"records":', "done_reason": "length", "prompt_eval_count": 100,
         })
         with patch("app.services.ollama_client.requests.Session", return_value=session):
             with pytest.raises(OllamaOutputLimitError) as failure:
@@ -410,6 +412,37 @@ class TestGenerate:
         with patch("app.services.ollama_client.requests.Session", return_value=session):
             with pytest.raises(OllamaGenerationError):
                 OllamaClient(BASE_URL).generate("qwen", "p", "s", local_only=True)
+
+    @pytest.mark.parametrize("count,truncated", [(289, False), (290, True), (291, True)])
+    def test_local_request_checks_actual_prompt_count_at_reserved_output_boundary(self, count, truncated):
+        from app.services.ollama_client import OllamaContextLimitError
+        session = MagicMock()
+        session.__enter__.return_value = session
+        session.post.return_value = _mock_response(200, {
+            "response": "retained reply", "done_reason": "stop", "prompt_eval_count": count,
+        })
+        with patch("app.services.ollama_client.requests.Session", return_value=session):
+            if truncated:
+                with pytest.raises(OllamaContextLimitError) as failure:
+                    OllamaClient(BASE_URL).generate("qwen", "p", "s", local_only=True,
+                                                   options={"num_ctx": 300, "num_predict": 10})
+                assert failure.value.response_text == "retained reply"
+            else:
+                assert OllamaClient(BASE_URL).generate(
+                    "qwen", "p", "s", local_only=True,
+                    options={"num_ctx": 300, "num_predict": 10}) == "retained reply"
+
+    @pytest.mark.parametrize("count", [None, -1, True])
+    def test_local_request_cannot_treat_invalid_prompt_usage_as_zero(self, count):
+        session = MagicMock()
+        session.__enter__.return_value = session
+        session.post.return_value = _mock_response(200, {
+            "response": "reply", "done_reason": "stop", "prompt_eval_count": count,
+        })
+        with patch("app.services.ollama_client.requests.Session", return_value=session):
+            with pytest.raises(OllamaGenerationError, match="prompt token usage"):
+                OllamaClient(BASE_URL).generate("qwen", "p", "s", local_only=True,
+                                               options={"num_ctx": 300, "num_predict": 10})
 
 
 # ---------------------------------------------------------------------------

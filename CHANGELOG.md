@@ -7,6 +7,7 @@
 
 ## Unreleased extraction development
 
+- Correct context estimation to 2.5 UTF-8 bytes per token without counting output schema; reject actual prompt usage at the reserved-output boundary. Preserve verified values when later grounding fails, retaining failed alternatives and verified conflicts.
 - Accept grounded currency-bearing numbers and normalize blank model values to null. The selected Qwen rerun passes at 277/280 with zero unflagged wrong values; see docs/evaluation/2026-10-08-task1-qwen-currency-null.md.
 - Add Task 2 core transport, column suggestions, conservative context-based sections, retained proposals/coverage, and cooperative cancellation. XLSX output and UI integration remain planned.
 - Reject partial-token evidence in both quotes and their source context; accept ordinal English dates and read Word headers/footers with dedicated anchors.

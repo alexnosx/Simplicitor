@@ -48,7 +48,7 @@ Read each explicit Word header/footer part once, including first/even-page defin
 
 PDF page text uses source_id#page:number with one-based page numbers. Call each pdfplumber page's extract_text(); retain page counts and zero/near-zero-text issues. File mode needs no PDF table extraction.
 
-record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sends the whole file when its conservative estimated request count fits num_ctx after reserved output. Otherwise split at paragraph, DOCX table-row, or PDF page boundaries without overlap, using the same budget. Recompute planning after every call with the accumulated values/anchors included. Retain additional agreeing/conflicting proposals in FieldResult.alternatives; conflicts remain flagged. Oversized indivisible groups become coverage issues with every affected unit recorded.
+record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sends the whole file when its conservative estimated request count fits num_ctx after reserved output. Otherwise split at paragraph, DOCX table-row, or PDF page boundaries without overlap, using the same budget. Recompute planning after every call with the accumulated values/anchors included. Retain additional proposals in FieldResult.alternatives. A later grounding/conversion failure cannot demote an earlier verified value; keep that value unflagged and retain the failed alternative. Two verified values that disagree remain a flagged conflict. Schema/request failures still require flags and coverage issues. Oversized indivisible groups become coverage issues with every affected unit recorded.
 
 ## Implementation settings
 
@@ -59,7 +59,7 @@ Implementation values are approved. Store shared values once in defaults.py.
 | DOCX page equivalents | max(1, ceil(extracted_characters / 3000)) per file, including supported body, header/footer, and table text. Display estimates. |
 | Input file limit | 50 MiB per file. The aggregate page limit belongs to PRD.md. |
 | PDF near-zero text | Fewer than 40 non-whitespace extracted characters per page. |
-| Production input budget | Approved conservative estimate: one token per UTF-8 byte of the actual system prompt, serialized request, and schema, plus 256 template tokens and num_predict reserved output tokens. Compare against num_ctx. Count carried fields in each subsequent request. This may section files that would fit an exact tokenizer. No tokenizer dependency or fixed source-byte limit is added. |
+| Production input budget | ceil((system prompt UTF-8 bytes + serialized request UTF-8 bytes) / 2.5), plus 256 template tokens and num_predict reserved output tokens. Compare against num_ctx. Include carried fields in the serialized request. Exclude JSON schema: Ollama applies it as an output constraint. No tokenizer dependency or fixed source-byte limit is added. |
 | Request settings | num_ctx=16384, num_predict=4096, temperature=0, seed=0, think=False, HTTP timeout=180 seconds. |
 
 The early fixtures fit whole in one request and do not use sectioning. Production column suggestions use the first source's leading complete units within the request budget, labelled a sample; extraction still covers all supported units.
@@ -73,6 +73,8 @@ Task 1's CLI calls /api/generate directly through requests.Session with trust_en
 Task 2 adds optional options, think, and local_only arguments to OllamaClient.generate while preserving existing callers. Extraction calls use output_format for schema, think=False, and local_only for the same loopback/trust_env=False transport. Column suggestions use these same settings. Diagnostics contain aggregate metadata and short errors, not document content or raw response bodies.
 
 The shared client retains its string return. For local-only output exhaustion, OllamaOutputLimitError carries partial response_text separately from its safe message; the pipeline retains recognizable proposals but marks the request coverage failed. The [generate API](https://docs.ollama.com/api/generate) supplies done_reason. Cancellation is checked before and after blocking requests and between sections; a late reply cannot produce a result.
+
+After every local extraction or column-suggestion response, the shared client checks prompt_eval_count against num_ctx minus num_predict. At or above that boundary, OllamaContextLimitError retains response_text with a safe error message. Extraction flags the reply's fields and records context_truncated coverage issues; a prior verified value cannot hide this request failure. Column suggestions return no usable columns and raise ExtractionError with issues for the sampled units. Missing or invalid token-usage metadata fails the request rather than assuming zero usage.
 
 ## Grounding and conversion
 

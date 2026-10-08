@@ -1,5 +1,6 @@
 """Production extraction keeps the roster, evidence, coverage, and cancellation contract."""
 import json
+from math import ceil
 from pathlib import Path
 from threading import Event
 
@@ -124,7 +125,7 @@ def test_sectioned_fields_accumulate_and_conflicting_quotes_remain_visible():
     docs = (document(["ID 00123 " + "a" * 1200, "ID 00456 " + "b" * 1200]),)
     client = Client([reply("one", {"id": ("00123", "ID 00123", "one#p:0")}),
                      reply("one", {"id": ("00456", "ID 00456", "one#p:1")})])
-    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(4096), client, Event())
+    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(1600), client, Event())
     field = result.fields[("one", "id")]
     assert len(client.calls) == 2
     assert field.flagged and "conflict" in field.issues
@@ -141,7 +142,7 @@ def test_agreeing_section_evidence_is_retained_and_null_does_not_erase_a_value()
     client = Client([reply("one", {"id": ("00123", "ID 00123", "one#p:0")}),
                      reply("one", {"id": ("00123", "ID 00123", "one#p:1")}),
                      reply("one", {"id": (None, "", "")})])
-    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(4096), client, Event())
+    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(1600), client, Event())
     field = result.fields[("one", "id")]
     assert not field.flagged and field.data_value == "00123"
     assert [p.anchor for p in field.alternatives] == ["one#p:1"]
@@ -151,7 +152,7 @@ def test_oversized_unit_is_excluded_visibly_but_other_units_are_processed():
     from extraction.pipeline import extract
     docs = (document(["x" * 10000, "ID 00123"]),)
     client = Client([reply("one", {"id": ("00123", "ID 00123", "one#p:1")})])
-    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(4096), client, Event())
+    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(1600), client, Event())
     assert result.coverage == {"one#p:0": "excluded", "one#p:1": "processed"}
     assert any(i.code == "oversized_unit" for i in result.issues)
     assert result.fields[("one", "id")].data_value == "00123"
@@ -193,7 +194,7 @@ def test_column_sample_is_leading_complete_units_and_explicitly_labelled():
     from extraction.pipeline import propose_columns
     doc = document(["FIRST " + "a" * 1000, "LAST " + "b" * 10000])
     client = Client(['{"columns":[{"label":"ID"}]}'])
-    columns = propose_columns("Extract identifiers", doc, profile(4096), client, Event())
+    columns = propose_columns("Extract identifiers", doc, profile(1600), client, Event())
     payload = json.loads(client.calls[0]["prompt"])
     assert payload["sample"] is True
     assert [u["anchor"] for u in payload["source_units"]] == ["one#p:0"]
@@ -220,14 +221,14 @@ def test_carried_fields_are_rebudgeted_before_each_request():
     output = reply("one", {"memo": ("X" * 3000, "Memo " + "X" * 3000, "one#p:0"),
                            "id": (None, "", "")})
     client = Client([output])
-    result = extract(docs, columns, "", profile(6000), client, Event())
+    result = extract(docs, columns, "", profile(2400), client, Event())
     assert len(client.calls) == 1
     assert result.fields[("one", "memo")].data_value == "X" * 3000
     assert result.coverage == {"one#p:0": "processed", "one#p:1": "excluded", "one#p:2": "excluded"}
     for call in client.calls:
         input_bytes = sum(len(text.encode("utf-8")) for text in (
-            call["system"], call["prompt"], json.dumps(call["output_format"], ensure_ascii=False)))
-        assert input_bytes + 256 + call["options"]["num_predict"] <= call["options"]["num_ctx"]
+            call["system"], call["prompt"]))
+        assert ceil(input_bytes / 2.5) + 256 + call["options"]["num_predict"] <= call["options"]["num_ctx"]
 
 
 def test_cancellation_between_sections_makes_no_second_request():
@@ -240,7 +241,7 @@ def test_cancellation_between_sections_makes_no_second_request():
         progress.append((source_id, section_id, completed, total))
         cancel.set()
     with pytest.raises(ExtractionCancelled):
-        extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(4096), client, cancel, on_progress)
+        extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(1600), client, cancel, on_progress)
     assert len(client.calls) == 1
     assert progress == [("one", "one:section:1", 1, 2)]
 
@@ -269,7 +270,7 @@ def test_section_schema_failure_cannot_disappear_behind_a_valid_value(bad_first,
     bad = json.dumps({"records": [{"record_id": "one", "fields": fields}]})
     good = reply("one", {"id": ("00123", "ID 00123", f"one#p:{good_index}")})
     client = Client([bad, good] if bad_first else [good, bad])
-    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(4096), client, Event())
+    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(1600), client, Event())
     field = result.fields[("one", "id")]
     assert field.data_value == "00123"
     assert field.flagged and "invalid_field_schema" in field.issues
@@ -294,3 +295,109 @@ def test_prepared_documents_still_obey_the_aggregate_job_page_limit(last_pages, 
     else:
         result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(), client, Event())
         assert result.ordered_source_ids == ("one", "two")
+
+
+def test_failed_grounding_alternative_cannot_demote_a_verified_value():
+    from extraction.grounding import validate_field
+    from extraction.models import FieldProposal
+    from extraction.pipeline import _merge
+
+    units = {"one#p:0": SourceUnit("one#p:0", "ID 00123", "paragraph", 0)}
+    column = ColumnSpec("id", "ID", "")
+    verified = validate_field(FieldProposal("00123", "ID 00123", "one#p:0"), column, units)
+    failed = validate_field(FieldProposal("00456", "ID 00456", "one#p:0"), column, units)
+    result = _merge(verified, failed)
+    assert not result.flagged and result.data_value == "00123" and result.issues == ()
+    assert result.alternatives == (failed.proposal,)
+
+
+def test_two_verified_disagreeing_values_still_form_a_flagged_conflict():
+    from extraction.grounding import validate_field
+    from extraction.models import FieldProposal
+    from extraction.pipeline import _merge
+
+    unit = SourceUnit("one#p:0", "First ID 00123; second ID 00456", "paragraph", 0)
+    column = ColumnSpec("id", "ID", "")
+    first = validate_field(FieldProposal("00123", unit.text, unit.anchor), column, {unit.anchor: unit})
+    second = validate_field(FieldProposal("00456", unit.text, unit.anchor), column, {unit.anchor: unit})
+    result = _merge(first, second)
+    assert result.flagged and "conflict" in result.issues
+    assert result.data_value == "00123" and result.alternatives == (second.proposal,)
+
+
+def test_truncated_extraction_flags_proposals_and_records_failed_coverage(monkeypatch):
+    from app.services.ollama_client import OllamaClient
+    from extraction.pipeline import extract
+
+    output = reply("one", {"id": ("00123", "ID 00123", "one#p:0")})
+    class Response:
+        status_code = 200
+        def json(self):
+            return {"response": output, "prompt_eval_count": 16128, "done_reason": "stop"}
+    class Session:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def post(self, *args, **kwargs):
+            return Response()
+    monkeypatch.setattr("app.services.ollama_client.requests.Session", Session)
+    result = extract((document(["ID 00123"]),), (ColumnSpec("id", "ID", ""),),
+                     "", profile(), OllamaClient("http://localhost:11434"), Event())
+    field = result.fields[("one", "id")]
+    assert field.flagged and field.data_value == "00123" and "context_truncated" in field.issues
+    assert result.coverage == {"one#p:0": "failed"}
+    assert any(i.code == "context_truncated" for i in result.issues)
+
+
+def test_truncated_column_suggestion_fails_with_sample_coverage_issues(monkeypatch):
+    from app.services.ollama_client import OllamaClient
+    from extraction.pipeline import ExtractionError, propose_columns
+
+    class Response:
+        status_code = 200
+        def json(self):
+            return {"response": '{"columns":[{"label":"ID","kind":"text"}]}',
+                    "prompt_eval_count": 16128, "done_reason": "stop"}
+    class Session:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def post(self, *args, **kwargs):
+            return Response()
+    monkeypatch.setattr("app.services.ollama_client.requests.Session", Session)
+    with pytest.raises(ExtractionError) as failure:
+        propose_columns("Extract IDs", document(["ID 00123"]), profile(),
+                        OllamaClient("http://localhost:11434"), Event())
+    assert [(i.code, i.anchor) for i in failure.value.issues] == [("context_truncated", "one#p:0")]
+
+
+def test_context_truncation_cannot_be_hidden_by_the_verified_value_merge_rule(monkeypatch):
+    from app.services.ollama_client import OllamaClient
+    from extraction.pipeline import extract
+
+    docs = (document(["ID 00123 " + "a" * 1200, "Other details " + "b" * 1200]),)
+    replies = iter([
+        {"response": reply("one", {"id": ("00123", "ID 00123", "one#p:0")}),
+         "prompt_eval_count": 500, "done_reason": "stop"},
+        {"response": reply("one", {"id": ("00456", "ID 00456", "one#p:1")}),
+         "prompt_eval_count": 1344, "done_reason": "stop"},
+    ])
+    class Response:
+        status_code = 200
+        def json(self):
+            return next(replies)
+    class Session:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def post(self, *args, **kwargs):
+            return Response()
+    monkeypatch.setattr("app.services.ollama_client.requests.Session", Session)
+    result = extract(docs, (ColumnSpec("id", "ID", ""),), "", profile(1600),
+                     OllamaClient("http://localhost:11434"), Event())
+    assert result.fields[("one", "id")].flagged
+    assert "context_truncated" in result.fields[("one", "id")].issues
+    assert result.coverage == {"one#p:0": "processed", "one#p:1": "failed"}

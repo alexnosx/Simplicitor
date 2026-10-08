@@ -16,11 +16,19 @@ def profile(context=4096, output=256):
     return ExtractionProfile("qwen", {"num_ctx": context, "num_predict": output})
 
 
-def test_request_boundary_counts_system_prompt_schema_and_reserved_output():
+def test_request_boundary_uses_bytes_per_token_and_ignores_output_schema():
     from extraction.sectioning import request_fits
-    # UTF-8 bytes: 3 system + 3 prompt + 18 schema + 256 template + 10 output = 290.
-    assert request_fits("abc", "def", {"type": "object"}, profile(290, 10))
-    assert not request_fits("abc", "def", {"type": "object"}, profile(289, 10))
+    # ceil((3 + 3) / 2.5) + 256 template + 10 output = 269 tokens.
+    assert request_fits("abc", "def", {"description": "x" * 10000}, profile(269, 10))
+    assert not request_fits("abc", "def", {}, profile(268, 10))
+
+
+def test_dense_pdf_page_can_go_whole_with_ten_columns():
+    from extraction.sectioning import make_sections
+    doc = source(["Dense financial narrative " * 480])
+    columns = tuple(ColumnSpec(f"c{i}", f"Column {i}", "A requested field") for i in range(10))
+    sections = make_sections((doc,), profile(16384, 4096), columns=columns)
+    assert len(sections) == 1 and not sections[0].excluded
 
 
 def test_whole_file_larger_than_old_byte_limit_is_one_request_when_context_allows():
@@ -33,7 +41,7 @@ def test_whole_file_larger_than_old_byte_limit_is_one_request_when_context_allow
 
 def test_small_context_sections_without_overlap_or_dropped_units():
     from extraction.sectioning import make_sections
-    doc = source([str(i) * 1000 for i in range(6)])
+    doc = source([str(i) * 2000 for i in range(6)])
     sections = make_sections((doc,), profile())
     assert len(sections) > 1
     assert not any(s.excluded for s in sections)
@@ -54,8 +62,8 @@ def test_carried_values_reduce_the_same_context_budget():
     from extraction.sectioning import make_sections
     doc = source(["a" * 1400, "b" * 1400])
     columns = (ColumnSpec("memo", "Memo", "", "text"),)
-    without = make_sections((doc,), profile(7000), columns=columns)
-    with_carry = make_sections((doc,), profile(7000), columns=columns,
+    without = make_sections((doc,), profile(3000), columns=columns)
+    with_carry = make_sections((doc,), profile(3000), columns=columns,
                                carried_fields={"memo": {"value": "x" * 3000, "anchor": "one#p:9"}})
     assert len(without) == 1
     assert len(with_carry) == 2
