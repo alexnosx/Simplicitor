@@ -35,7 +35,7 @@ The runner performs these checks in sequence; a failed check fails the workflow:
 4. Create a synthetic settings.json in app data, silently install again over the same installation, and verify the app and settings bytes survive unchanged.
 5. Silently uninstall only the fixed, verified test installation. Verify the runtime directory, shortcuts, and uninstall registration disappear while the synthetic settings file retains its hash.
 
-The passing script writes `dist/installer-qualification.json` with its commit/run URL, runner image/OS, check results, and setup/ZIP hashes. Upload this beside the installer, ZIP, and SHA256SUMS.json only after qualification passes. Record the first passing run in docs/builds/ and verify the workflow/artifact state through GitHub. The earlier [local evidence](builds/2026-10-08-task5.json) is historical and predates version 2.0.0.0 and removal of the correction.
+The passing script writes `dist/installer-qualification.json` with its commit/run URL, runner image/OS, check results, and setup/ZIP hashes. Upload this beside the installer, ZIP, and SHA256SUMS.json only after qualification passes. The [first passing run](builds/2026-10-08-task5-ci.json) records verified workflow/artifact state and downloaded hashes. The earlier [local evidence](builds/2026-10-08-task5.json) is historical and predates version 2.0.0.0 and removal of the correction.
 
 This headless hosted-runner lifecycle check does not establish a native extraction/Save As walkthrough, a machine without developer Python/Office, the Task 6 model-accuracy gate, or downloaded-file SmartScreen reputation. Those limits remain explicit; do not infer a release qualification or weaken Windows protection.
 

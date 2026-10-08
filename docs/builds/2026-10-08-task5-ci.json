@@ -1,0 +1,104 @@
+{
+  "status": "passed",
+  "source_commit": "a3a2cfdfa3eeb35f38e135da6c84615deec6af02",
+  "run_id": "37833690156",
+  "run_attempt": "1",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37833690156",
+  "runner_os": "10.0.26100.0",
+  "runner_image": "20260925.250.1",
+  "product_version": "2.0.0.0",
+  "app_running_seconds": 20,
+  "checks": [
+    "Artifact hash matches: Simplicitor-setup.exe",
+    "Artifact hash matches: Simplicitor-portable.zip",
+    "Ollama endpoint is unavailable",
+    "Silent installer exited successfully",
+    "Dedicated per-user install exists",
+    "Uninstaller exists",
+    "Installed product version is 2.0.0.0",
+    "HKCU uninstall entry points to dedicated folder",
+    "HKCU uninstall version matches",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installed executable matches built payload",
+    "Installed app stays running offscreen for 20 seconds without Ollama",
+    "Silent installer exited successfully",
+    "Dedicated per-user install exists",
+    "Uninstaller exists",
+    "Installed product version is 2.0.0.0",
+    "HKCU uninstall entry points to dedicated folder",
+    "HKCU uninstall version matches",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installed app survives reinstall over existing installation",
+    "Synthetic settings survive reinstall unchanged",
+    "Uninstall target is the dedicated per-user test folder",
+    "Silent uninstaller exited successfully",
+    "Install folder removed",
+    "HKCU uninstall entry removed",
+    "Desktop shortcut removed",
+    "Start Menu shortcut removed",
+    "Synthetic settings survive uninstall unchanged"
+  ],
+  "artifacts": {
+    "Simplicitor-setup.exe": "1bc383b5897a702219c35ef7465308227d316800d27d258d1a3bcaab2631eea8",
+    "Simplicitor-portable.zip": "e953765ade010b6fa5a4740fe14436112fb33c4a9c80ef27b052715431f9d2fa"
+  },
+  "limitations": [
+    "Headless hosted-runner lifecycle check; not a native UI walkthrough, Task 6 accuracy gate, or downloaded-file SmartScreen qualification."
+  ],
+  "verification": {
+    "source_tests": {
+      "passed": 964,
+      "warnings": 2,
+      "location": "GitHub Actions Windows runner"
+    },
+    "local_checks": "Two build flag/version tests and PowerShell syntax parsing only; no local installer/uninstaller/Sandbox/install-uninstall-delete tests.",
+    "github_run_conclusion": "success",
+    "github_steps": {
+      "Set up job": "success",
+      "Run actions/checkout@v4": "success",
+      "Set up Python": "success",
+      "Install dependencies": "success",
+      "Run source tests on hosted runner": "success",
+      "Generate icon": "success",
+      "Build standalone, installer, and portable ZIP": "success",
+      "Qualify installer on hosted Windows runner": "success",
+      "Upload artifact": "success",
+      "Publish to GitHub Release": "skipped",
+      "Post Set up Python": "success",
+      "Post Run actions/checkout@v4": "success",
+      "Complete job": "success"
+    },
+    "uploaded_artifact": {
+      "id": 11576036185,
+      "name": "Simplicitor-windows",
+      "size_in_bytes": 146409816,
+      "digest": "sha256:4b35a862a1b078e133223199c1b90b1f2e8b7d5b41e643f67909255806755f23",
+      "expired": false
+    },
+    "artifact_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37833690156/artifacts/11576036185",
+    "artifact_files": {
+      "installer-qualification.json": {
+        "bytes": 2309
+      },
+      "SHA256SUMS.json": {
+        "bytes": 30056
+      },
+      "Simplicitor-portable.zip": {
+        "bytes": 73409383
+      },
+      "Simplicitor-setup.exe": {
+        "bytes": 73388458
+      }
+    },
+    "downloaded_setup_zip_hashes_match": true,
+    "portable_payload_file_count": 276,
+    "portable_payload_hashes_match": true,
+    "publication": "No tag or release; Publish to GitHub Release step skipped."
+  }
+}

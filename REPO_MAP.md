@@ -73,6 +73,7 @@ docs/
     archive/
         PRD_v1.2.md
     builds/
+        2026-10-08-task5-ci.json
         2026-10-08-task5.json
     design/
         document-workspace.html
@@ -1618,6 +1619,7 @@ requirements.txt
 - docs/Simplicitor_UI_Fixes_Round2.md: md, 144 lines
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
+- docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/code-signing.md: md, 54 lines
 - docs/design/document-workspace.html: html, 301 lines
