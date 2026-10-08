@@ -22,7 +22,7 @@ def payload(tmp_path, monkeypatch):
     return tmp_path / "dist" / "standalone" / "main.dist"
 
 
-def make_payload(payload):
+def make_payload(payload, *, notices=True):
     files = {
         "Simplicitor.exe": b"compiled application",
         "prompts/system_word.txt": b"word prompt",
@@ -40,6 +40,8 @@ def make_payload(payload):
         path = payload / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+    if notices:
+        build.build_notices(build.ROOT, payload / "third_party")
     return files
 
 
@@ -74,6 +76,8 @@ def test_build_produces_matching_portable_payload_and_installer(payload, monkeyp
     assert "--enable-plugin=pyside6" in command and "--windows-console-mode=disable" in command
     assert "--include-data-dir=prompts=prompts" in command
     assert "--include-data-dir=templates_engine/builtin=templates_engine/builtin" in command
+    assert any(flag.startswith("--include-data-dir=") and flag.endswith("=third_party")
+               for flag in command)
     assert command[-1] == "main.py" and cwd == build.SIMPLICITOR_DIR
     with ZipFile(build.DIST_DIR / "Simplicitor-portable.zip") as archive:
         contents = {name.removeprefix("Simplicitor/"): archive.read(name)

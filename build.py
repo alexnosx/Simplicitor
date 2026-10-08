@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from scripts.build_third_party_notices import build_notices, validate_notices
+
 ROOT = Path(__file__).parent
 SIMPLICITOR_DIR = ROOT / "simplicitor"
 ASSETS_DIR = ROOT / "assets"
@@ -75,6 +77,7 @@ def package_payload(payload: Path, installer: Path) -> None:
     for path in (*(payload / name for name in required), installer):
         if not path.is_file() or not path.stat().st_size:
             raise ValueError(f"Missing or empty build output: {path}")
+    validate_notices(payload / "third_party")
     files = sorted(p for p in payload.rglob("*") if p.is_file())
     portable = DIST_DIR / "Simplicitor-portable.zip"
     with ZipFile(portable, "w", ZIP_DEFLATED) as archive:
@@ -100,11 +103,18 @@ def main() -> int:
 
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     os.environ.setdefault("NUITKA_CACHE_DIR", str(ROOT / ".nuitka"))
+    notices = ROOT / ".nuitka" / "third_party_notices"
+    try:
+        build_notices(ROOT, notices)
+    except (OSError, ValueError) as exc:
+        print(f"\nNotice preparation FAILED: {exc}", file=sys.stderr)
+        return 1
     installer = DIST_DIR / "Simplicitor-setup.exe"
     for path in (installer, DIST_DIR / "Simplicitor-portable.zip", DIST_DIR / "SHA256SUMS.json"):
         path.unlink(missing_ok=True)
     output = DIST_DIR / "standalone"
     cmd = [sys.executable, "-m", "nuitka", *NUITKA_FLAGS,
+           f"--include-data-dir={notices}=third_party",
            f"--output-dir={output}", f"--windows-installer-output={installer}", "main.py"]
 
     print("Building Simplicitor standalone and installer ...")

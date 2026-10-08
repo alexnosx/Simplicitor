@@ -1,0 +1,12 @@
+{
+  "document_id": "000731",
+  "supplier": "Harbor Field Services Ltd",
+  "customer": "Maple Ledger Ltd",
+  "invoice_date": "2026-03-15",
+  "due_date": "2026-04-14",
+  "total": "2400.00",
+  "currency": "GBP",
+  "purchase_order": "PO-078",
+  "payment_terms": "Net 30",
+  "contact_email": "billing@harbor.example"
+}

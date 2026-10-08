@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "id": "sectioned-invoice-01", "kind": "invoice", "format": "docx",
+      "blocks": [
+        ["Harbor Field Services Ltd issues invoice 000731 to Maple Ledger Ltd for the completed advisory work."],
+        ["The invoice was issued on the 15th day of March 2026 under purchase order PO-078.", "The agreed payment terms are Net 30."],
+        ["Payment of the gross amount GBP 2,400.00 is due on 14 April 2026.", "The supplier billing contact is billing@harbor.example."]
+      ],
+      "labels": {"document_id":"000731","supplier":"Harbor Field Services Ltd","customer":"Maple Ledger Ltd","invoice_date":"2026-03-15","due_date":"2026-04-14","total":"2400.00","currency":"GBP","purchase_order":"PO-078","payment_terms":"Net 30","contact_email":"billing@harbor.example"}
+    },
+    {
+      "id": "sectioned-invoice-02", "kind": "invoice", "format": "pdf",
+      "blocks": [
+        ["Westridge Consulting LLP issues invoice 000952 to Stone Bridge Trading Ltd for consulting services."],
+        ["This invoice was issued on May 2nd, 2026. Its agreed payment terms are Net 45."],
+        ["The gross amount payable is EUR 48,000.00 and the final payment date is June 16th, 2026.", "The supplier's billing contact is accounts@westridge.example."]
+      ],
+      "labels": {"document_id":"000952","supplier":"Westridge Consulting LLP","customer":"Stone Bridge Trading Ltd","invoice_date":"2026-05-02","due_date":"2026-06-16","total":"48000.00","currency":"EUR","purchase_order":null,"payment_terms":"Net 45","contact_email":"accounts@westridge.example"}
+    },
+    {
+      "id": "sectioned-contract-01", "kind": "contract", "format": "docx",
+      "blocks": [
+        ["Agreement CT-0042 is made between Cedar Systems Ltd, the service provider, and Birch Retail Ltd, the customer."],
+        ["The contract takes effect on January 1st, 2026, with an agreed total contract value of USD 125,000.00."],
+        ["The contract expires on December 31st, 2026. The contractor personnel ID is 000452.", "The internal reference is FIN/26/042. Termination requires 60 days of notice."]
+      ],
+      "labels": {"contract_id":"CT-0042","supplier":"Cedar Systems Ltd","client":"Birch Retail Ltd","effective_date":"2026-01-01","expiry_date":"2026-12-31","contract_value":"125000.00","currency":"USD","employee_id":"000452","reference":"FIN/26/042","notice_days":60}
+    },
+    {
+      "id": "sectioned-contract-02", "kind": "contract", "format": "pdf",
+      "blocks": [
+        ["Under agreement CT-0077, Summit Analytics LLP provides services to Willow Manufacturing Ltd, the customer."],
+        ["This agreement takes effect on the 15th day of February 2026. The total contract value is GBP 72,000.00."],
+        ["Final contract expiry is February 14th, 2027. The contractor personnel ID is 007035.", "The internal reference is OPS/26/077. The required termination notice is 90 days."]
+      ],
+      "labels": {"contract_id":"CT-0077","supplier":"Summit Analytics LLP","client":"Willow Manufacturing Ltd","effective_date":"2026-02-15","expiry_date":"2027-02-14","contract_value":"72000.00","currency":"GBP","employee_id":"007035","reference":"OPS/26/077","notice_days":90}
+    }
+  ]
+}

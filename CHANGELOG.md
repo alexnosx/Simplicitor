@@ -7,6 +7,9 @@
 
 ## v2.0.0 (unreleased)
 
+- Add saved-XLSX full-pipeline evaluation, four large synthetic sources, and 300/301-page checks. Whole-file Qwen accuracy passes; sectioned accuracy fails. Scores are recorded in docs/evaluation/2026-10-08-task6-full-pipeline.md without changing prompts, existing labels, or model settings.
+- Bundle runtime dependency notices, full Qt/PySide LGPL/GPL terms, Qt third-party attributions, Python and Nuitka runtime licenses. Validate notice presence/hashes before packaging; LICENSE is unchanged.
+
 - Set Windows product version to 2.0.0.0. Keep Nuitka's stock per-user installer/uninstaller and qualify installation, offscreen startup without Ollama, upgrade, and settings-preserving uninstall only on the GitHub Actions Windows runner. No tag or release.
 
 - Show saved numeric formats in the review grid and omit its Record column, retaining Record in Evidence.

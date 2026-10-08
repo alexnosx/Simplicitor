@@ -12,7 +12,7 @@ For v1.2.1 only, Alex authorized publication on 2026-10-08 using the recorded lo
 
 Outputs:
 
-- `dist/standalone/main.dist/`: compiled runtime payload, including Qt/document libraries, prompts, icons, and both built-in templates.
+- `dist/standalone/main.dist/`: compiled runtime payload, including Qt/document libraries, prompts, icons, both built-in templates, and `third_party/` license notices.
 - `dist/Simplicitor-setup.exe`: unsigned current-user installer, without a UAC requirement.
 - `dist/Simplicitor-portable.zip`: the exact same payload under a Simplicitor folder.
 - `dist/SHA256SUMS.json`: SHA-256 hashes of the two artifacts and every payload file.
@@ -21,9 +21,15 @@ The installer offers Desktop and Start Menu shortcuts and registers the Windows 
 
 Product version is **2.0.0.0**, unreleased. A main-branch push produces CI artifacts. A version-tag push enters the existing release route, but tagging/releasing/publication are not authorized.
 
+### Bundled notices
+
+Before compilation, [build_third_party_notices.py](../scripts/build_third_party_notices.py) assembles `third_party/` from the installed runtime dependency closure and the upstream Qt notice snapshot in [resources/third_party](../resources/third_party/THIRD_PARTY_NOTICES.txt). Platform-conditional installed dependencies are conservatively included; test/build dependencies are excluded except Nuitka's embedded runtime terms. Original wheel license, licence, copyright, and notice files retain their bytes. Python's runtime license and full LGPL/GPL texts accompany the Qt/PySide terms and third-party attributions, including Qt PDF's PDFium dependencies. The inventory records versions and file hashes; the upstream snapshot records exact source URLs and hashes.
+
+Nuitka includes this directory before creating the installer. The archive step rejects absent, empty, or altered notices, so the ZIP has the same notice payload. The Qt snapshot must match installed PySide6 (currently 6.11.2); a version change requires refreshing the upstream notices before building. This is an explicit build failure, not a silent reuse of outdated terms. No new dependency or change to Simplicitor's LICENSE is involved; Alex's separate license decision remains open.
+
 ## Runner-only installer qualification
 
-Alex's PC must not run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests. Local checks for this revision are limited to the required build flags/version and PowerShell syntax parsing. Do not execute the qualification script locally, including through mocks or a dry-run harness.
+Alex's PC must not run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests. Local checks may cover source evaluation, synthetic limits, notice assembly/read-only validation, ZIP creation, required build flags/version, and PowerShell syntax parsing. Do not execute the qualification script or the build's artifact-deletion tests locally, including through mocks or a dry-run harness.
 
 The build workflow runs the source suite on a hosted Windows runner, builds the payload/setup/ZIP, then invokes [qualify_windows_installer.ps1](../scripts/qualify_windows_installer.ps1). The script checks GitHub Actions, Windows, and github-hosted environment markers before any installation action, and refuses pre-existing installation/profile test state.
 

@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 5 implementation and UI fixes are accepted. Current scope is removal of the uninstall-script correction, product version 2.0.0.0, and hosted GitHub Actions Windows installer qualification/evidence. Commit/push to main are authorized. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or start Task 6.
+- Tasks 0 through 5 and hosted-runner installer qualification are accepted. Current authorization covers Task 6's saved-output evaluator, large labelled fixtures and selected-Qwen full-pipeline scores, 300/301-page checks, and bundled third-party notices. Commit/push to main are authorized. Preserve existing prompts, labels, settings, thresholds, and LICENSE. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, or publish. Broader native/clean-machine release qualification is outside this scope.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.

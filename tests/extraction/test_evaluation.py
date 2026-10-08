@@ -199,3 +199,107 @@ def test_actual_file_evaluation_counts_a_failed_request_instead_of_skipping_it(t
     assert candidate["total"] == 1 and candidate["correct"] == 0
     assert candidate["unflagged_wrong"] == 0
     assert candidate["fixtures"][0]["request_error"] == "ollama_timeout"
+
+
+def _pipeline_fixture(tmp_path, *, large=False):
+    import json
+    from docx import Document
+    doc = Document()
+    doc.add_paragraph("The account identifier is 00123.")
+    if large:
+        for _ in range(100):
+            doc.add_paragraph("Delivery documentation is reviewed by the operations team. " * 12)
+    doc.add_paragraph("The gross total is USD 12,500.00.")
+    doc.save(tmp_path / "one.docx")
+    (tmp_path / "labels.json").write_text(json.dumps({"id": "00123", "total": "12500.00"}))
+    (tmp_path / "manifest.json").write_text(json.dumps({"cases": [{
+        "id": "one", "file": "one.docx", "labels": "labels.json", "columns": [
+            {"id": "id", "label": "ID", "description": "Account identifier.", "kind": "text"},
+            {"id": "total", "label": "Total", "description": "Gross total.", "kind": "decimal"}]}]}))
+    (tmp_path / "profiles.json").write_text(json.dumps({"candidates": [
+        {"name": "qwen3:8b", "model": "qwen"}]}))
+
+
+class _GroundedClient:
+    def __init__(self, *_args, **_kwargs):
+        self.calls = []
+
+    def generate(self, model, prompt, system, **kwargs):
+        import json
+        self.calls.append((prompt, kwargs))
+        payload = json.loads(prompt)
+        fields = {}
+        for name, value in (("id", "00123"), ("total", "12,500.00")):
+            unit = next((u for u in payload["source_units"] if value in u["text"]), None)
+            fields[name] = {"value": value if unit else None,
+                            "quote": unit["text"] if unit else "",
+                            "anchor": unit["anchor"] if unit else ""}
+        return json.dumps({"records": [{"record_id": payload["record_id"], "fields": fields}]})
+
+
+@pytest.mark.parametrize("large,path", [(False, "whole_file"), (True, "sectioned")])
+def test_full_pipeline_reads_actual_files_sections_and_scores_saved_cells(tmp_path, monkeypatch,
+                                                                       large, path):
+    from scripts import evaluate_extraction as cli
+    _pipeline_fixture(tmp_path, large=large)
+    client = _GroundedClient()
+    monkeypatch.setattr(cli, "OllamaClient", lambda *_args, **_kwargs: client)
+    monkeypatch.setattr(cli, "_model_details", lambda *_: {"parameter_count": 8_000_000_000})
+    report = cli.evaluate(tmp_path / "manifest.json", tmp_path / "profiles.json", "http://localhost",
+                          full_pipeline=True, output_dir=tmp_path / "saved")
+    candidate = report["candidates"][0]
+    assert candidate["correct"] == 2 and candidate["unflagged_wrong"] == 0
+    assert candidate["paths"][path]["total"] == 2
+    assert candidate["paths"][path]["passed"]
+    fixture = candidate["fixtures"][0]
+    assert fixture["path"] == path and fixture["saved"]
+    assert fixture["coverage"]["processed"] > 0
+    assert not fixture["coverage"].get("failed", 0)
+    assert len(client.calls) > 1 if large else len(client.calls) == 1
+    assert all(c[1]["think"] is False and c[1]["local_only"] for c in client.calls)
+    assert all("12500.00" not in p for p, _ in client.calls)  # Scoring label never enters prompts.
+    assert len(tuple((tmp_path / "saved").rglob("*.xlsx"))) == 1
+
+
+def test_full_pipeline_scores_reopened_data_and_saved_evidence_flags(tmp_path, monkeypatch):
+    from openpyxl import load_workbook
+    from scripts import evaluate_extraction as cli
+    _pipeline_fixture(tmp_path)
+    monkeypatch.setattr(cli, "OllamaClient", _GroundedClient)
+    monkeypatch.setattr(cli, "_model_details", lambda *_: {"parameter_count": 8_000_000_000})
+    writer = cli.write_candidate
+
+    def change_saved_data(*args, **kwargs):
+        candidate = writer(*args, **kwargs)
+        book = load_workbook(candidate.path)
+        book["Data"]["C2"] = "wrong saved ID"
+        book["Evidence"]["H3"] = "flagged"
+        book.save(candidate.path)
+        book.close()
+        return candidate
+
+    monkeypatch.setattr(cli, "write_candidate", change_saved_data)
+    report = cli.evaluate(tmp_path / "manifest.json", tmp_path / "profiles.json", "http://localhost",
+                          full_pipeline=True, output_dir=tmp_path / "saved")
+    candidate = report["candidates"][0]
+    assert candidate["correct"] == 1 and candidate["unflagged_wrong"] == 1
+    assert candidate["flagged_correct"] == 1
+
+
+def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monkeypatch):
+    from scripts import evaluate_extraction as cli
+    _pipeline_fixture(tmp_path)
+    monkeypatch.setattr(cli, "OllamaClient", _GroundedClient)
+    monkeypatch.setattr(cli, "_model_details", lambda *_: {"parameter_count": 8_000_000_000})
+
+    def fail_save(*args, **kwargs):
+        raise OSError("synthetic save failure")
+
+    monkeypatch.setattr(cli, "write_candidate", fail_save)
+    report = cli.evaluate(tmp_path / "manifest.json", tmp_path / "profiles.json", "http://localhost",
+                          full_pipeline=True, output_dir=tmp_path / "saved")
+    candidate = report["candidates"][0]
+    assert candidate["total"] == candidate["paths"]["whole_file"]["total"] == 2
+    assert candidate["correct"] == candidate["unflagged_wrong"] == 0
+    assert not candidate["fixtures"][0]["saved"]
+    assert candidate["fixtures"][0]["request_error"] == "full_pipeline_failed"

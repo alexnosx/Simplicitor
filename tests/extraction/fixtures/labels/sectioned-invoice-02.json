@@ -1,0 +1,12 @@
+{
+  "document_id": "000952",
+  "supplier": "Westridge Consulting LLP",
+  "customer": "Stone Bridge Trading Ltd",
+  "invoice_date": "2026-05-02",
+  "due_date": "2026-06-16",
+  "total": "48000.00",
+  "currency": "EUR",
+  "purchase_order": null,
+  "payment_terms": "Net 45",
+  "contact_email": "accounts@westridge.example"
+}

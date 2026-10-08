@@ -1,0 +1,4 @@
+# Preserve upstream license/notice bytes and their recorded checksums.
+resources/third_party/** -text
+# Upstream notice whitespace is part of the original, checksummed text.
+resources/third_party/qt/** -whitespace

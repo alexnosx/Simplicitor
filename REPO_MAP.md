@@ -84,6 +84,8 @@ docs/
         2026-10-08-task1-rerun.md
         2026-10-08-task1.json
         2026-10-08-task1.md
+        2026-10-08-task6-full-pipeline.json
+        2026-10-08-task6-full-pipeline.md
     releases/
         v1.2.1-local.json
         v1.2.1.json
@@ -118,11 +120,292 @@ docs/
     code-signing.md
     screenshot.png
 resources/
+    third_party/
+        qt/
+            pyside-setup/
+                LICENSES/
+                    Apache-2.0.txt
+                    BSD-3-Clause.txt
+                    GFDL-1.3-no-invariants-only.txt
+                    GPL-2.0-only.txt
+                    GPL-3.0-only.txt
+                    LGPL-3.0-only.txt
+                    LicenseRef-Qt-Commercial.txt
+                    Qt-GPL-exception-1.0.txt
+            qt-pdf/
+                chromium/
+                    third_party/
+                        abseil-cpp/
+                            LICENSE
+                        icu/
+                            LICENSE
+                        libjpeg_turbo/
+                            LICENSE.md
+                            README.chromium
+                            README.ijg
+                        libpng/
+                            LICENSE
+                            README.chromium
+                        pdfium/
+                            third_party/
+                                NotoSansCJK/
+                                    LICENSE
+                                agg23/
+                                    copying
+                                bigint/
+                                    LICENSE
+                                fast_float/
+                                    src/
+                                        LICENSE-MIT
+                                    README.pdfium
+                                fp16/
+                                    LICENSE
+                                freetype/
+                                    FTL.TXT
+                                highway/
+                                    LICENSE
+                                lcms/
+                                    LICENSE
+                                libopenjpeg/
+                                    LICENSE
+                                libtiff/
+                                    LICENSE.md
+                            AUTHORS
+                            LICENSE
+                        zlib/
+                            LICENSE
+                            README.chromium
+                    LICENSE
+            qtbase/
+                LICENSES/
+                    AFL-2.1.txt
+                    Apache-2.0.txt
+                    BSD-2-Clause.txt
+                    BSD-3-Clause.txt
+                    BSD-4-Clause.txt
+                    BSL-1.0.txt
+                    Bitstream-Vera.txt
+                    CC0-1.0.txt
+                    FTL.txt
+                    GFDL-1.3-no-invariants-only.txt
+                    GPL-2.0-only.txt
+                    GPL-2.0-or-later.txt
+                    GPL-3.0-only.txt
+                    HPND.txt
+                    IJG.txt
+                    IPL-1.0.txt
+                    Imlib2.txt
+                    LGPL-2.1-or-later.txt
+                    LGPL-3.0-only.txt
+                    Libpng.txt
+                    LicenseRef-BSD-3-Clause-with-PCRE2-Binary-Like-Packages-Exception.txt
+                    LicenseRef-ICC-License.txt
+                    LicenseRef-Lcs-Telegraphics.txt
+                    LicenseRef-Qt-Commercial.txt
+                    LicenseRef-SHA1-Public-Domain.txt
+                    Linux-syscall-note.txt
+                    MIT-Khronos-old.txt
+                    MIT-open-group.txt
+                    MIT.txt
+                    MPL-2.0.txt
+                    Qt-GPL-exception-1.0.txt
+                    SPL-1.0.txt
+                    Unicode-3.0.txt
+                    X11.txt
+                    Xerox.txt
+                    Zlib.txt
+                    blessing.txt
+                    libpng-2.0.txt
+                cmake/
+                    3rdparty/
+                        extra-cmake-modules/
+                            COPYING-CMAKE-SCRIPTS
+                            qt_attribution.json
+                        kwin/
+                            COPYING-CMAKE-SCRIPTS
+                            qt_attribution.json
+                src/
+                    3rdparty/
+                        D3D12MemoryAllocator/
+                            LICENSE.txt
+                            qt_attribution.json
+                        VulkanMemoryAllocator/
+                            LICENSE.txt
+                            qt_attribution.json
+                        android/
+                            LICENSE
+                            qt_attribution.json
+                        blake2/
+                            COPYING
+                            qt_attribution.json
+                        double-conversion/
+                            LICENSE
+                            qt_attribution.json
+                        easing/
+                            LICENSE
+                            qt_attribution.json
+                        emoji-segmenter/
+                            qt_attribution.json
+                        forkfd/
+                            LICENSE
+                            qt_attribution.json
+                        freetype/
+                            BDF-LICENSE.txt
+                            LICENSE.txt
+                            PCF-LICENSE.txt
+                            ZLIB-LICENSE.txt
+                            qt_attribution.json
+                        gradle/
+                            LICENSE
+                            qt_attribution.json
+                        harfbuzz-ng/
+                            COPYING
+                            qt_attribution.json
+                        icc/
+                            LICENSE.txt
+                            qt_attribution.json
+                        libjpeg/
+                            COPYRIGHT.txt
+                            LICENSE
+                            ijg-license.txt
+                            qt_attribution.json
+                        libpng/
+                            LICENSE
+                            qt_attribution.json
+                        libpsl/
+                            src/
+                                LICENSE.chromium
+                            PSL-LICENSE.txt
+                            qt_attribution.json
+                        md4/
+                            qt_attribution.json
+                        md4c/
+                            LICENSE.md
+                            qt_attribution.json
+                        md5/
+                            qt_attribution.json
+                        pcre2/
+                            LICENCE.md
+                            LICENSE-SLJIT
+                            qt_attribution.json
+                        pixman/
+                            LICENSE
+                            qt_attribution.json
+                        rfc6234/
+                            LICENSE
+                            qt_attribution.json
+                        sha1/
+                            qt_attribution.json
+                        sha3/
+                            BRG_ENDIAN_LICENSE
+                            CC0_LICENSE
+                            qt_attribution.json
+                        siphash/
+                            qt_attribution.json
+                        tinycbor/
+                            LICENSE
+                            qt_attribution.json
+                        wasm/
+                            DEJAVU-LICENSE
+                            qt_attribution.json
+                        wintab/
+                            qt_attribution.json
+                        xcb/
+                            LICENSE
+                            qt_attribution.json
+                        zlib/
+                            LICENSE
+                            qt_attribution.json
+                    corelib/
+                        global/
+                            qt_attribution.json
+                        kernel/
+                            LICENSE.QEVENTDISPATCHER_CF.txt
+                            qt_attribution.json
+                        mimetypes/
+                            3rdparty/
+                                qt_attribution.json
+                        text/
+                            qt_attribution.json
+                    gui/
+                        opengl/
+                            LICENSE.KHRONOS.txt
+                            qt_attribution.json
+                        painting/
+                            LICENSE.QIMAGETRANSFORM.txt
+                            LICENSE.XCONSORTIUM.txt
+                            qt_attribution.json
+                        rhi/
+                            LICENSE.MiniEngine.txt
+                            qt_attribution.json
+                        text/
+                            LICENSE.AGLFN.txt
+                            qt_attribution.json
+                        vulkan/
+                            LICENSE.txt
+                            qt_attribution.json
+                    plugins/
+                        platforms/
+                            cocoa/
+                                LICENSE.COCOA.txt
+                                qt_attribution.json
+                util/
+                    gradientgen/
+                        LICENSE.WEBGRADIENTS.txt
+                        qt_attribution.json
+            qtimageformats/
+                LICENSES/
+                    BSD-3-Clause.txt
+                    GFDL-1.3-no-invariants-only.txt
+                    GPL-2.0-only.txt
+                    GPL-3.0-only.txt
+                    LGPL-3.0-only.txt
+                    LicenseRef-Qt-Commercial.txt
+                    libtiff.txt
+                src/
+                    3rdparty/
+                        libtiff/
+                            COPYRIGHT
+                            qt_attribution.json
+                        libwebp/
+                            COPYING
+                            qt_attribution.json
+            qtsvg/
+                LICENSES/
+                    BSD-3-Clause.txt
+                    GFDL-1.3-no-invariants-only.txt
+                    GPL-2.0-only.txt
+                    GPL-3.0-only.txt
+                    HPND-sell-variant.txt
+                    LGPL-3.0-only.txt
+                    LicenseRef-Qt-Commercial.txt
+                src/
+                    svg/
+                        LICENSE.XSVG.txt
+                        qt_attribution.json
+            qtwebengine/
+                LICENSES/
+                    Apache-2.0.txt
+                    BSD-3-Clause.txt
+                    CC0-1.0.txt
+                    GFDL-1.3-no-invariants-only.txt
+                    GPL-2.0-only.txt
+                    GPL-3.0-only.txt
+                    LGPL-2.0-or-later.txt
+                    LGPL-3.0-only.txt
+                    LicenseRef-Qt-Commercial.txt
+                    LicenseRef-Tango-Icons-Public-Domain.txt
+                    MIT.txt
+                    Qt-GPL-exception-1.0.txt
+            sources.json
+        THIRD_PARTY_NOTICES.txt
     create_icon.py
     icon.ico
 scripts/
     build_business_pitch_pptx.py
     build_extraction_fixtures.py
+    build_sectioned_fixtures.py
+    build_third_party_notices.py
     evaluate_extraction.py
     gen_repo_map.py
     inspect_template.py
@@ -248,6 +531,10 @@ tests/
                 narrative-invoice-02.json
                 narrative-invoice-03.json
                 narrative-invoice-04.json
+                sectioned-contract-01.json
+                sectioned-contract-02.json
+                sectioned-invoice-01.json
+                sectioned-invoice-02.json
             .gitattributes
             README.md
             authored_cases.json
@@ -261,6 +548,7 @@ tests/
             contract-08.pdf
             contract-09.docx
             contract-10.pdf
+            full-pipeline-manifest.json
             invoice-01.docx
             invoice-02.pdf
             invoice-03.docx
@@ -281,8 +569,14 @@ tests/
             narrative-invoice-03.docx
             narrative-invoice-04.pdf
             profiles.json
+            sectioned-contract-01.docx
+            sectioned-contract-02.pdf
+            sectioned-invoice-01.docx
+            sectioned-invoice-02.pdf
+            sectioned_cases.json
         test_evaluation.py
         test_fixtures.py
+        test_full_pipeline_corpus.py
         test_grounding.py
         test_jobs.py
         test_pipeline.py
@@ -331,7 +625,9 @@ tests/
     test_status_banner.py
     test_template_dialog.py
     test_template_worker.py
+    test_third_party_notices.py
     test_widgets.py
+.gitattributes
 .gitignore
 AGENTS.md
 BUILD_STORY.md
@@ -374,6 +670,18 @@ requirements.txt
 - def write_pdf(path: Path, pages: list[list[str]]) -> None: Write small text-layer pages using the existing pypdf dependency.
 - def build(root: Path=ROOT) -> None: Build real files; labels come from authored JSON, never a model or reader.
 
+### scripts/build_sectioned_fixtures.py
+
+- def build(root: Path=ROOT) -> None: Write four long files and independent labels; keep existing files unchanged.
+
+### scripts/build_third_party_notices.py
+
+- def _digest(path: Path) -> str
+- def _runtime_distributions(root: Path) -> list: Collect installed non-extra dependencies, conservatively including platform markers.
+- def _copy_licenses(dist, destination: Path) -> list[str]
+- def build_notices(root: Path, output: Path) -> None: Copy original license bytes for this build without deleting existing files.
+- def validate_notices(bundle: Path) -> None: Fail packaging when license notices are absent, empty, or changed in transit.
+
 ### scripts/evaluate_extraction.py
 
 - class EvaluationError(ValueError): A safe evaluation error code without source or server contents.
@@ -387,7 +695,9 @@ requirements.txt
 - def call_ollama(url: str, model: str, source: SourceDocument, columns: tuple[ColumnSpec, ...], settings: dict) -> str: Send the complete fixture in one schema-constrained, thinking-off request.
 - def _model_details(url: str, model: str) -> dict
 - def _expected(value: object, kind: str) -> ExpectedField
-- def evaluate(manifest: Path, profiles: Path, url: str) -> dict: Run both candidates on actual files; persist aggregate counts only.
+- def _full_pipeline(source: SourceDocument, columns: tuple[ColumnSpec, ...], profile: ExtractionProfile, client: OllamaClient, path: Path, metrics: dict) -> dict[str, ScoredField]: Use production planning/extraction and score only reopened workbook values/flags.
+- def _summary(actual: Mapping, labels: Mapping) -> dict
+- def evaluate(manifest: Path, profiles: Path, url: str, *, full_pipeline: bool=False, output_dir: Path | None=None) -> dict: Run both candidates on actual files; persist aggregate counts only.
 - def main(argv: list[str] | None=None) -> int: Write JSON and Markdown reports; return nonzero when the gate fails.
 
 ### scripts/gen_repo_map.py
@@ -777,10 +1087,20 @@ requirements.txt
 - def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value)
 - def test_unknown_extra_record_flags_but_retains_the_identifiable_requested_proposal(tmp_path)
 - def test_actual_file_evaluation_counts_a_failed_request_instead_of_skipping_it(tmp_path, monkeypatch)
+- def _pipeline_fixture(tmp_path, *, large=False)
+- class _GroundedClient
+- def test_full_pipeline_reads_actual_files_sections_and_scores_saved_cells(tmp_path, monkeypatch, large, path)
+- def test_full_pipeline_scores_reopened_data_and_saved_evidence_flags(tmp_path, monkeypatch)
+- def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monkeypatch)
 
 ### tests/extraction/test_fixtures.py
 
 - def test_narrative_invoice_renders_header_footer_without_label_table(tmp_path)
+
+### tests/extraction/test_full_pipeline_corpus.py
+
+- def test_full_corpus_retains_original_cases_and_large_facts_cross_sections()
+- def test_actual_300_page_job_extracts_and_301_pages_reject_before_model(tmp_path)
 
 ### tests/extraction/test_grounding.py
 
@@ -1186,7 +1506,7 @@ requirements.txt
 ### tests/test_build_script.py
 
 - def payload(tmp_path, monkeypatch)
-- def make_payload(payload)
+- def make_payload(payload, *, notices=True)
 - def test_build_flags_keep_per_user_builtin_installer()
 - def test_product_version_is_2000()
 - def test_build_produces_matching_portable_payload_and_installer(payload, monkeypatch)
@@ -1485,6 +1805,14 @@ requirements.txt
 - def test_worker_completed_carries_path_and_issues(qtbot, manifest, tmp_path)
 - def test_worker_maps_exception_to_friendly_message(qtbot, manifest, tmp_path, exc, raw, expect_substr, forbid_substr)
 
+### tests/test_third_party_notices.py
+
+- def test_notice_bundle_contains_runtime_versions_and_full_qt_terms(tmp_path)
+- def test_missing_notice_payload_is_rejected_without_writing(tmp_path)
+- def test_build_packaging_checks_notice_payload_before_archiving(tmp_path, monkeypatch)
+- def test_notice_payload_is_preserved_in_portable_archive(tmp_path, monkeypatch)
+- def test_changed_notice_payload_is_rejected(tmp_path)
+
 ### tests/test_widgets.py
 
 - def test_top_bar_instantiates(qtbot) -> None
@@ -1591,11 +1919,12 @@ requirements.txt
 
 ## Other files
 
+- .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 67 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 65 lines
+- CHANGELOG.md: md, 68 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1621,7 +1950,7 @@ requirements.txt
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
-- docs/code-signing.md: md, 54 lines
+- docs/code-signing.md: md, 60 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
@@ -1629,6 +1958,8 @@ requirements.txt
 - docs/evaluation/2026-10-08-task1-rerun.md: md, 27 lines
 - docs/evaluation/2026-10-08-task1.json: json, 545 lines
 - docs/evaluation/2026-10-08-task1.md: md, 20 lines
+- docs/evaluation/2026-10-08-task6-full-pipeline.json: json, 702 lines
+- docs/evaluation/2026-10-08-task6-full-pipeline.md: md, 36 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/screenshot.png: png (binary)
@@ -1640,7 +1971,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 180 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 181 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1656,6 +1987,193 @@ requirements.txt
 - requirements-dev.txt: txt, 3 lines
 - requirements.txt: txt, 9 lines
 - resources/icon.ico: ico (binary)
+- resources/third_party/THIRD_PARTY_NOTICES.txt: txt, 49 lines
+- resources/third_party/qt/pyside-setup/LICENSES/Apache-2.0.txt: txt, 61 lines
+- resources/third_party/qt/pyside-setup/LICENSES/BSD-3-Clause.txt: txt, 9 lines
+- resources/third_party/qt/pyside-setup/LICENSES/GFDL-1.3-no-invariants-only.txt: txt, 451 lines
+- resources/third_party/qt/pyside-setup/LICENSES/GPL-2.0-only.txt: txt, 339 lines
+- resources/third_party/qt/pyside-setup/LICENSES/GPL-3.0-only.txt: txt, 674 lines
+- resources/third_party/qt/pyside-setup/LICENSES/LGPL-3.0-only.txt: txt, 165 lines
+- resources/third_party/qt/pyside-setup/LICENSES/LicenseRef-Qt-Commercial.txt: txt, 8 lines
+- resources/third_party/qt/pyside-setup/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
+- resources/third_party/qt/qt-pdf/chromium/LICENSE: text, 27 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/abseil-cpp/LICENSE: text, 203 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/icu/LICENSE: text, 512 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/libjpeg_turbo/LICENSE.md: md, 135 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/libjpeg_turbo/README.chromium: chromium, 62 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/libjpeg_turbo/README.ijg: ijg, 260 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/libpng/LICENSE: text, 134 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/libpng/README.chromium: chromium, 18 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/AUTHORS: text, 67 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/LICENSE: text, 230 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/NotoSansCJK/LICENSE: text, 78 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/agg23/copying: text, 11 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/bigint/LICENSE: text, 71 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/fast_float/README.pdfium: pdfium, 15 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/fast_float/src/LICENSE-MIT: text, 27 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/fp16/LICENSE: text, 12 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/freetype/FTL.TXT: txt, 169 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/highway/LICENSE: text, 201 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/lcms/LICENSE: text, 22 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/libopenjpeg/LICENSE: text, 39 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/pdfium/third_party/libtiff/LICENSE.md: md, 23 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/zlib/LICENSE: text, 19 lines
+- resources/third_party/qt/qt-pdf/chromium/third_party/zlib/README.chromium: chromium, 38 lines
+- resources/third_party/qt/qtbase/LICENSES/AFL-2.1.txt: txt, 45 lines
+- resources/third_party/qt/qtbase/LICENSES/Apache-2.0.txt: txt, 61 lines
+- resources/third_party/qt/qtbase/LICENSES/BSD-2-Clause.txt: txt, 10 lines
+- resources/third_party/qt/qtbase/LICENSES/BSD-3-Clause.txt: txt, 9 lines
+- resources/third_party/qt/qtbase/LICENSES/BSD-4-Clause.txt: txt, 13 lines
+- resources/third_party/qt/qtbase/LICENSES/BSL-1.0.txt: txt, 9 lines
+- resources/third_party/qt/qtbase/LICENSES/Bitstream-Vera.txt: txt, 187 lines
+- resources/third_party/qt/qtbase/LICENSES/CC0-1.0.txt: txt, 121 lines
+- resources/third_party/qt/qtbase/LICENSES/FTL.txt: txt, 169 lines
+- resources/third_party/qt/qtbase/LICENSES/GFDL-1.3-no-invariants-only.txt: txt, 451 lines
+- resources/third_party/qt/qtbase/LICENSES/GPL-2.0-only.txt: txt, 339 lines
+- resources/third_party/qt/qtbase/LICENSES/GPL-2.0-or-later.txt: txt, 339 lines
+- resources/third_party/qt/qtbase/LICENSES/GPL-3.0-only.txt: txt, 674 lines
+- resources/third_party/qt/qtbase/LICENSES/HPND.txt: txt, 21 lines
+- resources/third_party/qt/qtbase/LICENSES/IJG.txt: txt, 34 lines
+- resources/third_party/qt/qtbase/LICENSES/IPL-1.0.txt: txt, 83 lines
+- resources/third_party/qt/qtbase/LICENSES/Imlib2.txt: txt, 7 lines
+- resources/third_party/qt/qtbase/LICENSES/LGPL-2.1-or-later.txt: txt, 468 lines
+- resources/third_party/qt/qtbase/LICENSES/LGPL-3.0-only.txt: txt, 165 lines
+- resources/third_party/qt/qtbase/LICENSES/Libpng.txt: txt, 73 lines
+- resources/third_party/qt/qtbase/LICENSES/LicenseRef-BSD-3-Clause-with-PCRE2-Binary-Like-Packages-Exception.txt: txt, 12 lines
+- resources/third_party/qt/qtbase/LICENSES/LicenseRef-ICC-License.txt: txt, 10 lines
+- resources/third_party/qt/qtbase/LICENSES/LicenseRef-Lcs-Telegraphics.txt: txt, 2 lines
+- resources/third_party/qt/qtbase/LICENSES/LicenseRef-Qt-Commercial.txt: txt, 8 lines
+- resources/third_party/qt/qtbase/LICENSES/LicenseRef-SHA1-Public-Domain.txt: txt, 3 lines
+- resources/third_party/qt/qtbase/LICENSES/Linux-syscall-note.txt: txt, 5 lines
+- resources/third_party/qt/qtbase/LICENSES/MIT-Khronos-old.txt: txt, 9 lines
+- resources/third_party/qt/qtbase/LICENSES/MIT-open-group.txt: txt, 9 lines
+- resources/third_party/qt/qtbase/LICENSES/MIT.txt: txt, 11 lines
+- resources/third_party/qt/qtbase/LICENSES/MPL-2.0.txt: txt, 373 lines
+- resources/third_party/qt/qtbase/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
+- resources/third_party/qt/qtbase/LICENSES/SPL-1.0.txt: txt, 93 lines
+- resources/third_party/qt/qtbase/LICENSES/Unicode-3.0.txt: txt, 39 lines
+- resources/third_party/qt/qtbase/LICENSES/X11.txt: txt, 24 lines
+- resources/third_party/qt/qtbase/LICENSES/Xerox.txt: txt, 7 lines
+- resources/third_party/qt/qtbase/LICENSES/Zlib.txt: txt, 28 lines
+- resources/third_party/qt/qtbase/LICENSES/blessing.txt: txt, 5 lines
+- resources/third_party/qt/qtbase/LICENSES/libpng-2.0.txt: txt, 134 lines
+- resources/third_party/qt/qtbase/cmake/3rdparty/extra-cmake-modules/COPYING-CMAKE-SCRIPTS: text, 22 lines
+- resources/third_party/qt/qtbase/cmake/3rdparty/extra-cmake-modules/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/cmake/3rdparty/kwin/COPYING-CMAKE-SCRIPTS: text, 22 lines
+- resources/third_party/qt/qtbase/cmake/3rdparty/kwin/qt_attribution.json: json, 22 lines
+- resources/third_party/qt/qtbase/src/3rdparty/D3D12MemoryAllocator/LICENSE.txt: txt, 19 lines
+- resources/third_party/qt/qtbase/src/3rdparty/D3D12MemoryAllocator/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/VulkanMemoryAllocator/LICENSE.txt: txt, 19 lines
+- resources/third_party/qt/qtbase/src/3rdparty/VulkanMemoryAllocator/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/android/LICENSE: text, 11 lines
+- resources/third_party/qt/qtbase/src/3rdparty/android/qt_attribution.json: json, 12 lines
+- resources/third_party/qt/qtbase/src/3rdparty/blake2/COPYING: text, 319 lines
+- resources/third_party/qt/qtbase/src/3rdparty/blake2/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/double-conversion/LICENSE: text, 26 lines
+- resources/third_party/qt/qtbase/src/3rdparty/double-conversion/qt_attribution.json: json, 16 lines
+- resources/third_party/qt/qtbase/src/3rdparty/easing/LICENSE: text, 25 lines
+- resources/third_party/qt/qtbase/src/3rdparty/easing/qt_attribution.json: json, 14 lines
+- resources/third_party/qt/qtbase/src/3rdparty/emoji-segmenter/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/forkfd/LICENSE: text, 20 lines
+- resources/third_party/qt/qtbase/src/3rdparty/forkfd/qt_attribution.json: json, 14 lines
+- resources/third_party/qt/qtbase/src/3rdparty/freetype/BDF-LICENSE.txt: txt, 43 lines
+- resources/third_party/qt/qtbase/src/3rdparty/freetype/LICENSE.txt: txt, 557 lines
+- resources/third_party/qt/qtbase/src/3rdparty/freetype/PCF-LICENSE.txt: txt, 44 lines
+- resources/third_party/qt/qtbase/src/3rdparty/freetype/ZLIB-LICENSE.txt: txt, 20 lines
+- resources/third_party/qt/qtbase/src/3rdparty/freetype/qt_attribution.json: json, 99 lines
+- resources/third_party/qt/qtbase/src/3rdparty/gradle/LICENSE: text, 422 lines
+- resources/third_party/qt/qtbase/src/3rdparty/gradle/qt_attribution.json: json, 16 lines
+- resources/third_party/qt/qtbase/src/3rdparty/harfbuzz-ng/COPYING: text, 42 lines
+- resources/third_party/qt/qtbase/src/3rdparty/harfbuzz-ng/qt_attribution.json: json, 34 lines
+- resources/third_party/qt/qtbase/src/3rdparty/icc/LICENSE.txt: txt, 10 lines
+- resources/third_party/qt/qtbase/src/3rdparty/icc/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libjpeg/COPYRIGHT.txt: txt, 15 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libjpeg/LICENSE: text, 147 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libjpeg/ijg-license.txt: txt, 34 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libjpeg/qt_attribution.json: json, 19 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libpng/LICENSE: text, 134 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libpng/qt_attribution.json: json, 40 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libpsl/PSL-LICENSE.txt: txt, 373 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libpsl/qt_attribution.json: json, 50 lines
+- resources/third_party/qt/qtbase/src/3rdparty/libpsl/src/LICENSE.chromium: chromium, 30 lines
+- resources/third_party/qt/qtbase/src/3rdparty/md4/qt_attribution.json: json, 12 lines
+- resources/third_party/qt/qtbase/src/3rdparty/md4c/LICENSE.md: md, 22 lines
+- resources/third_party/qt/qtbase/src/3rdparty/md4c/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/md5/qt_attribution.json: json, 12 lines
+- resources/third_party/qt/qtbase/src/3rdparty/pcre2/LICENCE.md: md, 104 lines
+- resources/third_party/qt/qtbase/src/3rdparty/pcre2/LICENSE-SLJIT: text, 25 lines
+- resources/third_party/qt/qtbase/src/3rdparty/pcre2/qt_attribution.json: json, 40 lines
+- resources/third_party/qt/qtbase/src/3rdparty/pixman/LICENSE: text, 20 lines
+- resources/third_party/qt/qtbase/src/3rdparty/pixman/qt_attribution.json: json, 16 lines
+- resources/third_party/qt/qtbase/src/3rdparty/rfc6234/LICENSE: text, 34 lines
+- resources/third_party/qt/qtbase/src/3rdparty/rfc6234/qt_attribution.json: json, 13 lines
+- resources/third_party/qt/qtbase/src/3rdparty/sha1/qt_attribution.json: json, 15 lines
+- resources/third_party/qt/qtbase/src/3rdparty/sha3/BRG_ENDIAN_LICENSE: text, 14 lines
+- resources/third_party/qt/qtbase/src/3rdparty/sha3/CC0_LICENSE: text, 99 lines
+- resources/third_party/qt/qtbase/src/3rdparty/sha3/qt_attribution.json: json, 49 lines
+- resources/third_party/qt/qtbase/src/3rdparty/siphash/qt_attribution.json: json, 21 lines
+- resources/third_party/qt/qtbase/src/3rdparty/tinycbor/LICENSE: text, 21 lines
+- resources/third_party/qt/qtbase/src/3rdparty/tinycbor/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/wasm/DEJAVU-LICENSE: text, 187 lines
+- resources/third_party/qt/qtbase/src/3rdparty/wasm/qt_attribution.json: json, 21 lines
+- resources/third_party/qt/qtbase/src/3rdparty/wintab/qt_attribution.json: json, 13 lines
+- resources/third_party/qt/qtbase/src/3rdparty/xcb/LICENSE: text, 23 lines
+- resources/third_party/qt/qtbase/src/3rdparty/xcb/qt_attribution.json: json, 18 lines
+- resources/third_party/qt/qtbase/src/3rdparty/zlib/LICENSE: text, 28 lines
+- resources/third_party/qt/qtbase/src/3rdparty/zlib/qt_attribution.json: json, 19 lines
+- resources/third_party/qt/qtbase/src/corelib/global/qt_attribution.json: json, 14 lines
+- resources/third_party/qt/qtbase/src/corelib/kernel/LICENSE.QEVENTDISPATCHER_CF.txt: txt, 29 lines
+- resources/third_party/qt/qtbase/src/corelib/kernel/qt_attribution.json: json, 14 lines
+- resources/third_party/qt/qtbase/src/corelib/mimetypes/3rdparty/qt_attribution.json: json, 28 lines
+- resources/third_party/qt/qtbase/src/corelib/text/qt_attribution.json: json, 51 lines
+- resources/third_party/qt/qtbase/src/gui/opengl/LICENSE.KHRONOS.txt: txt, 20 lines
+- resources/third_party/qt/qtbase/src/gui/opengl/qt_attribution.json: json, 36 lines
+- resources/third_party/qt/qtbase/src/gui/painting/LICENSE.QIMAGETRANSFORM.txt: txt, 60 lines
+- resources/third_party/qt/qtbase/src/gui/painting/LICENSE.XCONSORTIUM.txt: txt, 43 lines
+- resources/third_party/qt/qtbase/src/gui/painting/qt_attribution.json: json, 51 lines
+- resources/third_party/qt/qtbase/src/gui/rhi/LICENSE.MiniEngine.txt: txt, 22 lines
+- resources/third_party/qt/qtbase/src/gui/rhi/qt_attribution.json: json, 19 lines
+- resources/third_party/qt/qtbase/src/gui/text/LICENSE.AGLFN.txt: txt, 26 lines
+- resources/third_party/qt/qtbase/src/gui/text/qt_attribution.json: json, 19 lines
+- resources/third_party/qt/qtbase/src/gui/vulkan/LICENSE.txt: txt, 83 lines
+- resources/third_party/qt/qtbase/src/gui/vulkan/qt_attribution.json: json, 19 lines
+- resources/third_party/qt/qtbase/src/plugins/platforms/cocoa/LICENSE.COCOA.txt: txt, 29 lines
+- resources/third_party/qt/qtbase/src/plugins/platforms/cocoa/qt_attribution.json: json, 14 lines
+- resources/third_party/qt/qtbase/util/gradientgen/LICENSE.WEBGRADIENTS.txt: txt, 21 lines
+- resources/third_party/qt/qtbase/util/gradientgen/qt_attribution.json: json, 17 lines
+- resources/third_party/qt/qtimageformats/LICENSES/BSD-3-Clause.txt: txt, 9 lines
+- resources/third_party/qt/qtimageformats/LICENSES/GFDL-1.3-no-invariants-only.txt: txt, 451 lines
+- resources/third_party/qt/qtimageformats/LICENSES/GPL-2.0-only.txt: txt, 339 lines
+- resources/third_party/qt/qtimageformats/LICENSES/GPL-3.0-only.txt: txt, 674 lines
+- resources/third_party/qt/qtimageformats/LICENSES/LGPL-3.0-only.txt: txt, 165 lines
+- resources/third_party/qt/qtimageformats/LICENSES/LicenseRef-Qt-Commercial.txt: txt, 8 lines
+- resources/third_party/qt/qtimageformats/LICENSES/libtiff.txt: txt, 21 lines
+- resources/third_party/qt/qtimageformats/src/3rdparty/libtiff/COPYRIGHT: text, 21 lines
+- resources/third_party/qt/qtimageformats/src/3rdparty/libtiff/qt_attribution.json: json, 24 lines
+- resources/third_party/qt/qtimageformats/src/3rdparty/libwebp/COPYING: text, 30 lines
+- resources/third_party/qt/qtimageformats/src/3rdparty/libwebp/qt_attribution.json: json, 23 lines
+- resources/third_party/qt/qtsvg/LICENSES/BSD-3-Clause.txt: txt, 9 lines
+- resources/third_party/qt/qtsvg/LICENSES/GFDL-1.3-no-invariants-only.txt: txt, 451 lines
+- resources/third_party/qt/qtsvg/LICENSES/GPL-2.0-only.txt: txt, 339 lines
+- resources/third_party/qt/qtsvg/LICENSES/GPL-3.0-only.txt: txt, 674 lines
+- resources/third_party/qt/qtsvg/LICENSES/HPND-sell-variant.txt: txt, 22 lines
+- resources/third_party/qt/qtsvg/LICENSES/LGPL-3.0-only.txt: txt, 165 lines
+- resources/third_party/qt/qtsvg/LICENSES/LicenseRef-Qt-Commercial.txt: txt, 8 lines
+- resources/third_party/qt/qtsvg/src/svg/LICENSE.XSVG.txt: txt, 22 lines
+- resources/third_party/qt/qtsvg/src/svg/qt_attribution.json: json, 14 lines
+- resources/third_party/qt/qtwebengine/LICENSES/Apache-2.0.txt: txt, 61 lines
+- resources/third_party/qt/qtwebengine/LICENSES/BSD-3-Clause.txt: txt, 9 lines
+- resources/third_party/qt/qtwebengine/LICENSES/CC0-1.0.txt: txt, 121 lines
+- resources/third_party/qt/qtwebengine/LICENSES/GFDL-1.3-no-invariants-only.txt: txt, 451 lines
+- resources/third_party/qt/qtwebengine/LICENSES/GPL-2.0-only.txt: txt, 339 lines
+- resources/third_party/qt/qtwebengine/LICENSES/GPL-3.0-only.txt: txt, 674 lines
+- resources/third_party/qt/qtwebengine/LICENSES/LGPL-2.0-or-later.txt: txt, 324 lines
+- resources/third_party/qt/qtwebengine/LICENSES/LGPL-3.0-only.txt: txt, 165 lines
+- resources/third_party/qt/qtwebengine/LICENSES/LicenseRef-Qt-Commercial.txt: txt, 8 lines
+- resources/third_party/qt/qtwebengine/LICENSES/LicenseRef-Tango-Icons-Public-Domain.txt: txt, 1 lines
+- resources/third_party/qt/qtwebengine/LICENSES/MIT.txt: txt, 11 lines
+- resources/third_party/qt/qtwebengine/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
+- resources/third_party/qt/sources.json: json, 930 lines
 - scripts/qualify_windows_installer.ps1: ps1, 152 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
 - simplicitor/prompts/system_manipulate.txt: txt, 13 lines
@@ -1683,6 +2201,7 @@ requirements.txt
 - tests/extraction/fixtures/contract-08.pdf: pdf, 103 lines
 - tests/extraction/fixtures/contract-09.docx: docx (binary)
 - tests/extraction/fixtures/contract-10.pdf: pdf, 103 lines
+- tests/extraction/fixtures/full-pipeline-manifest.json: json, 2212 lines
 - tests/extraction/fixtures/invoice-01.docx: docx (binary)
 - tests/extraction/fixtures/invoice-02.pdf: pdf, 103 lines
 - tests/extraction/fixtures/invoice-03.docx: docx (binary)
@@ -1721,6 +2240,10 @@ requirements.txt
 - tests/extraction/fixtures/labels/narrative-invoice-02.json: json, 12 lines
 - tests/extraction/fixtures/labels/narrative-invoice-03.json: json, 12 lines
 - tests/extraction/fixtures/labels/narrative-invoice-04.json: json, 12 lines
+- tests/extraction/fixtures/labels/sectioned-contract-01.json: json, 12 lines
+- tests/extraction/fixtures/labels/sectioned-contract-02.json: json, 12 lines
+- tests/extraction/fixtures/labels/sectioned-invoice-01.json: json, 12 lines
+- tests/extraction/fixtures/labels/sectioned-invoice-02.json: json, 12 lines
 - tests/extraction/fixtures/manifest.json: json, 1936 lines
 - tests/extraction/fixtures/narrative-contract-01.docx: docx (binary)
 - tests/extraction/fixtures/narrative-contract-02.pdf: pdf, 100 lines
@@ -1731,6 +2254,11 @@ requirements.txt
 - tests/extraction/fixtures/narrative-invoice-03.docx: docx (binary)
 - tests/extraction/fixtures/narrative-invoice-04.pdf: pdf, 98 lines
 - tests/extraction/fixtures/profiles.json: json, 6 lines
+- tests/extraction/fixtures/sectioned-contract-01.docx: docx (binary)
+- tests/extraction/fixtures/sectioned-contract-02.pdf: pdf, 1202 lines
+- tests/extraction/fixtures/sectioned-invoice-01.docx: docx (binary)
+- tests/extraction/fixtures/sectioned-invoice-02.pdf: pdf, 1201 lines
+- tests/extraction/fixtures/sectioned_cases.json: json, 40 lines
 - tests/templates_engine/fixtures/broken_duplicate_manifest.yaml: yaml, 16 lines
 - tests/templates_engine/fixtures/broken_kind_manifest.yaml: yaml, 12 lines
 - tests/templates_engine/fixtures/render_manifest.yaml: yaml, 40 lines

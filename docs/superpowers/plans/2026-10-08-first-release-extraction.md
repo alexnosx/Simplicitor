@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 4 and their fixes are accepted. Current authorization covers the stock-installer/version 2.0.0.0 revision and hosted-runner installer qualification/evidence. Commit/push to main are authorized; do not tag, publish, or start Task 6.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5 and hosted-runner qualification are accepted. Current authorization covers Task 6 items 1 to 4 below only. Commit/push to main are authorized; do not tag, release, publish, change LICENSE, or extend implementation to broader release qualification.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Current authorization covers the stock-installer/version 2.0.0.0 revision and hosted-runner installer qualification/evidence. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner. Stop before Task 6.
+- Current authorization covers the saved-output evaluator, large-fixture Qwen evaluation, 300/301-page checks, and bundled notices. Preserve existing prompts, labels, settings, thresholds, and LICENSE. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -31,7 +31,7 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 ## Work order
 
-Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution stops after Task 5; installer lifecycle checks use the hosted Windows runner; broader release checks remain later.
+Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the four authorized Task 6 items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
@@ -160,20 +160,21 @@ Result: the isolated full suite passes 953 tests. The native Windows walkthrough
 - [x] Verify the first passing run and setup/ZIP/qualification artifacts; [CI evidence](../../builds/2026-10-08-task5-ci.json) records the tested commit, 964 passing source tests, lifecycle checks, and verified downloaded hashes.
 - [x] Earlier standalone/ZIP payload comparison and local startup evidence are retained historically in [local evidence](../../builds/2026-10-08-task5.json). They predate the stock-uninstaller revision.
 
-**Verify:** locally run only the required build flag/version tests and parse the PowerShell script without execution. The workflow passed the source suite, python build.py, and scripts/qualify_windows_installer.ps1 on hosted Windows. No install/uninstall/delete tests, installers, or Windows Sandbox on Alex's PC. Do not start Task 6. Hosted lifecycle qualification does not claim the native UI, model-quality, Python-free machine, or SmartScreen checks below.
+**Verify:** locally run only the required build flag/version tests and parse the PowerShell script without execution. The workflow passed the source suite, python build.py, and scripts/qualify_windows_installer.ps1 on hosted Windows. No install/uninstall/delete tests, installers, or Windows Sandbox on Alex's PC. Hosted lifecycle qualification does not claim the native UI, model-quality, Python-free machine, or SmartScreen checks below.
 
-### Task 6: Qualify the full pipeline and release
+### Task 6: Evaluate saved output and bundle notices
 
-**Tests:** full isolated suite, actual-file corpus, tests/test_gen_repo_map.py, and clean-machine/native UI checks.
-**Modify:** scripts/evaluate_extraction.py and tests/extraction/test_evaluation.py for --full-pipeline; docs/PROJECT_STATUS.md for current state.
+**Tests:** focused source/evaluator/notice checks locally; full isolated suite and actual packaging on the hosted Windows runner. No installer, uninstaller, Sandbox, or install/uninstall/delete tests on Alex's PC.
+**Modify:** scripts/evaluate_extraction.py, scripts/build_sectioned_fixtures.py, scripts/build_third_party_notices.py, build.py, relevant tests/fixtures, notice resources, and supporting evidence/status/map.
 
-- [ ] Add --full-pipeline to the same CLI. It always reads actual fixture files, runs production sectioning/extraction, writes/reopens the XLSX candidate, and scores saved Data values plus their flags with the Task 1 scorer.
-- [ ] Run the full suite in isolated user folders. Run the fixed English corpus through --full-pipeline with the selected candidate and settings; check PRD accuracy/error fractions, coverage, and review burden.
-- [ ] Extend the labelled corpus with files too large for one request and score the sectioned path as well as whole-file extraction. Exercise a job at the page limit and a just-over-limit rejection. Complete the UI/package walkthrough: suggested columns, all-cell evidence, highlighted proposals, incomplete-output acknowledgement, cancellation/rerun, overwrite, source-path refusal, and cleanup.
-- [ ] Regenerate the map, update status, and check dependency notices. Leave LICENSE unchanged and Alex's business-use decision open.
-- [ ] Release only after the full-pipeline quality, coverage/type, Windows launch, and license decisions are resolved. Commit/push/tag/publication require explicit authorization.
+1. [x] Add --full-pipeline to the same CLI: read actual files, run production extraction including sectioning, write/reopen the XLSX candidate, and score saved Data values and saved Evidence flags with the existing scorer. Failures retain the denominator.
+2. [x] Add four independently labelled synthetic English DOCX/text-PDF documents too large for one request, with facts across sections. Retain the original 28 cases/labels, prompt, options, and thresholds. Run selected qwen3:8b on all 32 files and report whole-file and sectioned scores separately. [Result](../../evaluation/2026-10-08-task6-full-pipeline.md): whole-file passes, sectioned fails; the aggregate fraction passes but does not establish sectioned readiness.
+3. [x] Read, extract, and save a synthetic job at exactly 300 DOCX page equivalents; reject 301 pages before a model call. This boundary check uses a deterministic fake model, not a 300-page live quality claim.
+4. [x] Include runtime library license texts/notices and full Qt/PySide LGPL terms before Nuitka compiles the installer. Validate notice presence/inventory hashes before ZIP packaging. Keep LICENSE unchanged and Alex's business-use decision open.
 
-**Verify:** python -m pytest -q in isolated homes/base directory, then the Task 1 CLI command with --full-pipeline --report .venv/evaluation/release.json and the manual UI/package checks. Required: the full production output passes release checks; timings decide nothing.
+**Verify:** focused evaluator, corpus, notices, flag/version checks locally; full python -m pytest -q and build.py only on hosted Windows. Use the existing selected-Qwen profile with --full-pipeline --manifest tests/extraction/fixtures/full-pipeline-manifest.json; raw workbooks remain in ignored workspace output, aggregate report is tracked. Timings decide nothing. Record actual CI evidence after push.
+
+**Outside this authorization:** broader native UI/package walkthrough, clean-machine/SmartScreen qualification, quality repairs, and any tag, release, or publication. Do not treat completion of these four items or the aggregate score as full release qualification.
 
 ## Plan self-review
 

@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-0042",
+  "supplier": "Cedar Systems Ltd",
+  "client": "Birch Retail Ltd",
+  "effective_date": "2026-01-01",
+  "expiry_date": "2026-12-31",
+  "contract_value": "125000.00",
+  "currency": "USD",
+  "employee_id": "000452",
+  "reference": "FIN/26/042",
+  "notice_days": 60
+}

@@ -1,0 +1,49 @@
+Simplicitor third-party notices
+=============================
+
+Simplicitor uses the separately licensed libraries listed in inventory.json.
+Their original license, copyright and notice files accompany this document.
+These notices do not change Simplicitor's LICENSE or restrict rights granted
+by the third-party licenses.
+
+Qt, PySide6 and Shiboken
+-----------------------
+Copyright (C) The Qt Company Ltd. and their respective contributors.
+Qt Core, GUI, Widgets, Network, SVG, Image Formats and PDF are used with
+PySide6/Shiboken under the GNU Lesser General Public License version 3.
+Copies of LGPL-3.0 and GPL-3.0 are included under qt/qtbase/LICENSES/.
+Qt's separately licensed third-party components have their original
+attributions and license texts under qt/. sources.json records exact upstream
+URLs and checksums, including Qt PDF's Chromium/PDFium source revision.
+The Qt notice set is a conservative superset of platform-specific components.
+
+The standalone distribution uses Qt/PySide shared libraries. Interface-compatible
+modified libraries can replace the corresponding DLLs/PYD files. Modification
+and reverse engineering for debugging those library modifications are permitted
+under their LGPL terms. Build instructions and application source are available
+at https://github.com/alexnosx/Simplicitor. Qt and PySide source versions are at
+https://github.com/qt and https://github.com/pyside/pyside-setup; the exact Qt
+version and source links are recorded in qt/sources.json.
+
+Other runtime components
+------------------------
+Python distribution licenses and Windows-binary conditions are in
+python-runtime/LICENSE.txt. Python source: https://www.python.org/downloads/source/.
+Installed Python library versions and original license filenames are recorded
+in inventory.json. Their license texts are under python/.
+
+OpenSSL is used by Python and may also be embedded in cryptography. Copyright
+(C) the OpenSSL Project Authors and contributors, 1998-2026. OpenSSL 3 is
+licensed under Apache License 2.0, included under qt/qtbase/LICENSES/Apache-2.0.txt.
+Source and notices: https://github.com/openssl/openssl. The Python OpenSSL
+version is recorded in inventory.json; cryptography's own licenses also accompany it.
+
+Generated native code uses the Nuitka runtime. Its license, runtime exception
+and notice are under nuitka-runtime/; source: https://github.com/Nuitka/Nuitka.
+
+Microsoft Visual C++ runtime files are Copyright (C) Microsoft Corporation.
+Their redistribution conditions are described in the Python Windows-binary
+license and at https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/.
+
+This notice bundle supplies attributions and license texts. Publishing remains
+subject to the project's separate release and licensing decisions.
