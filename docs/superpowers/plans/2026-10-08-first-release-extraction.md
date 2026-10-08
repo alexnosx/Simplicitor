@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5 and hosted-runner qualification are accepted. Current authorization covers Task 6 items 1 to 4 below only. Commit/push to main are authorized; do not tag, release, publish, change LICENSE, or extend implementation to broader release qualification.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5 and Task 6 notices/page limits/evaluator are accepted. Current authorization covers the sectioned-extraction revision below only. Commit/push to main are authorized; do not tag, release, publish, change LICENSE, or extend implementation to broader release qualification.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Current authorization covers the saved-output evaluator, large-fixture Qwen evaluation, 300/301-page checks, and bundled notices. Preserve existing prompts, labels, settings, thresholds, and LICENSE. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
+- Current authorization covers independent section requests, literal-null normalization, symmetric verified merging, path-specific PRD/evaluator criteria, and the selected-Qwen full-corpus rerun. Preserve SYSTEM_PROMPT, fixtures/labels, model settings, and LICENSE. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -31,7 +31,7 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 ## Work order
 
-Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the four authorized Task 6 items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
+Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the five authorized sectioned-extraction revision items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
@@ -93,7 +93,7 @@ Latest Task 1 result: after the two approved currency/null fixes, the [selected-
 **Create:** simplicitor/extraction/sectioning.py, simplicitor/extraction/pipeline.py; tests/extraction/test_sectioning.py, tests/extraction/test_pipeline.py.
 **Modify:** simplicitor/extraction/models.py, simplicitor/app/services/ollama_client.py, tests/test_ollama_client.py.
 
-**Interfaces:** ExtractionProfile(model, options, timeout) merges shared defaults with explicit options; Section(section_id, source_id, unit_ids, excluded=False); ExtractionResult(ordered_source_ids, fields, source_paths, issues, coverage), where coverage maps each anchor to processed, excluded, or failed. FieldResult.alternatives retains additional proposals with their quotes/anchors. make_sections(documents, profile, *, columns=(), request="", carried_fields=None) returns sections; production callers supply the confirmed request context so instructions/carry count against the input budget. propose_columns(request, first_source, profile, client, cancel) returns ColumnSpecs. extract(documents, columns, request, profile, client, cancel, progress=None) returns ExtractionResult; progress receives source_id, section_id, completed units, total units. ExtractionCancelled discards cancelled/late results. OllamaClient.generate adds keyword-only options, think, and local_only, preserving old defaults and string return; OllamaOutputLimitError retains response_text separately from its safe message.
+**Interfaces:** ExtractionProfile(model, options, timeout) merges shared defaults with explicit options; Section(section_id, source_id, unit_ids, excluded=False); ExtractionResult(ordered_source_ids, fields, source_paths, issues, coverage), where coverage maps each anchor to processed, excluded, or failed. FieldResult.alternatives retains additional proposals with their quotes/anchors. make_sections(documents, profile, *, columns=(), request="") returns sections; production callers supply the confirmed request context so instructions and current source units count against the input budget. Section requests omit accumulated fields; code merges results. propose_columns(request, first_source, profile, client, cancel) returns ColumnSpecs. extract(documents, columns, request, profile, client, cancel, progress=None) returns ExtractionResult; progress receives source_id, section_id, completed units, total units. ExtractionCancelled discards cancelled/late results. OllamaClient.generate adds keyword-only options, think, and local_only, preserving old defaults and string return; OllamaOutputLimitError retains response_text separately from its safe message.
 
 OllamaContextLimitError retains response_text for truncated local requests. Extraction flags their fields and records failed coverage. Column-suggestion failures expose sampled-unit coverage through ExtractionError.issues.
 
@@ -174,7 +174,16 @@ Result: the isolated full suite passes 953 tests. The native Windows walkthrough
 
 **Verify:** focused evaluator, corpus, notices, flag/version checks locally; full python -m pytest -q and build.py only on hosted Windows. Use the existing selected-Qwen profile with --full-pipeline --manifest tests/extraction/fixtures/full-pipeline-manifest.json; raw workbooks remain in ignored workspace output, aggregate report is tracked. Timings decide nothing. Hosted verification passed 976 source tests, the real build and existing lifecycle qualification; downloaded setup/ZIP, all payload files and notice hashes match [CI evidence](../../builds/2026-10-09-task6-ci.json).
 
-**Outside this authorization:** broader native UI/package walkthrough, clean-machine/SmartScreen qualification, quality repairs, and any tag, release, or publication. Do not treat completion of these four items or the aggregate score as full release qualification.
+**Outside this authorization:** broader native UI/package walkthrough, clean-machine/SmartScreen qualification, unrelated quality repairs, and any tag, release, or publication. Do not treat completion of these four items or the aggregate score as full release qualification.
+
+
+### Sectioned-extraction revision after Task 6 review
+
+1. [x] Remove previous_fields/source_scope and carried-field budgeting. Each section sends the whole-file request format with current source units; code accumulates results.
+2. [x] Normalize trimmed, case-insensitive string "null" like an empty value through FieldProposal, parsing, and Data projection.
+3. [x] Make verified selection symmetric over grounding/conversion failures and retain failed alternatives. Cover both orders, several failed proposals before a verified value, and persistent verified conflicts. Preserve request/schema/truncation flags and coverage failures.
+4. [x] Update PRD criteria and evaluator: whole-file keeps both thresholds; sectioned requires zero unflagged wrong and reports accuracy. Aggregate counts cannot decide the full-pipeline exit status. Regression tests mutate actual saved cells; saving/coverage failures still fail.
+5. [x] Rerun the full unchanged corpus on selected qwen3:8b; [report](../../evaluation/2026-10-09-sectioned-rerun.md): whole-file277/280,0unflaggedwrong passes; sectioned33/40,1unflaggedwrong fails. CLI exits1 despite diagnostic aggregate pass. 164 permitted local checks pass; full source suite only on hosted Windows, then record evidence and commit/push main. No local install/uninstall/delete tests, tag, release, publication, or LICENSE change.
 
 ## Plan self-review
 

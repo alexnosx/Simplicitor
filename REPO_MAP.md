@@ -87,6 +87,8 @@ docs/
         2026-10-08-task1.md
         2026-10-08-task6-full-pipeline.json
         2026-10-08-task6-full-pipeline.md
+        2026-10-09-sectioned-rerun.json
+        2026-10-09-sectioned-rerun.md
     releases/
         v1.2.1-local.json
         v1.2.1.json
@@ -580,6 +582,7 @@ tests/
         test_full_pipeline_corpus.py
         test_grounding.py
         test_jobs.py
+        test_path_criteria.py
         test_pipeline.py
         test_sectioning.py
         test_source_readers.py
@@ -960,13 +963,13 @@ requirements.txt
 
 ### simplicitor/extraction/request_format.py
 
-- def build_extraction_prompt(source: SourceDocument, columns: tuple[ColumnSpec, ...], request: str='', unit_ids: tuple[str, ...] | None=None, carried_fields: dict | None=None) -> str: Serialize actual source units and confirmed columns without labels or paths.
+- def build_extraction_prompt(source: SourceDocument, columns: tuple[ColumnSpec, ...], request: str='', unit_ids: tuple[str, ...] | None=None) -> str: Serialize actual source units and confirmed columns without labels or paths.
 
 ### simplicitor/extraction/sectioning.py
 
 - class ContextBudgetError(ValueError): The configured request leaves no source budget; setup must be changed.
 - def request_fits(system: str, prompt: str, schema: dict, profile: ExtractionProfile) -> bool: Estimate prompt tokens at 2.5 UTF-8 bytes each; schema constrains output only.
-- def make_sections(documents: tuple[SourceDocument, ...], profile: ExtractionProfile, *, columns: tuple[ColumnSpec, ...]=(), request: str='', carried_fields: dict | None=None) -> tuple[Section, ...]: Keep whole files when estimated to fit; otherwise preserve structural groups.
+- def make_sections(documents: tuple[SourceDocument, ...], profile: ExtractionProfile, *, columns: tuple[ColumnSpec, ...]=(), request: str='') -> tuple[Section, ...]: Keep whole files when estimated to fit; otherwise preserve structural groups.
 
 ### simplicitor/extraction/source_readers.py
 
@@ -1086,13 +1089,14 @@ requirements.txt
 - def test_invalid_evidence_keeps_identifiable_proposed_value(tmp_path)
 - def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_location)
 - def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value)
+- def test_text_containing_null_is_preserved_as_a_grounded_value(value)
 - def test_unknown_extra_record_flags_but_retains_the_identifiable_requested_proposal(tmp_path)
 - def test_actual_file_evaluation_counts_a_failed_request_instead_of_skipping_it(tmp_path, monkeypatch)
 - def _pipeline_fixture(tmp_path, *, large=False)
 - class _GroundedClient
 - def test_full_pipeline_reads_actual_files_sections_and_scores_saved_cells(tmp_path, monkeypatch, large, path)
 - def test_full_pipeline_scores_reopened_data_and_saved_evidence_flags(tmp_path, monkeypatch)
-- def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monkeypatch)
+- def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monkeypatch, large, path)
 
 ### tests/extraction/test_fixtures.py
 
@@ -1139,6 +1143,12 @@ requirements.txt
 - def test_cleanup_preserves_invalid_ownership_markers(tmp_path, marker)
 - def test_failed_job_creation_removes_its_partial_marker(tmp_path, monkeypatch)
 
+### tests/extraction/test_path_criteria.py
+
+- class SourceClient: Stand in for Ollama using only source units and requested field IDs.
+- def test_cli_applies_each_saved_output_paths_criterion(tmp_path, monkeypatch, whole_fields, target, flagged, exit_code, aggregate_passed)
+- def test_sectioned_zero_unflagged_errors_cannot_hide_incomplete_coverage(tmp_path, monkeypatch)
+
 ### tests/extraction/test_pipeline.py
 
 - def document(texts, source_id='one')
@@ -1158,13 +1168,16 @@ requirements.txt
 - def test_cancellation_before_request_and_after_late_response_returns_no_result()
 - def test_column_sample_is_leading_complete_units_and_explicitly_labelled()
 - def test_confirmed_number_overrides_are_used_without_changing_literal_evidence()
-- def test_carried_fields_are_rebudgeted_before_each_request()
+- def test_earlier_values_do_not_reduce_later_section_capacity()
 - def test_cancellation_between_sections_makes_no_second_request()
 - def test_source_coverage_issues_survive_a_successful_model_call()
 - def test_section_schema_failure_cannot_disappear_behind_a_valid_value(bad_first, bad_kind)
 - def test_prepared_documents_still_obey_the_aggregate_job_page_limit(last_pages, too_large)
-- def test_failed_grounding_alternative_cannot_demote_a_verified_value()
-- def test_two_verified_disagreeing_values_still_form_a_flagged_conflict()
+- def test_verified_value_wins_over_failed_grounding_in_both_orders(bad_first)
+- def test_two_verified_disagreeing_values_still_form_a_flagged_conflict(reverse)
+- def test_multiple_unverified_proposals_do_not_prevent_a_later_verified_value()
+- def test_verified_number_wins_over_a_leading_zero_proposal_in_both_orders(bad_first)
+- def test_later_agreement_does_not_clear_an_existing_verified_conflict()
 - def test_truncated_extraction_flags_proposals_and_records_failed_coverage(monkeypatch)
 - def test_truncated_column_suggestion_fails_with_sample_coverage_issues(monkeypatch)
 - def test_context_truncation_cannot_be_hidden_by_the_verified_value_merge_rule(monkeypatch)
@@ -1178,7 +1191,7 @@ requirements.txt
 - def test_whole_file_larger_than_old_byte_limit_is_one_request_when_context_allows()
 - def test_small_context_sections_without_overlap_or_dropped_units()
 - def test_table_row_cells_stay_together_and_oversized_group_is_visible()
-- def test_carried_values_reduce_the_same_context_budget()
+- def test_selected_units_use_the_whole_file_request_contract()
 
 ### tests/extraction/test_source_readers.py
 
@@ -1926,7 +1939,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 68 lines
+- CHANGELOG.md: md, 70 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1963,6 +1976,8 @@ requirements.txt
 - docs/evaluation/2026-10-08-task1.md: md, 20 lines
 - docs/evaluation/2026-10-08-task6-full-pipeline.json: json, 702 lines
 - docs/evaluation/2026-10-08-task6-full-pipeline.md: md, 36 lines
+- docs/evaluation/2026-10-09-sectioned-rerun.json: json, 707 lines
+- docs/evaluation/2026-10-09-sectioned-rerun.md: md, 37 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/screenshot.png: png (binary)
@@ -1974,7 +1989,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 181 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 190 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

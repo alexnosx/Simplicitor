@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 5 and hosted-runner installer qualification are accepted. Current authorization covers Task 6's saved-output evaluator, large labelled fixtures and selected-Qwen full-pipeline scores, 300/301-page checks, and bundled third-party notices. Commit/push to main are authorized. Preserve existing prompts, labels, settings, thresholds, and LICENSE. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, or publish. Broader native/clean-machine release qualification is outside this scope.
+- Tasks 0 through 5 and Task 6 notices/page limits/saved-output evaluator are accepted. Current authorization covers independent section requests, literal-null handling, symmetric verified-value merging, PRD/evaluator path criteria, and a full-corpus qwen3:8b rerun. Commit/push to main are authorized. Preserve SYSTEM_PROMPT, fixtures/labels, model settings, and LICENSE. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or extend scope beyond these five items.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.

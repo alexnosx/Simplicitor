@@ -7,6 +7,8 @@
 
 ## v2.0.0 (unreleased)
 
+- Make section requests independent, normalize literal "null" values, and select verified proposals symmetrically while retaining alternatives and conflicts. Apply separate whole-file/sectioned criteria to full-pipeline exit status. The revised saved-output run passes whole-file extraction but still fails sectioned zero-unflagged-wrong; see docs/evaluation/2026-10-09-sectioned-rerun.md.
+
 - Add saved-XLSX full-pipeline evaluation, four large synthetic sources, and 300/301-page checks. Whole-file Qwen accuracy passes; sectioned accuracy fails. Scores are recorded in docs/evaluation/2026-10-08-task6-full-pipeline.md without changing prompts, existing labels, or model settings.
 - Bundle runtime dependency notices, full Qt/PySide LGPL/GPL terms, Qt third-party attributions, Python and Nuitka runtime licenses. Validate notice presence/hashes before packaging; LICENSE is unchanged.
 

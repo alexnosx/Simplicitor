@@ -32,9 +32,10 @@ _COLUMN_SCHEMA = {
             "required": ["label", "description", "kind"], "additionalProperties": False}}},
     "required": ["columns"], "additionalProperties": False,
 }
-_GROUNDING_FAILURES = frozenset({
+_UNVERIFIED_PROPOSAL_ISSUES = frozenset({
     "unknown_anchor", "quote_not_in_source", "value_not_verbatim",
     "invalid_value_type", "conversion_failed",
+    "leading_zero", "unverified_proposal",
 })
 
 
@@ -141,11 +142,16 @@ def _merge(previous: FieldResult, current: FieldResult) -> FieldResult:
         return replace(retained, typed_value=None, flagged=True, issues=issues)
     alternatives = previous.alternatives + (current.proposal,) + current.alternatives
     if (not previous.flagged and current.flagged and current.issues
-            and set(current.issues) <= _GROUNDING_FAILURES):
+            and set(current.issues) <= _UNVERIFIED_PROPOSAL_ISSUES):
         return replace(previous, alternatives=alternatives)
+    if (previous.flagged and not current.flagged and previous.issues
+            and set(previous.issues) <= _UNVERIFIED_PROPOSAL_ISSUES):
+        return replace(current, alternatives=(previous.proposal,) + previous.alternatives
+                       + current.alternatives)
     if not previous.flagged and not current.flagged and previous.typed_value == current.typed_value:
         return replace(previous, alternatives=alternatives)
-    reason = "conflict" if previous.data_value != current.data_value else "unverified_proposal"
+    reason = ("conflict" if not previous.flagged and not current.flagged
+              and previous.typed_value != current.typed_value else "unverified_proposal")
     issues = tuple(dict.fromkeys(previous.issues + current.issues + (reason,)))
     return FieldResult(previous.proposal, None, True, issues, alternatives)
 
@@ -184,12 +190,9 @@ def extract(
             _check_cancel(cancel)
             index += 1
             section_id = f"{doc.source_id}:section:{index}"
-            carried = {c.id: {"value": f.proposal.value, "anchor": f.proposal.anchor}
-                       for c in columns if (f := fields[(doc.source_id, c.id)]).proposal.value is not None}
             view = replace(doc, units=remaining)
             try:
-                section = make_sections((view,), profile, columns=columns, request=request,
-                                        carried_fields=carried)[0]
+                section = make_sections((view,), profile, columns=columns, request=request)[0]
             except ContextBudgetError:
                 for unit in remaining:
                     coverage[unit.anchor] = "failed"
@@ -207,7 +210,7 @@ def extract(
                     issues.append(Issue("oversized_unit", doc.source_id, unit.anchor,
                                         "A source unit does not fit the request context; coverage is incomplete."))
             else:
-                prompt = build_extraction_prompt(view, columns, request, carried_fields=carried)
+                prompt = build_extraction_prompt(view, columns, request)
                 schema = build_response_schema(columns, (doc.source_id,))
                 failure, response = "", ""
                 try:

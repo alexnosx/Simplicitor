@@ -140,7 +140,7 @@ def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_
     assert result.data_value == "00123"
 
 
-@pytest.mark.parametrize("value", ["", " ", "\t\n"])
+@pytest.mark.parametrize("value", ["", " ", "\t\n", "null", "NULL", " NuLl\t"])
 def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value):
     import json
     from extraction.models import ColumnSpec, SourceDocument
@@ -156,6 +156,16 @@ def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value):
     score = score_results({("one", "email"): ScoredField(field.data_value, field.flagged)},
                           {("one", "email"): ExpectedField(None, "text")})
     assert score.correct == 1 and score.flagged_expected_missing == 1
+
+
+@pytest.mark.parametrize("value", ["NULL-009", "null reference", "Nullable Ltd"])
+def test_text_containing_null_is_preserved_as_a_grounded_value(value):
+    from extraction.grounding import validate_field
+    from extraction.models import ColumnSpec, FieldProposal, SourceUnit
+    unit = SourceUnit("one#p:0", value, "paragraph", 0)
+    field = validate_field(FieldProposal(value, value, unit.anchor),
+                           ColumnSpec("id", "ID", "Identifier."), {unit.anchor: unit})
+    assert not field.flagged and field.data_value == value
 
 
 def test_unknown_extra_record_flags_but_retains_the_identifiable_requested_proposal(tmp_path):
@@ -286,9 +296,10 @@ def test_full_pipeline_scores_reopened_data_and_saved_evidence_flags(tmp_path, m
     assert candidate["flagged_correct"] == 1
 
 
-def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monkeypatch):
+@pytest.mark.parametrize("large,path", [(False, "whole_file"), (True, "sectioned")])
+def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monkeypatch, large, path):
     from scripts import evaluate_extraction as cli
-    _pipeline_fixture(tmp_path)
+    _pipeline_fixture(tmp_path, large=large)
     monkeypatch.setattr(cli, "OllamaClient", _GroundedClient)
     monkeypatch.setattr(cli, "_model_details", lambda *_: {"parameter_count": 8_000_000_000})
 
@@ -299,7 +310,8 @@ def test_full_pipeline_failed_save_retains_denominator_and_route(tmp_path, monke
     report = cli.evaluate(tmp_path / "manifest.json", tmp_path / "profiles.json", "http://localhost",
                           full_pipeline=True, output_dir=tmp_path / "saved")
     candidate = report["candidates"][0]
-    assert candidate["total"] == candidate["paths"]["whole_file"]["total"] == 2
+    assert candidate["total"] == candidate["paths"][path]["total"] == 2
     assert candidate["correct"] == candidate["unflagged_wrong"] == 0
     assert not candidate["fixtures"][0]["saved"]
     assert candidate["fixtures"][0]["request_error"] == "full_pipeline_failed"
+    assert not candidate["passed"] and not report["passed"]

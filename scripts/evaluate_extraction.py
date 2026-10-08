@@ -194,7 +194,7 @@ def _full_pipeline(
     client: OllamaClient, path: Path, metrics: dict,
 ) -> dict[str, ScoredField]:
     """Use production planning/extraction and score only reopened workbook values/flags."""
-    planned = make_sections((source,), profile, columns=columns, carried_fields={})
+    planned = make_sections((source,), profile, columns=columns)
     route = "whole_file" if len(planned) == 1 and not planned[0].excluded else "sectioned"
     metrics["path"] = route
     sections = set()
@@ -297,12 +297,27 @@ def evaluate(manifest: Path, profiles: Path, url: str, *, full_pipeline: bool = 
             print(f"  {index}/{len(cases)}: {score.correct}/{score.total} correct", flush=True)
         item.update(status="scored", **_summary(actual, labels), fixtures=case_reports)
         if full_pipeline:
-            item["paths"] = {route: _summary(
-                {k: v for k, v in actual.items() if routes[k] == route},
-                {k: v for k, v in labels.items() if routes[k] == route})
-                for route in sorted(set(routes.values()))}
+            item["aggregate_passed"] = item["passed"]  # Diagnostic only, never the path gate.
+            item["paths"] = {}
+            for route in sorted(set(routes.values())):
+                summary = _summary({k: v for k, v in actual.items() if routes[k] == route},
+                                   {k: v for k, v in labels.items() if routes[k] == route})
+                if route == "sectioned":
+                    summary["criterion"] = "zero_unflagged_wrong"
+                    summary["passed"] = summary["total"] > 0 and summary["unflagged_wrong"] == 0
+                elif route == "whole_file":
+                    summary["criterion"] = "accuracy_95_percent_unflagged_wrong_1_percent"
+                else:
+                    summary.update(criterion="unclassified", passed=False)
+                summary["output_complete"] = all(c["saved"] and not c["request_error"]
+                                                  for c in case_reports if c["path"] == route)
+                summary["passed"] = summary["passed"] and summary["output_complete"]
+                item["paths"][route] = summary
+            item["passed"] = bool(item["paths"]) and all(s["passed"] for s in item["paths"].values())
         output["candidates"].append(item)
-    output["passed"] = any(c["passed"] and not c["reference_only"] for c in output["candidates"])
+    eligible = [c for c in output["candidates"] if not c["reference_only"]]
+    output["passed"] = bool(eligible) and (all(c["passed"] for c in eligible) if full_pipeline
+                                           else any(c["passed"] for c in eligible))
     return output
 
 
@@ -323,6 +338,11 @@ def main(argv: list[str] | None = None) -> int:
         args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         lines = ["# Actual-file extraction evaluation", "", "All timings are informational.", "",
                  "| Candidate | Correct | Unflagged wrong | Gate |", "|---|---|---|---|"]
+        if args.full_pipeline:
+            lines[3:3] = ["Whole-file: at least 95% accuracy and at most 1% unflagged wrong. "
+                          "Sectioned: zero unflagged wrong; accuracy is informational. "
+                          "Every path must have saved output and complete coverage. "
+                          "Aggregate fractions do not decide the gate.", ""]
         for candidate in report["candidates"]:
             denominator = candidate.get("total", 0)
             correct = candidate.get("correct", "not scored")
@@ -333,7 +353,8 @@ def main(argv: list[str] | None = None) -> int:
                 lines.append(f"| {candidate['name']} / {route} | {score['correct']}/{score['total']} | "
                              f"{score['unflagged_wrong']} | {'PASS' if score['passed'] else 'FAIL'} |")
         args.report.with_suffix(".md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-        print("Aggregate gate: " + ("PASS" if report["passed"] else "FAIL"), flush=True)
+        print(("Path criteria: " if args.full_pipeline else "Gate: ")
+              + ("PASS" if report["passed"] else "FAIL"), flush=True)
         for candidate in report["candidates"]:
             for route, score in candidate.get("paths", {}).items():
                 print(f"  {candidate['name']} / {route}: "

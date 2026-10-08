@@ -58,13 +58,10 @@ def test_table_row_cells_stay_together_and_oversized_group_is_visible():
     assert [u for s in sections for u in s.unit_ids] == [u.anchor for u in doc.units]
 
 
-def test_carried_values_reduce_the_same_context_budget():
-    from extraction.sectioning import make_sections
-    doc = source(["a" * 1400, "b" * 1400])
-    columns = (ColumnSpec("memo", "Memo", "", "text"),)
-    without = make_sections((doc,), profile(3000), columns=columns)
-    with_carry = make_sections((doc,), profile(3000), columns=columns,
-                               carried_fields={"memo": {"value": "x" * 3000, "anchor": "one#p:9"}})
-    assert len(without) == 1
-    assert len(with_carry) == 2
-    assert not any(s.excluded for s in with_carry)
+def test_selected_units_use_the_whole_file_request_contract():
+    import json
+    from extraction.request_format import build_extraction_prompt
+    doc = source(["ID 00123", "ID 00456"])
+    payload = json.loads(build_extraction_prompt(doc, (), "Extract IDs", ("one#p:1",)))
+    assert payload == {"record_id": "one", "columns": [], "request": "Extract IDs",
+                       "source_units": [{"anchor": "one#p:1", "text": "ID 00456", "group": ""}]}

@@ -17,7 +17,7 @@ Output JSON only. Do not invent facts or omit columns."""
 
 def build_extraction_prompt(
     source: SourceDocument, columns: tuple[ColumnSpec, ...], request: str = "",
-    unit_ids: tuple[str, ...] | None = None, carried_fields: dict | None = None,
+    unit_ids: tuple[str, ...] | None = None,
 ) -> str:
     """Serialize actual source units and confirmed columns without labels or paths."""
     selected = set(unit_ids) if unit_ids is not None else None
@@ -29,8 +29,4 @@ def build_extraction_prompt(
     }
     if request:
         payload["request"] = request
-    if carried_fields:
-        payload["previous_fields"] = carried_fields
-        payload["source_scope"] = ("Propose facts from current source_units only. "
-                                   "Previous fields are context; do not copy them as new evidence.")
     return json.dumps(payload, ensure_ascii=False)

@@ -131,7 +131,9 @@ def test_sectioned_fields_accumulate_and_conflicting_quotes_remain_visible():
     assert field.flagged and "conflict" in field.issues
     assert field.data_value == "00123"
     assert [p.value for p in field.alternatives] == ["00456"]
-    assert "previous_fields" in client.calls[1]["prompt"]
+    for call in client.calls:
+        assert set(json.loads(call["prompt"])) == {"record_id", "columns", "source_units"}
+    assert "00123" not in client.calls[1]["prompt"]
     assert set(result.coverage.values()) == {"processed"}
 
 
@@ -213,18 +215,22 @@ def test_confirmed_number_overrides_are_used_without_changing_literal_evidence()
     assert field.proposal.value == "EUR 2.400,00"
 
 
-def test_carried_fields_are_rebudgeted_before_each_request():
+def test_earlier_values_do_not_reduce_later_section_capacity():
     from extraction.pipeline import extract
     docs = (document(["Memo " + "X" * 3000, "ID 00123 " + "b" * 1000,
                       "Tail " + "c" * 1000]),)
     columns = (ColumnSpec("memo", "Memo", ""), ColumnSpec("id", "ID", ""))
     output = reply("one", {"memo": ("X" * 3000, "Memo " + "X" * 3000, "one#p:0"),
                            "id": (None, "", "")})
-    client = Client([output])
+    client = Client([output, reply("one", {"memo": (None, "", ""),
+                                          "id": ("00123", "ID 00123", "one#p:1")})])
     result = extract(docs, columns, "", profile(2400), client, Event())
-    assert len(client.calls) == 1
+    assert len(client.calls) == 2
     assert result.fields[("one", "memo")].data_value == "X" * 3000
-    assert result.coverage == {"one#p:0": "processed", "one#p:1": "excluded", "one#p:2": "excluded"}
+    assert result.fields[("one", "id")].data_value == "00123"
+    assert set(result.coverage.values()) == {"processed"}
+    assert all(set(json.loads(c["prompt"])) == {"record_id", "columns", "source_units"}
+               for c in client.calls)
     for call in client.calls:
         input_bytes = sum(len(text.encode("utf-8")) for text in (
             call["system"], call["prompt"]))
@@ -297,7 +303,8 @@ def test_prepared_documents_still_obey_the_aggregate_job_page_limit(last_pages, 
         assert result.ordered_source_ids == ("one", "two")
 
 
-def test_failed_grounding_alternative_cannot_demote_a_verified_value():
+@pytest.mark.parametrize("bad_first", [False, True])
+def test_verified_value_wins_over_failed_grounding_in_both_orders(bad_first):
     from extraction.grounding import validate_field
     from extraction.models import FieldProposal
     from extraction.pipeline import _merge
@@ -306,12 +313,13 @@ def test_failed_grounding_alternative_cannot_demote_a_verified_value():
     column = ColumnSpec("id", "ID", "")
     verified = validate_field(FieldProposal("00123", "ID 00123", "one#p:0"), column, units)
     failed = validate_field(FieldProposal("00456", "ID 00456", "one#p:0"), column, units)
-    result = _merge(verified, failed)
+    result = _merge(failed, verified) if bad_first else _merge(verified, failed)
     assert not result.flagged and result.data_value == "00123" and result.issues == ()
     assert result.alternatives == (failed.proposal,)
 
 
-def test_two_verified_disagreeing_values_still_form_a_flagged_conflict():
+@pytest.mark.parametrize("reverse", [False, True])
+def test_two_verified_disagreeing_values_still_form_a_flagged_conflict(reverse):
     from extraction.grounding import validate_field
     from extraction.models import FieldProposal
     from extraction.pipeline import _merge
@@ -320,9 +328,50 @@ def test_two_verified_disagreeing_values_still_form_a_flagged_conflict():
     column = ColumnSpec("id", "ID", "")
     first = validate_field(FieldProposal("00123", unit.text, unit.anchor), column, {unit.anchor: unit})
     second = validate_field(FieldProposal("00456", unit.text, unit.anchor), column, {unit.anchor: unit})
+    if reverse:
+        first, second = second, first
     result = _merge(first, second)
     assert result.flagged and "conflict" in result.issues
-    assert result.data_value == "00123" and result.alternatives == (second.proposal,)
+    assert result.data_value == first.data_value and result.alternatives == (second.proposal,)
+
+
+def test_multiple_unverified_proposals_do_not_prevent_a_later_verified_value():
+    from extraction.grounding import validate_field
+    from extraction.models import FieldProposal
+    from extraction.pipeline import _merge
+    unit = SourceUnit("one#p:0", "ID 00123", "paragraph", 0)
+    column = ColumnSpec("id", "ID", "")
+    fields = [validate_field(FieldProposal(value, "ID " + value, unit.anchor),
+                             column, {unit.anchor: unit}) for value in ("00456", "00789", "00123")]
+    result = _merge(_merge(fields[0], fields[1]), fields[2])
+    assert result.data_value == "00123" and not result.flagged
+    assert result.alternatives == (fields[0].proposal, fields[1].proposal)
+
+
+@pytest.mark.parametrize("bad_first", [False, True])
+def test_verified_number_wins_over_a_leading_zero_proposal_in_both_orders(bad_first):
+    from extraction.grounding import validate_field
+    from extraction.models import FieldProposal
+    from extraction.pipeline import _merge
+    unit = SourceUnit("one#p:0", "Values 7 and 007", "paragraph", 0)
+    column = ColumnSpec("number", "Number", "", "integer")
+    good, bad = [validate_field(FieldProposal(value, unit.text, unit.anchor),
+                                column, {unit.anchor: unit}) for value in ("7", "007")]
+    result = _merge(bad, good) if bad_first else _merge(good, bad)
+    assert result.data_value == 7 and not result.flagged
+    assert result.alternatives == (bad.proposal,)
+
+
+def test_later_agreement_does_not_clear_an_existing_verified_conflict():
+    from extraction.grounding import validate_field
+    from extraction.models import FieldProposal
+    from extraction.pipeline import _merge
+    unit = SourceUnit("one#p:0", "IDs 00123 and 00456", "paragraph", 0)
+    column = ColumnSpec("id", "ID", "")
+    fields = [validate_field(FieldProposal(value, unit.text, unit.anchor),
+                             column, {unit.anchor: unit}) for value in ("00123", "00456")]
+    result = _merge(_merge(*fields), fields[0])
+    assert result.flagged and "conflict" in result.issues
 
 
 def test_truncated_extraction_flags_proposals_and_records_failed_coverage(monkeypatch):

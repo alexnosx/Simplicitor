@@ -24,14 +24,13 @@ def request_fits(system: str, prompt: str, schema: dict, profile: ExtractionProf
 def make_sections(
     documents: tuple[SourceDocument, ...], profile: ExtractionProfile, *,
     columns: tuple[ColumnSpec, ...] = (), request: str = "",
-    carried_fields: dict | None = None,
 ) -> tuple[Section, ...]:
     """Keep whole files when estimated to fit; otherwise preserve structural groups."""
     sections = []
     for doc in documents:
         schema = build_response_schema(columns, (doc.source_id,))
         def fits(ids: tuple[str, ...]) -> bool:
-            prompt = build_extraction_prompt(doc, columns, request, ids, carried_fields)
+            prompt = build_extraction_prompt(doc, columns, request, ids)
             return request_fits(SYSTEM_PROMPT, prompt, schema, profile)
         if not fits(()):
             raise ContextBudgetError("The request leaves no source room. Use fewer columns or a larger context.")

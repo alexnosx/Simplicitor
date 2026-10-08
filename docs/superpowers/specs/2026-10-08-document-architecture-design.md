@@ -48,7 +48,7 @@ Read each explicit Word header/footer part once, including first/even-page defin
 
 PDF page text uses source_id#page:number with one-based page numbers. Call each pdfplumber page's extract_text(); retain page counts and zero/near-zero-text issues. File mode needs no PDF table extraction.
 
-record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sends the whole file when its conservative estimated request count fits num_ctx after reserved output. Otherwise split at paragraph, DOCX table-row, or PDF page boundaries without overlap, using the same budget. Recompute planning after every call with the accumulated values/anchors included. Retain additional proposals in FieldResult.alternatives. A later grounding/conversion failure cannot demote an earlier verified value; keep that value unflagged and retain the failed alternative. Two verified values that disagree remain a flagged conflict. Schema/request failures still require flags and coverage issues. Oversized indivisible groups become coverage issues with every affected unit recorded.
+record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sends the whole file when its conservative estimated request count fits num_ctx after reserved output. Otherwise split at paragraph, DOCX table-row, or PDF page boundaries without overlap, using the same budget. Plan each request using only its current source units, columns, and user request. Section requests have exactly the whole-file payload format, without previous_fields or source_scope; accumulation happens only in code. Retain additional proposals in FieldResult.alternatives. A verified value wins over unverified grounding/conversion proposals in either order; keep it unflagged and retain every failed alternative, including when several unverified proposals preceded it. Two verified values that disagree remain a flagged conflict. Schema/request failures still require flags and coverage issues. Oversized indivisible groups become coverage issues with every affected unit recorded.
 
 ## Implementation settings
 
@@ -59,7 +59,7 @@ Implementation values are approved. Store shared values once in defaults.py.
 | DOCX page equivalents | max(1, ceil(extracted_characters / 3000)) per file, including supported body, header/footer, and table text. Display estimates. |
 | Input file limit | 50 MiB per file. The aggregate page limit belongs to PRD.md. |
 | PDF near-zero text | Fewer than 40 non-whitespace extracted characters per page. |
-| Production input budget | ceil((system prompt UTF-8 bytes + serialized request UTF-8 bytes) / 2.5), plus 256 template tokens and num_predict reserved output tokens. Compare against num_ctx. Include carried fields in the serialized request. Exclude JSON schema: Ollama applies it as an output constraint. No tokenizer dependency or fixed source-byte limit is added. |
+| Production input budget | ceil((system prompt UTF-8 bytes + serialized request UTF-8 bytes) / 2.5), plus 256 template tokens and num_predict reserved output tokens. Compare against num_ctx. Do not include accumulated fields in the serialized request or its budget. Exclude JSON schema: Ollama applies it as an output constraint. No tokenizer dependency or fixed source-byte limit is added. |
 | Request settings | num_ctx=16384, num_predict=4096, temperature=0, seed=0, think=False, HTTP timeout=180 seconds. |
 
 The early fixtures fit whole in one request and do not use sectioning. Production column suggestions use the first source's leading complete units within the request budget, labelled a sample; extraction still covers all supported units.
@@ -106,7 +106,7 @@ The Qt adapter freezes source paths, request, columns, and model profile for eac
 
 Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.
 
-After it passes, implement the production pipeline and UI. Task 2 has unit checks only. Task 6 adds the CLI's --full-pipeline option and labelled files exceeding one request context to score both whole-file and sectioned production paths as the final release check. Both paths use the same scorer; optional timings decide nothing.
+After it passes, implement the production pipeline and UI. Task 2 has unit checks only. Task 6 adds the CLI's --full-pipeline option and labelled files exceeding one request context to score both whole-file and sectioned production paths as the final release check. Both paths use the same saved-cell scorer and their PRD criteria separately. The sectioned path requires zero unflagged wrong values and reports accuracy without gating it; whole-file criteria are unchanged. Failed saving or incomplete coverage still fails the path. Full-pipeline exit status requires every evaluated non-reference candidate path to pass, regardless of aggregate fractions. Optional timings decide nothing.
 
 The v1.2.1 safety release uses the existing build route and its own checks, independently of extraction. Publication requires Alex's explicit go. New installer preparation may run alongside extraction and stops if the early gate fails.
 

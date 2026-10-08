@@ -53,8 +53,8 @@ class FieldProposal:
     anchor: str
 
     def __post_init__(self) -> None:
-        """Treat blank model strings as absent across parsing and Data projection."""
-        if isinstance(self.value, str) and not self.value.strip():
+        """Treat blank and literal-null model strings as absent in parsing and Data."""
+        if isinstance(self.value, str) and self.value.strip().casefold() in ("", "null"):
             object.__setattr__(self, "value", None)
 
 
