@@ -76,14 +76,17 @@ def _at_token_boundaries(text: str, start: int, end: int) -> bool:
 
 
 def _number(value: str, column: ColumnSpec) -> Decimal | int:
+    text = value.strip()
+    marker = r"(?:[£$€¥]|[A-Z]{3})"
+    text = re.sub(rf"^{marker}\s*|\s*{marker}$", "", text, count=1)
     thousands, decimal = column.thousands_separator, column.decimal_separator
     if not decimal or len(decimal) != 1 or decimal == thousands or len(thousands) > 1:
         raise ValueError("invalid_separator")
     grouped = rf"[0-9]{{1,3}}(?:{re.escape(thousands)}[0-9]{{3}})+" if thousands else r"[0-9]+"
     pattern = rf"[+-]?(?:[0-9]+|{grouped})(?:{re.escape(decimal)}[0-9]+)?"
-    if not re.fullmatch(pattern, value.strip()):
+    if not re.fullmatch(pattern, text):
         raise ValueError("invalid_numeric_grammar")
-    normalized = value.strip().replace(thousands, "") if thousands else value.strip()
+    normalized = text.replace(thousands, "") if thousands else text
     number = Decimal(normalized.replace(decimal, "."))
     if not number.is_finite():
         raise ValueError("nonfinite")

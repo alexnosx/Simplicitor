@@ -69,6 +69,8 @@ docs/
     design/
         document-workspace.html
     evaluation/
+        2026-10-08-task1-qwen-currency-null.json
+        2026-10-08-task1-qwen-currency-null.md
         2026-10-08-task1-rerun.json
         2026-10-08-task1-rerun.md
         2026-10-08-task1.json
@@ -685,6 +687,7 @@ requirements.txt
 - def test_invalid_output_retains_every_field(tmp_path)
 - def test_invalid_evidence_keeps_identifiable_proposed_value(tmp_path)
 - def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_location)
+- def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value)
 
 ### tests/extraction/test_fixtures.py
 
@@ -703,6 +706,9 @@ requirements.txt
 - def test_ordinal_days_are_converted_after_literal_grounding(value)
 - def test_truncated_quote_cannot_hide_source_token_boundaries(value, quote, source, kind)
 - def test_short_date_quote_at_sentence_end_keeps_real_source_boundaries()
+- def test_currency_is_stripped_only_after_verbatim_grounding(value, want)
+- def test_currency_conversion_does_not_accept_labels_or_bad_numeric_grammar(value)
+- def test_blank_proposals_project_to_null(value)
 
 ### tests/extraction/test_source_readers.py
 
@@ -1400,6 +1406,8 @@ requirements.txt
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/code-signing.md: md, 41 lines
 - docs/design/document-workspace.html: html, 301 lines
+- docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 377 lines
+- docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
 - docs/evaluation/2026-10-08-task1-rerun.json: json, 780 lines
 - docs/evaluation/2026-10-08-task1-rerun.md: md, 27 lines
 - docs/evaluation/2026-10-08-task1.json: json, 545 lines

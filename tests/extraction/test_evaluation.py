@@ -138,3 +138,21 @@ def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_
     result = parse_fields(json.dumps(payload), source, (ColumnSpec("id", "ID", ""),))["id"]
     assert result.flagged
     assert result.data_value == "00123"
+
+
+@pytest.mark.parametrize("value", ["", " ", "\t\n"])
+def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value):
+    import json
+    from extraction.models import ColumnSpec, SourceDocument
+    from scripts.evaluate_extraction import ExpectedField, ScoredField, parse_fields, score_results
+
+    response = json.dumps({"records": [{"record_id": "one", "fields": {
+        "email": {"value": value, "quote": "", "anchor": ""}
+    }}]})
+    source = SourceDocument("one", tmp_path / "a.docx", "a", (), 1)
+    field = parse_fields(response, source, (ColumnSpec("email", "Email", ""),))["email"]
+    assert field.proposal.value is None and field.data_value is None
+    assert field.flagged
+    score = score_results({("one", "email"): ScoredField(field.data_value, field.flagged)},
+                          {("one", "email"): ExpectedField(None, "text")})
+    assert score.correct == 1 and score.flagged_expected_missing == 1

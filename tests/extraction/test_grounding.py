@@ -161,3 +161,48 @@ def test_short_date_quote_at_sentence_end_keeps_real_source_boundaries():
                             ColumnSpec("date", "Date", "", "date"), {unit.anchor: unit})
     assert not result.flagged
     assert result.typed_value == date(2026, 3, 15)
+
+
+@pytest.mark.parametrize("value,want", [
+    ("GBP 2,400.00", "2400.00"), ("£48,000.00", "48000.00"),
+    ("12,500.00 USD", "12500.00"), ("USD12,500.00", "12500.00"),
+    ("$ 12,500.00", "12500.00"), ("€12,500.00", "12500.00"),
+    ("¥12,500.00", "12500.00"), ("12,500.00£", "12500.00"),
+    ("12,500.00 $", "12500.00"), ("12,500.00€", "12500.00"),
+    ("12,500.00 ¥", "12500.00"), ("-12,500.00 USD", "-12500.00"),
+])
+def test_currency_is_stripped_only_after_verbatim_grounding(value, want):
+    from extraction.grounding import validate_field
+    from extraction.models import ColumnSpec, FieldProposal, SourceUnit
+
+    unit = SourceUnit("one#p:0", "The amount payable is " + value + ".", "paragraph", 0)
+    result = validate_field(FieldProposal(value, unit.text, unit.anchor),
+                            ColumnSpec("total", "Total", "", "decimal"), {unit.anchor: unit})
+    assert not result.flagged
+    assert result.typed_value == Decimal(want)
+    assert result.proposal.value == value
+    invented = validate_field(FieldProposal("GBP 1.00", unit.text, unit.anchor),
+                               ColumnSpec("total", "Total", "", "decimal"),
+                               {unit.anchor: unit})
+    assert invented.flagged
+
+
+@pytest.mark.parametrize("value", ["gbp 2,400.00", "TOTAL 2,400.00", "GBP 2,40.00"])
+def test_currency_conversion_does_not_accept_labels_or_bad_numeric_grammar(value):
+    from extraction.grounding import validate_field
+    from extraction.models import ColumnSpec, FieldProposal, SourceUnit
+
+    unit = SourceUnit("one#p:0", value, "paragraph", 0)
+    result = validate_field(FieldProposal(value, value, unit.anchor),
+                            ColumnSpec("total", "Total", "", "decimal"), {unit.anchor: unit})
+    assert result.flagged
+    assert result.data_value == value
+
+
+@pytest.mark.parametrize("value", ["", " ", "\t\n"])
+def test_blank_proposals_project_to_null(value):
+    from extraction.models import FieldProposal, FieldResult
+
+    field = FieldResult(FieldProposal(value, "", ""), None, True, ("missing_value",))
+    assert field.proposal.value is None
+    assert field.data_value is None
