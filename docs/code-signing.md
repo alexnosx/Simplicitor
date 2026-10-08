@@ -1,6 +1,8 @@
 # Packaging procedure
 
-Release artifacts, prerequisites, privacy boundaries, signing policy, and data-preservation requirements are owned by [PRD.md](../PRD.md#packaging). Current build state and the unresolved Windows block are in [project status](PROJECT_STATUS.md). The [first-release plan](superpowers/plans/2026-10-08-first-release-extraction.md#task-6-package-in-parallel-qualify-after-integration) schedules this work.
+Release artifacts, prerequisites, privacy boundaries, signing policy, and data-preservation requirements are owned by [PRD.md](../PRD.md#packaging). Current build state and the unresolved Windows block are in [project status](PROJECT_STATUS.md). The [first-release plan](superpowers/plans/2026-10-08-first-release-extraction.md#task-6-prepare-installer-in-parallel-and-qualify-after-integration) schedules this work.
+
+The independent safety patch follows [Task 0](superpowers/plans/2026-10-08-first-release-extraction.md#task-0-disable-legacy-edit-and-release-v121-independently) using the existing release route. Qualify and prepare its artifact without waiting for extraction or the installer; publication still requires Alex's explicit go. The current workflow publishes on version-tag pushes, so a tag is a release action.
 
 ## Standalone build
 
@@ -15,7 +17,7 @@ Produce installer and portable archives from the same successful payload. Keep r
 1. Build and launch from a directory outside the checkout, using fresh application settings.
 2. Test on clean Windows with the prerequisites stated in PRD.md and without a developer Python environment.
 3. Run existing generation/template smoke checks and the new extraction/review/save scenario using synthetic files.
-4. Check missing-runtime/model messages, cancellation/failure, and new-output collisions.
+4. Check missing-runtime/model messages, cancellation/failure, normal Save As overwrite confirmation, and source-path refusal.
 5. Install, upgrade, and uninstall while checking user settings, templates, and documents survive.
 6. Compare payload/resource inventories and record artifact SHA-256 hashes.
 7. Record the exact Windows/antivirus warning or detection, artifact version, affected file, and security product with default protection enabled.

@@ -4,8 +4,8 @@ CLAUDE.md contains only @AGENTS.md. Maintain policy here rather than duplicating
 
 ## Read before work
 
-- [PRD.md](PRD.md) owns requirements, release scope, record modes, grounding, proposed limits, and later milestones. Do not copy the workflow table elsewhere.
-- [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns component responsibilities; exact interfaces live in the plan.
+- [PRD.md](PRD.md) owns requirements, release scope, file records, grounding, acceptance values, and later milestones. Do not copy the workflow table elsewhere.
+- [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns component responsibilities, anchors, implementation limits, and model profiles; exact interfaces live in the plan.
 - [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md) owns layout and interactions within the PRD scope.
 - [First-release plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md) owns execution order and checks.
 - [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) owns status, measured environment facts, and open decisions.

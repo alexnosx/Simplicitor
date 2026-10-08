@@ -1,168 +1,194 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Steps use checkboxes for tracking. Do not execute this plan before Alex approves it.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Do not execute before Alex approves the revised plan.
 
-**Goal:** Deliver the new extraction route defined by [PRD.md](../../../PRD.md#workflow-scope), preserving the existing creation routes.
+**Goal:** Deliver the new [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing creation, and ship the independent safety patch first.
 
-**Architecture:** Add the small extraction package described by the [architecture](../specs/2026-10-08-document-architecture-design.md#module-responsibilities), with a thin Qt worker and a dedicated saved-candidate writer. Reuse the existing Ollama client and document libraries. Keep the model-only gate ahead of production readers/UI, then repeat the gate on real reader/sectioner output.
+**Architecture:** Reuse the existing Ollama client and document libraries through the plain-Python [extraction components](../specs/2026-10-08-document-architecture-design.md#module-responsibilities), with a thin Qt adapter. Evaluate eligible models on canonical units first, then actual readers/sections before writer/UI work.
 
 **Tech stack:** Existing Python, PySide6, python-docx, pdfplumber, pypdf, openpyxl, requests, pydantic, and Nuitka/NSIS. No new runtime dependency is proposed.
 
-**Spec:** [PRD.md](../../../PRD.md) owns scope and every numerical acceptance value. [UI design](../specs/2026-10-08-document-workspace-ui-design.md) owns presentation. [Project status](../../PROJECT_STATUS.md) owns the benchmark environment and open decisions.
+**Spec:** [PRD.md](../../../PRD.md) owns requirements/acceptance values; [architecture](../specs/2026-10-08-document-architecture-design.md) owns anchors, allocation/request limits, model profiles, and fit protocol. [UI design](../specs/2026-10-08-document-workspace-ui-design.md) owns presentation; [status](../../PROJECT_STATUS.md) owns B1 and open decisions.
 
 ## Global constraints
 
-- This is the only execution plan for the first release. Historical phase plans are references, not additional work queues.
-- Implement only the PRD first-release scope and the separately reviewable safety patch. Do not build later editing, reporting, recognition, or a shared legacy Create approval flow.
-- Read the PRD's proposed limits/evaluation gates before execution. Approval must settle the numerical proposals; copy approved values into one runtime configuration and the evaluation manifest with a PRD reference, not competing documentation tables.
-- Application, harness, fixtures, and build code start only after plan approval. Commit/push/publication and new dependencies still require their own explicit authorization.
-- Keep synthetic fixture labels separate from prompts. Diagnostics contain aggregate metadata, never client contents or raw model/server exceptions.
-- Use a fresh test temp directory and redirect USERPROFILE/APPDATA/LOCALAPPDATA to a test home for widget/full-suite runs. Do not create test files in real user folders.
+- This is the only first-release execution plan. Implement file-record extraction and the separate safety release; later increments have no execution tasks here.
+- Application, harness, fixture, and build code start only after plan approval. Commit, push, release publication, and dependencies retain their explicit authorization gates.
+- Use PRD acceptance values and architecture settings by reference. Store accepted implementation settings once in defaults.py and reference them from the fixture/profile manifest.
+- English-only fixtures. Independent labels never enter proposal/extraction prompts or determine flags. Track complete file/field denominators.
+- The GPU fit check is mandatory for evaluation eligibility. The product's small/unknown-model warning is non-blocking; do not turn it into a runtime prohibition.
+- Diagnostics/reports contain aggregate metadata, not contents, raw model/server exceptions, or sensitive paths. Timings are optional information, never a gate, selection criterion, or performance claim.
+- For pytest, use .venv/Scripts/python.exe and a fresh --basetemp below .venv. Redirect USERPROFILE/APPDATA/LOCALAPPDATA into a fresh test home for widget/full-suite runs. Do not write into real user folders.
 
-Use .venv/Scripts/python.exe for the verification commands below. Add --basetemp pointing to a fresh directory under .venv for every pytest invocation; if a proposed directory already exists, choose another rather than deleting unknown content. Red tests and green tests use the same focused test modules. Live evaluation commands run only after unit checks and plan approval.
+Each task starts with focused failing tests, implements the smallest contract, then reruns the same tests. Existing tests change only where the new contract supersedes their expectation; do not remove failure coverage.
 
 ## Review focus
 
-- A correct-looking quote can support the wrong semantic field. Task 1 must fail the gate on an unflagged invoice-date/due-date substitution.
-- Same-named or identical-content attachments still represent separate file records. Tasks 2 and 3 preserve identities and row order.
-- A text-bearing PDF may contain unreadable pages and continued tables. Tasks 2 and 3 expose coverage and continuation uncertainty instead of losing records.
-- Formula-like strings and finite-looking text can be reinterpreted by Excel/Python. Tasks 1 and 4 pin typed derivation and literal saved-cell behavior.
-- A late model response, stale review, or destination race can publish the wrong file. Tasks 3, 4, and 5 exercise cancellation, approval invalidation, and no-replacement publication.
+- A real quote assigned to the wrong column must count as an unflagged semantic error; Task 1 tests both sides of the PRD error budget.
+- A small weight download can still exceed the target with KV cache; Task 1 tests context, full GPU residency, and running memory eligibility.
+- Same-named files and fields spread over pages must retain one complete row per attachment; Tasks 2 and 3 test identity and carry state.
+- Flagged proposed values, leading-zero IDs, and formula-like strings must survive saved-file review; Tasks 1 and 4 test data projection and literal typing.
+- Cancelled/rerun jobs and Save As failures must not save stale or partial results or change sources; Tasks 3 through 5 test review reset, source-path refusal, overwrite, and failures.
 
 ## Work order
 
-Task 0 is a separate v1.2 safety patch. Task 1 is the first extraction feature work and stops dependent development if no configuration passes. Tasks 2 through 5 are sequential. Task 6 packaging may prepare the existing standalone build alongside Tasks 1 through 4; it must stop on a failed quality gate and cannot qualify the final feature before Task 5. Task 7 qualifies the combined result. This is parallel work scheduling, not authorization to dispatch agents or publish releases.
+Task 0 independently prepares and, with Alex's go, publishes v1.2.1 as soon as its own checks pass. It does not wait for extraction, model gates, or the installer. Task 1 gates extraction. Tasks 2 through 5 are sequential. Task 6 installer preparation may run alongside Tasks 1 through 4, stops on an extraction gate failure, and qualifies the integrated feature after Task 5. Task 7 qualifies the new direction. Parallel scheduling is not authorization to dispatch agents or publish.
 
-### Task 0: Disable legacy Edit as a separate v1.2 patch
+### Task 0: Disable legacy Edit and release v1.2.1 independently
 
-**Modify:** simplicitor/app/main_window.py, simplicitor/app/workers/manipulate_worker.py, and simplicitor/app/config/defaults.py. **Tests:** tests/test_manipulate_worker.py, tests/test_widgets.py, and affected MainWindow tests.
+**Modify:** simplicitor/app/main_window.py, simplicitor/app/workers/manipulate_worker.py, simplicitor/app/config/defaults.py, build.py for patch version, CHANGELOG.md, and docs/PROJECT_STATUS.md. Inspect .github/workflows/build.yml's tag-triggered publication before any release action.
+**Tests:** tests/test_manipulate_worker.py, tests/test_widgets.py, tests/test_build_script.py, and affected MainWindow/generation/template tests.
 
-**Interfaces:** Keep existing constructors, signals, generator routes, template imports, and ManipulationError. Add one shared disabled-message constant. MainWindow._on_save_requested and ManipulateWorker.run must fail safely before extraction, backup, model calls, or writes. Disable the visible Edit panel for this patch; Task 5 removes it from the first-release shell.
+**Interfaces:** Keep constructors, signals, creation routes, and ManipulationError imports. MainWindow._on_save_requested and ManipulateWorker.run must return disabled/failed before extraction, backup, inference, or writes. Disable visible Edit in this patch; Task 5 removes it from the extraction shell. Build product version is 1.2.1.0.
 
-- [ ] Add tests invoking both entry points with empty, echo, and formerly truncating response scenarios. Assert failed/disabled state, zero model/extractor/backup/writer calls, no completed signal, and unchanged source bytes. This tests the unconditional block, not detection heuristics.
-- [ ] Run those tests and confirm the current implementation fails the new safeguards.
-- [ ] Add the early guards and disabled UI/message without changing FileManipulator, its exception imports, or existing Create/template execution.
-- [ ] Run the safety tests plus tests/test_generate_worker.py, tests/test_main_window_template.py, tests/test_template_worker.py, and tests/test_main_window_teardown.py in an isolated test home. Update affected legacy expectations to the new disabled contract, not by removing failure coverage.
-- [ ] Review this as an independent patch. **Proof:** no source writes or model calls can originate from legacy Edit, and existing creation/template regressions pass. Do not combine unrelated fixes into it.
+- [ ] Add test_legacy_edit_disabled_before_io for both entry points with empty, echoed, and formerly truncating scenarios: assert zero extractor/model/backup/writer calls, no completed signal, and unchanged source bytes. Confirm the current source fails.
+- [ ] Add unconditional guards and one shared message; preserve the legacy module needed by template exception imports. Update version expectations and release notes.
+- [ ] Run focused safety/build/generation/template/teardown regressions in an isolated home.
+- [ ] Build the patch using the existing release route; no new installer is required for this patch. On clean Windows/default protection, verify disabled Edit cannot write sources, existing Create/templates work, and the artifact has the patch version. Record the exact artifact/hash and any launch block.
+- [ ] Prepare release notes and the concrete artifact, then request Alex's explicit publication go. On authorization, publish v1.2.1 through the reviewed release route immediately after its own checks pass. Check the published asset/version and safety behavior; do not make extraction progress a prerequisite.
 
-**Verify:** python -m pytest tests/test_manipulate_worker.py tests/test_widgets.py tests/test_generate_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_main_window_teardown.py -q, with the isolated test home and fresh base directory above. Required result: all focused checks pass.
+**Verify:** python -m pytest tests/test_manipulate_worker.py tests/test_widgets.py tests/test_build_script.py tests/test_generate_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_main_window_teardown.py -q with isolated home/base directory, then python build.py and the patch walkthrough. Required: safety/regressions/build pass. Task 0's final release outcome is the verified v1.2.1 asset after publication go; before go, report prepared and awaiting publication, not released.
 
-### Task 1: Establish contracts and run the model gate before UI
+### Task 1: Establish contracts and evaluate eligible models before UI
 
-**Create:** simplicitor/extraction/__init__.py, simplicitor/extraction/models.py, simplicitor/extraction/grounding.py; scripts/evaluate_extraction.py; tests/extraction/test_grounding.py, tests/extraction/test_evaluation.py; tests/extraction/fixtures/ with manifest.json, profiles.json, independently checked labels/canonical units, and the synthetic DOCX/PDF corpus. **Modify:** simplicitor/app/services/ollama_client.py only for optional profile arguments; tests/test_ollama_client.py.
+**Create:** simplicitor/extraction/__init__.py, simplicitor/extraction/models.py, simplicitor/extraction/grounding.py; scripts/evaluate_extraction.py; tests/extraction/test_grounding.py, tests/extraction/test_evaluation.py; tests/extraction/fixtures/manifest.json, profiles.json, English documents, canonical units, and independently checked labels.
+**Modify:** simplicitor/app/services/ollama_client.py for optional extraction profile arguments and running metadata; simplicitor/app/config/defaults.py for accepted settings; tests/test_ollama_client.py.
 
-**Interfaces:** Define immutable or frozen contracts in models.py:
+**Interfaces:**
+- ColumnSpec(id, label, description, kind, thousands_separator, decimal_separator, date_order); kind is text/integer/decimal/date and date_order can remain unresolved until ambiguity exists.
+- SourceUnit(anchor, text, kind, order, structural_group); RecordInput(record_id, source_id, units) represents one file. SourceDocument later adds original path, label, bytes, page cost, and issues.
+- FieldProposal(value: str | None, quote: str, anchor: str); FieldResult(proposal, typed_value, flagged, issues). Its data_value property returns typed_value when valid, otherwise the proposed literal string or None. Writer and scorer consume that same projection.
+- Issue(code, source_id, anchor, safe_message); ExtractionProfile(model, context/output/settings). build_response_schema(columns: tuple[ColumnSpec, ...], record_ids: tuple[str, ...]) -> dict and validate_field(proposal: FieldProposal, column: ColumnSpec, units: Mapping[str, SourceUnit]) -> FieldResult live in models.py/grounding.py respectively.
+- In scripts/evaluate_extraction.py, ExpectedField(expected_value, expected_type) is a label-only contract. score_results(actual: Mapping[tuple[str, str], FieldResult], labels: Mapping[tuple[str, str], ExpectedField]) -> EvaluationReport owns correct/incorrect/unflagged counts, denominator, flag rates, eligibility, errors, and optional timings; keys are (record_id, column_id). passes_quality_gate(correct: int, unflagged_wrong: int, total: int) -> bool implements PRD fractions without percentage rounding. eligible_fit(info: Mapping, loaded: Mapping, profile: ExtractionProfile) -> tuple[bool, str] implements the architecture protocol.
+- Extend OllamaClient.generate with keyword-only options: dict | None, think: bool | str | None, local_only: bool = False, preserving old defaults/string return. Add get_running_models(timeout: int) -> list[dict] for full /api/ps records without changing get_running_model's existing contract. Extraction-only transport requires loopback, disabled environment proxies, and refused redirects; separately preflight local-only runtime/model use.
 
-- ColumnSpec: id, label, description, kind, decimal/group separators, and date order. ColumnType is text/integer/decimal/date.
-- SourceUnit: anchor, text, structural kind, order, and row/group identity when applicable.
-- RecordInput: record_id, source_id, units, and separate header/context units.
-- RecordMode is file or table_row. TableMapping carries selected table IDs, header anchors/signature, and confirmed field-to-cell positions. SourceDocument later adds the source's original path/hash, immutable unit views, and issues.
-- FieldProposal: nullable string value, quote, and anchor. FieldResult: proposal, typed value, status, and issues.
-- Issue: code, source_id, anchor, and safe display information. ExtractionProfile: model and explicit request settings from the approved PRD profile.
-- build_response_schema(columns: tuple[ColumnSpec, ...], record_ids: tuple[str, ...]) -> dict; validate_field(proposal: FieldProposal, column: ColumnSpec, units: Mapping[str, SourceUnit]) -> FieldResult.
-- score_results(actual, labels) -> EvaluationReport; report stores accuracy, incorrect/unflagged counts, flag rates, failures, and cold/warm timings. Labels are never passed to extraction or grounding.
-- Extend OllamaClient.generate with keyword-only options: dict | None, think: bool | str | None, and local_only: bool = False, preserving existing defaults and its string return. Omit new request properties when unset; existing workers keep their behavior. For extraction's local_only calls require a loopback endpoint and use a requests Session with environment proxies disabled and redirects refused. Preflight the supported local-only model/runtime configuration separately; loopback transport alone is not that proof.
+- [ ] Add grounding/scorer tests for normalized quotes, wrong source/anchor, leading-zero text, finite numeric grammar, English separator defaults/overrides, all PRD month-name date forms, ambiguous numeric dates, missing proposals, conflicts, and changed column schemas. Confirm failures before implementation.
+- [ ] Add test_real_quote_in_wrong_column_is_unflagged. Its grounded_invoice_date fixture comes from validate_field using a real invoice-date quote; expected_due_date is the independent different due date. Prove the scorer counts the semantic error, then pin the acceptance boundaries in test_semantic_error_budget:
 
-- [ ] Write grounding/scorer/client tests first. Cases include whitespace-normalized quotes, wrong source/anchor, unsupported numeric grammar, non-finite decimals, leading-zero text, ambiguous dates, missing proposals, and schema shaped from changed columns. Confirm failures before adding implementation.
-- [ ] Include the semantic counterexample: a syntactically valid due-date field cites a real invoice date, passes literal derivation, but is wrong against the labels. Assert an unflagged-error gate failure even when overall accuracy passes. Also assert that an all-flagged result exposes its review burden rather than receiving a usability pass.
-- [ ] Implement strict parsing/derivation and schema construction. Use existing dependencies; do not reuse ExcelGenerator._coerce_value, add a calculator, or relax failed evidence. Test that the schema is actually sent in the HTTP format field, not just mentioned in the prompt.
-- [ ] Test extraction transport refuses remote endpoints/redirects and does not use an injected proxy environment. Put a synthetic secret canary in fake model/server exceptions and verify it never reaches diagnostic output. Verify old callers omit the new settings and retain their request behavior.
-- [ ] Create the PRD-sized synthetic corpus: balanced DOCX/text-PDF examples with single-file contracts/invoices and table-row registers, including continuation/repeated headers. Use python-docx and existing pypdf for fixture generation rather than adding a PDF-generation dependency. Store independently checked canonical units and labels; tests verify labels are absent from model inputs.
-- [ ] Implement the CLI with --manifest, --profiles, --input-mode canonical|files, and --report arguments. The manifest/profile files store the approved PRD configuration for the run. Canonical mode consumes fixture units, confirmed columns, and known records, calls the existing client, and runs the production grounding checker. Write aggregate JSON/Markdown scores. A schema-compatibility preflight freezes supported thinking settings before scoring; no per-document tuning, hidden retries, or unconstrained fallback.
-- [ ] Run unit tests with fake clients first. Then run the CLI on benchmark B1 using the candidate list in PRD.md. Record exact digests/versions, profile, request failures, field-slot denominators, and timings. Score malformed/missing outputs as failures, not skipped fixtures.
-- [ ] Select a passing configuration by accuracy, then review burden and warm latency. Repeat its full model-only run to establish reproducibility. Bring the measured time-per-page target and selected profile to Alex for approval before locking release performance claims.
-- [ ] **Stop gate:** if no configuration passes both PRD quality gates, stop the feature and parallel packaging work and report the scores. Do not build readers/UI around a failed model or lower the gate without Alex's decision.
+~~~python
+def test_real_quote_in_wrong_column_is_unflagged(grounded_invoice_date, expected_due_date):
+    assert not grounded_invoice_date.flagged
+    report = score_results(
+        {("invoice", "due_date"): grounded_invoice_date},
+        {("invoice", "due_date"): expected_due_date},
+    )
+    assert report.correct == 0
+    assert report.unflagged_wrong == 1
 
-The canonical-unit gate intentionally isolates model capability. It does not prove production reading. Task 3 repeats evaluation on actual files before downstream work.
 
-**Verify:** python -m pytest tests/extraction/test_grounding.py tests/extraction/test_evaluation.py tests/test_ollama_client.py -q. Then python scripts/evaluate_extraction.py --manifest tests/extraction/fixtures/manifest.json --profiles tests/extraction/fixtures/profiles.json --input-mode canonical --report .venv/evaluation/model-only.json. Required result: unit checks pass and at least one configuration passes the PRD quality gates, with timings and flag counts reported.
+def test_semantic_error_budget():
+    assert passes_quality_gate(correct=199, unflagged_wrong=1, total=200)
+    assert passes_quality_gate(correct=198, unflagged_wrong=2, total=200)
+    assert not passes_quality_gate(correct=197, unflagged_wrong=3, total=200)
+    assert passes_quality_gate(correct=190, unflagged_wrong=2, total=200)
+    assert not passes_quality_gate(correct=189, unflagged_wrong=0, total=200)
+~~~
 
-### Task 2: Implement anchored source readers and PDF coverage
+- [ ] Add tests that an all-flagged run reports review burden, flags never come from labels, and a flagged proposal is scored as the value actually destined for Data rather than an automatic blank.
+- [ ] Add test_fit_requires_context_and_full_gpu_allocation for matching/mismatched context, CPU offload, over-budget memory, unknown fields, and unknown/undersized model metadata. Reference-only runs never become selectable, even with a higher score.
+- [ ] Implement schema construction, deterministic derivation, and scoring; never use ExcelGenerator._coerce_value. Assert the actual HTTP format contains the generated schema. Test optional settings preserve old requests, loopback/proxy/redirect rules, and a synthetic secret in exceptions never reaches diagnostic output.
+- [ ] Build the PRD-sized English contract/invoice corpus with python-docx and existing pypdf. Include file-level fields inside DOCX tables and across PDF pages, missing/competing dates, English date forms, separators, leading zeros, and literal formula-like text. No line-item/table-register fixture or continuation matching. Confirm independent labels/canonical units and keep labels outside prompts.
+- [ ] Implement CLI --manifest, --profiles, --input-mode canonical|files, --report. Canonical mode calls the existing client with confirmed columns/known file records and uses production grounding/data projection. Freeze digest, quantization, context, KV-cache/parallelism/thinking settings before scoring; no hidden retries or per-fixture tuning.
+- [ ] On B1, verify at least two eligible configurations using the architecture fit protocol, including near-budget requests and running API/allocation evidence. If fewer fit, report the setup blocker. Score eligible models and optional separately marked references; malformed/missing outputs remain failures in the denominator.
+- [ ] Select a passing eligible configuration by accuracy and review burden, repeat its full run, and record reproducibility. Optional timings gate nothing.
+- [ ] **Stop gate:** if no eligible configuration passes, including when only a larger reference passes, stop extraction and its installer work and report. Alex decides any change. This does not block the independent safety release.
 
-**Create:** simplicitor/extraction/source_readers.py; tests/extraction/test_source_readers.py. **Modify:** simplicitor/extraction/models.py for SourceDocument and its record views, and simplicitor/app/config/defaults.py for approved extraction limits. Read the legacy methods as a starting point; do not modify them.
+**Verify:** python -m pytest tests/extraction/test_grounding.py tests/extraction/test_evaluation.py tests/test_ollama_client.py -q. Then python scripts/evaluate_extraction.py --manifest tests/extraction/fixtures/manifest.json --profiles tests/extraction/fixtures/profiles.json --input-mode canonical --report .venv/evaluation/model-only.json. Required: unit checks pass, at least two fits verified, and at least one eligible model passes the PRD gates. Canonical results do not establish production reading.
 
-**Interfaces:** read_source(path: Path, source_id: str) -> SourceDocument dispatches to read_docx and read_pdf. SourceDocument carries label, original path/hash, immutable file units, table records, page-budget cost, and issues. Readers take immutable bytes after size/package checks and return deterministic anchors. Runtime approved limits belong in one extraction configuration in app/config/defaults.py.
+### Task 2: Read anchored file sources and expose PDF coverage
 
-- [ ] Add failing tests for a DOCX exceeding the old truncation limit, body paragraph/table order, table-cell anchors, empty units, merged-cell aliases, and unsupported structures. Assert full supported text, unique stable anchors, and unchanged file hashes. Add exact-limit/over-limit allocation and DOCX page-equivalent cases using approved configuration values.
-- [ ] Add PDF tests for normal text, zero/near-zero pages, page/table/row anchors, malformed/password-protected input, repeated headers, and table/text alternative views. Assert every page is accounted for and unreadable pages cannot become an empty-success result. Include the threshold boundary from runtime configuration rather than a second literal.
-- [ ] Implement new readers using python-docx document-order traversal and pdfplumber page/table access. Retain DOCX cell coordinates; avoid alias duplication by reading physical cells. Detect unsupported body constructs instead of silently extending the support envelope.
-- [ ] Keep PDF page units and table records as alternative views. Mode selection decides which is processed; do not submit both representations or introduce record deduplication. Reject unsupported extensions regardless of content or picker behavior.
-- [ ] Run reader tests and independently compare actual fixture units/anchors with the authored canonical corpus. Verify same-named/identical-content files keep distinct source IDs. **Proof:** supported data is complete, anchored, bounded by explicit limits, and the legacy Edit implementation is unchanged.
+**Create:** simplicitor/extraction/source_readers.py; tests/extraction/test_source_readers.py.
+**Modify:** simplicitor/extraction/models.py for SourceDocument. Read legacy _extract_docx/_extract_pdf as starting points without changing legacy Edit.
 
-**Verify:** python -m pytest tests/extraction/test_source_readers.py tests/test_file_manipulator.py -q. Required result: new reader checks pass and the untouched legacy reader tests retain their existing behavior.
+**Interfaces:** read_source(path: Path, source_id: str) -> SourceDocument dispatches to read_docx/read_pdf. SourceDocument carries source_id, original path, label, immutable bytes/units, page-budget cost, and issues; record_id equals source_id. Use architecture anchors/limits from shared configuration.
 
-### Task 3: Build sectioning and the grounded extraction pipeline
+- [ ] Add test_docx_reads_complete_paragraphs_and_cells beyond the legacy truncation limit, including table-based invoice fields, document order, empty units, physical-cell aliases, unsupported structures, and stable anchors. Assert full supported text and unchanged source bytes; no record continuation logic.
+- [ ] Add PDF tests for text, zero/near-zero pages, malformed/password-protected input, and fields across pages. Assert page anchors/counts and visible incomplete coverage; no table extractor is called.
+- [ ] Test exact/over-limit job/file allocations and page-equivalent accounting using shared settings. Preserve separate IDs/order for same-named or identical-content sources.
+- [ ] Implement readers over immutable bytes with python-docx/pdfplumber; reject unsupported input. Never call _truncate, join away unit boundaries, or alter sources.
+- [ ] Compare actual fixture units/anchors independently against canonical units. **Proof:** file fields and supported tables/pages are complete, anchored, bounded, and accounted for.
 
-**Create:** simplicitor/extraction/sectioning.py, simplicitor/extraction/pipeline.py; tests/extraction/test_sectioning.py, tests/extraction/test_pipeline.py. **Modify:** simplicitor/extraction/models.py and scripts/evaluate_extraction.py to accept the production-reader mode.
+**Verify:** python -m pytest tests/extraction/test_source_readers.py tests/test_file_manipulator.py -q. Required: new readers pass and untouched legacy reader tests retain their existing behavior.
 
-**Interfaces:** records_for(document: SourceDocument, mode: RecordMode, mapping: TableMapping | None) -> tuple[RecordInput, ...]; make_sections(records, profile) -> tuple[Section, ...]. Section carries section_id, record inputs, context-unit IDs, covered-unit IDs, and pending record IDs. extract(documents, columns, mode, mapping, profile, client, cancel: Event, progress: Callable) -> ExtractionResult returns ordered record IDs, each record's field results, source identities, issues, and a per-unit processed/excluded/failed coverage map. ExtractionCancelled distinguishes cancellation from failure.
+### Task 3: Propose columns and extract sectioned file records
 
-- [ ] Write failing tests that prove sections do not overlap, anchors remain stable, a table row is not split, open state is carried, and oversized units fail visibly. Table tests cover matching repeated headers and ambiguous continuations. File-mode tests preserve one known row per attachment across sections; do not implement multi-narrative-record discovery.
-- [ ] Test missing/duplicate/unknown model record IDs, missing fields, contradictory field observations, invalid JSON, wrong anchors/quotes, and output exhaustion. Assert all known records/columns remain, failed fields are flagged, and failed sections create coverage issues. There is no record-deduplication test or subsystem.
-- [ ] Implement mode-specific rosters and structural sections. Estimate request/schema/carry-state size conservatively; if it cannot fit the approved profile, return an issue instead of cutting content. Header context is separate from allowed field-evidence units.
-- [ ] Implement strict schema calls and field checks. Merge verified partial fields into the known record; retain the first agreeing evidence and flag conflicts. Do not invent absent values or retry silently. Exclude raw prompts/responses/exception bodies from diagnostics.
-- [ ] Test cancellation before a call and after a deliberately late response, timeout, malformed source, partial text coverage, and label leakage. Assert no cancelled job returns a publishable result and setup remains available to the caller. Partial/flagged data is explicit, never complete-success by omission.
-- [ ] Run unit tests, then rerun the selected model through actual fixture readers and production sectioning. Compare final typed Data slots and independently generated flags to labels using the Task 1 scorer.
-- [ ] **Proof/gate:** the actual-file pipeline passes the same PRD accuracy/visibility gates with complete record accounting. On failure stop writer/UI work and report; the earlier canonical result cannot override this failure.
+**Create:** simplicitor/extraction/sectioning.py, simplicitor/extraction/pipeline.py; tests/extraction/test_sectioning.py, tests/extraction/test_pipeline.py.
+**Modify:** simplicitor/extraction/models.py and scripts/evaluate_extraction.py for production-reader evaluation.
 
-**Verify:** python -m pytest tests/extraction/test_sectioning.py tests/extraction/test_pipeline.py -q. Then run the Task 1 CLI with --input-mode files and --report .venv/evaluation/actual-files.json. Required result: tests and the actual-file quality gates pass for the selected frozen profile.
+**Interfaces:** make_sections(records: tuple[RecordInput, ...], profile: ExtractionProfile) -> tuple[Section, ...]. Section contains ID, record inputs, and covered-unit IDs; extract maintains pending file-field state between calls. propose_columns(request: str, first_source: SourceDocument, profile: ExtractionProfile, client: OllamaClient, cancel: Event) -> tuple[ColumnSpec, ...]. extract(documents: tuple[SourceDocument, ...], columns: tuple[ColumnSpec, ...], request: str, profile: ExtractionProfile, client: OllamaClient, cancel: Event, progress: Callable) -> ExtractionResult returns file/field roster, results, source paths, issues, and coverage. ExtractionCancelled distinguishes cancellation.
 
-### Task 4: Write and bind the saved XLSX candidate
+- [ ] Add tests proving no source-unit overlap, DOCX table-row grouping, page-boundary splitting, open file-field carry, oversized-unit issues, and one output record per attachment. No mode enum or table/header mapping is introduced.
+- [ ] Add column-proposal tests: request plus the first-source sample only, schema-constrained names/descriptions/types, invalid-type text fallback, English defaults, empty/invalid output, editable retry/manual fallback, and no label leakage. Proposal sampling is disclosed; extraction still covers all selected source units.
+- [ ] Add date-inspection tests: all supported month-name/unambiguous numeric forms need no order prompt; genuinely ambiguous numeric dates require an order decision only for affected date columns. Confirmed separator overrides drive derivation.
+- [ ] Test missing/duplicate/unknown file IDs, fields, invalid JSON, wrong anchors/quotes, output exhaustion, and contradictory observations. Retain every requested file/column and proposal/issue instead of omitting failed values.
+- [ ] Implement bounded schema calls, file-state accumulation, and coverage tracking. Keep agreeing evidence; flag conflicts. Source content is evidence, not executable instructions. Failed sections remain visible; no unconstrained fallback or hidden retry.
+- [ ] Test timeout, cancellation before/after a late response, source changes followed by rerun, and partial text coverage. Cancelled work never yields a saveable result, and setup remains available.
+- [ ] Run unit checks and selected-model evaluation on actual readers/production sections. **Gate:** the eligible frozen configuration must pass the same PRD fractions with full file accounting. On failure stop writer/UI and report; the canonical result cannot override it.
 
-**Create:** simplicitor/extraction/xlsx_writer.py, simplicitor/extraction/jobs.py; tests/extraction/test_xlsx_writer.py, tests/extraction/test_jobs.py. **Modify:** simplicitor/extraction/models.py for Candidate, SavedReview, and ApprovedCandidate.
+**Verify:** python -m pytest tests/extraction/test_sectioning.py tests/extraction/test_pipeline.py -q, then the Task 1 CLI with --input-mode files --report .venv/evaluation/actual-files.json. Required: production-reader gate passes before downstream work.
 
-**Interfaces:** write_candidate(result: ExtractionResult, columns, path: Path) -> Candidate; read_saved_review(candidate: Candidate) -> SavedReview. Candidate carries path/hash, source fingerprints, request/schema identity, ordered record IDs, and issue summary. SavedReview exposes actual saved cell values/types plus Evidence mappings. approve_candidate(candidate: Candidate, review: SavedReview, acknowledge_issues: bool) -> ApprovedCandidate binds the saved review/hash; publish_candidate(approval: ApprovedCandidate, destination: Path) -> Path accepts only that bound approval. invalidate_candidate and discard_job own lifecycle cleanup.
+### Task 4: Write the saved candidate and implement standard Save As copying
 
-- [ ] Add failing saved-file round-trip tests for leading-zero IDs, text NaN/inf/1_000, literal =1+1 and =HYPERLINK(...) strings in both sheets, finite typed numbers/dates, flagged blanks, proposed values retained in Evidence, coverage entries, and cell-to-evidence selection mapping. Test invalid controls, excessive cell text, and numbers exceeding safe Excel precision as visible issues/errors rather than silent conversion or clipping.
-- [ ] Implement the PRD workbook layout in a dedicated writer. Assign strings and force data_type to s, then verify after reload that they remain strings and have no formulas/hyperlinks. Date/number display formats follow the confirmed schema. Never route extraction through the existing Excel generator/coercion method.
-- [ ] Create candidates only in owned private job directories. Verify the saved workbook and hash before returning Candidate. Data row order and Candidate's record roster bind the saved Evidence mapping; read review from the saved file, not a reconstructed in-memory sheet.
-- [ ] Test changed candidate/source/schema hashes, same-named inputs, existing destination, a destination created during save, copy/rename failure, and cancellation before publication. Assert original sources and existing outputs are unchanged and no partial final output is published.
-- [ ] Implement publication with an exclusive temporary file in the destination directory, byte/hash verification, then a Windows no-replacement rename. Do not use replacement semantics for final output. Emit success only after the final file exists and matches the reviewed hash.
-- [ ] Test owned-directory cleanup, open-handle failure, and reparse-point escape refusal. Orphans are never auto-published. **Proof:** saved Data/Evidence matches validation, approval binds exact bytes, and failure cannot overwrite or silently publish.
+**Create:** simplicitor/extraction/xlsx_writer.py, simplicitor/extraction/jobs.py; tests/extraction/test_xlsx_writer.py, tests/extraction/test_jobs.py.
+**Modify:** simplicitor/extraction/models.py for Candidate(job_id, path, source_paths, issues) and ReviewCell(row, column, value, data_type, evidence).
 
-**Verify:** python -m pytest tests/extraction/test_xlsx_writer.py tests/extraction/test_jobs.py -q. Required result: all round-trip, evidence, approval, and failure checks pass; source/destination sentinel hashes are unchanged on rejected publication.
+**Interfaces:** write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...], path: Path) -> Candidate; read_candidate(candidate: Candidate) -> tuple[ReviewCell, ...]. create_job(app_data: Path) -> Path; save_candidate(candidate: Candidate, destination: Path, acknowledge_issues: bool) -> Path; discard_job(job_dir: Path) -> None; cleanup_old_jobs(app_data: Path, now: datetime) -> int. Call save_candidate only after the native Save As dialog accepts the destination with normal overwrite confirmation enabled; dialog cancellation makes no core call.
 
-### Task 5: Add the Create workspace and grid review
+- [ ] Add saved-file tests for typed valid values, highlighted literal flagged proposals, highlighted missing proposals, leading-zero IDs, NaN/inf/1_000 text, =1+1 and =HYPERLINK(...) strings in both sheets, English dates, Evidence issues, and cell selection mapping. Assert flagged text is retained rather than blanked or coerced.
+- [ ] Test invalid controls, excessive cell text, and unsafe numeric precision. Unrepresentable workbook content fails visibly; values/evidence are never silently clipped or rounded.
+- [ ] Implement the dedicated writer using FieldResult.data_value, literal string typing, confirmed date/number formats, and shared styling. Reopen the candidate to verify its saved values/types, records, Evidence, and flags; build review from that file.
+- [ ] Keep one candidate.xlsx in each owned app-data job. Rerunning replaces it and clears old review; failed/cancelled runs cannot offer the previous file as their new result.
+- [ ] Add test_save_as_refuses_source_path for each source, case/normalized variants, and existing aliases. Test new destinations, replacing the destination chosen through Save As, and temporary write/rename failure. Assert sources and previous destination remain intact on failure and no success is emitted. Task 5 tests native confirmation/cancellation before the core call.
+- [ ] Implement destination-folder temporary copying followed by rename/replace only after the copy closes successfully. Keep review available after failure; normal Windows overwrite confirmation remains the user's choice.
+- [ ] Test normal-close cleanup after handles finish and startup age boundaries from PRD retention. Remove only owned app-data job folders; leave newer jobs and unrelated files. No crash-recovery screen or hash-bound candidate token.
 
-**Create:** simplicitor/app/widgets/create_workspace.py, simplicitor/app/widgets/extraction_panel.py; simplicitor/app/workers/extraction_worker.py; tests/test_extraction_panel.py, tests/test_extraction_worker.py. **Modify:** simplicitor/app/main_window.py and affected widget/teardown tests. Reuse CreatePanel, StatusBanner, styles, and existing signals.
+**Verify:** python -m pytest tests/extraction/test_xlsx_writer.py tests/extraction/test_jobs.py -q. Required: saved-grid values/Evidence agree, flagged proposals remain literal, confirmed overwrite succeeds, source refusal/failed writes preserve existing bytes, and cleanup respects ownership/age.
 
-**Interfaces:** CreateWorkspace hosts the existing CreatePanel and ExtractionPanel. ExtractionPanel emits inspect_requested, extract_requested, cancel_requested, and approve_requested with frozen job settings. ExtractionWorker emits started, progress, inspection_ready, candidate_ready, failed, and cancelled. It wraps core functions and never manipulates widgets. Review selection uses SavedReview's cell/Evidence mapping.
+### Task 5: Build the Create workspace, column editor, and grid review
 
-- [ ] Write Qt tests for the PRD default shell, absence of visible Edit, retained prompt/template routing, source-file filtering, same-name inputs, column confirmation/types, file-mode default, and table-header mapping. Reject unconfirmed schemas before starting extraction.
-- [ ] Implement the local Create subviews. Use a multi-file picker/drop handler that accepts only the release sources; do not reuse legacy FileList's copying/identity behavior. The existing CreatePanel retains its workers, prompts, retry behavior, and output path behavior.
-- [ ] Write worker/UI tests with a fake pipeline: duplicate submission, model disconnect, a late completion after cancellation, unreadable page list, flagged-cell selection showing saved evidence, and acknowledgement before partial export. Freeze sources/schema while busy and retain setup after failure.
-- [ ] Implement the worker and saved-grid review using existing QObject/QThread patterns. Cancel cooperatively, show the pending request state honestly, and ignore stale worker results. A revised setup invalidates approval. Do not add PDF rendering, COM, or in-grid document editing.
-- [ ] Test destination collisions and write failure keep the review available without a success banner. Test normal save/discard/close releases owned job files and crash leftovers offer removal without automatic publication.
-- [ ] Run affected widget/worker/template/generation tests with isolated user folders. Perform a native UI walkthrough using synthetic files and the passing model. **Proof:** a nontechnical user can confirm columns, inspect flags/quotes, and save the exact reviewed workbook while existing creation still works.
+**Create:** simplicitor/app/widgets/create_workspace.py, simplicitor/app/widgets/extraction_panel.py; simplicitor/app/workers/extraction_worker.py; tests/test_extraction_panel.py, tests/test_extraction_worker.py.
+**Modify:** simplicitor/app/main_window.py, simplicitor/app/widgets/capability_banner.py, simplicitor/app/workers/ollama_worker.py for selected-model metadata lookup, simplicitor/app/config/defaults.py for warning copy/threshold, and affected tests/test_widgets.py, tests/test_ollama_worker.py, teardown tests.
 
-**Verify:** python -m pytest tests/test_extraction_panel.py tests/test_extraction_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_generate_worker.py tests/test_main_window_teardown.py -q. Required result: focused Qt/regression checks pass, followed by the recorded native walkthrough.
+**Interfaces:** CreateWorkspace hosts existing CreatePanel and ExtractionPanel. ExtractionPanel emits inspect_requested, propose_requested, extract_requested, cancel_requested, and save_requested with frozen settings. ExtractionWorker emits progress, inspection_ready, columns_ready, candidate_ready, failed, and cancelled; no widget access. Add OllamaWorker.request_model_params(model_name: str) -> None as a queued Qt slot, reusing metadata parsing and model_params_ready. MainWindow._on_model_changed queues the selected-model lookup; _on_model_params_ready ignores stale names. Loaded-model polling must not replace an explicit selection or its warning state.
 
-### Task 6: Package in parallel, qualify after integration
+- [ ] Add Qt tests for the default shell, hidden Edit, no record-mode/header-mapping controls, and retained prompt/template routing.
+- [ ] Add test_selected_model_warning for below-minimum, exact-minimum, above-minimum, and unknown sizes. Assert PRD copy, no blocked action, updates when the selected model differs from the loaded model, and stale metadata cannot change the selection/banner. Keep dismiss behavior per selection.
+- [ ] Add proposal/editor tests for first-source suggestions, edit/add/remove, proposed/fallback types, English defaults/overrides, conditional numeric-date prompts, failure/manual recovery, and confirmation required before extraction.
+- [ ] Implement the multi-file source picker/drop handler, column proposal action, confirmation, worker, and saved-grid/Evidence view. Do not reuse legacy upload copying. Existing Create keeps its generation prompts/workers/retries.
+- [ ] Test duplicate submission, disconnect, late cancellation, rerun review reset, partial coverage, and flagged proposed values shown in the saved grid. Require flagged/incomplete acknowledgement before Save As.
+- [ ] Test native Save As delegation with overwrite confirmation enabled, source-path refusal, cancellation, successful confirmed overwrite, and failure keeping review without a success banner. Normal close waits/cooperates, then discards owned files; startup cleanup has no recovery UI.
+- [ ] Run affected Qt/generation/template tests and a native walkthrough with English synthetic sources and the passing eligible model. **Proof:** users can request columns, edit/confirm, inspect every cell's evidence, and save a new or explicitly replaced output.
 
-**Modify:** build.py, build.bat, .github/workflows/build.yml, requirements-build.txt only as needed for the tested build version, tests/test_build_script.py, and docs/code-signing.md for procedural findings. **Reference:** [packaging procedure](../../code-signing.md) and [PRD packaging contract](../../../PRD.md#packaging).
+**Verify:** python -m pytest tests/test_extraction_panel.py tests/test_extraction_worker.py tests/test_widgets.py tests/test_ollama_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_generate_worker.py tests/test_main_window_teardown.py -q with isolated homes, followed by the native walkthrough. Required: focused regressions and the observed Save As/column-review flow pass.
 
-**Interfaces:** Keep the application entry point. Build the same standalone payload for the installer and ZIP, including current resources plus extraction modules. No Office/recognition worker or runtime is bundled.
+### Task 6: Prepare installer in parallel and qualify after integration
 
-- [ ] Prepare build tests and the standalone build of existing functionality while model work runs. Verify data resources, declared document libraries, icons, prompts, and templates from outside the source checkout.
-- [ ] Evaluate Nuitka's built-in NSIS installer support with a pinned tested build version before adding a custom script. Test current-user installation, shortcuts, uninstall, and preservation of user data. No paid signing or Store step is introduced.
-- [ ] After Task 5, rebuild and test the actual feature on clean Windows with local Ollama/model and no developer Python or Microsoft Office. Record missing-prerequisite behavior, upgrade/uninstall, and default security results.
-- [ ] Verify installer and ZIP contain the same payload/resources and publishable artifact hashes. Diagnose the reported Windows block without disabling protection. **Proof:** users can install, launch, extract/review/save, and uninstall without losing their documents. Any actual launch block remains a release failure requiring a decision.
+**Modify:** build.py, build.bat, .github/workflows/build.yml, requirements-build.txt only as needed for a tested build version, tests/test_build_script.py, and docs/code-signing.md.
+**Reference:** [packaging procedure](../../code-signing.md) and [PRD packaging contract](../../../PRD.md#packaging).
 
-**Verify:** python -m pytest tests/test_build_script.py -q, then python build.py using the tested build environment. Required result: tests/build pass, both artifacts share a verified payload inventory, and the clean-machine checklist is complete. A successful command is not a substitute for the manual launch/security checks.
+**Interfaces:** Keep the entry point and same standalone payload/resources for installer and ZIP. This is extraction packaging, independent of Task 0's existing-route patch release.
 
-### Task 7: Qualify the release and close the plan
+- [ ] Prepare standalone build/resource tests alongside model work; stop this work if the extraction gate fails. Verify prompts, icons, templates, and libraries from outside the checkout.
+- [ ] Evaluate Nuitka's built-in NSIS installer support with a pinned tested version before adding a custom script. Test current-user install, shortcuts, upgrade/uninstall, and user-data preservation.
+- [ ] After Task 5, qualify the integrated artifacts on clean Windows under PRD prerequisites, without developer Python or Office. Test missing model/runtime, non-blocking model warnings, file extraction/columns/review, Save As, cancellation, and cleanup.
+- [ ] Compare installer/ZIP payload inventories and hashes; record default-security results without weakening protection. Actual launch blocks remain failures requiring a decision. Do not publish during preparation.
 
-**Tests:** new extraction suites, affected existing regressions, tests/test_gen_repo_map.py, the actual-file evaluation harness, and clean-machine/manual UI records. **Documentation:** docs/PROJECT_STATUS.md holds the final current state; evaluation reports hold measurements; PRD.md owns approved targets.
+**Verify:** python -m pytest tests/test_build_script.py -q, then python build.py with the tested environment and manual clean-machine checks. Required: build/artifacts pass their inventory, launch, workflow, and user-data checks.
 
-- [ ] Run the full suite with all user folders redirected into a fresh test home. Do not interpret old legacy reconstruction tests as preservation guarantees.
-- [ ] Run the final selected model/profile on the fixed actual-file corpus. Verify both quality gates, denominator/flag counts, coverage, privacy diagnostics, and the approved timing target. Do not cherry-pick successful responses.
-- [ ] Add an explicit long-job test at the approved aggregate limit and a just-over-limit rejection, without real client data. Confirm no omitted rows or silent content loss across section boundaries.
-- [ ] Complete the clean-machine and nontechnical-user walkthroughs, including field evidence, unreadable pages, partial output, cancellations, collisions, and unchanged source hashes. Record observed usability/latency rather than inventing a pass target after seeing the result.
-- [ ] Regenerate the repository map, update current status/open decisions, and verify dependency/license notices for the packaged libraries. Leave Alex's license decision open until resolved.
-- [ ] **Release decision:** do not call the product ready while a model gate, extraction coverage/type test, default-security launch test, or business-use license decision remains unresolved. Commit/push/tag/publication occur only within their explicit authorizations.
+### Task 7: Qualify the first release
 
-**Verify:** python -m pytest -q with all test homes isolated and a fresh base directory; run the final actual-file CLI evaluation and the packaging/manual records above. Required result: no required test, model, coverage, timing, or installation gate is unresolved before a release decision.
+**Tests:** full isolated source suite, actual-file evaluation, tests/test_gen_repo_map.py, and clean-machine/native UI records.
+**Documentation:** docs/PROJECT_STATUS.md owns current state; evaluation reports own measurements; PRD.md owns targets.
+
+- [ ] Run the full suite with fresh isolated user folders/base directory. Do not interpret legacy reconstruction tests as preservation guarantees.
+- [ ] Repeat the final selected eligible profile on the fixed English actual-file corpus. Verify allocation/context, accuracy, unflagged-error fraction, coverage, proposal handling, review burden, and privacy diagnostics. No speed gate or timing approval.
+- [ ] Exercise a job at the aggregate page limit and a just-over-limit rejection, with synthetic inputs and fields across sections. Verify complete file/column accounting and no silent truncation.
+- [ ] Complete nontechnical-user and clean-machine checks: suggestions/edits, evidence for valid/flagged values, unreadable pages, partial acknowledgement, cancellation/rerun, normal overwrite, source refusal, and cleanup.
+- [ ] Regenerate the map and update status/open decisions. Check packaged dependency notices. Leave LICENSE unchanged and Alex's business-use decision open until resolved.
+- [ ] **Release decision:** do not call the new product ready while model eligibility, either quality fraction, source coverage/type behavior, Windows launch, or the business-use license remains unresolved. Commit/push/tag/publication require explicit authorization.
+
+**Verify:** python -m pytest -q in isolated homes/base directory, final actual-file CLI scoring/fit report, and manual packaging/UI records. Required: the defined release gates pass; optional timing observations change no gate.
 
 ## Plan self-review
 
-The work covers the revised scope, both record modes, anchored untruncated readers, mandatory grounded/schema-constrained fields, typed Data/Evidence output, Qt saved-grid review, the separate safety patch, and parallel packaging. Later OOXML editing, reporting operations, and recognition are linked requirements with no execution tasks here. Task 1's canonical model check and Task 3's actual-file gate resolve the dependency between evaluating models first and building production readers later. Shared interfaces are defined before consumers; no production code, model benchmark, or new dependency is part of plan authoring.
+All nine review items have owners: hardware/model/language/gates in Task 1, file-only readers/sections and column suggestions in Tasks 2/3, flagged values and simplified Save As/cleanup in Task 4, selected-model warnings and column editor in Task 5, and the independent patch release in Task 0. Architecture now owns technical limits/anchors/profile settings. Later row extraction/editing/reporting/recognition have no implementation tasks. Shared contracts precede their consumers; this revision writes documentation only.

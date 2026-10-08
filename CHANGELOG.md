@@ -3,6 +3,7 @@
 ## Unreleased documentation
 
 - Consolidate the revised first-release contract in PRD.md and add one implementation plan.
+- Revise the plan after review: file records only, English support, GPU-fit model eligibility, column proposals, simpler Save As, and an independent safety release.
 - Update architecture, UI guidance, document ownership, and CLAUDE's import of AGENTS.md.
 - Preserve historical release notes below; current behavior and open decisions live in docs/PROJECT_STATUS.md.
 

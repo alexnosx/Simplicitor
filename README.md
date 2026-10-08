@@ -2,6 +2,8 @@
 
 Windows desktop document work with local models.
 
+English is the target language. Other languages may work but are not tested or claimed.
+
 ## Project direction
 
 [PRD.md](PRD.md) is the source for first-release scope, prerequisites, later milestones, and acceptance gates. [Project status](docs/PROJECT_STATUS.md) shows what exists and the decisions still open.
@@ -35,7 +37,7 @@ The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 pl
 
 ## Requirements
 
-See [release prerequisites](PRD.md#workflow-scope) and the [model evaluation requirements](PRD.md#proposed-limits-and-evaluation-gates). For the existing application, start Ollama locally and pull a model with `ollama pull <model>`.
+See [release prerequisites](PRD.md#workflow-scope) and the [model evaluation requirements](PRD.md#limits-and-evaluation-gates). For the existing application, start Ollama locally and pull a model with `ollama pull <model>`.
 
 ## Generate from a template (PowerPoint)
 
