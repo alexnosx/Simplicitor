@@ -1,0 +1,100 @@
+%PDF-1.3
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 2
+/Kids [ 5 0 R 7 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+>>
+endobj
+5 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 314
+>>
+stream
+BT /F1 10 Tf 40 750 Td 15 TL
+(This service agreement CT-N804 is made between Pine Audit Ltd, the service provider, and Field) Tj T*
+(Medical Ltd, the customer receiving the services.) Tj T*
+(The agreement takes effect on November 3rd, 2026. The person assigned to the work has personnel) Tj T*
+(ID 00804.) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 295
+>>
+stream
+BT /F1 10 Tf 40 750 Td 15 TL
+(The parties agree that the contract expires on November 2nd, 2027.) Tj T*
+(For the entire term the agreed contract value is EUR 9,600.00, payable in monthly instalments) Tj T*
+(of EUR 800.00.) Tj T*
+(Termination by either party requires 14 days of notice.) Tj T*
+ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000119 00000 n 
+0000000168 00000 n 
+0000000265 00000 n 
+0000000397 00000 n 
+0000000762 00000 n 
+0000000894 00000 n 
+trailer
+<<
+/Size 9
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+1240
+%%EOF

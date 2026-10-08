@@ -36,7 +36,7 @@ Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data c
 
 ## Source reading and records
 
-Read structured units with stable source references, without truncation or source changes. Read DOCX body paragraphs and table cells in document order, because file-level fields often sit in invoice header tables. Read PDF page text; PDF table extraction is unnecessary for this release. Disclose supported body scope and flag unsupported structures.
+Read structured units with stable source references, without truncation or source changes. Read DOCX body paragraphs and table cells in document order, plus Word headers and footers as separately anchored units. Read PDF page text; PDF table extraction is unnecessary for this release. Disclose supported scope and flag unsupported structures.
 
 Every attachment defines exactly one output row, even when files share a name or identical contents. Send the whole file in one request whenever it fits num_ctx after accounting for prompt, schema, and output tokens. Only oversized files are sectioned, using a budget derived from that same context. Accumulate the file's fields across non-overlapping sections. Do not discover multiple narrative records or implement row-level continuation/header matching. Code owns the complete file/column roster; model omission cannot silently remove rows or fields.
 
@@ -50,7 +50,7 @@ The model proposes column names, descriptions, and types from the request and fi
 
 Use English numeric defaults: comma thousands separator and full-stop decimal separator, changeable per column. Accept numeric dates and English month-name forms, including "15 March 2026", "March 15, 2026", and "15-Mar-2026". Ask for day/month order only when the source contains ambiguous numeric dates. Preserve text identifiers and distinguish missing values from zero.
 
-For every field, require a nullable string value, a verbatim quote, and a stable anchor. Code checks that the anchor belongs to that file and the quote occurs in its unit after whitespace normalization. For every column type, the value must appear word for word inside the quote. Only then does code convert that literal value to the confirmed column type; the model never normalizes it. For example, quote "Total: USD 12,500.00" with value "12,500.00" passes, and code converts it to 12500.00. A model value of "12500.00" does not pass that quote.
+For every field, require a nullable string value, a verbatim quote, and a stable anchor. Code checks that the anchor belongs to that file and the quote occurs in its unit after whitespace normalization. For every column type, the value must appear word for word inside the quote at token boundaries: adjacent characters cannot be letters/digits, or commas/periods continuing a number. Check those boundaries in both the quote and its matched source context, so a shortened quote cannot hide a partial token. Sentence-ending punctuation is allowed. Only then does code convert that literal value to the confirmed column type; the model never normalizes it. For example, quote "Total: USD 12,500.00" with value "12,500.00" passes, and code converts it to 12500.00. Values "12500.00", "2,500.00", and "500.00" do not pass that quote. English date conversion includes ordinal days and legal wording such as "the 15th day of March 2026".
 
 Build JSON schema from confirmed columns and permitted file record IDs; use the existing Ollama format argument and validate responses in code. Missing fields, schema failures, bad evidence, unsupported conversions, and conflicts remain present and flagged. Source/model text cannot execute commands or formulas.
 
@@ -73,7 +73,7 @@ Delete job folders on normal close after handles/workers finish. At startup, del
 | Measure | Requirement or retained proposal |
 |---|---|
 | Maximum source size per job | 300 pages total, approved. PDF uses actual pages; DOCX uses displayed page equivalents as defined in architecture, without Office pagination. |
-| Labelled fixtures | About 20 synthetic English DOCX/text-PDF contracts and invoices, at least 200 scored field slots. One record per file, including table-contained fields, competing dates, missing fields, literal strings, and fields spread across pages. |
+| Labelled fixtures | At least 20 synthetic English DOCX/text-PDF contracts and invoices and 200 scored field slots. Include eight prose-based documents with parties in preambles, ordinal dates, sentence-contained amounts, and supplier/invoice identifiers in Word headers. One record per file, including table-contained fields, competing dates, missing fields, literal strings, and fields spread across pages. |
 | Field accuracy | At least 95% correct Data values against independent labels under confirmed column types. Missing records/fields count as incorrect except labelled absent values. Flagging alone does not make a wrong value correct. |
 | Unflagged wrong values | At most 1% of all scored slots, including semantic errors that pass grounding. At 200 slots, at most two; fail at three. Flags come from extraction/validation, never labels. |
 | Review burden | Report flag rates on correct values and expected missing values separately. Flagging everything is not a usability pass. |

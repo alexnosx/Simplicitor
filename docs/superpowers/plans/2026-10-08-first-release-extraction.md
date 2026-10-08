@@ -46,7 +46,7 @@ Task 0 prepares v1.2.1 independently, with publication after Alex's explicit go.
 - [ ] Build the patch using the existing release route; no new installer is required for this patch. On clean Windows/default protection, verify disabled Edit cannot write sources, existing Create/templates work, and the artifact has the patch version. Record the exact artifact/hash and any launch block.
 - [ ] Prepare release notes and the concrete artifact, then request Alex's explicit publication go. On authorization, publish v1.2.1 through the reviewed release route immediately after its own checks pass. Check the published asset/version and safety behavior; do not make extraction progress a prerequisite.
 
-Local preparation: [artifact/hash and startup evidence](../../releases/v1.2.1-local.json). Source regressions and the build passed. The clean-machine walkthrough and publication remain pending, so Task 0 is not released.
+Local preparation: [artifact/hash and startup evidence](../../releases/v1.2.1-local.json). Source regressions and the build passed. Alex has authorized publication and waived the clean-machine walkthrough for this patch under the [packaging exception](../../code-signing.md). Release verification remains pending.
 
 **Verify:** python -m pytest tests/test_manipulate_worker.py tests/test_widgets.py tests/test_build_script.py tests/test_generate_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_main_window_teardown.py -q with isolated home/base directory, then python build.py and the patch walkthrough. Required: safety/regressions/build pass. Task 0's final release outcome is the verified v1.2.1 asset after publication go; before go, report prepared and awaiting publication, not released.
 
@@ -82,7 +82,7 @@ def test_quality_boundaries():
 - [x] Score FieldResult.data_value and independently generated flags. Count malformed/missing responses as failures rather than skipped fixtures. Labels are scorer-only. Report candidate/settings and optional timings.
 - [x] Run both PRD candidates on B1 and optional separately marked larger references. **Stop gate:** if neither candidate passes, stop extraction/installer work and report, even if a reference passes. Otherwise select by accuracy and review burden. The safety release remains independent.
 
-Result: both candidates passed the [actual-file gate](../../evaluation/2026-10-08-task1.md). The full isolated source suite passed 709 tests after review repairs. Scores have been reported; Task 2 has not started.
+Revision: token boundaries are checked in both quote and source context; DOCX headers/footers and ordinal dates are supported. Generic prompt/column definitions and eight narrative documents expand the corpus to 28 files/280 fields. Both candidates are being rerun; the [original result](../../evaluation/2026-10-08-task1.md) is historical. Task 2 has not started.
 
 **Verify:** python -m pytest tests/extraction/test_source_readers.py tests/extraction/test_grounding.py tests/extraction/test_evaluation.py -q, then python scripts/evaluate_extraction.py --manifest tests/extraction/fixtures/manifest.json --profiles tests/extraction/fixtures/profiles.json --report .venv/evaluation/actual-files.json. Required: focused tests pass and at least one candidate passes the PRD gate on actual fixture files.
 

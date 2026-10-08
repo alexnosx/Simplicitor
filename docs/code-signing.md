@@ -4,6 +4,8 @@ Release artifacts, prerequisites, privacy boundaries, signing policy, and data-p
 
 The independent safety patch follows [Task 0](superpowers/plans/2026-10-08-first-release-extraction.md#task-0-disable-legacy-edit-and-release-v121-independently) using the existing release route. Qualify and prepare its artifact without waiting for extraction or the installer; publication still requires Alex's explicit go. The current workflow publishes on version-tag pushes, so a tag is a release action.
 
+For v1.2.1 only, Alex authorized publication on 2026-10-08 using the recorded local build and startup smoke check, waiving the clean-machine walkthrough. Before tagging, verify the tag workflow runs build.py with product version 1.2.1.0. After publication, verify Latest, the Simplicitor.exe asset, its executable version, and its SHA-256; record evidence in docs/releases/. This exception does not qualify later extraction installers or establish Windows reputation.
+
 ## Standalone build
 
 Retain build.py, the PySide6 plugin, and existing resource discovery. Change the build mode during implementation and bundle prompts, icons, current template resources, and the extraction modules/libraries. Run the resulting application outside the checkout to expose accidental source-directory dependencies.

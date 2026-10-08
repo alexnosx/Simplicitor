@@ -1,7 +1,7 @@
-"""Anchored DOCX body and PDF page readers; never write to source files."""
+"""Anchored DOCX body/header/footer and PDF readers; never write to sources."""
 from math import ceil
 from pathlib import Path
-from typing import Sequence
+from typing import Iterable, Sequence
 from xml.etree import ElementTree
 
 import pdfplumber
@@ -65,15 +65,55 @@ def read_sources(paths: Sequence[Path]) -> tuple[SourceDocument, ...]:
 def _read_docx(path: Path, source_id: str) -> SourceDocument:
     doc = Document(path)
     units, issues = [], []
+    containers = [(source_id + "#", doc, doc.element.body)]
+    seen_parts = set()
+    counts = {"header": 0, "footer": 0}
+    for section in doc.sections:
+        for kind in ("header", "footer"):
+            for variant in (kind, "first_page_" + kind, "even_page_" + kind):
+                container = getattr(section, variant)
+                if container.is_linked_to_previous:
+                    continue
+                part = container.part
+                if part.partname in seen_parts:
+                    continue
+                seen_parts.add(part.partname)
+                prefix = f"{source_id}#{kind}:{counts[kind]}:"
+                counts[kind] += 1
+                containers.append((prefix, container, part.element))
+    for prefix, container, element in containers:
+        _read_blocks(container.iter_inner_content(), prefix, source_id, units, issues)
+        if any(list(element.iter(_W + tag))
+               for tag in ("sdt", "ins", "del", "txbxContent", "altChunk", "fldSimple")):
+            issues.append(Issue("unsupported_structure", source_id, prefix,
+                                "Content controls, revisions, fields, or embedded text need review."))
+    for part in doc.part.package.parts:
+        if any(token in str(part.partname) for token in ("/footnotes", "/endnotes")):
+            root = ElementTree.fromstring(part.blob)
+            if any((n.text or "").strip() for n in root.iter(_W + "t")):
+                issues.append(Issue("unsupported_structure", source_id, source_id,
+                                    "Footnotes and endnotes are outside supported reading."))
+                break
+    count = sum(len(u.text) for u in units)
+    if not any(u.text.strip() for u in units):
+        raise SourceReadError("DOCX has no readable supported text.", tuple(issues))
+    cost = max(1, ceil(count / EXTRACTION_DOCX_CHARS_PER_PAGE))
+    return SourceDocument(source_id, path.resolve(), path.name, tuple(units), cost, tuple(issues))
+
+
+def _read_blocks(
+    blocks: Iterable[Paragraph | Table], prefix: str, source_id: str,
+    units: list[SourceUnit], issues: list[Issue],
+) -> None:
     paragraph_index = table_index = 0
-    for block in doc.iter_inner_content():
+    for block in blocks:
         if isinstance(block, Paragraph):
-            anchor = f"{source_id}#p:{paragraph_index}"
+            anchor = f"{prefix}p:{paragraph_index}"
             units.append(SourceUnit(anchor, block.text, "paragraph", len(units), anchor))
             paragraph_index += 1
         elif isinstance(block, Table):
             for row_index, row in enumerate(block.rows):
-                group = f"{source_id}#t:{table_index}:r:{row_index}"
+                group = f"{prefix}t:{table_index}:r:{row_index}"
                 for cell_index, tc in enumerate(row._tr.tc_lst):
                     cell = _Cell(tc, block)
                     text = "\n".join(p.text for p in cell.paragraphs)
@@ -81,25 +121,8 @@ def _read_docx(path: Path, source_id: str) -> SourceDocument:
                     units.append(SourceUnit(anchor, text, "cell", len(units), group))
                     if cell.tables:
                         issues.append(Issue("unsupported_structure", source_id, anchor,
-                                            "Nested tables are outside supported body reading."))
+                                            "Nested tables are outside supported reading."))
             table_index += 1
-    if any(list(doc.element.body.iter(_W + tag))
-           for tag in ("sdt", "ins", "del", "txbxContent", "altChunk", "fldSimple")):
-        issues.append(Issue("unsupported_structure", source_id, source_id,
-                            "Content controls, revisions, fields, or embedded text need review."))
-    for part in doc.part.package.parts:
-        name = str(part.partname)
-        if any(token in name for token in ("/header", "/footer", "/footnotes", "/endnotes")):
-            root = ElementTree.fromstring(part.blob)
-            if any((n.text or "").strip() for n in root.iter(_W + "t")):
-                issues.append(Issue("unsupported_structure", source_id, source_id,
-                                    "Headers, footers, and notes are outside supported body reading."))
-                break
-    count = sum(len(u.text) for u in units)
-    if not any(u.text.strip() for u in units):
-        raise SourceReadError("DOCX has no readable supported body text.", tuple(issues))
-    cost = max(1, ceil(count / EXTRACTION_DOCX_CHARS_PER_PAGE))
-    return SourceDocument(source_id, path.resolve(), path.name, tuple(units), cost, tuple(issues))
 
 
 def _read_pdf(path: Path, source_id: str) -> SourceDocument:

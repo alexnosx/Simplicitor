@@ -43,6 +43,8 @@ Reuse declared document libraries. Configuration stays in defaults.py. The legac
 
 Adapt _extract_docx/_extract_pdf into structured readers without truncation. DOCX body paragraphs use source_id#p:index; cells use source_id#t:table:r:row:c:cell with zero-based indices including empty units. Traverse paragraphs/tables in document order and enumerate physical cells once. Report unsupported structures.
 
+Read each explicit Word header/footer part once, including first/even-page definitions; inherited parts are not repeated for each section. Their paragraphs use source_id#header:index:p:index and source_id#footer:index:p:index; tables use the same t:table:r:row:c:cell suffix within that part. Body anchors remain unchanged. Header/footer text contributes to the DOCX page-equivalent count. Footnotes/endnotes and unsupported structures remain coverage issues. Header/footer containers use python-docx's [document-order API](https://python-docx.readthedocs.io/en/latest/api/section.html).
+
 PDF page text uses source_id#page:number with one-based page numbers. Call each pdfplumber page's extract_text(); retain page counts and zero/near-zero-text issues. File mode needs no PDF table extraction.
 
 record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sends the whole file when its token count fits num_ctx minus prompt, schema, and reserved output tokens. Otherwise derive the section budget from the same remaining context and split at paragraph, DOCX table-row, or PDF page boundaries without overlap. Carry the file's accumulated values/anchors; retain agreeing evidence and flag conflicts. Oversized indivisible units become coverage issues.
@@ -53,7 +55,7 @@ Implementation values are approved. Store shared values once in defaults.py.
 
 | Setting | Proposal |
 |---|---|
-| DOCX page equivalents | max(1, ceil(extracted_body_characters / 3000)) per file, including supported table cells. Display estimates. |
+| DOCX page equivalents | max(1, ceil(extracted_characters / 3000)) per file, including supported body, header/footer, and table text. Display estimates. |
 | Input file limit | 50 MiB per file. The aggregate page limit belongs to PRD.md. |
 | PDF near-zero text | Fewer than 40 non-whitespace extracted characters per page. |
 | Production input budget | num_ctx minus prompt, schema, and reserved output tokens, also accounting for carried fields on subsequent calls. Prefer a whole file; derive sections from the remaining context only when needed. Oversized indivisible units fail visibly. |
@@ -71,7 +73,7 @@ Task 2 adds optional options, think, and local_only arguments to OllamaClient.ge
 
 ## Grounding and conversion
 
-Check the anchor against the file's extracted units and match the quote after whitespace normalization. Then require the model value to be a literal, case-sensitive substring of its quote for every type. Do not normalize the model value before this check. Code converts the verified span using confirmed English numeric/date settings; conversion failure retains the proposal as flagged text.
+Check the anchor against the file's extracted units and match the quote after whitespace normalization. Then require the model value to be a literal, case-sensitive token-bounded span of its quote under the PRD grounding rule. Do not normalize the model value before this check. Code converts the verified span using confirmed English numeric/date settings, including ordinal/legal dates; conversion failure retains the proposal as flagged text.
 
 Test quotes with currency symbols, codes, and labels around the value, including the PRD amount example. A correctly quoted value assigned to the wrong column still counts as a semantic error in scoring.
 

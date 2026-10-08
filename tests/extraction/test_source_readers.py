@@ -128,3 +128,47 @@ def test_empty_docx_fails_before_model_work(tmp_path):
     Document().save(source)
     with pytest.raises(SourceReadError, match="readable"):
         read_source(source, "one")
+
+
+def test_docx_reads_header_footer_paragraphs_and_cells_once(tmp_path):
+    from docx.enum.section import WD_SECTION_START
+    from docx.shared import Inches
+    from extraction.source_readers import read_source
+
+    doc = Document()
+    doc.add_paragraph("Services were provided to Blue Finch Ltd.")
+    header = doc.sections[0].header
+    header.paragraphs[0].text = "Alder Services Ltd issues invoice 00123."
+    header.add_table(rows=1, cols=1, width=Inches(4)).cell(0, 0).text = "USD 12,500.00"
+    doc.sections[0].footer.paragraphs[0].text = "Contact accounts@alder.example."
+    doc.add_section(WD_SECTION_START.NEW_PAGE)  # Inherits the same header/footer parts.
+    doc.sections[0].different_first_page_header_footer = True
+    doc.sections[0].first_page_header.paragraphs[0].text = "First page invoice"
+    doc.settings.odd_and_even_pages_header_footer = True
+    doc.sections[0].even_page_footer.paragraphs[0].text = "Even page contact"
+    source = tmp_path / "header-invoice.docx"
+    doc.save(source)
+    before = source.read_bytes()
+    result = read_source(source, "one")
+    by_text = {u.text: u for u in result.units}
+    assert by_text["Alder Services Ltd issues invoice 00123."].anchor == "one#header:0:p:0"
+    assert by_text["USD 12,500.00"].anchor == "one#header:0:t:0:r:0:c:0"
+    assert by_text["Contact accounts@alder.example."].anchor == "one#footer:0:p:0"
+    assert "#header:" in by_text["First page invoice"].anchor
+    assert "#footer:" in by_text["Even page contact"].anchor
+    assert sum(u.text == "Alder Services Ltd issues invoice 00123." for u in result.units) == 1
+    assert len({u.anchor for u in result.units}) == len(result.units)
+    assert not result.issues
+    assert source.read_bytes() == before
+
+
+def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path):
+    from extraction.source_readers import read_source
+
+    doc = Document()
+    doc.sections[0].header.paragraphs[0].text = "h" * 3001
+    source = tmp_path / "header-only.docx"
+    doc.save(source)
+    result = read_source(source, "one")
+    assert result.page_cost == 2
+    assert any(u.text == "h" * 3001 for u in result.units)

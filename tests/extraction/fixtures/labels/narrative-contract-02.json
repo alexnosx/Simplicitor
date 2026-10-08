@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-N602",
+  "supplier": "Birch Systems Ltd",
+  "client": "Lake Logistics Ltd",
+  "effective_date": "2026-03-15",
+  "expiry_date": "2027-03-14",
+  "contract_value": "12500.00",
+  "currency": "USD",
+  "employee_id": "00602",
+  "reference": "OPS-N602",
+  "notice_days": 45
+}

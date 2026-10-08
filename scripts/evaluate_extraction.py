@@ -37,10 +37,8 @@ Return one record with every requested field using the provided JSON schema.
 For each field copy its value word for word from ONE source unit, together with a short
 contiguous quote from that same unit and its exact anchor. The quote must contain the value.
 Never normalize values: keep date wording, number separators, leading zeros, and text.
-For an amount such as 'Total: USD 12,500.00', copy '12,500.00', not '12500.00'.
 The application converts literal values into their confirmed types after checking evidence.
-Choose the semantic field requested: invoice dates differ from due dates, customers from
-suppliers, and subtotals from final totals. If absent, use value null, quote '', anchor ''.
+Extract the fact defined by each column. If absent, use value null, quote '', anchor ''.
 Output JSON only. Do not invent facts or omit columns."""
 
 

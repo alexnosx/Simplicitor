@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-N303",
+  "supplier": "Orchard Data Ltd",
+  "customer": "Harbour Labs Ltd",
+  "invoice_date": "2026-05-01",
+  "due_date": "2026-05-15",
+  "total": "7200.00",
+  "currency": "EUR",
+  "purchase_order": "PO-0303",
+  "payment_terms": "Net 14",
+  "contact_email": "finance@orchard.example"
+}

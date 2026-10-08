@@ -217,6 +217,14 @@ tests/
                 invoice-08.json
                 invoice-09.json
                 invoice-10.json
+                narrative-contract-01.json
+                narrative-contract-02.json
+                narrative-contract-03.json
+                narrative-contract-04.json
+                narrative-invoice-01.json
+                narrative-invoice-02.json
+                narrative-invoice-03.json
+                narrative-invoice-04.json
             .gitattributes
             README.md
             authored_cases.json
@@ -241,8 +249,17 @@ tests/
             invoice-09.docx
             invoice-10.pdf
             manifest.json
+            narrative-contract-01.docx
+            narrative-contract-02.pdf
+            narrative-contract-03.docx
+            narrative-contract-04.pdf
+            narrative-invoice-01.docx
+            narrative-invoice-02.pdf
+            narrative-invoice-03.docx
+            narrative-invoice-04.pdf
             profiles.json
         test_evaluation.py
+        test_fixtures.py
         test_grounding.py
         test_source_readers.py
     templates_engine/
@@ -543,6 +560,8 @@ requirements.txt
 ### simplicitor/extraction/grounding.py
 
 - def validate_field(proposal: FieldProposal, column: ColumnSpec, units: Mapping[str, SourceUnit]) -> FieldResult: Check anchor, normalized quote, literal value span, then column conversion.
+- def _has_grounded_match(value: str, quote: str, source: str) -> bool
+- def _at_token_boundaries(text: str, start: int, end: int) -> bool
 - def _number(value: str, column: ColumnSpec) -> Decimal | int
 - def _date(value: str, order: str | None) -> date
 
@@ -562,6 +581,7 @@ requirements.txt
 - def read_source(path: Path, source_id: str) -> SourceDocument: Read the complete supported source with stable, job-local anchors.
 - def read_sources(paths: Sequence[Path]) -> tuple[SourceDocument, ...]: Read attachments independently and enforce the aggregate page budget.
 - def _read_docx(path: Path, source_id: str) -> SourceDocument
+- def _read_blocks(blocks: Iterable[Paragraph | Table], prefix: str, source_id: str, units: list[SourceUnit], issues: list[Issue]) -> None
 - def _read_pdf(path: Path, source_id: str) -> SourceDocument
 
 ### simplicitor/main.py
@@ -663,6 +683,10 @@ requirements.txt
 - def test_invalid_evidence_keeps_identifiable_proposed_value(tmp_path)
 - def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_location)
 
+### tests/extraction/test_fixtures.py
+
+- def test_narrative_invoice_renders_header_footer_without_label_table(tmp_path)
+
 ### tests/extraction/test_grounding.py
 
 - def test_currency_context_preserves_literal_amount(quote)
@@ -671,6 +695,11 @@ requirements.txt
 - def test_quote_must_belong_to_the_referenced_unit()
 - def test_quote_whitespace_can_vary_but_value_must_be_literal()
 - def test_whitespace_is_not_evidence_of_a_missing_text_value()
+- def test_partial_tokens_cannot_ground_a_value(value, quote, kind)
+- def test_whole_tokens_and_sentence_punctuation_are_grounded(value, quote, kind, want)
+- def test_ordinal_days_are_converted_after_literal_grounding(value)
+- def test_truncated_quote_cannot_hide_source_token_boundaries(value, quote, source, kind)
+- def test_short_date_quote_at_sentence_end_keeps_real_source_boundaries()
 
 ### tests/extraction/test_source_readers.py
 
@@ -683,6 +712,8 @@ requirements.txt
 - def test_pdf_keeps_page_text_and_flags_only_near_zero_page(tmp_path)
 - def test_simple_word_fields_are_disclosed_as_unsupported(tmp_path)
 - def test_empty_docx_fails_before_model_work(tmp_path)
+- def test_docx_reads_header_footer_paragraphs_and_cells_once(tmp_path)
+- def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path)
 
 ### tests/templates_engine/__init__.py
 
@@ -1340,7 +1371,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 51 lines
+- CHANGELOG.md: md, 53 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1357,17 +1388,17 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 42 lines
+- docs/PROJECT_STATUS.md: md, 41 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
 - docs/Simplicitor_UI_Fixes_Round2.md: md, 144 lines
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
-- docs/code-signing.md: md, 39 lines
+- docs/code-signing.md: md, 41 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/evaluation/2026-10-08-task1.json: json, 545 lines
-- docs/evaluation/2026-10-08-task1.md: md, 18 lines
+- docs/evaluation/2026-10-08-task1.md: md, 20 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
@@ -1387,7 +1418,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 105 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 107 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines
@@ -1408,8 +1439,8 @@ requirements.txt
 - simplicitor/templates_engine/builtin/technical_overview/manifest.yaml: yaml, 45 lines
 - simplicitor/templates_engine/builtin/technical_overview/template.pptx: pptx (binary)
 - tests/extraction/fixtures/.gitattributes: text, 1 lines
-- tests/extraction/fixtures/README.md: md, 11 lines
-- tests/extraction/fixtures/authored_cases.json: json, 704 lines
+- tests/extraction/fixtures/README.md: md, 13 lines
+- tests/extraction/fixtures/authored_cases.json: json, 957 lines
 - tests/extraction/fixtures/contract-01.docx: docx (binary)
 - tests/extraction/fixtures/contract-02.pdf: pdf, 103 lines
 - tests/extraction/fixtures/contract-03.docx: docx (binary)
@@ -1450,7 +1481,23 @@ requirements.txt
 - tests/extraction/fixtures/labels/invoice-08.json: json, 12 lines
 - tests/extraction/fixtures/labels/invoice-09.json: json, 12 lines
 - tests/extraction/fixtures/labels/invoice-10.json: json, 12 lines
-- tests/extraction/fixtures/manifest.json: json, 1384 lines
+- tests/extraction/fixtures/labels/narrative-contract-01.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-contract-02.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-contract-03.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-contract-04.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-invoice-01.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-invoice-02.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-invoice-03.json: json, 12 lines
+- tests/extraction/fixtures/labels/narrative-invoice-04.json: json, 12 lines
+- tests/extraction/fixtures/manifest.json: json, 1936 lines
+- tests/extraction/fixtures/narrative-contract-01.docx: docx (binary)
+- tests/extraction/fixtures/narrative-contract-02.pdf: pdf, 100 lines
+- tests/extraction/fixtures/narrative-contract-03.docx: docx (binary)
+- tests/extraction/fixtures/narrative-contract-04.pdf: pdf, 100 lines
+- tests/extraction/fixtures/narrative-invoice-01.docx: docx (binary)
+- tests/extraction/fixtures/narrative-invoice-02.pdf: pdf, 100 lines
+- tests/extraction/fixtures/narrative-invoice-03.docx: docx (binary)
+- tests/extraction/fixtures/narrative-invoice-04.pdf: pdf, 98 lines
 - tests/extraction/fixtures/profiles.json: json, 6 lines
 - tests/templates_engine/fixtures/broken_duplicate_manifest.yaml: yaml, 16 lines
 - tests/templates_engine/fixtures/broken_kind_manifest.yaml: yaml, 12 lines

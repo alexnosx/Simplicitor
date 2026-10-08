@@ -7,6 +7,8 @@
 
 ## Unreleased extraction development
 
+- Reject partial-token evidence in both quotes and their source context; accept ordinal English dates and read Word headers/footers with dedicated anchors.
+- Replace fixture-specific prompt hints with generic rules and plain column definitions. Expand the gate to 28 files/280 fields with eight prose documents.
 - Add independent anchored DOCX/text-layer PDF readers, verbatim grounding, deterministic type conversion, and a direct-Ollama evaluation CLI.
 - Add 20 synthetic English fixtures with independent labels. Both candidate models passed the first gate; measured results are in docs/evaluation/2026-10-08-task1.md.
 - Approve whole-file-first production extraction and renumber the plan tasks 0 to 6. Production extraction, XLSX output, and review UI are not implemented yet.

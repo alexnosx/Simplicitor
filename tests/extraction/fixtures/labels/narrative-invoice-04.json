@@ -1,0 +1,12 @@
+{
+  "document_id": "000404",
+  "supplier": "Riverstone Design Ltd",
+  "customer": "Meadow Foods Ltd",
+  "invoice_date": "2026-06-02",
+  "due_date": "2026-06-02",
+  "total": "500.00",
+  "currency": "USD",
+  "purchase_order": "PO-N404",
+  "payment_terms": "Pay on receipt",
+  "contact_email": null
+}

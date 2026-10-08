@@ -10,27 +10,27 @@ from pypdf.generic import DictionaryObject, NameObject, DecodedStreamObject
 ROOT = Path(__file__).resolve().parents[1] / "tests" / "extraction" / "fixtures"
 
 INVOICE_COLUMNS = [
-    ("document_id", "Invoice ID", "Invoice number, preserving leading zeros.", "text"),
-    ("supplier", "Supplier", "The company issuing the invoice, not the customer.", "text"),
+    ("document_id", "Invoice ID", "The invoice number.", "text"),
+    ("supplier", "Supplier", "The company issuing the invoice.", "text"),
     ("customer", "Customer", "The company billed by the supplier.", "text"),
-    ("invoice_date", "Invoice date", "Issue date, not the due date.", "date"),
-    ("due_date", "Due date", "Final payment due date, not the issue date.", "date"),
-    ("total", "Total", "Final gross invoice total, not subtotal or tax alone.", "decimal"),
-    ("currency", "Currency", "The written three-letter currency code.", "text"),
-    ("purchase_order", "Purchase order", "Purchase order reference exactly as written.", "text"),
-    ("payment_terms", "Payment terms", "Written payment terms, without rephrasing.", "text"),
-    ("contact_email", "Contact email", "Supplier billing contact email; null when absent.", "text"),
+    ("invoice_date", "Invoice date", "The date the invoice was issued.", "date"),
+    ("due_date", "Due date", "The final date for payment.", "date"),
+    ("total", "Total", "The gross amount payable on the invoice.", "decimal"),
+    ("currency", "Currency", "The three-letter currency code.", "text"),
+    ("purchase_order", "Purchase order", "The purchase order reference.", "text"),
+    ("payment_terms", "Payment terms", "The stated payment terms.", "text"),
+    ("contact_email", "Contact email", "The supplier billing contact email address.", "text"),
 ]
 CONTRACT_COLUMNS = [
-    ("contract_id", "Contract ID", "Contract reference, not a purchase order.", "text"),
+    ("contract_id", "Contract ID", "The contract reference.", "text"),
     ("supplier", "Supplier", "The contracted service provider.", "text"),
     ("client", "Client", "The customer buying the services.", "text"),
-    ("effective_date", "Effective date", "Contract effective date, not signature or expiry.", "date"),
+    ("effective_date", "Effective date", "The date the contract takes effect.", "date"),
     ("expiry_date", "Expiry date", "Final contract expiry date.", "date"),
-    ("contract_value", "Contract value", "Agreed total contract value, not deposit.", "decimal"),
+    ("contract_value", "Contract value", "The agreed total contract value.", "decimal"),
     ("currency", "Currency", "The written three-letter currency code.", "text"),
-    ("employee_id", "Employee ID", "Contractor's personnel ID exactly as written.", "text"),
-    ("reference", "Reference", "Internal reference literal text; do not evaluate it.", "text"),
+    ("employee_id", "Employee ID", "The contractor's personnel ID.", "text"),
+    ("reference", "Reference", "The internal reference.", "text"),
     ("notice_days", "Notice days", "Number of days required for termination notice.", "integer"),
 ]
 
@@ -73,10 +73,17 @@ def build(root: Path = ROOT) -> None:
             write_pdf(root / filename, case["pages"])
         else:
             doc = Document()
+            for kind in ("header", "footer"):
+                lines = case.get(kind, [])
+                if lines:
+                    container = getattr(doc.sections[0], kind)
+                    container.paragraphs[0].text = lines[0]
+                    for line in lines[1:]:
+                        container.add_paragraph(line)
             for number, lines in enumerate(case["pages"]):
                 if number:
                     doc.add_page_break()
-                if not number and case["kind"] == "invoice":
+                if not number and case["kind"] == "invoice" and not case.get("narrative"):
                     table = doc.add_table(rows=3, cols=2)
                     for row, line in zip(table.rows, lines[:3]):
                         label, value = line.split(":", 1)

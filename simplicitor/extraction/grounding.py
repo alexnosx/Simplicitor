@@ -29,7 +29,9 @@ def validate_field(
         issue = "unknown_anchor"
     elif not proposal.quote.strip() or " ".join(proposal.quote.split()) not in " ".join(unit.text.split()):
         issue = "quote_not_in_source"
-    elif proposal.value not in proposal.quote:
+    elif proposal.value not in proposal.quote or not _has_grounded_match(
+        proposal.value, proposal.quote, unit.text
+    ):
         issue = "value_not_verbatim"
     if issue:
         return FieldResult(proposal, None, True, (issue,))
@@ -45,6 +47,32 @@ def validate_field(
         return FieldResult(proposal, value, False)
     except (ValueError, InvalidOperation, OverflowError):
         return FieldResult(proposal, None, True, ("conversion_failed",))
+
+
+def _has_grounded_match(value: str, quote: str, source: str) -> bool:
+    # Literal containment was checked first. Normalize whitespace only to locate
+    # that same quote/value span in the reader's text and inspect its real edges.
+    value, quote, source = (" ".join(text.split()) for text in (value, quote, source))
+    if not value:
+        return False
+    for quote_match in re.finditer(re.escape(quote), source):
+        for value_match in re.finditer(re.escape(value), quote):
+            start, end = value_match.span()
+            if (_at_token_boundaries(quote, start, end)
+                    and _at_token_boundaries(source, quote_match.start() + start,
+                                             quote_match.start() + end)):
+                return True
+    return False
+
+
+def _at_token_boundaries(text: str, start: int, end: int) -> bool:
+    before = text[start - 1] if start else ""
+    after = text[end] if end < len(text) else ""
+    return not (
+        before.isalnum() or after.isalnum()
+        or (before in (",", ".") and start > 1 and text[start - 2].isdigit())
+        or (after in (",", ".") and end + 1 < len(text) and text[end + 1].isdigit())
+    )
 
 
 def _number(value: str, column: ColumnSpec) -> Decimal | int:
@@ -79,8 +107,13 @@ def _date(value: str, order: str | None) -> date:
         if b > 12 or order == "MDY":
             return date(year, a, b)
         raise ValueError("ambiguous_date")
-    day_first = re.fullmatch(r"([0-9]{1,2})[ -]+([A-Za-z]+)[ -]+([0-9]{4})", text)
-    month_first = re.fullmatch(r"([A-Za-z]+) +([0-9]{1,2}),? +([0-9]{4})", text)
+    day_first = re.fullmatch(
+        r"(?:the )?([0-9]{1,2})(?:st|nd|rd|th)?(?: day of)?[ -]+([A-Za-z]+)[ -]+([0-9]{4})",
+        text, re.IGNORECASE,
+    )
+    month_first = re.fullmatch(
+        r"([A-Za-z]+) +([0-9]{1,2})(?:st|nd|rd|th)?,? +([0-9]{4})", text, re.IGNORECASE,
+    )
     if day_first:
         day, month_name, year = int(day_first[1]), day_first[2].lower(), int(day_first[3])
     elif month_first:

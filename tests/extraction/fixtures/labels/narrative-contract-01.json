@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-N501",
+  "supplier": "Maple Advisory Ltd",
+  "client": "Brook Manufacturing Ltd",
+  "effective_date": "2026-03-15",
+  "expiry_date": "2027-03-14",
+  "contract_value": "48000.00",
+  "currency": "EUR",
+  "employee_id": "000501",
+  "reference": "REF-N501",
+  "notice_days": 30
+}

@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-N204",
+  "supplier": "Marsh Equipment Ltd",
+  "customer": "Willow Stores Ltd",
+  "invoice_date": "2026-03-15",
+  "due_date": "2026-04-14",
+  "total": "2400.00",
+  "currency": "GBP",
+  "purchase_order": "PO-N204",
+  "payment_terms": "Due within 30 days",
+  "contact_email": "billing@marsh.example"
+}

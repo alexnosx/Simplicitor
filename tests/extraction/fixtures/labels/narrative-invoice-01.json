@@ -1,0 +1,12 @@
+{
+  "document_id": "00081",
+  "supplier": "Juniper Advisory Ltd",
+  "customer": "Cedar Retail Ltd",
+  "invoice_date": "2026-03-15",
+  "due_date": "2026-04-14",
+  "total": "12500.00",
+  "currency": "USD",
+  "purchase_order": "00091",
+  "payment_terms": "Net 30",
+  "contact_email": "accounts@juniper.example"
+}

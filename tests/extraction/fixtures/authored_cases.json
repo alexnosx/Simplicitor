@@ -699,6 +699,259 @@
         "reference": "Final-10",
         "notice_days": 30
       }
+    },
+    {
+      "id": "narrative-invoice-01",
+      "format": "docx",
+      "kind": "invoice",
+      "narrative": true,
+      "date_order": "DMY",
+      "header": [
+        "Juniper Advisory Ltd submits invoice 00081."
+      ],
+      "footer": [
+        "Please send billing questions to accounts@juniper.example."
+      ],
+      "pages": [
+        [
+          "This invoice records consulting services supplied to Cedar Retail Ltd under purchase order 00091.",
+          "We issued this request for payment on the 15th day of March 2026. The work covered the client's quarterly accounts."
+        ],
+        [
+          "For those services the gross amount payable is USD 12,500.00, including tax of USD 2,500.00.",
+          "The agreed payment terms are Net 30, and payment must reach us by 14th April 2026."
+        ]
+      ],
+      "labels": {
+        "document_id": "00081",
+        "supplier": "Juniper Advisory Ltd",
+        "customer": "Cedar Retail Ltd",
+        "invoice_date": "2026-03-15",
+        "due_date": "2026-04-14",
+        "total": "12500.00",
+        "currency": "USD",
+        "purchase_order": "00091",
+        "payment_terms": "Net 30",
+        "contact_email": "accounts@juniper.example"
+      }
+    },
+    {
+      "id": "narrative-invoice-02",
+      "format": "pdf",
+      "kind": "invoice",
+      "narrative": true,
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Marsh Equipment Ltd, as supplier, presents invoice INV-N204 to its customer, Willow Stores Ltd, for maintenance services.",
+          "The invoice was issued on March 15th, 2026, following acceptance of the work on March 12th, 2026.",
+          "These services were ordered against purchase order PO-N204."
+        ],
+        [
+          "After adding tax to the net charges of GBP 2,000.00, the total payable is GBP 2,400.00.",
+          "Payment is governed by the terms Due within 30 days and is due on April 14th, 2026.",
+          "Billing correspondence should be addressed to billing@marsh.example."
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-N204",
+        "supplier": "Marsh Equipment Ltd",
+        "customer": "Willow Stores Ltd",
+        "invoice_date": "2026-03-15",
+        "due_date": "2026-04-14",
+        "total": "2400.00",
+        "currency": "GBP",
+        "purchase_order": "PO-N204",
+        "payment_terms": "Due within 30 days",
+        "contact_email": "billing@marsh.example"
+      }
+    },
+    {
+      "id": "narrative-invoice-03",
+      "format": "docx",
+      "kind": "invoice",
+      "narrative": true,
+      "date_order": "DMY",
+      "header": [
+        "Orchard Data Ltd raises invoice INV-N303."
+      ],
+      "footer": [
+        "Our billing team can be reached at finance@orchard.example."
+      ],
+      "pages": [
+        [
+          "The services described here were delivered to Harbour Labs Ltd pursuant to purchase order PO-0303.",
+          "This invoice was issued on 1st May 2026 for the data review completed in April."
+        ],
+        [
+          "A gross sum of EUR 7,200.00 is payable for the work, comprising EUR 6,000.00 in fees and EUR 1,200.00 in tax.",
+          "We agreed the payment terms Net 14. Payment falls due on the 15th day of May 2026."
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-N303",
+        "supplier": "Orchard Data Ltd",
+        "customer": "Harbour Labs Ltd",
+        "invoice_date": "2026-05-01",
+        "due_date": "2026-05-15",
+        "total": "7200.00",
+        "currency": "EUR",
+        "purchase_order": "PO-0303",
+        "payment_terms": "Net 14",
+        "contact_email": "finance@orchard.example"
+      }
+    },
+    {
+      "id": "narrative-invoice-04",
+      "format": "pdf",
+      "kind": "invoice",
+      "narrative": true,
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Riverstone Design Ltd issues invoice 000404 to its customer, Meadow Foods Ltd, for packaging design.",
+          "The issue date is June 2nd, 2026, and the work was commissioned using purchase order PO-N404."
+        ],
+        [
+          "The amount due for the completed work is USD 500.00, with no additional tax payable.",
+          "The agreed terms are Pay on receipt. The final payment date is June 2nd, 2026.",
+          "Questions may be sent by post to the supplier's registered office."
+        ]
+      ],
+      "labels": {
+        "document_id": "000404",
+        "supplier": "Riverstone Design Ltd",
+        "customer": "Meadow Foods Ltd",
+        "invoice_date": "2026-06-02",
+        "due_date": "2026-06-02",
+        "total": "500.00",
+        "currency": "USD",
+        "purchase_order": "PO-N404",
+        "payment_terms": "Pay on receipt",
+        "contact_email": null
+      }
+    },
+    {
+      "id": "narrative-contract-01",
+      "format": "docx",
+      "kind": "contract",
+      "narrative": true,
+      "date_order": "DMY",
+      "pages": [
+        [
+          "This agreement, identified as CT-N501, is entered into between Maple Advisory Ltd, the service provider, and Brook Manufacturing Ltd, the client.",
+          "The parties signed on 12th March 2026 and agree that the contract takes effect on the 15th day of March 2026.",
+          "The individual assigned to the work is recorded under personnel ID 000501."
+        ],
+        [
+          "The services will continue until 14th March 2027, when this agreement expires.",
+          "The agreed total contract value is EUR 48,000.00. An initial deposit of EUR 4,800.00 is payable on commencement.",
+          "The internal reference for this engagement is REF-N501. Either party must give 30 days of notice to terminate."
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-N501",
+        "supplier": "Maple Advisory Ltd",
+        "client": "Brook Manufacturing Ltd",
+        "effective_date": "2026-03-15",
+        "expiry_date": "2027-03-14",
+        "contract_value": "48000.00",
+        "currency": "EUR",
+        "employee_id": "000501",
+        "reference": "REF-N501",
+        "notice_days": 30
+      }
+    },
+    {
+      "id": "narrative-contract-02",
+      "format": "pdf",
+      "kind": "contract",
+      "narrative": true,
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Under agreement CT-N602, Birch Systems Ltd will provide support services to Lake Logistics Ltd, which purchases those services as the client.",
+          "The agreement was signed on March 10th, 2026, and becomes effective on March 15th, 2026.",
+          "The assigned contractor has personnel ID 00602, and the internal reference is OPS-N602."
+        ],
+        [
+          "The agreement expires on March 14th, 2027. The total agreed consideration for the full term is USD 12,500.00.",
+          "A deposit of USD 500.00 is due at commencement. Termination requires 45 days of notice from either party."
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-N602",
+        "supplier": "Birch Systems Ltd",
+        "client": "Lake Logistics Ltd",
+        "effective_date": "2026-03-15",
+        "expiry_date": "2027-03-14",
+        "contract_value": "12500.00",
+        "currency": "USD",
+        "employee_id": "00602",
+        "reference": "OPS-N602",
+        "notice_days": 45
+      }
+    },
+    {
+      "id": "narrative-contract-03",
+      "format": "docx",
+      "kind": "contract",
+      "narrative": true,
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Elm Research Ltd, acting as service provider, and Coast Energy Ltd, acting as client, enter into agreement 000703.",
+          "The agreement commences on 21st September 2026 following signature on 18th September 2026.",
+          "The contractor's personnel ID is 00703. The engagement is recorded internally as FIN-N703."
+        ],
+        [
+          "This fixed-term agreement expires on the 20th day of September 2027.",
+          "The parties agree a total contract value of GBP 36,000.00, with an advance payment of GBP 3,000.00.",
+          "Each party is required to provide 60 days of notice before termination."
+        ]
+      ],
+      "labels": {
+        "contract_id": "000703",
+        "supplier": "Elm Research Ltd",
+        "client": "Coast Energy Ltd",
+        "effective_date": "2026-09-21",
+        "expiry_date": "2027-09-20",
+        "contract_value": "36000.00",
+        "currency": "GBP",
+        "employee_id": "00703",
+        "reference": "FIN-N703",
+        "notice_days": 60
+      }
+    },
+    {
+      "id": "narrative-contract-04",
+      "format": "pdf",
+      "kind": "contract",
+      "narrative": true,
+      "date_order": "MDY",
+      "pages": [
+        [
+          "This service agreement CT-N804 is made between Pine Audit Ltd, the service provider, and Field Medical Ltd, the customer receiving the services.",
+          "The agreement takes effect on November 3rd, 2026. The person assigned to the work has personnel ID 00804."
+        ],
+        [
+          "The parties agree that the contract expires on November 2nd, 2027.",
+          "For the entire term the agreed contract value is EUR 9,600.00, payable in monthly instalments of EUR 800.00.",
+          "Termination by either party requires 14 days of notice."
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-N804",
+        "supplier": "Pine Audit Ltd",
+        "client": "Field Medical Ltd",
+        "effective_date": "2026-11-03",
+        "expiry_date": "2027-11-02",
+        "contract_value": "9600.00",
+        "currency": "EUR",
+        "employee_id": "00804",
+        "reference": null,
+        "notice_days": 14
+      }
     }
   ]
 }
