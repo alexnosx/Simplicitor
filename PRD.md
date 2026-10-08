@@ -41,6 +41,12 @@ All three workflows produce a separate candidate for review and approval before 
 
 The required cross-format example is an accounting XLSX workbook used to create a DOCX report. Preserve text identifiers and distinguish raw inputs, formula expressions, calculated values, missing values, and stale calculation results. Do not invent missing rates, currencies, dates, or amounts. Retain traceability from reported figures to source snapshots, worksheet/range references, and calculations, using source labels rather than exposing absolute paths in reports by default. Grounding and validation do not replace review of the model's narrative.
 
+The reverse direction is also required: create an XLSX from a large DOCX or PDF source. PDF is a read-only source format; this does not add PDF editing or write-back. The user describes the fields to extract, such as contract number, parties, dates, currency, and amounts. Propose or confirm the columns, types, and what one row represents before extraction when the request is ambiguous. Extract from narrative passages as well as tables, retaining the relationships between fields and records.
+
+Process the complete selected source scope in bounded sections with coverage accounting. Reconcile records and tables that continue across sections or pages, handle repeated headers, and avoid introducing duplicate rows from overlapping processing. Preserve genuine repeated records. Each output record must retain traceable source references; important fields need supporting evidence. Show missing, ambiguous, contradictory, or unreadable values for review rather than inventing them. Preserve text identifiers and original date/number evidence; normalization must follow confirmed types, locale, and units. Write extracted text as literal Excel values rather than activating formulas or links embedded in source or model text.
+
+Inspect PDFs at page/region level and use reliable existing text layers where available. Scanned, image-only, or mixed content without usable text requires a local OCR or local vision path, with an engine and support envelope still to be selected and tested. Until it is available, report affected pages/regions and block a claim of complete extraction; never treat unreadable content as empty or use cloud OCR. Review the candidate Excel grid with source passages/page references and coverage before approval. Original Word/PDF inputs remain unchanged.
+
 Large sources must be inspected and processed within an explicit scope. Deterministic extraction and aggregation may cover more rows than fit in a model prompt. Do not silently truncate relevant records, omit material information, or treat a partial report as complete. Narrow the scope or report a limitation when the request cannot be supported.
 
 Source-based creation is local document work, not persistent indexing or a RAG system. Define supported source formats, Office features, and input/output combinations before claiming coverage. The three workflows do not imply that every format conversion is already supported.
@@ -126,12 +132,14 @@ An installer does not guarantee removal of SmartScreen warnings or antivirus blo
 10. Existing generation and template behavior remains covered by regression checks.
 11. Prompt-only creation, creation from source files, and selective editing all use candidate validation, preview, approval, and saving of a new output. Read-only source attachments never gain edit permission.
 12. An accounting XLSX can produce a reviewed DOCX report with correct supported calculations, traceable figures, and unchanged sources. Ambiguous periods, missing data, stale results, and incomplete coverage are visible rather than invented or silently omitted.
+13. Large DOCX and PDF sources can produce a reviewed XLSX with the agreed columns, record boundaries, types, source references, and complete declared coverage. Check narrative and table extraction, multipage records, repeated headers, chunk boundaries, identifiers, dates, amounts, uncertain fields, and scanned/mixed PDF handling. Unsupported OCR content cannot silently disappear from the result.
 
 ## Decisions still needed
 
 - Office integration and preview technology, fidelity expectations, and supported Office versions. Installed desktop Office is required initially; this prerequisite is no longer an open decision.
 - Supported rich-text and Office feature envelopes for each editing format.
 - Supported source-ingestion features and input/output combinations, numerical evidence validation, calculation/recalculation rules, and handling of large or incomplete sources.
+- DOCX/PDF extraction schemas and provenance, record reconciliation, text-layer quality checks, and the local OCR/vision engine and tested scanning support envelope.
 - Candidate naming, version identity, storage, retention, and cancellation behavior.
 - Tested model/runtime combinations and practical hardware requirements.
 - Exact Windows or antivirus detection blocking the current executable.

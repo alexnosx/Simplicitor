@@ -11,6 +11,8 @@ structural changes: `python scripts/gen_repo_map.py`
 Ollama, a usable model, and installed desktop Microsoft Office. Root `PRD.md` defines
 creation from a prompt, creation from read-only source files, and selective editing.
 All produce a separate candidate for validation, preview, approval, and a new output.
+Source-based examples include XLSX-to-DOCX reporting and large DOCX/PDF-to-XLSX
+extraction. PDFs are read-only sources; scanned/mixed sources need tested local OCR/vision.
 Packaging will use a standalone Nuitka payload,
 free NSIS installer, and portable ZIP, without Store publication or paid signing.
 Installer convenience does not guarantee removal of unsigned Windows warnings.
@@ -1222,13 +1224,13 @@ requirements.txt
 
 - .github/workflows/build.yml: yml, 47 lines
 - .gitignore: text, 84 lines
-- AGENTS.md: md, 181 lines
+- AGENTS.md: md, 183 lines
 - BUILD_STORY.md: md, 84 lines
 - CHANGELOG.md: md, 40 lines
-- CLAUDE.md: md, 181 lines
+- CLAUDE.md: md, 183 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- PRD.md: md, 142 lines
+- PRD.md: md, 150 lines
 - README.md: md, 114 lines
 - SECURITY.md: md, 23 lines
 - assets/icons/simplicitor.ico: ico (binary)
@@ -1241,7 +1243,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 99 lines
+- docs/PROJECT_STATUS.md: md, 106 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -1267,8 +1269,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 123 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 73 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 141 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 75 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines
 - requirements-dev.txt: txt, 3 lines

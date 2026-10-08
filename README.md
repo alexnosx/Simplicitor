@@ -18,7 +18,7 @@ Simplicitor will serve nontechnical Windows users who already have Ollama, a usa
 | Create new, with a prompt and source files | Read the sources and create a new document using their information. |
 | Edit document | Modify approved parts of an existing document. |
 
-For example, an accounting Excel workbook can supply the facts and calculated figures for a new Word report. Source files remain unchanged. Editing changes only approved targets. All three workflows will validate and preview a separate candidate before approval and saving of a new output. Contracts, financial documents, proposals, policies, and presentations are representative uses.
+For example, an accounting Excel workbook can supply the facts and calculated figures for a new Word report. In the reverse direction, a large Word or PDF source can supply records for a new Excel workbook with agreed columns and source references. Scanned PDFs require a local OCR/vision path that still needs selection and testing. Source files remain unchanged. Editing changes only approved targets. All three workflows will validate and preview a separate candidate before approval and saving of a new output. Contracts, financial documents, proposals, policies, and presentations are representative uses.
 
 The approved packaging route is a free standalone application with an NSIS installer as the main download and a portable ZIP as the secondary option, distributed through GitHub Releases and linked from `simplicitor.com`. Microsoft Store publication and paid signing are outside this route. Unsigned Windows warnings or blocks can remain.
 

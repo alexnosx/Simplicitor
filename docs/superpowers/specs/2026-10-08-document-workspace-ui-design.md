@@ -60,6 +60,8 @@ Attached sources are visibly read-only. When necessary, use the document area to
 
 For Excel-to-Word reporting, the local analysis computes supported figures and the model writes the explanation. Review must expose source references, numerical evidence, missing data, and coverage limitations alongside the output preview. The user approves the new Word file; the source workbook remains unchanged. These controls do not grant permission to edit source files.
 
+The same mode also supports large Word/PDF-to-Excel extraction. With Excel selected as output, propose or confirm columns, field types, and what one row represents. Review the saved workbook grid alongside source passages or PDF pages, with record/field references, coverage, and uncertain values visible. Scanned and mixed PDFs need local OCR/vision; show unsupported or unreadable pages/regions instead of an apparently complete empty result. This does not introduce PDF editing or another main mode. The existing HTML example does not demonstrate these extraction controls.
+
 ## Implementation boundaries
 
 Retain PySide6, existing shared styling, connection discovery, and QObject workers with QThread signals. Use stacked views for modes and workflow states, a splitter for document and instructions, and format-specific document views behind the shared controls.

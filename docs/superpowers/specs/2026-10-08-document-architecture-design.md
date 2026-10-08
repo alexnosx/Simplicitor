@@ -12,20 +12,20 @@ Simplicitor makes local AI useful for confidential Office documents without scri
 | Create new, with a prompt and source files | Read the sources and create a new document using their information. |
 | Edit document | Modify approved parts of an existing document. |
 
-All workflows validate a separate saved candidate, show its preview, obtain approval for its exact version, and save a new output. Source files stay unchanged. The application has two main modes, Create new and Edit document. Word, Excel, and PowerPoint are the target document families; supporting the workflows does not establish support for every input feature or conversion pair.
+All workflows validate a separate saved candidate, show its preview, obtain approval for its exact version, and save a new output. Source files stay unchanged. The application has two main modes, Create new and Edit document. Word, Excel, and PowerPoint are the target output/editing families; PDF is also a read-only source for creation. Required source-based examples include XLSX-to-DOCX reporting and large DOCX/PDF-to-XLSX extraction. Supporting the workflows does not establish support for every input feature or conversion pair.
 
 The first product requires installed desktop Word, Excel, and PowerPoint, local Ollama, and a usable local model. No Office or model installer is included. Source-based creation and shared review/publication are not implemented in v1.2; prompt-only generation exists.
 
 ## Proposed structure
 
-Retain the existing Python/PySide6 application. Add small modules around one workflow controller and an Office worker, using existing generation engines. One document operation runs at a time. Local folders and JSON metadata are sufficient initially.
+Retain the existing Python/PySide6 application. Add small modules around one workflow controller and a document worker with Office adapters and PDF extraction, using existing generation engines. One document operation runs at a time. Local folders and JSON metadata are sufficient initially.
 
 ```mermaid
 flowchart TD
     UI[Desktop UI: Create new and Edit document] <--> FLOW[Workflow controller]
     FLOW <--> AI[Local Ollama: content proposals]
     FLOW --> CREATE[Existing creation engines]
-    FLOW <--> OFFICE[Office worker: inspect, patch, analyze, preview]
+    FLOW <--> OFFICE[Document worker: Office adapters and PDF extraction]
     OFFICE <--> MS[Installed Word, Excel, PowerPoint]
     FLOW <--> FILES[Local job workspace]
     CREATE --> FILES
@@ -37,10 +37,10 @@ flowchart TD
 | Desktop UI | Collect the request, output type, optional sources, and edit selection; show evidence, comparisons, previews, errors, and approval. |
 | Workflow controller | Own job state, source identities, selection, analysis scope, validation, candidate identity, approval, and publication. |
 | Ollama client | Propose text or typed replacements using explicit input and context; never execute document operations or arbitrary code. |
-| Office integration | Inspect supported source content; apply bounded changes to a copy; perform supported calculation/recalculation; reopen saved candidates and export previews. |
+| Document integration | Use Office adapters for supported Office content, edits, calculation, and previews; use a read-only PDF extractor and a local OCR/vision path where required. |
 | Local workspace | Store source snapshots, analysis evidence, candidates, previews, and job metadata with unique identities and explicit retention. |
 
-Implement source extraction and supported numerical operations as functions behind the Office integration and controller, not another general-purpose service. Separate read-only sources from writable candidate paths in their interfaces. No agent harness, additional HTTP service, persistent document index, or database is needed for these workflows.
+Implement source extraction and supported numerical operations as functions behind the document integration and controller, not another general-purpose service. Separate read-only sources from writable candidate paths in their interfaces. Adding PDF sources does not add PDF write-back or another main UI mode. No agent harness, additional HTTP service, persistent document index, or database is needed for these workflows.
 
 ## Workflow and authority
 
@@ -71,6 +71,22 @@ Large workbooks need bounded source processing, not wholesale submission to the 
 
 Multiple attached files are read-only inputs to one output job, not a batch of independent document operations. Supporting source-based creation does not authorize executing model-generated scripts, VBA, arbitrary formulas, or persistent indexing. Define supported source formats, calculation operations, and input/output combinations before release claims.
 
+## Word and PDF extraction into Excel
+
+This is the reverse source-based creation case: a large DOCX or PDF supplies records for a new XLSX. It uses the same controller, candidate review, and approval, with the existing Excel generator after type-preservation fixes. It is not restricted to copying already tabular data; narrative passages can contain the requested fields.
+
+1. Snapshot the source and establish the selected scope. Confirm output columns, types, required fields, and the unit of a record when the prompt leaves them ambiguous. For example, one row might represent a contract or invoice rather than a page.
+2. Read DOCX paragraphs and tables through the Office adapter. Read original PDF text, tables, and page coordinates through the PDF extractor. Retain source structure and references rather than flattening everything into one truncated string.
+3. For PDFs, inspect text quality and image content per page/region. Use reliable existing text layers first; an image does not by itself require rerunning OCR. Unreadable or incomplete text layers in scanned or mixed content require a local OCR/local vision path or a visible unsupported-content result.
+4. Process bounded sections with stable source anchors and explicit coverage tracking. Reconcile records spanning sections or pages, continuation tables, and repeated headers. Overlapping sections must not create duplicate rows, and legitimate repeated records must not be silently merged.
+5. Let the local model propose field mappings and candidate records grounded in the source. Code validates types, required fields, source references, record associations, and supported consistency checks. Preserve raw evidence beside normalized values when interpreting dates, decimal separators, currencies, or identifiers. Missing and uncertain values require visible review, not invented replacements.
+6. Build an XLSX candidate with typed literal cells and readable columns. Keep extracted text literal even when it resembles an Excel formula or link. Do not execute instructions embedded in the source document or model response. Retain record and relevant field provenance using DOCX paragraph/table references or PDF pages/regions and source snapshot IDs.
+7. Review the saved workbook grid alongside the supporting source text/page preview. Expose uncertain records, errors, and coverage so a partial extraction cannot appear complete. Revisions invalidate approval. Save a new output only after approval; the supplied source remains unchanged.
+
+Reuse the existing `pdfplumber` dependency for text/table extraction where suitable. Its [official documentation](https://github.com/jsvine/pdfplumber#comparison-to-other-libraries) states that it does not provide OCR; scanned-table extraction requires separate evaluation. The current legacy `_extract_pdf` only joins page text and truncates it, so reusing the dependency does not mean reusing that lossy workflow or claiming structured extraction exists.
+
+Local OCR/vision selection, languages, image rendering, recognition quality, and packaging remain implementation decisions. No new dependency is installed by this proposal. A sensible delivery order is DOCX and PDFs with usable text first, then scanned/mixed sources after local recognition is validated. Detect unsupported content from the outset; do not advertise scanned-PDF coverage before that path passes acceptance. The requested PDF source workflow remains part of the design.
+
 ## Editing and preview through Office
 
 Use three small adapters for Word, Excel, and PowerPoint. Native Office handling reduces the need to reproduce Office features, but does not prove preservation. Define support envelopes and compare relevant content, formulas, styles, relationships, and assets before and after. Reject unsupported features or changes rather than reconstructing files from plain text.
@@ -87,6 +103,7 @@ Run blocking Office calls in a helper process in the signed-in user's interactiv
 | Ollama client and discovery | Retain with local-model checks, response validation, explicit context limits, and sanitized errors. |
 | Word, Excel, and PowerPoint generators | Retain for Create; write candidates and fix type-preservation and validation defects. |
 | PowerPoint template engine | Retain manifests, validation, repair, and rendering; route output through common review/publication. |
+| Existing PDF dependencies | Reuse suitable text/table parsing capabilities behind a source adapter; replace truncating extraction and add explicit coverage and OCR handling. |
 | Tests and synthetic fixtures | Retain meaningful regression coverage and add actual Office preservation and source-reporting checks. |
 | Nuitka build and GitHub workflow | Adapt to the approved standalone/NSIS/portable route and test outside a development checkout. |
 | Legacy whole-file reconstruction and basename-only working copies/backups | Retire from the new workflow after replacement and migration; preserve existing user files and backups. |
@@ -103,11 +120,11 @@ Keep the approved free distribution route in [packaging](../../code-signing.md).
 
 ## Review questions and delivery gates
 
-Before implementation, review Office ownership/coexistence, exact supported text/cell features, source-ingestion combinations, numerical evidence checks, calculation rules, preview fidelity, candidate publication, retention, cancellation, and tested Windows/Office/model configurations. These are material subsystem decisions, not permission to fill gaps with broad preservation claims.
+Before implementation, review Office ownership/coexistence, exact supported text/cell features, source-ingestion combinations, numerical evidence checks, calculation rules, extraction schemas and provenance, local OCR/vision, preview fidelity, candidate publication, retention, cancellation, and tested Windows/Office/model configurations. These are material subsystem decisions, not permission to fill gaps with broad preservation claims.
 
-Proposed sequence: prove exact replacement, unchanged sources, reopening, PDF export, ownership, and failure recovery on synthetic files in all three formats; complete a Word editing workflow; add Excel and PowerPoint using the same controller; connect both Create paths, including an XLSX-to-DOCX reporting acceptance case; then verify clean installation and a small nontechnical-user pilot. This sequencing is not an implementation plan.
+Proposed sequence: prove exact replacement, unchanged sources, reopening, PDF export, ownership, and failure recovery on synthetic files in all three Office formats; complete a Word editing workflow; add Excel and PowerPoint using the same controller; connect both Create paths, including XLSX-to-DOCX reporting and large DOCX/text-PDF-to-XLSX extraction; validate local OCR/vision for scanned and mixed PDFs before claiming that coverage; then verify clean installation and a small nontechnical-user pilot. This sequencing is not an implementation plan.
 
-Acceptance must include prompt-only creation, source-based reporting with deterministic and traceable figures, and selected-only editing. Check source/output collisions, stale sources, malformed responses, unsupported or ambiguous inputs, oversized sources, missing data, stale calculations, Office prompts/timeouts, cancellation, and write failure. Fixtures should prove that unrelated content and supplied sources survive. A proposed usability target is four of five pilot users completing a supported first task without developer assistance. Measure latency on declared hardware/model configurations.
+Acceptance must include prompt-only creation, source-based reporting with deterministic and traceable figures, DOCX/PDF-to-XLSX extraction, and selected-only editing. Extraction fixtures must cover narrative fields, tables, multipage records, repeated headers, chunk boundaries, leading-zero identifiers, locale-dependent dates/numbers, unreadable or contradictory fields, mixed/scanned PDFs, and literal strings that resemble formulas. Check source/output collisions, stale sources, malformed responses, unsupported or ambiguous inputs, oversized sources, missing data, stale calculations, Office prompts/timeouts, cancellation, and write failure. Fixtures should prove complete declared coverage and unchanged sources. A proposed usability target is four of five pilot users completing a supported first task without developer assistance. Measure latency on declared hardware/model configurations.
 
 No Office automation, preview, preservation, or source-analysis integration has been tested in this proposal work. `pywin32` is a proposed new COM dependency, not installed or added to requirements. Qt PDF modules exist in the review environment; availability does not establish packaged behavior. Application code, declared dependencies, build scripts, and license are unchanged.
 
@@ -121,3 +138,4 @@ Checked during architecture research on 2026-10-08:
 - [Qt PDF view](https://doc.qt.io/qtforpython-6/PySide6/QtPdfWidgets/QPdfView.html) and [Qt PDF licensing](https://doc.qt.io/qt-6.11/qtpdf-licensing.html).
 - [Ollama local-only configuration](https://docs.ollama.com/faq#how-do-i-disable-ollama-cloud-features).
 - [pywin32 COM support](https://github.com/mhammond/pywin32).
+- [pdfplumber text/table capabilities and OCR limits](https://github.com/jsvine/pdfplumber#comparison-to-other-libraries), checked 2026-10-08.
