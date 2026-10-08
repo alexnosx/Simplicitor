@@ -89,6 +89,8 @@ docs/
         2026-10-08-task6-full-pipeline.md
         2026-10-09-sectioned-rerun.json
         2026-10-09-sectioned-rerun.md
+        2026-10-09-sectioned-review-policy.json
+        2026-10-09-sectioned-review-policy.md
         2026-10-09-sectioned-verification.json
     releases/
         v1.2.1-local.json
@@ -585,6 +587,7 @@ tests/
         test_jobs.py
         test_path_criteria.py
         test_pipeline.py
+        test_sectioned_review.py
         test_sectioning.py
         test_source_readers.py
         test_xlsx_writer.py
@@ -1148,7 +1151,8 @@ requirements.txt
 
 - class SourceClient: Stand in for Ollama using only source units and requested field IDs.
 - def test_cli_applies_each_saved_output_paths_criterion(tmp_path, monkeypatch, whole_fields, target, flagged, exit_code, aggregate_passed)
-- def test_sectioned_zero_unflagged_errors_cannot_hide_incomplete_coverage(tmp_path, monkeypatch)
+- def test_sectioned_review_flags_cannot_hide_incomplete_coverage(tmp_path, monkeypatch)
+- def test_correct_but_unflagged_sectioned_value_fails_the_cli(tmp_path, monkeypatch)
 
 ### tests/extraction/test_pipeline.py
 
@@ -1182,6 +1186,12 @@ requirements.txt
 - def test_truncated_extraction_flags_proposals_and_records_failed_coverage(monkeypatch)
 - def test_truncated_column_suggestion_fails_with_sample_coverage_issues(monkeypatch)
 - def test_context_truncation_cannot_be_hidden_by_the_verified_value_merge_rule(monkeypatch)
+
+### tests/extraction/test_sectioned_review.py
+
+- class SourceClient
+- def test_sectioned_cells_are_flagged_with_saved_types_and_evidence_preserved(tmp_path)
+- def test_sectioned_review_keeps_invalid_literal_proposals_and_original_issues(tmp_path)
 
 ### tests/extraction/test_sectioning.py
 
@@ -1940,7 +1950,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 70 lines
+- CHANGELOG.md: md, 72 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1979,6 +1989,8 @@ requirements.txt
 - docs/evaluation/2026-10-08-task6-full-pipeline.md: md, 36 lines
 - docs/evaluation/2026-10-09-sectioned-rerun.json: json, 707 lines
 - docs/evaluation/2026-10-09-sectioned-rerun.md: md, 37 lines
+- docs/evaluation/2026-10-09-sectioned-review-policy.json: json, 716 lines
+- docs/evaluation/2026-10-09-sectioned-review-policy.md: md, 29 lines
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
@@ -1991,7 +2003,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 190 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 197 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -2000,8 +2012,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 120 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 123 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 48 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
 - requirements-dev.txt: txt, 3 lines

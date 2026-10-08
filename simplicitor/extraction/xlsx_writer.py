@@ -128,7 +128,8 @@ def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...],
         if status != "processed" and not any(i.anchor == anchor for i in issues):
             issues.append(Issue("coverage_" + status, anchor.split("#", 1)[0], anchor,
                                 "A source unit was not processed."))
-    coverage_issues = tuple(issues)
+    sectioned_sources = {i.source_id for i in result.issues if i.code == "sectioned_source"}
+    coverage_issues = tuple(i for i in issues if i.code != "sectioned_source")
     try:
         if not columns or len(columns) > 16382 or len(sources) > 1048575:
             raise ValueError("Excel output requires columns and must fit worksheet dimensions.")
@@ -172,21 +173,23 @@ def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...],
                         places = max(2, -value.as_tuple().exponent) if isinstance(value, Decimal) else 2
                         format_string = ("0." + "0" * places if places <= 15
                                          else "0.##############E+00")
-                _put(data, row, col, value, flagged=field.flagged, number_format=format_string)
+                flagged = field.flagged or source in sectioned_sources
+                field_issues = field.issues + (("sectioned_source",) if source in sectioned_sources else ())
+                _put(data, row, col, value, flagged=flagged, number_format=format_string)
                 reference = f"{get_column_letter(col)}{row}"
                 proposal = field.proposal
                 evidence_row((reference, source, label, spec.label, proposal.value,
                               proposal.quote, proposal.anchor,
-                              "flagged" if field.flagged else "verified", "; ".join(field.issues)),
-                             field.flagged)
-                if field.flagged:
+                              "flagged" if flagged else "verified", "; ".join(field_issues)),
+                             flagged)
+                if flagged:
                     code = "excel_precision" if "excel_precision" in field.issues else "flagged_field"
                     issues.append(Issue(code, source, reference,
                                         "A field needs review before saving."))
                 for alternative in field.alternatives:
                     evidence_row((reference, source, label, spec.label, alternative.value,
                                   alternative.quote, alternative.anchor, "alternative", ""),
-                                 field.flagged)
+                                 flagged)
             for issue in coverage_issues:
                 if issue.source_id in (source, ""):
                     evidence_row(("", source, label, "", None, "", issue.anchor, "coverage",

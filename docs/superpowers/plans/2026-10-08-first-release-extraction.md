@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5 and Task 6 notices/page limits/evaluator are accepted. Current authorization covers the sectioned-extraction revision below only. Commit/push to main are authorized; do not tag, release, publish, change LICENSE, or extend implementation to broader release qualification.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5, Task 6 notices/page limits/evaluator, and the three sectioned-extraction fixes are accepted. Current authorization covers the 2.0.0 sectioned-source review policy below only. Commit/push to main are authorized; do not tag, release, publish, change LICENSE, or extend implementation to broader release qualification.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Current authorization covers independent section requests, literal-null normalization, symmetric verified merging, path-specific PRD/evaluator criteria, and the selected-Qwen full-corpus rerun. Preserve SYSTEM_PROMPT, fixtures/labels, model settings, and LICENSE. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
+- Current authorization covers sectioned_source flags on every extracted sectioned cell, the zero-unflagged-values criterion, and one selected-Qwen full-corpus rerun. Preserve valid saved values/types/formats and add no sectioned fixtures. Preserve SYSTEM_PROMPT, fixtures/labels, model settings, and LICENSE. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -31,7 +31,7 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 ## Work order
 
-Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the five authorized sectioned-extraction revision items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
+Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the three authorized sectioned-source review items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
@@ -183,7 +183,14 @@ Result: the isolated full suite passes 953 tests. The native Windows walkthrough
 2. [x] Normalize trimmed, case-insensitive string "null" like an empty value through FieldProposal, parsing, and Data projection.
 3. [x] Make verified selection symmetric over grounding/conversion failures and retain failed alternatives. Cover both orders, several failed proposals before a verified value, and persistent verified conflicts. Preserve request/schema/truncation flags and coverage failures.
 4. [x] Update PRD criteria and evaluator: whole-file keeps both thresholds; sectioned requires zero unflagged wrong and reports accuracy. Aggregate counts cannot decide the full-pipeline exit status. Regression tests mutate actual saved cells; saving/coverage failures still fail.
-5. [x] Rerun the full unchanged corpus on selected qwen3:8b; [report](../../evaluation/2026-10-09-sectioned-rerun.md): whole-file277/280,0unflaggedwrong passes; sectioned33/40,1unflaggedwrong fails. CLI exits1 despite diagnostic aggregate pass. 164 permitted local checks and the full hosted source suite pass; [verification](../../evaluation/2026-10-09-sectioned-verification.json) records the tested commit and the unverified automatic packaging state. Scoped code/report committed and pushed to main. No local install/uninstall/delete tests, tag, release, publication, or LICENSE change.
+5. [x] Rerun the full unchanged corpus on selected qwen3:8b; [report](../../evaluation/2026-10-09-sectioned-rerun.md): whole-file 277/280,0unflaggedwrong passes; sectioned 33/40,1unflaggedwrong fails. CLI exits1 despite diagnostic aggregate pass. 164 permitted local checks and the full hosted source suite pass; [verification](../../evaluation/2026-10-09-sectioned-verification.json) records the tested commit and the unverified automatic packaging state. Scoped code/report committed and pushed to main. No local install/uninstall/delete tests, tag, release, publication, or LICENSE change.
+
+
+### 2.0.0 sectioned-source review policy
+
+1. [x] Mark sources that require sectioning. Flag/highlight every extracted Data cell with sectioned_source, retain proposals and original issues, and preserve otherwise verified values/types/formats. Reuse saved Evidence/grid and Save As acknowledgement. The marker is not a coverage failure; whole-file cells keep existing behavior.
+2. [x] Change the PRD/evaluator sectioned criterion to zero unflagged values, including correct values. Report accuracy without gating it. Whole-file thresholds, saved-output and processing-state checks remain unchanged. Pin the policy with saved-file tests and a deliberately unflagged correct cell that must fail the CLI.
+3. [x] Run --full-pipeline once on the existing full corpus with qwen3:8b and unchanged prompt/model settings/labels. [Result](../../evaluation/2026-10-09-sectioned-review-policy.md): whole-file 277/280 passes; sectioned 33/40 informational, all 40 cells flagged/zero unflagged values passes. 185 permitted local checks pass. Record hosted full-suite evidence after the authorized commit/push. Full source suite only on hosted Windows; no local installer/uninstaller/Sandbox/install-uninstall-delete tests. No tag, release, publication, or LICENSE change.
 
 ## Plan self-review
 

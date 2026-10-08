@@ -27,7 +27,7 @@ class SourceClient:
 
 
 @pytest.mark.parametrize("whole_fields,target,flagged,exit_code,aggregate_passed", [
-    (100, "section", False, 1, True),  # Aggregate allows 1/102; section requires zero.
+    (100, "section", False, 1, True),  # Section requires every cell to be flagged.
     (100, "section", True, 0, True),
     (2, "section", True, 0, False),  # Section accuracy is reported, not gated.
     (2, "whole", True, 1, False),  # Whole-file accuracy still gates.
@@ -59,8 +59,7 @@ def test_cli_applies_each_saved_output_paths_criterion(tmp_path, monkeypatch,
         if result.ordered_source_ids == (target,):
             book = load_workbook(candidate.path)
             book["Data"]["C2"] = "wrong saved identifier"
-            if flagged:
-                book["Evidence"]["H2"] = "flagged"
+            book["Evidence"]["H2"] = "flagged" if flagged else "verified"
             book.save(candidate.path)
             book.close()
         return candidate
@@ -77,7 +76,7 @@ def test_cli_applies_each_saved_output_paths_criterion(tmp_path, monkeypatch,
     assert candidate["paths"]["whole_file"]["passed"] is (target != "whole")
 
 
-def test_sectioned_zero_unflagged_errors_cannot_hide_incomplete_coverage(tmp_path, monkeypatch):
+def test_sectioned_review_flags_cannot_hide_incomplete_coverage(tmp_path, monkeypatch):
     from scripts import evaluate_extraction as cli
     _pipeline_fixture(tmp_path)
     source = Document(tmp_path / "one.docx")
@@ -91,3 +90,27 @@ def test_sectioned_zero_unflagged_errors_cannot_hide_incomplete_coverage(tmp_pat
     assert candidate["correct"] == 2 and candidate["unflagged_wrong"] == 0
     assert candidate["fixtures"][0]["request_error"] == "incomplete_coverage"
     assert not candidate["paths"]["sectioned"]["passed"] and not report["passed"]
+
+
+def test_correct_but_unflagged_sectioned_value_fails_the_cli(tmp_path, monkeypatch):
+    from scripts import evaluate_extraction as cli
+    _pipeline_fixture(tmp_path, large=True)
+    monkeypatch.setattr(cli, "OllamaClient", SourceClient)
+    monkeypatch.setattr(cli, "_model_details", lambda *_: {"parameter_count": 8_000_000_000})
+    writer = cli.write_candidate
+
+    def remove_review_flag(*args):
+        candidate = writer(*args)
+        book = load_workbook(candidate.path)
+        book["Evidence"]["H2"] = "verified"
+        book.save(candidate.path)
+        book.close()
+        return candidate
+
+    monkeypatch.setattr(cli, "write_candidate", remove_review_flag)
+    report = tmp_path / "report.json"
+    assert cli.main(["--full-pipeline", "--manifest", str(tmp_path / "manifest.json"),
+                     "--profiles", str(tmp_path / "profiles.json"), "--report", str(report)]) == 1
+    summary = json.loads(report.read_text())["candidates"][0]["paths"]["sectioned"]
+    assert summary["correct"] == 2 and summary["unflagged_wrong"] == 0
+    assert summary["unflagged_values"] == 1 and not summary["passed"]

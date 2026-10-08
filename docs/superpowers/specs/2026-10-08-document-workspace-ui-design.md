@@ -25,7 +25,7 @@ A revised request/source list clears column confirmation and any prior review. C
 
 Disable duplicate submission and setup changes while busy. Show file/section progress, retain instructions after failure, and show cooperative cancellation state. Invalidate the previous review when a rerun starts; a late or failed run cannot revive it.
 
-Build the read-only grid from the saved workbook. The grid starts with File and omits Record; Record remains in the workbook Evidence sheet and Evidence panel. Valid fields use their saved typed values and saved number formats, including decimal trailing zeros. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues appear above the grid in a bounded, scrollable view, retaining source and page/unit anchors so long issue lists keep the controls accessible.
+Build the read-only grid from the saved workbook. The grid starts with File and omits Record; Record remains in the workbook Evidence sheet and Evidence panel. Valid fields use their saved typed values and saved number formats, including decimal trailing zeros. Validation-failed cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues appear above the grid in a bounded, scrollable view, retaining source and page/unit anchors so long issue lists keep the controls accessible.
 
 There is no PDF rendering pane, cell editor, approval token, or candidate-version selection.
 
@@ -42,3 +42,7 @@ Normal close cancels/waits for work as needed and deletes the job folder. Startu
 [document-workspace.html](../../design/document-workspace.html) remains an earlier concept for later editing, not this screen specification.
 
 The [plan](../plans/2026-10-08-first-release-extraction.md) defines tests for default mode, selected-model warnings, column suggestions/confirmation, preserved Create/template routing, saved proposed values/evidence, flagged-export acknowledgement, cancellation, native overwrite confirmation, source-path refusal, and cleanup.
+
+## 2.0.0 sectioned-source review
+
+Every extracted cell from a sectioned source is highlighted and has a flagged saved Evidence entry with sectioned_source, including otherwise verified values and blanks. Verified numeric/date values keep their formats. This uses the existing Evidence panel and review acknowledgement before Save As; it adds no controls or incomplete-coverage warning by itself. Whole-file validation/highlighting is unchanged.

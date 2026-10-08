@@ -186,13 +186,16 @@ def extract(
     total, completed = len(coverage), 0
     for doc in documents:
         index = 0
+        sectioned_source = False
         while remaining := tuple(u for u in doc.units if coverage[u.anchor] == "pending"):
             _check_cancel(cancel)
             index += 1
             section_id = f"{doc.source_id}:section:{index}"
             view = replace(doc, units=remaining)
             try:
-                section = make_sections((view,), profile, columns=columns, request=request)[0]
+                sections = make_sections((view,), profile, columns=columns, request=request)
+                section = sections[0]
+                sectioned_source = sectioned_source or len(sections) > 1 or section.excluded
             except ContextBudgetError:
                 for unit in remaining:
                     coverage[unit.anchor] = "failed"
@@ -245,6 +248,9 @@ def extract(
             if progress:
                 progress(doc.source_id, section_id, completed, total)
             _check_cancel(cancel)
+        if sectioned_source:
+            issues.append(Issue("sectioned_source", doc.source_id, "",
+                                "This file required sectioning. Review every extracted value."))
     _check_cancel(cancel)
     return ExtractionResult(source_ids, fields, {d.source_id: d.original_path for d in documents},
                             tuple(issues), coverage)

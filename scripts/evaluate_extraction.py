@@ -214,6 +214,7 @@ def _full_pipeline(
 def _summary(actual: Mapping, labels: Mapping) -> dict:
     score = score_results(actual, labels)
     return {**asdict(score), "passed": score.passed,
+            "unflagged_values": sum(not actual.get(k, ScoredField(None, True)).flagged for k in labels),
             "accuracy": score.correct / score.total if score.total else 0,
             "unflagged_wrong_rate": score.unflagged_wrong / score.total if score.total else 0,
             "flag_rate_correct": score.flag_rate_correct,
@@ -303,8 +304,8 @@ def evaluate(manifest: Path, profiles: Path, url: str, *, full_pipeline: bool = 
                 summary = _summary({k: v for k, v in actual.items() if routes[k] == route},
                                    {k: v for k, v in labels.items() if routes[k] == route})
                 if route == "sectioned":
-                    summary["criterion"] = "zero_unflagged_wrong"
-                    summary["passed"] = summary["total"] > 0 and summary["unflagged_wrong"] == 0
+                    summary["criterion"] = "zero_unflagged_values"
+                    summary["passed"] = summary["total"] > 0 and summary["unflagged_values"] == 0
                 elif route == "whole_file":
                     summary["criterion"] = "accuracy_95_percent_unflagged_wrong_1_percent"
                 else:
@@ -337,10 +338,11 @@ def main(argv: list[str] | None = None) -> int:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         lines = ["# Actual-file extraction evaluation", "", "All timings are informational.", "",
-                 "| Candidate | Correct | Unflagged wrong | Gate |", "|---|---|---|---|"]
+                 "| Candidate | Correct | Unflagged values | Unflagged wrong | Gate |",
+                 "|---|---|---|---|---|"]
         if args.full_pipeline:
             lines[3:3] = ["Whole-file: at least 95% accuracy and at most 1% unflagged wrong. "
-                          "Sectioned: zero unflagged wrong; accuracy is informational. "
+                          "Sectioned: zero unflagged values; accuracy is informational. "
                           "Every path must have saved output and complete coverage. "
                           "Aggregate fractions do not decide the gate.", ""]
         for candidate in report["candidates"]:
@@ -348,10 +350,12 @@ def main(argv: list[str] | None = None) -> int:
             correct = candidate.get("correct", "not scored")
             wrong = candidate.get("unflagged_wrong", "not scored")
             gate = "PASS" if candidate["passed"] else "FAIL"
-            lines.append(f"| {candidate['name']} | {correct}/{denominator} | {wrong} | {gate} |")
+            unflagged = candidate.get("unflagged_values", "not scored")
+            lines.append(f"| {candidate['name']} | {correct}/{denominator} | {unflagged} | {wrong} | {gate} |")
             for route, score in candidate.get("paths", {}).items():
                 lines.append(f"| {candidate['name']} / {route} | {score['correct']}/{score['total']} | "
-                             f"{score['unflagged_wrong']} | {'PASS' if score['passed'] else 'FAIL'} |")
+                             f"{score['unflagged_values']} | {score['unflagged_wrong']} | "
+                             f"{'PASS' if score['passed'] else 'FAIL'} |")
         args.report.with_suffix(".md").write_text("\n".join(lines) + "\n", encoding="utf-8")
         print(("Path criteria: " if args.full_pipeline else "Gate: ")
               + ("PASS" if report["passed"] else "FAIL"), flush=True)

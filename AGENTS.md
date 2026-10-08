@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 5 and Task 6 notices/page limits/saved-output evaluator are accepted. Current authorization covers independent section requests, literal-null handling, symmetric verified-value merging, PRD/evaluator path criteria, and a full-corpus qwen3:8b rerun. Commit/push to main are authorized. Preserve SYSTEM_PROMPT, fixtures/labels, model settings, and LICENSE. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or extend scope beyond these five items.
+- Tasks 0 through 5, Task 6 notices/page limits/evaluator, and the three sectioned-extraction fixes are accepted. Current authorization covers the 2.0.0 sectioned_source review policy, zero-unflagged-values PRD/evaluator criterion, and one full-corpus qwen3:8b rerun. Preserve verified values/types/formats under the review flag. Commit/push to main are authorized. Preserve SYSTEM_PROMPT, existing fixtures/labels, model settings, dependencies, and LICENSE; do not add sectioned fixtures. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or extend scope beyond these three items.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.

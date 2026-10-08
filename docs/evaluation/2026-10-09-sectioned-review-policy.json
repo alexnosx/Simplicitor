@@ -1,0 +1,716 @@
+{
+  "options": {
+    "num_ctx": 16384,
+    "num_predict": 4096,
+    "temperature": 0,
+    "seed": 0
+  },
+  "think": false,
+  "full_pipeline": true,
+  "fixture_count": 32,
+  "field_slots": 320,
+  "candidates": [
+    {
+      "name": "qwen3:8b",
+      "model": "qwen3:8b-q4_K_M",
+      "reference_only": false,
+      "parameter_size": "8.2B",
+      "parameter_count": 8200000000,
+      "quantization": "Q4_K_M",
+      "status": "scored",
+      "total": 320,
+      "correct": 310,
+      "unflagged_wrong": 0,
+      "flagged_correct": 34,
+      "expected_missing": 8,
+      "flagged_expected_missing": 8,
+      "correct_values": 302,
+      "passed": true,
+      "unflagged_values": 268,
+      "accuracy": 0.96875,
+      "unflagged_wrong_rate": 0.0,
+      "flag_rate_correct": 0.11258278145695365,
+      "flag_rate_expected_missing": 1.0,
+      "fixtures": [
+        {
+          "source_id": "invoice-01",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 15
+          },
+          "issues": {},
+          "seconds": 9.344
+        },
+        {
+          "source_id": "invoice-02",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 6.828
+        },
+        {
+          "source_id": "invoice-03",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 15
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 6.891
+        },
+        {
+          "source_id": "invoice-04",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 7.0
+        },
+        {
+          "source_id": "invoice-05",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 15
+          },
+          "issues": {},
+          "seconds": 7.109
+        },
+        {
+          "source_id": "invoice-06",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 6.922
+        },
+        {
+          "source_id": "invoice-07",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 15
+          },
+          "issues": {},
+          "seconds": 7.031
+        },
+        {
+          "source_id": "invoice-08",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 6.844
+        },
+        {
+          "source_id": "invoice-09",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 15
+          },
+          "issues": {},
+          "seconds": 7.016
+        },
+        {
+          "source_id": "invoice-10",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 6.797
+        },
+        {
+          "source_id": "contract-01",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 12
+          },
+          "issues": {},
+          "seconds": 6.968
+        },
+        {
+          "source_id": "contract-02",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 6.86
+        },
+        {
+          "source_id": "contract-03",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 12
+          },
+          "issues": {},
+          "seconds": 6.89
+        },
+        {
+          "source_id": "contract-04",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 7.016
+        },
+        {
+          "source_id": "contract-05",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 12
+          },
+          "issues": {},
+          "seconds": 6.812
+        },
+        {
+          "source_id": "contract-06",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 6.719
+        },
+        {
+          "source_id": "contract-07",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 12
+          },
+          "issues": {},
+          "seconds": 6.969
+        },
+        {
+          "source_id": "contract-08",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 6.766
+        },
+        {
+          "source_id": "contract-09",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 12
+          },
+          "issues": {},
+          "seconds": 7.0
+        },
+        {
+          "source_id": "contract-10",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 6.906
+        },
+        {
+          "source_id": "narrative-invoice-01",
+          "total": 10,
+          "correct": 9,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 7
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 8.625
+        },
+        {
+          "source_id": "narrative-invoice-02",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {},
+          "seconds": 8.75
+        },
+        {
+          "source_id": "narrative-invoice-03",
+          "total": 10,
+          "correct": 8,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 8,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 7
+          },
+          "issues": {
+            "flagged_field": 2
+          },
+          "seconds": 8.765
+        },
+        {
+          "source_id": "narrative-invoice-04",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 7.172
+        },
+        {
+          "source_id": "narrative-contract-01",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 7
+          },
+          "issues": {},
+          "seconds": 9.157
+        },
+        {
+          "source_id": "narrative-contract-02",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 1,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 1
+          },
+          "seconds": 8.187
+        },
+        {
+          "source_id": "narrative-contract-03",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 0,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 7
+          },
+          "issues": {},
+          "seconds": 9.0
+        },
+        {
+          "source_id": "narrative-contract-04",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 1,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 9,
+          "request_error": null,
+          "path": "whole_file",
+          "saved": true,
+          "sections": 1,
+          "coverage": {
+            "processed": 2
+          },
+          "issues": {
+            "flagged_field": 2
+          },
+          "seconds": 8.953
+        },
+        {
+          "source_id": "sectioned-invoice-01",
+          "total": 10,
+          "correct": 6,
+          "unflagged_wrong": 0,
+          "flagged_correct": 6,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 6,
+          "request_error": null,
+          "path": "sectioned",
+          "saved": true,
+          "sections": 5,
+          "coverage": {
+            "processed": 742
+          },
+          "issues": {
+            "sectioned_source": 1,
+            "flagged_field": 10
+          },
+          "seconds": 38.703
+        },
+        {
+          "source_id": "sectioned-invoice-02",
+          "total": 10,
+          "correct": 9,
+          "unflagged_wrong": 0,
+          "flagged_correct": 8,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 8,
+          "request_error": null,
+          "path": "sectioned",
+          "saved": true,
+          "sections": 3,
+          "coverage": {
+            "processed": 18
+          },
+          "issues": {
+            "sectioned_source": 1,
+            "flagged_field": 10
+          },
+          "seconds": 22.86
+        },
+        {
+          "source_id": "sectioned-contract-01",
+          "total": 10,
+          "correct": 8,
+          "unflagged_wrong": 0,
+          "flagged_correct": 8,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 8,
+          "request_error": null,
+          "path": "sectioned",
+          "saved": true,
+          "sections": 5,
+          "coverage": {
+            "processed": 741
+          },
+          "issues": {
+            "sectioned_source": 1,
+            "flagged_field": 10
+          },
+          "seconds": 41.687
+        },
+        {
+          "source_id": "sectioned-contract-02",
+          "total": 10,
+          "correct": 10,
+          "unflagged_wrong": 0,
+          "flagged_correct": 10,
+          "expected_missing": 0,
+          "flagged_expected_missing": 0,
+          "correct_values": 10,
+          "request_error": null,
+          "path": "sectioned",
+          "saved": true,
+          "sections": 3,
+          "coverage": {
+            "processed": 18
+          },
+          "issues": {
+            "sectioned_source": 1,
+            "flagged_field": 10
+          },
+          "seconds": 22.938
+        }
+      ],
+      "aggregate_passed": true,
+      "paths": {
+        "sectioned": {
+          "total": 40,
+          "correct": 33,
+          "unflagged_wrong": 0,
+          "flagged_correct": 32,
+          "expected_missing": 1,
+          "flagged_expected_missing": 1,
+          "correct_values": 32,
+          "passed": true,
+          "unflagged_values": 0,
+          "accuracy": 0.825,
+          "unflagged_wrong_rate": 0.0,
+          "flag_rate_correct": 1.0,
+          "flag_rate_expected_missing": 1.0,
+          "criterion": "zero_unflagged_values",
+          "output_complete": true
+        },
+        "whole_file": {
+          "total": 280,
+          "correct": 277,
+          "unflagged_wrong": 0,
+          "flagged_correct": 2,
+          "expected_missing": 7,
+          "flagged_expected_missing": 7,
+          "correct_values": 270,
+          "passed": true,
+          "unflagged_values": 268,
+          "accuracy": 0.9892857142857143,
+          "unflagged_wrong_rate": 0.0,
+          "flag_rate_correct": 0.007407407407407408,
+          "flag_rate_expected_missing": 1.0,
+          "criterion": "accuracy_95_percent_unflagged_wrong_1_percent",
+          "output_complete": true
+        }
+      }
+    }
+  ],
+  "passed": true
+}

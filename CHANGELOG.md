@@ -7,6 +7,8 @@
 
 ## v2.0.0 (unreleased)
 
+- Require review of every extracted cell from sectioned sources with sectioned_source, preserving verified values/types/formats. The sectioned evaluation criterion is zero unflagged values; accuracy is reported without gating it. The single full-corpus run passes both path criteria, with sectioned accuracy 33/40 and all 40 cells flagged; see docs/evaluation/2026-10-09-sectioned-review-policy.md.
+
 - Make section requests independent, normalize literal "null" values, and select verified proposals symmetrically while retaining alternatives and conflicts. Apply separate whole-file/sectioned criteria to full-pipeline exit status. The revised saved-output run passes whole-file extraction but still fails sectioned zero-unflagged-wrong; see docs/evaluation/2026-10-09-sectioned-rerun.md.
 
 - Add saved-XLSX full-pipeline evaluation, four large synthetic sources, and 300/301-page checks. Whole-file Qwen accuracy passes; sectioned accuracy fails. Scores are recorded in docs/evaluation/2026-10-08-task6-full-pipeline.md without changing prompts, existing labels, or model settings.
