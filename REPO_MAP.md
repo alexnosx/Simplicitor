@@ -85,6 +85,8 @@ assets/
 docs/
     archive/
         PRD_v1.2.md
+    design/
+        document-workspace.html
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -104,6 +106,7 @@ docs/
             2026-06-06-templates-folder-setting-design.md
             2026-06-07-business-pitch-charts-design.md
             2026-06-07-business-pitch-watercolor-design.md
+            2026-10-08-document-workspace-ui-design.md
     PROJECT_STATUS.md
     Simplicitor_BugFixes_and_Features.md
     Simplicitor_Implementation_Guide.md
@@ -1234,7 +1237,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 73 lines
+- docs/PROJECT_STATUS.md: md, 83 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -1242,6 +1245,7 @@ requirements.txt
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/code-signing.md: md, 56 lines
+- docs/design/document-workspace.html: html, 301 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
@@ -1259,6 +1263,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 63 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines
 - requirements-dev.txt: txt, 3 lines

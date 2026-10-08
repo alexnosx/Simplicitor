@@ -1,0 +1,301 @@
+<div id="simplicitor-design-template" aria-label="Simplicitor document workspace design">
+  <style>
+    #simplicitor-design-template { color-scheme: light; --st-bg: #fafafa; --st-paper: #fff; --st-ink: #1e1e1e; --st-muted: #626b78; --st-line: #e5e7eb; --st-blue: #2563eb; --st-soft: #eff6ff; --st-green: #237443; --st-gap: 20px; --st-preview: 65%; font: 14px/1.5 'Segoe UI', system-ui, sans-serif; background: var(--st-bg); color: var(--st-ink); border: 1px solid var(--st-line); border-radius: 6px; position: relative; overflow: hidden; }
+    #simplicitor-design-template * { box-sizing: border-box; }
+    #simplicitor-design-template [hidden] { display: none !important; }
+    #simplicitor-design-template button, #simplicitor-design-template textarea, #simplicitor-design-template input, #simplicitor-design-template select { font: inherit; }
+    #simplicitor-design-template button { min-height: 36px; padding: 7px 12px; border-radius: 4px; border: 1px solid var(--st-line); background: var(--st-paper); color: var(--st-ink); }
+    #simplicitor-design-template button:hover:not(:disabled) { background: #f2f5fa; }
+    #simplicitor-design-template button:focus-visible, #simplicitor-design-template textarea:focus-visible, #simplicitor-design-template input:focus-visible, #simplicitor-design-template select:focus-visible { outline: 2px solid var(--st-blue); outline-offset: 2px; }
+    #simplicitor-design-template button:disabled { background: #f2f3f5; color: #747b87; }
+    #simplicitor-design-template .st-primary { background: var(--st-blue); color: #fff; border-color: var(--st-blue); font-weight: 600; }
+    #simplicitor-design-template .st-primary:hover:not(:disabled) { background: #1d4ed8; }
+    #simplicitor-design-template .st-quiet { border-color: transparent; background: transparent; }
+    #simplicitor-design-template .st-titlebar { padding: 7px 18px; font-size: 12px; color: var(--st-muted); background: #f5f5f5; border-bottom: 1px solid var(--st-line); }
+    #simplicitor-design-template .st-top { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; padding: 13px 22px; background: var(--st-paper); border-bottom: 1px solid var(--st-line); }
+    #simplicitor-design-template .st-brand { font-weight: 600; font-size: 20px; letter-spacing: -.4px; }
+    #simplicitor-design-template .st-modes { display: flex; gap: 4px; }
+    #simplicitor-design-template .st-mode { color: var(--st-muted); border-color: transparent; background: transparent; }
+    #simplicitor-design-template .st-mode[aria-pressed="true"] { background: var(--st-soft); color: var(--st-blue); font-weight: 600; }
+    #simplicitor-design-template .st-ready { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-left: auto; color: var(--st-muted); }
+    #simplicitor-design-template .st-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--st-green); }
+    #simplicitor-design-template .st-settings { position: absolute; top: 100px; right: 22px; width: 280px; z-index: 3; background: var(--st-paper); border: 1px solid #cbd1dc; border-radius: 6px; padding: 18px; box-shadow: 0 8px 30px #0002; }
+    #simplicitor-design-template .st-settings label { margin-top: 12px; }
+    #simplicitor-design-template .st-heading { padding: 20px 22px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    #simplicitor-design-template h2 { font-size: 22px; font-weight: 600; margin: 0 0 2px; letter-spacing: -.35px; }
+    #simplicitor-design-template p { margin: 0; }
+    #simplicitor-design-template .st-muted { color: var(--st-muted); }
+    #simplicitor-design-template .st-small { font-size: 12px; }
+    #simplicitor-design-template .st-steps { display: flex; flex-wrap: wrap; gap: 14px; padding: 0 22px 18px; color: var(--st-muted); font-size: 12px; }
+    #simplicitor-design-template .st-step { display: flex; gap: 7px; align-items: center; }
+    #simplicitor-design-template .st-step b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #edf0f4; font-size: 11px; font-weight: 500; }
+    #simplicitor-design-template .st-step.is-current { color: var(--st-blue); font-weight: 600; }
+    #simplicitor-design-template .st-step.is-current b { background: var(--st-blue); color: #fff; }
+    #simplicitor-design-template .st-workspace { display: grid; grid-template-columns: minmax(0, var(--st-preview)) minmax(0, 1fr); gap: var(--st-gap); padding: 0 22px 22px; align-items: start; }
+    #simplicitor-design-template .st-document { min-width: 0; background: var(--st-paper); border: 1px solid var(--st-line); border-radius: 4px; overflow: hidden; }
+    #simplicitor-design-template .st-file { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--st-line); }
+    #simplicitor-design-template .st-file i, #simplicitor-design-template .st-file svg { color: var(--st-blue); flex-shrink: 0; }
+    #simplicitor-design-template .st-file-name { font-weight: 600; overflow-wrap: anywhere; }
+    #simplicitor-design-template .st-file button { margin-left: auto; white-space: nowrap; font-size: 12px; }
+    #simplicitor-design-template .st-tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 7px 12px; border-bottom: 1px solid var(--st-line); }
+    #simplicitor-design-template .st-tabs button { border-color: transparent; font-size: 12px; min-height: 30px; }
+    #simplicitor-design-template .st-tabs button[aria-pressed="true"] { background: var(--st-soft); color: var(--st-blue); }
+    #simplicitor-design-template .st-view-note { margin-left: auto; font-size: 12px; color: var(--st-muted); }
+    #simplicitor-design-template .st-paper { padding: 26px 28px; min-height: 350px; }
+    #simplicitor-design-template .st-doc-title { font-size: 19px; margin: 0 0 18px; font-weight: 600; }
+    #simplicitor-design-template .st-section { display: block; width: 100%; text-align: left; border: 1px solid transparent; padding: 12px; margin: 0 0 10px; background: var(--st-paper); min-height: 0; }
+    #simplicitor-design-template .st-section[aria-pressed="true"] { background: var(--st-soft); border-color: #8aaff9; }
+    #simplicitor-design-template .st-section.is-proposed { background: #f0f8f2; border-color: #9cc9ad; color: var(--st-ink); }
+    #simplicitor-design-template .st-section:disabled { background: var(--st-paper); color: var(--st-ink); }
+    #simplicitor-design-template .st-section.is-proposed:disabled { background: #f0f8f2; }
+    #simplicitor-design-template .st-section-header { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-weight: 600; }
+    #simplicitor-design-template .st-selection-marker { font-size: 11px; color: var(--st-blue); font-weight: 400; flex-shrink: 0; }
+    #simplicitor-design-template .st-section.is-proposed .st-selection-marker { color: var(--st-green); }
+    #simplicitor-design-template .st-doc-static { padding: 0 12px; margin-bottom: 12px; }
+    #simplicitor-design-template .st-document-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 16px; border-top: 1px solid var(--st-line); font-size: 12px; color: var(--st-muted); }
+    #simplicitor-design-template .st-sidebar { min-width: 0; }
+    #simplicitor-design-template h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+    #simplicitor-design-template .st-scope { border: 1px solid var(--st-line); background: var(--st-paper); border-radius: 4px; padding: 14px; margin-bottom: 18px; }
+    #simplicitor-design-template .st-scope-label { color: var(--st-muted); font-size: 12px; margin-bottom: 4px; }
+    #simplicitor-design-template .st-scope-value { font-weight: 600; margin-bottom: 7px; overflow-wrap: anywhere; }
+    #simplicitor-design-template label { display: block; font-weight: 600; margin-bottom: 7px; }
+    #simplicitor-design-template textarea { width: 100%; min-height: 120px; padding: 11px; border: 1px solid #b8c0ce; border-radius: 4px; resize: vertical; background: var(--st-paper); color: var(--st-ink); }
+    #simplicitor-design-template textarea:disabled { color: #565f6c; background: #f5f6f8; }
+    #simplicitor-design-template .st-help { color: var(--st-muted); font-size: 12px; margin: 7px 0 18px; }
+    #simplicitor-design-template .st-action { display: block; width: 100%; min-height: 40px; margin-bottom: 10px; }
+    #simplicitor-design-template .st-secondary { width: 100%; margin-bottom: 12px; }
+    #simplicitor-design-template .st-original-note { display: flex; align-items: start; gap: 7px; font-size: 12px; color: var(--st-muted); }
+    #simplicitor-design-template .st-original-note svg { flex-shrink: 0; margin-top: 2px; }
+    #simplicitor-design-template .st-warning { border-left: 3px solid #c98c12; background: #fff8e9; color: #72510e; padding: 10px 12px; font-size: 12px; margin-bottom: 16px; }
+    #simplicitor-design-template .st-success { background: #f0f8f2; border-left: 3px solid var(--st-green); padding: 12px; color: var(--st-green); overflow-wrap: anywhere; margin-bottom: 16px; }
+    #simplicitor-design-template .st-diff { padding: 20px; min-height: 350px; }
+    #simplicitor-design-template .st-change { margin-bottom: 22px; }
+    #simplicitor-design-template .st-change-title { font-weight: 600; margin-bottom: 8px; }
+    #simplicitor-design-template .st-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    #simplicitor-design-template .st-before, #simplicitor-design-template .st-after { padding: 12px; border-radius: 4px; background: #f5f6f8; overflow-wrap: anywhere; }
+    #simplicitor-design-template .st-after { background: #f0f8f2; }
+    #simplicitor-design-template .st-comparison-label { font-size: 12px; color: var(--st-muted); margin-bottom: 5px; }
+    #simplicitor-design-template .st-sheet { padding: 22px 16px; min-height: 350px; }
+    #simplicitor-design-template .st-sheet-wrap { overflow-x: auto; }
+    #simplicitor-design-template table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #simplicitor-design-template th, #simplicitor-design-template td { padding: 11px 8px; text-align: left; border-bottom: 1px solid var(--st-line); }
+    #simplicitor-design-template th { color: var(--st-muted); font-weight: 600; background: #f5f6f8; }
+    #simplicitor-design-template .st-number { text-align: right; font-variant-numeric: tabular-nums; }
+    #simplicitor-design-template .st-cell { display: block; width: 100%; padding: 5px 8px; text-align: right; border-color: transparent; min-height: 30px; font-variant-numeric: tabular-nums; }
+    #simplicitor-design-template .st-cell[aria-pressed="true"] { background: var(--st-soft); color: var(--st-blue); border-color: #8aaff9; }
+    #simplicitor-design-template .st-cell.is-proposed:disabled { background: #f0f8f2; color: var(--st-green); }
+    #simplicitor-design-template .st-formula { font-family: Consolas, monospace; color: var(--st-muted); }
+    #simplicitor-design-template .st-slide-stage { padding: 22px; min-height: 350px; background: #f3f5f8; }
+    #simplicitor-design-template .st-slide { aspect-ratio: 16/9; background: var(--st-paper); padding: 24px; border-bottom: 6px solid var(--st-blue); }
+    #simplicitor-design-template .st-slide .st-doc-title { padding-left: 12px; }
+    #simplicitor-design-template .st-slide .st-section { font-size: 14px; }
+    #simplicitor-design-template .st-slide-nav { display: flex; gap: 8px; margin-top: 14px; font-size: 12px; color: var(--st-muted); }
+    #simplicitor-design-template .st-types { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 18px; }
+    #simplicitor-design-template .st-types button { flex: 1; padding: 7px 8px; font-size: 12px; }
+    #simplicitor-design-template .st-types button[aria-pressed="true"] { background: var(--st-soft); border-color: #8aaff9; color: var(--st-blue); }
+    #simplicitor-design-template select, #simplicitor-design-template input { display: block; width: 100%; min-height: 38px; background: var(--st-paper); color: var(--st-ink); border: 1px solid #b8c0ce; border-radius: 4px; padding: 8px 10px; }
+    #simplicitor-design-template .st-template { margin-bottom: 18px; }
+    #simplicitor-design-template .st-empty { display: grid; place-items: center; padding: 50px 25px; min-height: 350px; text-align: center; }
+    #simplicitor-design-template .st-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--st-line); padding: 10px 22px; color: var(--st-muted); font-size: 12px; }
+    #simplicitor-design-template .st-overlay { position: absolute; inset: 0; z-index: 5; background: #17203166; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    #simplicitor-design-template .st-dialog { width: 440px; max-width: 100%; border-radius: 6px; background: var(--st-paper); padding: 24px; box-shadow: 0 12px 45px #0003; }
+    #simplicitor-design-template .st-dialog h3 { font-size: 19px; }
+    #simplicitor-design-template .st-dialog label { margin-top: 15px; }
+    #simplicitor-design-template .st-dialog-actions { display: flex; justify-content: end; gap: 8px; margin-top: 22px; }
+    #simplicitor-design-template .st-file-option { display: block; width: 100%; text-align: left; margin-top: 10px; padding: 12px; }
+    #simplicitor-design-template .st-file-option span { display: block; color: var(--st-muted); font-size: 12px; margin-top: 3px; }
+    @media (max-width: 740px) { #simplicitor-design-template .st-workspace { grid-template-columns: minmax(0, 1fr); } #simplicitor-design-template .st-top { gap: 10px; padding: 12px 16px; } #simplicitor-design-template .st-ready { margin-left: 0; } #simplicitor-design-template .st-heading, #simplicitor-design-template .st-workspace { padding-left: 16px; padding-right: 16px; } #simplicitor-design-template .st-paper { padding: 18px 12px; } #simplicitor-design-template .st-comparison { grid-template-columns: minmax(0, 1fr); } #simplicitor-design-template .st-settings { top: 120px; right: 12px; max-width: calc(100% - 24px); } #simplicitor-design-template .st-slide-stage { padding: 12px; } #simplicitor-design-template .st-slide { padding: 12px; aspect-ratio: auto; } }
+  </style>
+  <div class="st-titlebar">Interactive design sample · No AI processing or files saved</div>
+  <header class="st-top">
+    <span class="st-brand">Simplicitor</span>
+    <nav class="st-modes" aria-label="Workspace mode">
+      <button type="button" id="st-edit-mode" class="st-mode cursor-interaction" aria-pressed="true">Edit document</button>
+      <button type="button" id="st-create-mode" class="st-mode cursor-interaction" aria-pressed="false">Create new</button>
+    </nav>
+    <span class="st-ready"><span class="st-dot"></span>Local AI ready</span>
+    <button type="button" id="st-settings-button" class="st-quiet cursor-interaction" aria-expanded="false"><i data-lucide="settings" aria-hidden="true"></i><span> Settings</span></button>
+  </header>
+  <div class="st-settings" id="st-settings" hidden>
+    <h3>Local AI</h3><p class="st-small st-muted">Ollama · Model available</p>
+    <label for="st-model">Model</label><select id="st-model"><option>Current local model</option></select>
+    <p class="st-help">Advanced connection settings belong here.</p>
+    <button type="button" id="st-settings-close" class="cursor-interaction">Close</button>
+  </div>
+  <section class="st-heading">
+    <div><h2 id="st-heading">Edit your document</h2><p class="st-muted" id="st-subtitle">Select the parts you want to change.</p></div>
+    <button type="button" id="st-open" class="cursor-interaction"><i data-lucide="folder-open" aria-hidden="true"></i><span> Open document</span></button>
+  </section>
+  <div class="st-steps" aria-label="Document workflow">
+    <span class="st-step is-current" id="st-step-select"><b>1</b><span id="st-step-first">Choose parts</span></span>
+    <span class="st-step" id="st-step-review"><b>2</b>Review draft</span>
+    <span class="st-step" id="st-step-save"><b>3</b>Save new version</span>
+  </div>
+  <div class="st-workspace" aria-label="Document and instructions">
+    <section class="st-document" aria-label="Document view">
+      <div class="st-file"><i data-lucide="file-text" aria-hidden="true"></i><div><div class="st-file-name" id="st-filename">Consulting agreement.docx</div><div class="st-small st-muted" id="st-file-caption">Original document</div></div></div>
+      <nav class="st-tabs" id="st-view-tabs" aria-label="Document view">
+        <button type="button" id="st-content-tab" class="cursor-interaction" aria-pressed="true">Document</button>
+        <button type="button" id="st-changes-tab" class="cursor-interaction" aria-pressed="false" disabled>Changes</button>
+        <span class="st-view-note" id="st-view-note">Word · Text selection</span>
+      </nav>
+      <div id="st-document-content"></div>
+      <div class="st-document-foot"><span id="st-target-count">1 paragraph selected</span><span id="st-document-state">Original retained</span></div>
+    </section>
+    <aside class="st-sidebar" aria-label="Change controls">
+      <h3 id="st-sidebar-heading">Your changes</h3>
+      <div id="st-create-options" hidden>
+        <label>Document type</label>
+        <div class="st-types" aria-label="Document type"><button type="button" data-st-format="word" class="cursor-interaction" aria-pressed="true">Word</button><button type="button" data-st-format="excel" class="cursor-interaction" aria-pressed="false">Excel</button><button type="button" data-st-format="ppt" class="cursor-interaction" aria-pressed="false">PowerPoint</button></div>
+        <div class="st-template" id="st-template-area" hidden><label for="st-template">Template</label><select id="st-template"><option>Business pitch</option><option>Technical overview</option></select></div>
+      </div>
+      <div class="st-scope" id="st-scope-box"><div class="st-scope-label">Allowed to change</div><div class="st-scope-value" id="st-scope-value">3. Payment</div><p class="st-small st-muted">Other content provides context and stays outside the edit.</p></div>
+      <label for="st-request" id="st-request-label">Describe the change</label>
+      <textarea id="st-request" rows="4">Change the payment period to 45 days.</textarea>
+      <p class="st-help" id="st-request-help">Click a paragraph to include or exclude it.</p>
+      <div class="st-warning" id="st-warning" hidden>Check the draft layout before saving. Longer text can change page breaks.</div>
+      <div class="st-success" id="st-success" role="status" hidden></div>
+      <button type="button" class="st-primary st-action cursor-interaction" id="st-action">Propose changes</button>
+      <button type="button" class="st-secondary cursor-interaction" id="st-revise" hidden>Revise request</button>
+      <p class="st-original-note"><i data-lucide="copy" aria-hidden="true"></i><span id="st-original-note">Review a separate draft. Save as a new file.</span></p>
+    </aside>
+  </div>
+  <footer class="st-footer"><span>Word · Excel · PowerPoint</span><span id="st-status" aria-live="polite">1 paragraph selected</span></footer>
+  <div class="st-overlay" id="st-open-dialog" hidden>
+    <section class="st-dialog" role="dialog" aria-modal="true" aria-labelledby="st-open-title">
+      <h3 id="st-open-title">Open a sample document</h3>
+      <button type="button" class="st-file-option cursor-interaction" data-st-file="word">Consulting agreement.docx<span>Word · Choose a contract paragraph</span></button>
+      <button type="button" class="st-file-option cursor-interaction" data-st-file="excel">Revenue forecast.xlsx<span>Excel · Choose literal forecast values</span></button>
+      <button type="button" class="st-file-option cursor-interaction" data-st-file="ppt">Project briefing.pptx<span>PowerPoint · Choose a text shape</span></button>
+      <div class="st-dialog-actions"><button type="button" id="st-open-cancel" class="cursor-interaction">Cancel</button></div>
+    </section>
+  </div>
+  <div class="st-overlay" id="st-save-dialog" hidden>
+    <section class="st-dialog" role="dialog" aria-modal="true" aria-labelledby="st-save-title">
+      <h3 id="st-save-title">Save new version</h3><p class="st-small st-muted" id="st-save-summary">Save the reviewed draft. The original stays unchanged.</p>
+      <label for="st-save-name">File name</label><input id="st-save-name" type="text">
+      <label for="st-save-location">Folder</label><input id="st-save-location" type="text" value="Documents\Simplicitor">
+      <p class="st-help" id="st-save-error" role="status" hidden></p>
+      <div class="st-dialog-actions"><button type="button" id="st-save-cancel" class="cursor-interaction">Cancel</button><button type="button" id="st-save-confirm" class="st-primary cursor-interaction">Approve and save</button></div>
+    </section>
+  </div>
+  <script>
+    (() => {
+      const root = document.getElementById('simplicitor-design-template');
+      const el = id => root.querySelector('#' + id);
+      const examples = {
+        word: { filename: 'Consulting agreement.docx', label: 'Word', unit: 'paragraph', instruction: 'Change the payment period to 45 days.', help: 'Click a paragraph to include or exclude it.', warning: 'Check the draft layout before saving. Longer text can change page breaks.', targets: [{ id: 'payment', label: '3. Payment', before: 'Invoices are payable within 30 days of receipt.', after: 'Invoices are payable within 45 days of receipt.' }], creation: 'Create a concise project status report with progress, risks, and next steps.' },
+        excel: { filename: 'Revenue forecast.xlsx', label: 'Excel', unit: 'cell', instruction: 'Increase the selected monthly forecasts by 10%.', help: 'Select forecast cells. Formula cells are unavailable in this first editing scope.', warning: 'Review the numeric values. Unselected formulas and text identifiers must be preserved.', targets: [{ id: 'D4', label: 'Forecast!D4 · Number', before: '10,000', after: '11,000' }, { id: 'D5', label: 'Forecast!D5 · Number', before: '6,000', after: '6,600' }], creation: 'Create a monthly budget with planned amount, actual amount, and difference.' },
+        ppt: { filename: 'Project briefing.pptx', label: 'PowerPoint', unit: 'text shape', instruction: 'Move the rollout date from October to November in the selected text.', help: 'Select an individual text shape. The slide background and other objects stay outside the edit.', warning: 'Check the slide preview for text overflow before saving.', targets: [{ id: 'summary', label: 'Slide 2 · Rollout summary', before: 'Rollout starts in October. Training will take place two weeks before launch.', after: 'Rollout starts in November. Training will take place two weeks before launch.' }], creation: 'Create a five-slide project briefing covering goals, progress, risks, and next steps.' }
+      };
+      const state = { mode: 'edit', format: 'word', selected: ['payment'], phase: 'select', view: 'document', previewSeen: false, savedName: '' };
+      const design = { compact: false, previewWidth: 65 };
+      const sessions = new Map();
+      const lastFormat = { edit: 'word', create: 'word' };
+      const savedOutputs = new Set();
+      let focusBeforeDialog = null;
+      function persist() {
+        if (window.openai && window.openai.setWidgetState) window.openai.setWidgetState({ modelContent: { design: 'Document workspace', mode: state.mode, example: state.format, phase: state.phase }, privateContent: { selected: state.selected, view: state.view, previewSeen: state.previewSeen } }).catch(() => {});
+      }
+      function styles() { root.style.setProperty('--st-gap', design.compact ? '12px' : '20px'); root.style.setProperty('--st-preview', design.previewWidth + '%'); }
+      function node(tag, className, text) { const result = document.createElement(tag); if (className) result.className = className; if (text !== undefined) result.textContent = text; return result; }
+      function targetButton(target, proposed) {
+        const button = node('button', 'st-section cursor-interaction' + (proposed ? ' is-proposed' : '')); button.type = 'button'; button.dataset.stTarget = target.id;
+        const selected = state.selected.includes(target.id); button.setAttribute('aria-pressed', String(selected)); button.disabled = state.phase !== 'select';
+        const head = node('span', 'st-section-header'); head.append(node('span', '', target.label), node('span', 'st-selection-marker', proposed ? 'Proposed' : selected ? 'Selected' : 'Select')); button.append(head, node('span', '', proposed ? target.after : target.before));
+        button.addEventListener('click', () => { state.selected = selected ? state.selected.filter(id => id !== target.id) : [...state.selected, target.id]; render(); persist(); }); return button;
+      }
+      function documentView(example, review) {
+        const container = el('st-document-content');
+        if (state.mode === 'create' && state.phase === 'select') { const empty = node('div', 'st-empty'); const copy = node('div'); copy.append(node('h3', '', 'Your draft will appear here'), node('p', 'st-small st-muted', 'Choose a document type and describe what you need.')); empty.append(copy); container.append(empty); return; }
+        if (state.mode === 'create') {
+          const paper = node('div', state.format === 'ppt' ? 'st-slide-stage' : 'st-paper');
+          const inner = state.format === 'ppt' ? node('div', 'st-slide') : paper; if (inner !== paper) paper.append(inner);
+          inner.append(node('h3', 'st-doc-title', state.format === 'excel' ? 'Monthly budget' : state.format === 'ppt' ? 'Project briefing' : 'Project status report'));
+          if (state.format === 'excel') { const table = node('table'); table.innerHTML = '<thead><tr><th>Category</th><th>Planned</th><th>Actual</th><th>Difference</th></tr></thead><tbody><tr><td>Software</td><td>0</td><td>0</td><td>=B2-C2</td></tr><tr><td>Services</td><td>0</td><td>0</td><td>=B3-C3</td></tr></tbody>'; inner.append(table); }
+          else { ['Progress', 'Risks', 'Next steps'].forEach(label => { inner.append(node('h3', '', label), node('p', 'st-doc-static', 'Add the project details you want to include.')); }); }
+          container.append(paper); return;
+        }
+        if (state.format === 'word') {
+          const paper = node('div', 'st-paper'); paper.append(node('h3', 'st-doc-title', 'Consulting agreement'), node('p', 'st-doc-static st-small st-muted', 'Atlas Industries · 7 October 2026'), node('h3', 'st-doc-static', '1. Services'), node('p', 'st-doc-static', 'The consultant will provide the services described in Schedule A.'));
+          example.targets.forEach(target => paper.append(targetButton(target, review && state.selected.includes(target.id))));
+          paper.append(node('h3', 'st-doc-static', '6. Confidentiality'), node('p', 'st-doc-static', 'All project information must remain confidential. This obligation survives termination.')); container.append(paper);
+        } else if (state.format === 'excel') {
+          const sheet = node('div', 'st-sheet'); sheet.append(node('h3', '', 'Forecast · October')); const wrap = node('div', 'st-sheet-wrap'); const table = node('table');
+          table.innerHTML = '<thead><tr><th></th><th>A · Client ID</th><th>B · Account</th><th>D · Forecast</th><th>E · Actual</th></tr></thead>';
+          const tbody = node('tbody'); example.targets.forEach((target, index) => { const tr = node('tr'); tr.append(node('td', 'st-muted', String(index + 4)), node('td', '', index === 0 ? '00124' : '00125'), node('td', '', index === 0 ? 'Atlas' : 'Northstar')); const td = node('td', 'st-number'); const selected = state.selected.includes(target.id); const proposed = review && selected; const button = node('button', 'st-cell cursor-interaction' + (proposed ? ' is-proposed' : ''), proposed ? target.after : target.before); button.type = 'button'; button.dataset.stTarget = target.id; button.setAttribute('aria-pressed', String(selected)); button.setAttribute('aria-label', target.label + ', ' + button.textContent); button.disabled = state.phase !== 'select'; button.addEventListener('click', () => { state.selected = selected ? state.selected.filter(id => id !== target.id) : [...state.selected, target.id]; render(); persist(); }); td.append(button); tr.append(td, node('td', 'st-number', index === 0 ? '8,500' : '5,400')); tbody.append(tr); });
+          const total = node('tr'); total.innerHTML = '<td class="st-muted">6</td><td></td><td>Total</td><td class="st-formula">=SUM(D4:D5)</td><td class="st-formula">=SUM(E4:E5)</td>'; tbody.append(total); table.append(tbody); wrap.append(table); sheet.append(wrap, node('p', 'st-help', 'Client IDs: text · Forecasts: numbers · Total cells: formulas')); container.append(sheet);
+        } else {
+          const stage = node('div', 'st-slide-stage'); const slide = node('div', 'st-slide'); slide.append(node('h3', 'st-doc-title', 'Project Atlas'), node('p', 'st-doc-static st-small st-muted', 'Delivery update')); example.targets.forEach(target => slide.append(targetButton(target, review && state.selected.includes(target.id)))); stage.append(slide, node('div', 'st-slide-nav', 'Slide 2 of 5 · Rollout summary')); container.append(stage);
+        }
+      }
+      function changesView(example) {
+        const diff = node('div', 'st-diff');
+        example.targets.filter(target => state.selected.includes(target.id)).forEach(target => { const change = node('section', 'st-change'); change.append(node('div', 'st-change-title', target.label)); const comparison = node('div', 'st-comparison'); const before = node('div', 'st-before'); before.append(node('div', 'st-comparison-label', 'Original'), node('p', '', target.before)); const after = node('div', 'st-after'); after.append(node('div', 'st-comparison-label', 'Proposed'), node('p', '', target.after)); comparison.append(before, after); change.append(comparison); diff.append(change); });
+        el('st-document-content').append(diff);
+      }
+      function render() {
+        const example = examples[state.format]; const creating = state.mode === 'create'; const review = state.phase !== 'select'; const selected = example.targets.filter(target => state.selected.includes(target.id)); const count = selected.length;
+        el('st-edit-mode').setAttribute('aria-pressed', String(!creating)); el('st-create-mode').setAttribute('aria-pressed', String(creating)); el('st-heading').textContent = creating ? 'Create a new document' : 'Edit your document'; el('st-subtitle').textContent = creating ? 'Describe what you need, then review the draft.' : 'Select the parts you want to change.'; el('st-open').hidden = creating;
+        el('st-step-first').textContent = creating ? 'Describe document' : 'Choose parts'; ['select','review','save'].forEach(phase => el('st-step-' + phase).classList.toggle('is-current', phase === (state.phase === 'saved' ? 'save' : state.phase)));
+        el('st-filename').textContent = creating ? (state.format === 'word' ? 'Project status report.docx' : state.format === 'excel' ? 'Monthly budget.xlsx' : 'Project briefing.pptx') : example.filename; el('st-file-caption').textContent = review ? 'Draft 1 · Separate copy' : creating ? 'New document' : 'Original document';
+        el('st-content-tab').textContent = review ? 'Draft preview' : 'Document'; el('st-content-tab').setAttribute('aria-pressed', String(state.view === 'document')); el('st-changes-tab').setAttribute('aria-pressed', String(state.view === 'changes')); el('st-changes-tab').textContent = 'Changes' + (review && !creating ? ' (' + count + ')' : ''); el('st-changes-tab').disabled = !review; el('st-changes-tab').hidden = creating; el('st-view-note').textContent = example.label + (review ? ' · Draft 1' : state.format === 'word' ? ' · Text selection' : state.format === 'excel' ? ' · Literal values' : ' · Text shape selection');
+        el('st-document-content').replaceChildren(); if (state.view === 'changes' && !creating && review) changesView(example); else documentView(example, review);
+        const countLabel = count + ' ' + example.unit + (count === 1 ? '' : 's') + ' selected'; el('st-target-count').textContent = creating ? (review ? 'New draft' : 'No draft yet') : countLabel; el('st-document-state').textContent = state.phase === 'saved' ? 'New version saved' : !creating ? 'Original retained' : 'Review before saving';
+        el('st-sidebar-heading').textContent = state.phase === 'saved' ? 'New version saved' : review ? 'Review your draft' : creating ? 'New document' : 'Your changes'; el('st-create-options').hidden = !creating; root.querySelectorAll('[data-st-format]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.stFormat === state.format)); button.disabled = review; }); el('st-template-area').hidden = !creating || state.format !== 'ppt'; el('st-template').disabled = review;
+        el('st-scope-box').hidden = creating; el('st-scope-value').textContent = count ? selected.map(target => target.label).join(' · ') : 'No parts selected'; el('st-request-label').textContent = creating ? 'Describe your document' : 'Describe the change'; el('st-request').disabled = review; el('st-request-help').textContent = review ? 'Revise your request to create another draft.' : creating ? 'Review the content and layout before saving.' : example.help;
+        el('st-warning').hidden = !review || state.phase === 'saved'; el('st-warning').textContent = creating ? 'Review the draft content and layout before saving.' : example.warning; el('st-success').hidden = state.phase !== 'saved'; el('st-success').textContent = state.savedName;
+        el('st-action').textContent = state.phase === 'saved' ? 'Start another edit' : !review ? creating ? 'Create draft' : 'Propose changes' : !state.previewSeen ? 'Preview draft' : 'Save new version'; el('st-action').disabled = !review && ((!creating && !count) || !el('st-request').value.trim()); el('st-revise').hidden = !review || state.phase === 'saved'; el('st-original-note').textContent = creating ? 'Save the reviewed draft as a new file.' : 'Review a separate draft. Save as a new file.';
+        el('st-status').textContent = state.phase === 'saved' ? 'New version saved' : review ? state.previewSeen ? 'Draft 1 ready to approve' : 'Review changes, then preview the draft' : creating ? 'Describe your document' : countLabel;
+      }
+      function activate(mode, format) {
+        sessions.set(state.mode + ':' + state.format, { ...state, selected: [...state.selected], instruction: el('st-request').value });
+        const previous = sessions.get(mode + ':' + format);
+        if (previous) { Object.assign(state, previous, { selected: [...previous.selected] }); el('st-request').value = previous.instruction; }
+        else { Object.assign(state, { mode, format, selected: examples[format].targets.map(target => target.id), phase: 'select', view: 'document', previewSeen: false, savedName: '' }); el('st-request').value = mode === 'create' ? examples[format].creation : examples[format].instruction; }
+        lastFormat[mode] = format; render(); persist();
+      }
+      function setFormat(format) { if (format !== state.format) activate(state.mode, format); }
+      function setMode(mode) { if (mode !== state.mode) activate(mode, lastFormat[mode]); }
+      function pathKey(folder, filename) { return (folder.trim().replace(/[\\/]+$/, '') + '/' + filename.trim()).replace(/\\/g, '/').toLowerCase(); }
+      function validateSave() {
+        const name = el('st-save-name').value.trim(); const folder = el('st-save-location').value.trim(); const key = pathKey(folder, name);
+        const source = state.mode === 'edit' ? pathKey('Documents/Simplicitor', examples[state.format].filename) : null;
+        let message = '';
+        if (!name || !folder) message = 'Enter a file name and folder.';
+        else if (/[\\/]/.test(name)) message = 'Use the folder field for the destination.';
+        else if (key === source) message = 'Choose a new name or folder. The original cannot be replaced.';
+        else if (savedOutputs.has(key)) message = 'That output already exists. Choose another name or folder.';
+        el('st-save-error').textContent = message; el('st-save-error').hidden = !message; el('st-save-confirm').disabled = Boolean(message); return !message;
+      }
+      function openDialog(id) { focusBeforeDialog = document.activeElement; el(id).hidden = false; el(id).querySelector('button, input').focus(); }
+      function closeDialog(id) { el(id).hidden = true; if (focusBeforeDialog) focusBeforeDialog.focus(); }
+      function preview() { state.view = 'document'; state.previewSeen = true; render(); persist(); }
+      el('st-edit-mode').addEventListener('click', () => setMode('edit')); el('st-create-mode').addEventListener('click', () => setMode('create'));
+      el('st-open').addEventListener('click', () => openDialog('st-open-dialog')); el('st-open-cancel').addEventListener('click', () => closeDialog('st-open-dialog')); root.querySelectorAll('[data-st-file]').forEach(button => button.addEventListener('click', () => { closeDialog('st-open-dialog'); setFormat(button.dataset.stFile); })); root.querySelectorAll('[data-st-format]').forEach(button => button.addEventListener('click', () => setFormat(button.dataset.stFormat)));
+      el('st-content-tab').addEventListener('click', () => { if (state.phase !== 'select') preview(); else { state.view = 'document'; render(); } }); el('st-changes-tab').addEventListener('click', () => { state.view = 'changes'; render(); persist(); });
+      el('st-request').addEventListener('input', () => { el('st-action').disabled = !el('st-request').value.trim() || (state.mode === 'edit' && !state.selected.length); });
+      el('st-action').addEventListener('click', () => {
+        if (state.phase === 'saved') { state.phase = 'select'; state.view = 'document'; state.previewSeen = false; state.savedName = ''; render(); persist(); return; }
+        if (state.phase === 'select') { state.phase = 'review'; state.view = state.mode === 'edit' ? 'changes' : 'document'; state.previewSeen = state.mode === 'create'; render(); persist(); return; }
+        if (!state.previewSeen) { preview(); return; }
+        const filename = el('st-filename').textContent; let name = state.mode === 'edit' ? filename.replace(/(\.[^.]+)$/, '_edited$1') : filename; let version = 2;
+        while (savedOutputs.has(pathKey(el('st-save-location').value, name))) { name = filename.replace(/(\.[^.]+)$/, '_version' + version++ + '$1'); }
+        el('st-save-name').value = name; validateSave(); openDialog('st-save-dialog');
+      });
+      el('st-revise').addEventListener('click', () => { state.phase = 'select'; state.view = 'document'; state.previewSeen = false; render(); persist(); }); el('st-save-cancel').addEventListener('click', () => closeDialog('st-save-dialog')); el('st-save-name').addEventListener('input', validateSave); el('st-save-location').addEventListener('input', validateSave);
+      el('st-save-confirm').addEventListener('click', () => { if (!validateSave()) return; state.savedName = el('st-save-name').value.trim(); savedOutputs.add(pathKey(el('st-save-location').value, state.savedName)); state.phase = 'saved'; closeDialog('st-save-dialog'); render(); persist(); });
+      el('st-settings-button').addEventListener('click', () => { el('st-settings').hidden = !el('st-settings').hidden; el('st-settings-button').setAttribute('aria-expanded', String(!el('st-settings').hidden)); }); el('st-settings-close').addEventListener('click', () => { el('st-settings').hidden = true; el('st-settings-button').setAttribute('aria-expanded', 'false'); });
+      root.addEventListener('keydown', event => { const activeDialog = ['st-open-dialog','st-save-dialog'].map(el).find(dialog => !dialog.hidden); if (!activeDialog) return; if (event.key === 'Escape') { closeDialog(activeDialog.id); return; } if (event.key === 'Tab') { const focusable = [...activeDialog.querySelectorAll('button:not(:disabled), input:not(:disabled)')]; const first = focusable[0], last = focusable[focusable.length - 1]; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } } });
+      function restore(snapshot) {
+        if (!snapshot || !snapshot.modelContent || !examples[snapshot.modelContent.example]) return;
+        const model = snapshot.modelContent, ui = snapshot.privateContent || {};
+        if (model.mode === state.mode && model.example === state.format && model.phase === state.phase && ui.view === state.view && Boolean(ui.previewSeen) === state.previewSeen && JSON.stringify(ui.selected) === JSON.stringify(state.selected)) return;
+        state.mode = model.mode === 'create' ? 'create' : 'edit'; state.format = model.example; state.phase = ['select','review'].includes(model.phase) ? model.phase : 'select'; state.selected = Array.isArray(ui.selected) ? ui.selected.filter(id => examples[state.format].targets.some(target => target.id === id)) : examples[state.format].targets.map(target => target.id); state.view = ui.view === 'changes' ? 'changes' : 'document'; state.previewSeen = Boolean(ui.previewSeen); state.savedName = ''; lastFormat[state.mode] = state.format; el('st-request').value = state.mode === 'create' ? examples[state.format].creation : examples[state.format].instruction; render();
+      }
+      styles(); render(); if (window.openai && window.openai.widgetState) restore(window.openai.widgetState);
+      window.addEventListener('openai:set_globals', event => { if (event.detail && event.detail.globals && event.detail.globals.widgetState) restore(event.detail.globals.widgetState); });
+      if (globalThis.Tweak) { const tweak = new Tweak({ container: root, onChange: styles }); tweak.addToggle(design, 'compact', { label: 'Compact spacing' }); tweak.addSlider(design, 'previewWidth', { label: 'Document area', min: 58, max: 70, step: 1, unit: '%' }); }
+    })();
+  </script>
+</div>

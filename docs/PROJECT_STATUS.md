@@ -1,11 +1,12 @@
 # Simplicitor project status
 
-Updated 2026-10-07. Documentation revision is complete; application implementation status is unchanged. This note is the ongoing status record; update it instead of creating competing handoff notes.
+Updated 2026-10-08. Product documentation and the UI design proposal are recorded; application implementation status is unchanged. This note is the ongoing status record; update it instead of creating competing handoff notes.
 
 ## Agreed direction
 
 - Free Windows desktop application for nontechnical people with working local Ollama and a usable model.
 - Confidential selective editing of Word, Excel, and PowerPoint is the primary workflow. Creation and the existing PowerPoint template engine remain supported.
+- General document work is the product's purpose. Contracts, financial documents, policies, proposals, and presentations are examples; timesheets do not define the product.
 - Confirm editable targets, propose replacements, patch a separate candidate, validate and preview it, then approve and save a new version.
 - Preserve unselected content and supported document features. Unsupported edits fail safely rather than reconstructing the whole file.
 - Representative users include sales, accounting, and privacy staff. Contractor timesheets include sensitive IDs and require deterministic calculations and identifier preservation.
@@ -23,6 +24,7 @@ Source baseline reviewed: `main`, commit `7d060f9889a90a9b1bad25e5d10873734ede86
 | Create workflow and PowerPoint templates | Implemented in source; current regression suite was run. |
 | Legacy Edit workflow | Implemented, but reconstructs files from extracted text. |
 | Selective targets, preservation, draft preview, approval | Approved requirements, not implemented. |
+| Shared Edit document and Create new workspace | UI proposal and simulated browser example; not implemented in PySide6. |
 | Standalone installer and portable ZIP | Approved packaging direction, not implemented. |
 | Windows or antivirus block | Reported by user; exact message or detection remains unverified. |
 | Live model quality and Office rendering | Not integration-tested in this review. |
@@ -68,6 +70,14 @@ No application code, build configuration, dependency declaration, or license was
 - Tested local model/runtime combinations and hardware requirements. No Hermes integration or model replacement was selected.
 - License alignment with the intended business audience. Current PolyForm Noncommercial terms remain unchanged; free distribution alone does not grant business-use rights.
 
+## UI design proposal
+
+Alex endorsed Edit document and Create new modes with explicit target selection. The [workspace proposal](superpowers/specs/2026-10-08-document-workspace-ui-design.md) records the shared layout, format-specific selection, review, and save behavior. The [interactive example](design/document-workspace.html) uses synthetic contracts, financial data, and presentation text. Its proposals, previews, model readiness, and saving are simulations; it makes no AI calls or document writes. Browser interaction checks cover the example only, not the application engine.
+
+On 2026-10-08 Alex authorized committing and pushing the design changes. This authorization does not include application implementation or release publication.
+
+Verification on 2026-10-08: the repository HTML was opened directly in Edge using the existing Playwright runtime. Six interaction groups passed, covering the three editing formats, Create, revision and save safeguards, retained drafts on mode/document switches, Settings, and a 360-pixel layout without outer horizontal overflow. There were no browser script errors or external network requests. Repository-map tests passed 5 of 5 in 1.04 seconds. These results apply to the simulated design; the application suite and live Office/model integrations were not rerun for this documentation change.
+
 ## Next step
 
-Prepare the bounded packaging implementation design from `docs/code-signing.md`, including a reproduction of the reported Windows block and clean-machine checks. Define the selective-editing subsystem and its preservation fixtures as a separate implementation design before changing the legacy Edit path. The commit/push authorization covers this documentation revision only; implementation and release publication need their own authorization.
+Review the recorded UI proposal before preparing an implementation plan. Define the selective-editing subsystem, saved-candidate preview, and preservation fixtures before changing the legacy Edit path. Packaging remains a separate workstream based on `docs/code-signing.md`, including reproduction of the Windows block and clean-machine checks. Implementation and release publication remain separately authorized actions.
