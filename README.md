@@ -10,11 +10,19 @@ The current v1.2 source generates Word, Excel, and PowerPoint files through Olla
 
 ## Approved next direction
 
-Simplicitor will serve nontechnical Windows users who already have Ollama and a usable local model. The main workflow will be confidential editing: select the parts to change, describe the modification, review a saved draft and its changes, then approve a new version. Creation remains supported. Sales proposals, contractor timesheets with personal IDs, and privacy documents are representative use cases.
+Simplicitor will serve nontechnical Windows users who already have Ollama, a usable local model, and the Microsoft Office desktop applications. It will offer three workflows through two main modes:
+
+| User action | Workflow |
+|---|---|
+| Create new, with a prompt | Generate a document from the instructions. |
+| Create new, with a prompt and source files | Read the sources and create a new document using their information. |
+| Edit document | Modify approved parts of an existing document. |
+
+For example, an accounting Excel workbook can supply the facts and calculated figures for a new Word report. Source files remain unchanged. Editing changes only approved targets. All three workflows will validate and preview a separate candidate before approval and saving of a new output. Contracts, financial documents, proposals, policies, and presentations are representative uses.
 
 The approved packaging route is a free standalone application with an NSIS installer as the main download and a portable ZIP as the secondary option, distributed through GitHub Releases and linked from `simplicitor.com`. Microsoft Store publication and paid signing are outside this route. Unsigned Windows warnings or blocks can remain.
 
-**These are approved requirements, not shipped features.** See [active requirements](PRD.md), [packaging](docs/code-signing.md), and [project status](docs/PROJECT_STATUS.md) for the implementation state, preservation gaps, and remaining decisions. The current Noncommercial license remains in effect; business-use licensing has not been changed.
+**These are approved requirements, not shipped features.** Prompt-only generation exists; source-based creation, selective preservation, and the common review workflow still need implementation. See [active requirements](PRD.md), the [architecture proposal](docs/superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), [packaging](docs/code-signing.md), and [project status](docs/PROJECT_STATUS.md). The current Noncommercial license remains in effect; business-use licensing has not been changed.
 
 Simplicitor is not a chat interface. It is not a RAG tool. It is not a model manager or a general-purpose AI assistant. It does one thing: it turns a local LLM into a document production tool with a file output you can actually use.
 

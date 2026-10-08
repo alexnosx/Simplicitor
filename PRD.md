@@ -1,14 +1,14 @@
 # Simplicitor product requirements
 
-Updated 2026-10-07. Approved product direction; the installer and selective editing workflow are not implemented yet.
+Updated 2026-10-08. Approved product direction; the installer and selective editing workflow are not implemented yet.
 
 ## Purpose and audience
 
-Simplicitor is a free Windows desktop application for nontechnical people who already have Ollama and a usable local model. Its primary purpose is to modify confidential Word, Excel, and PowerPoint documents by changing approved parts and preserving the rest. Document creation remains supported.
+Simplicitor is a free Windows desktop application for nontechnical people who already have Ollama and a usable local model. It creates confidential Word, Excel, and PowerPoint documents from prompts or supplied source files, and selectively edits approved parts of existing documents while preserving the rest.
 
 Users should work with files and instructions, without configuring an agent harness, writing scripts, or learning model parameters. Sales staff, accounting staff, and privacy staff are representative users. Simplicitor does not make a GDPR compliance guarantee.
 
-The first release in this direction assumes Ollama and a model are already installed. Detect and explain connection or model problems; do not build model installation or management into this scope. No specific model, minimum hardware profile, or replacement agent harness has been selected.
+The first release in this direction assumes Ollama, a usable local model, and the Microsoft Word, Excel, and PowerPoint desktop applications are already installed. Alex confirmed the desktop Office prerequisite on 2026-10-08. Detect and explain missing or unusable prerequisites; do not bundle Office or build model installation or management into this scope. No specific model, minimum hardware profile, or replacement agent harness has been selected. Requiring Office does not establish that the proposed automation or preview integration works.
 
 ## Current implementation and requirements authority
 
@@ -17,6 +17,33 @@ The v1.2 source has Create and Edit panels, local Ollama integration, Office gen
 The current build produces an unsigned Nuitka onefile executable. The agreed installer and portable ZIP are future deliverables. Documentation of a requirement is not evidence that the application meets it.
 
 This file governs the new product requirements. [The archived v1.2 PRD](docs/archive/PRD_v1.2.md), `docs/Simplicitor_PRD_v1.2.docx`, and [the original implementation guide](docs/Simplicitor_Implementation_Guide.md) remain historical references. New user decisions supersede historical scope restrictions. [Project status](docs/PROJECT_STATUS.md) records implementation evidence and remaining decisions.
+
+## Three agreed workflows
+
+Alex confirmed these workflows on 2026-10-08. They share two main UI modes; source-based creation does not introduce a third mode.
+
+| User action | Workflow |
+|---|---|
+| Create new, with a prompt | Generate a document from the instructions. |
+| Create new, with a prompt and source files | Read the sources and create a new document using their information. |
+| Edit document | Modify approved parts of an existing document. |
+
+All three workflows produce a separate candidate for review and approval before saving a new output. Prompt-only generation exists in v1.2; source-based creation and the common candidate-review workflow are requirements, not implemented features. The [architecture proposal](docs/superpowers/specs/2026-10-08-document-architecture-design.md) describes how to reuse the existing engines.
+
+## Creation workflow
+
+1. Describe the required document and choose its output type.
+2. Optionally attach local source files. Source inputs are read-only and distinct from an Edit document target.
+3. Inspect the sources and confirm the relevant content, worksheets, tables, ranges, and reporting period when needed. Ask a focused question if ambiguity would materially change the result.
+4. Extract typed information locally. Compute requested totals, differences, percentages, or other supported measures deterministically using code or Excel. The model explains and organizes the resulting evidence.
+5. Generate a separate candidate using the existing output engines, validate it, and preview the saved document.
+6. Review the content, numerical evidence, source references, and layout, then approve that candidate and save a new output. Sources remain unchanged.
+
+The required cross-format example is an accounting XLSX workbook used to create a DOCX report. Preserve text identifiers and distinguish raw inputs, formula expressions, calculated values, missing values, and stale calculation results. Do not invent missing rates, currencies, dates, or amounts. Retain traceability from reported figures to source snapshots, worksheet/range references, and calculations, using source labels rather than exposing absolute paths in reports by default. Grounding and validation do not replace review of the model's narrative.
+
+Large sources must be inspected and processed within an explicit scope. Deterministic extraction and aggregation may cover more rows than fit in a model prompt. Do not silently truncate relevant records, omit material information, or treat a partial report as complete. Narrow the scope or report a limitation when the request cannot be supported.
+
+Source-based creation is local document work, not persistent indexing or a RAG system. Define supported source formats, Office features, and input/output combinations before claiming coverage. The three workflows do not imply that every format conversion is already supported.
 
 ## Representative workflows
 
@@ -87,8 +114,8 @@ An installer does not guarantee removal of SmartScreen warnings or antivirus blo
 
 ## Acceptance checks
 
-1. A nontechnical user with working local Ollama can install and launch without Python, a terminal, or agent configuration.
-2. Installer launch, application launch, local model connection, upgrade, and uninstall pass on clean Windows test environments. Record the tested versions and any security warning or block.
+1. A nontechnical user with working local Ollama and desktop Microsoft Office can install and launch without Python, a terminal, or agent configuration. Missing prerequisites produce actionable messages.
+2. Installer launch, application launch, local model and Office connection, upgrade, and uninstall pass on clean Windows test environments with the stated prerequisites. Record the tested versions and any security warning or block.
 3. Installer and portable ZIP contain the same tested application resources and work independently of a development checkout.
 4. Exact targets and original values are validated. Ambiguous, stale, or unsupported edits cannot silently proceed.
 5. Approved replacements are correct, and preservation fixtures show that unaffected content, formulas, styles, media, and relationships survive.
@@ -97,11 +124,14 @@ An installer does not guarantee removal of SmartScreen warnings or antivirus blo
 8. Approval applies to the reviewed candidate version. Failure, rejection, or cancellation does not change the original or publish incomplete output.
 9. Network and logging checks show local processing and no document-content leakage for the tested configuration.
 10. Existing generation and template behavior remains covered by regression checks.
+11. Prompt-only creation, creation from source files, and selective editing all use candidate validation, preview, approval, and saving of a new output. Read-only source attachments never gain edit permission.
+12. An accounting XLSX can produce a reviewed DOCX report with correct supported calculations, traceable figures, and unchanged sources. Ambiguous periods, missing data, stale results, and incomplete coverage are visible rather than invented or silently omitted.
 
 ## Decisions still needed
 
-- Preview technology, fidelity expectations, and whether installed Microsoft Office is required.
+- Office integration and preview technology, fidelity expectations, and supported Office versions. Installed desktop Office is required initially; this prerequisite is no longer an open decision.
 - Supported rich-text and Office feature envelopes for each editing format.
+- Supported source-ingestion features and input/output combinations, numerical evidence validation, calculation/recalculation rules, and handling of large or incomplete sources.
 - Candidate naming, version identity, storage, retention, and cancellation behavior.
 - Tested model/runtime combinations and practical hardware requirements.
 - Exact Windows or antivirus detection blocking the current executable.

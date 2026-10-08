@@ -4,13 +4,16 @@ Keep this file and the root `AGENTS.md` byte-identical when updating shared proj
 
 ## Project overview
 
-Simplicitor is a free Windows desktop application using local Ollama for Office document work. The approved direction is confidential selective editing for nontechnical users who already have Ollama and a usable model. Modify approved parts of Word, Excel, and PowerPoint documents while preserving the rest, show a saved draft preview, and obtain approval before saving a new version. Creation remains supported.
+Simplicitor is a free Windows desktop application using local Ollama for Office document work. The agreed workflows are creation from a prompt, creation from a prompt and read-only source files, and selective editing of approved parts of an existing document. Keep the two UI modes, Create new and Edit document. All workflows must validate and preview a separate candidate, then obtain approval before saving a new output. The audience is nontechnical users with local Ollama and a usable model.
 
-Current v1.2 source has Create and Edit panels, Office generators, and a manifest-driven PowerPoint template engine. Legacy editing reconstructs files from extracted text and does not implement the preservation, preview, or approval contract. The current build is an unsigned Nuitka onefile executable. Standalone builds, an NSIS installer, and a portable ZIP are approved requirements, not implemented capabilities. Do not claim that double-click launch or Windows trust is verified.
+The first product in this direction requires locally installed Microsoft Word, Excel, and PowerPoint desktop applications as well as Ollama and a usable local model. Alex confirmed the Office prerequisite on 2026-10-08. The Office integration and preview architecture remain proposals until reviewed and tested.
+
+Current v1.2 source has Create and Edit panels, prompt-only Office generators, and a manifest-driven PowerPoint template engine. Source-based creation is not implemented. Legacy editing reconstructs files from extracted text and does not implement the preservation, preview, or approval contract. The current build is an unsigned Nuitka onefile executable. Standalone builds, an NSIS installer, and a portable ZIP are approved requirements, not implemented capabilities. Do not claim that double-click launch or Windows trust is verified.
 
 Read these before planning changes:
 
 - `PRD.md`: active product requirements and unresolved decisions.
+- `docs/superpowers/specs/2026-10-08-document-architecture-design.md`: architecture proposal for review, including source-based creation; not evidence of implementation.
 - `docs/PROJECT_STATUS.md`: current implementation, verification, blockers, and next step.
 - `docs/code-signing.md`: approved zero-cost direct-download packaging route and trust limits.
 - `REPO_MAP.md`: current structure and module responsibilities.
@@ -152,6 +155,10 @@ Follow `PRD.md` for the approved workflow: confirm exact targets, propose replac
 The first slice concerns selected DOCX/PPTX text and literal XLSX values. Preserve identifiers and unselected content, formulas, styles, relationships, and assets within a defined support envelope. Reject ambiguous, stale, or unsupported targets. Do not implement selective edits by reconstructing the whole document from plain text. Define preview, feature support, versioning, and cancellation decisions before building the subsystem.
 
 The old extracted-text/modified-text Edit contract and accepted v1 DOCX formatting loss are superseded requirements, but still describe current legacy behavior. Do not present their removal as already implemented.
+
+## Creation from source files
+
+Follow PRD.md for both prompt-only creation and creation using optional local source files. Keep attached sources read-only and separate from any editing target. The required cross-format example is an XLSX accounting workbook used to create a DOCX report. Inspect and confirm relevant scope, extract typed facts locally, compute supported measures deterministically, and retain source and calculation references for review. The model writes and organizes explanations; do not rely on model arithmetic or invent missing figures. Do not silently truncate relevant source records or claim partial coverage is complete. Source-based generation uses the same saved-candidate preview, approval, and new-output publication contract. It does not authorize persistent indexing, RAG, or editing the sources.
 
 ## Backups and file identity
 

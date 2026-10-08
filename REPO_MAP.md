@@ -8,21 +8,24 @@ structural changes: `python scripts/gen_repo_map.py`
 ## Orientation notes
 
 **Approved direction.** Free Windows document work for nontechnical users with local
-Ollama and a usable model. Root `PRD.md` makes confidential selective editing primary:
-confirm targets, patch a separate candidate, validate and preview it, then approve a new
-version. Creation remains supported. Packaging will use a standalone Nuitka payload,
+Ollama, a usable model, and installed desktop Microsoft Office. Root `PRD.md` defines
+creation from a prompt, creation from read-only source files, and selective editing.
+All produce a separate candidate for validation, preview, approval, and a new output.
+Packaging will use a standalone Nuitka payload,
 free NSIS installer, and portable ZIP, without Store publication or paid signing.
 Installer convenience does not guarantee removal of unsigned Windows warnings.
 
 **Current implementation.** v1.2 has Create and legacy Edit panels plus a manifest-driven
-PowerPoint template engine. Selective preservation, preview/approval, and the installer
+PowerPoint template engine. Source-based creation, selective preservation, preview/approval, and the installer
 are not implemented. The model supplies content; Python renders it. The template's
 masters, layouts, and theme control PowerPoint styling. Do not infer model quality or
 Office fidelity from this separation alone.
 
 **Documentation.** `PRD.md` is the active requirements source. Shared agent policy is
 byte-identical in root `AGENTS.md` and `CLAUDE.md`. `docs/PROJECT_STATUS.md` records evidence
-and open decisions; `docs/code-signing.md` covers packaging. The archived PRD, original
+and open decisions; `docs/code-signing.md` covers packaging. The architecture proposal is
+`docs/superpowers/specs/2026-10-08-document-architecture-design.md`; the UI proposal is
+`docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md`. The archived PRD, original
 DOCX PRD, implementation guide, and BUILD_STORY are history. Explicitly read the engine's
 `CLAUDE.md` and `NOTES.md` before working there; their historical formatting-loss decision
 no longer governs the approved selective editor.
@@ -106,6 +109,7 @@ docs/
             2026-06-06-templates-folder-setting-design.md
             2026-06-07-business-pitch-charts-design.md
             2026-06-07-business-pitch-watercolor-design.md
+            2026-10-08-document-architecture-design.md
             2026-10-08-document-workspace-ui-design.md
     PROJECT_STATUS.md
     Simplicitor_BugFixes_and_Features.md
@@ -1218,14 +1222,14 @@ requirements.txt
 
 - .github/workflows/build.yml: yml, 47 lines
 - .gitignore: text, 84 lines
-- AGENTS.md: md, 174 lines
+- AGENTS.md: md, 181 lines
 - BUILD_STORY.md: md, 84 lines
 - CHANGELOG.md: md, 40 lines
-- CLAUDE.md: md, 174 lines
+- CLAUDE.md: md, 181 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- PRD.md: md, 112 lines
-- README.md: md, 106 lines
+- PRD.md: md, 142 lines
+- README.md: md, 114 lines
 - SECURITY.md: md, 23 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
@@ -1237,7 +1241,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 83 lines
+- docs/PROJECT_STATUS.md: md, 99 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -1263,7 +1267,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 63 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 123 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 73 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines
 - requirements-dev.txt: txt, 3 lines

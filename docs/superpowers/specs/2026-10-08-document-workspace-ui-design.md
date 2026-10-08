@@ -6,7 +6,7 @@ Updated 2026-10-08. UI design proposal with an interactive example, not an imple
 
 Give nontechnical people with local Ollama a consistent way to create and selectively edit confidential Word, Excel, and PowerPoint documents. Contracts, financial workbooks, proposals, policies, and presentations are representative documents. Timesheets are one example, not the product's identity.
 
-The user has endorsed the Edit document and Create new modes and selecting what may change. This proposal develops that direction into a shared workspace. Active product requirements remain in [PRD.md](../../../PRD.md).
+The user has endorsed the Edit document and Create new modes and selecting what may change. On 2026-10-08 Alex also confirmed prompt-only creation, creation from supplied source files, and selective editing as the three intended workflows. This proposal develops that direction into a shared workspace. Active product requirements remain in [PRD.md](../../../PRD.md); the [architecture proposal](2026-10-08-document-architecture-design.md) includes source ingestion and analysis.
 
 ## Interactive example
 
@@ -14,7 +14,7 @@ Open [document-workspace.html](../../design/document-workspace.html) in a browse
 
 Use Open document to switch between a Word contract, an Excel forecast, and a PowerPoint briefing. Explore selection, comparisons, draft preview, revision, and approval. Create new demonstrates the same workspace for document generation.
 
-Use sample data only. Responses are preset and do not interpret instructions. The document views are illustrative HTML, not Office renderings. Model readiness and save results are simulated; no AI service is called and no document is written. The standalone example has no external resource dependencies. Drafts and selections survive switching between examples during the current browser session; this is not persistent document storage.
+Use sample data only. Responses are preset and do not interpret instructions. The document views are illustrative HTML, not Office renderings. Model readiness and save results are simulated; no AI service is called and no document is written. The standalone example has no external resource dependencies. Drafts and selections survive switching between examples during the current browser session; this is not persistent document storage. The current example does not demonstrate source attachments or source-based reporting; the requirements below extend its Create design.
 
 ## Shared layout
 
@@ -48,7 +48,17 @@ Formula edits, structural changes, chart updates, and layout redesign are outsid
 
 ## Create new
 
-Reuse the document area, instruction area, review, and save actions. Replace target selection with document type and a request. Preserve existing PowerPoint template generation; do not imply that Word or Excel template engines already exist.
+Reuse the document area, instruction area, review, and save actions. Show Describe your document, Output type, and Source files (optional). The same mode supports both a prompt alone and a prompt with local source files. Preserve existing PowerPoint template generation; do not imply that Word or Excel template engines already exist.
+
+| User action | Workflow |
+|---|---|
+| Create new, with a prompt | Generate a document from the instructions. |
+| Create new, with a prompt and source files | Read the sources and create a new document using their information. |
+| Edit document | Modify approved parts of an existing document. |
+
+Attached sources are visibly read-only. When necessary, use the document area to inspect sheets, tables, or passages and confirm source scope before generating. Show which sources, ranges, and period the report covers. A relevant clarification is preferable to silently choosing a reporting scope.
+
+For Excel-to-Word reporting, the local analysis computes supported figures and the model writes the explanation. Review must expose source references, numerical evidence, missing data, and coverage limitations alongside the output preview. The user approves the new Word file; the source workbook remains unchanged. These controls do not grant permission to edit source files.
 
 ## Implementation boundaries
 
