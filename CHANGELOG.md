@@ -7,6 +7,8 @@
 
 ## Unreleased extraction development
 
+- Accept grounded currency-bearing numbers and normalize blank model values to null. The selected Qwen rerun passes at 277/280 with zero unflagged wrong values; see docs/evaluation/2026-10-08-task1-qwen-currency-null.md.
+- Add Task 2 core transport, column suggestions, conservative context-based sections, retained proposals/coverage, and cooperative cancellation. XLSX output and UI integration remain planned.
 - Reject partial-token evidence in both quotes and their source context; accept ordinal English dates and read Word headers/footers with dedicated anchors.
 - Replace fixture-specific prompt hints with generic rules and plain column definitions. Expand the gate to 28 files/280 fields with eight prose documents.
 - Rerun both candidates: Qwen passes the overall gate at 97.14%; Llama fails accuracy at 93.57%. Narrative subgroup limitations and full counts are in docs/evaluation/2026-10-08-task1-rerun.md.

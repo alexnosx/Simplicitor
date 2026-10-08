@@ -373,5 +373,6 @@
   "run_date": "2026-10-08",
   "benchmark": "B1",
   "ollama_version": "0.32.13",
-  "change_scope": "Currency conversion and blank-to-null handling only; prompt, fixtures, labels, request settings, and quality thresholds unchanged."
+  "change_scope": "Currency conversion and blank-to-null handling only; prompt, fixtures, labels, request settings, and quality thresholds unchanged.",
+  "source_commit": "b0c068ac27656c63150f86b7094e7c6ad41d5545"
 }

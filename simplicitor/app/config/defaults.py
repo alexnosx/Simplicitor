@@ -48,6 +48,7 @@ EXTRACTION_JOB_RETENTION_HOURS = 24
 EXTRACTION_NUM_CTX = 16384
 EXTRACTION_NUM_PREDICT = 4096
 EXTRACTION_TIMEOUT_S = 180
+EXTRACTION_TEMPLATE_TOKEN_RESERVE = 256
 
 # ── PowerPoint layout indices (standard Blank template) ──────────────────────
 PPTX_LAYOUT_TITLE_SLIDE = 0       # "Title Slide" layout

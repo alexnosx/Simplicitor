@@ -156,3 +156,46 @@ def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value):
     score = score_results({("one", "email"): ScoredField(field.data_value, field.flagged)},
                           {("one", "email"): ExpectedField(None, "text")})
     assert score.correct == 1 and score.flagged_expected_missing == 1
+
+
+def test_unknown_extra_record_flags_but_retains_the_identifiable_requested_proposal(tmp_path):
+    import json
+    from extraction.models import ColumnSpec, SourceDocument, SourceUnit
+    from scripts.evaluate_extraction import parse_fields
+
+    source = SourceDocument("one", tmp_path / "a.docx", "a", (
+        SourceUnit("one#p:0", "ID 00123", "paragraph", 0),
+    ), 1)
+    response = json.dumps({"records": [
+        {"record_id": "unknown", "fields": {}},
+        {"record_id": "one", "fields": {
+            "id": {"value": "00123", "quote": "ID 00123", "anchor": "one#p:0"}}},
+    ]})
+    field = parse_fields(response, source, (ColumnSpec("id", "ID", ""),))["id"]
+    assert field.flagged and "invalid_response_schema" in field.issues
+    assert field.data_value == "00123"
+
+
+def test_actual_file_evaluation_counts_a_failed_request_instead_of_skipping_it(tmp_path, monkeypatch):
+    import json
+    from docx import Document
+    from scripts import evaluate_extraction as cli
+
+    doc = Document()
+    doc.add_paragraph("ID 00123")
+    doc.save(tmp_path / "one.docx")
+    (tmp_path / "labels.json").write_text(json.dumps({"id": "00123"}))
+    (tmp_path / "manifest.json").write_text(json.dumps({"cases": [{
+        "id": "one", "file": "one.docx", "labels": "labels.json", "columns": [
+            {"id": "id", "label": "ID", "description": "Identifier", "kind": "text"}]}]}))
+    (tmp_path / "profiles.json").write_text(json.dumps({"candidates": [
+        {"name": "qwen3:8b", "model": "qwen"}]}))
+    monkeypatch.setattr(cli, "_model_details", lambda *_: {"parameter_count": 8_000_000_000})
+    def fail_request(*args):
+        raise cli.EvaluationError("ollama_timeout")
+    monkeypatch.setattr(cli, "call_ollama", fail_request)
+    report = cli.evaluate(tmp_path / "manifest.json", tmp_path / "profiles.json", "http://localhost")
+    candidate = report["candidates"][0]
+    assert candidate["total"] == 1 and candidate["correct"] == 0
+    assert candidate["unflagged_wrong"] == 0
+    assert candidate["fixtures"][0]["request_error"] == "ollama_timeout"

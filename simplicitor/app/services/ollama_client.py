@@ -2,6 +2,8 @@
 # Phase 2: Ollama REST client
 import logging
 from dataclasses import dataclass, field
+import ipaddress
+from urllib.parse import urlsplit
 
 import requests
 
@@ -32,6 +34,14 @@ class OllamaTimeoutError(OllamaConnectionError):
 class OllamaGenerationError(Exception):
     """Raised when the Ollama API returns an unexpected or error response during generation."""
     pass
+
+
+class OllamaOutputLimitError(OllamaGenerationError):
+    """A bounded extraction reply ended early; retain its proposal text for review."""
+
+    def __init__(self, response_text: str) -> None:
+        super().__init__("The model reached its output limit. Review the incomplete result.")
+        self.response_text = response_text
 
 
 @dataclass
@@ -190,6 +200,10 @@ class OllamaClient:
         system: str,
         output_format: dict | str | None = None,
         timeout: int | None = None,
+        *,
+        options: dict | None = None,
+        think: bool | None = None,
+        local_only: bool = False,
     ) -> str:
         """Send a generation request to ``/api/generate`` and return the response text.
 
@@ -201,6 +215,9 @@ class OllamaClient:
                 Use ``"json"`` to request JSON output (universally supported), or a
                 JSON Schema dict for structured output (newer Ollama / model support required).
             timeout: Request timeout in seconds. Defaults to ``OLLAMA_TIMEOUT_S``.
+            options: Optional Ollama generation settings, copied into the request.
+            think: Optional thinking policy; omitted for existing callers.
+            local_only: Require loopback and disable environment proxies for extraction.
 
         Returns:
             The ``"response"`` field from the Ollama API JSON reply.
@@ -219,8 +236,15 @@ class OllamaClient:
         }
         if output_format is not None:
             body["format"] = output_format
+        if options is not None:
+            body["options"] = dict(options)
+        if think is not None:
+            body["think"] = think
 
         effective_timeout = timeout if timeout is not None else OLLAMA_TIMEOUT_S
+
+        if local_only:
+            return self._generate_local(body, effective_timeout)
 
         try:
             response = requests.post(
@@ -244,6 +268,38 @@ class OllamaClient:
                 f"Ollama response missing 'response' key. Got: {list(data.keys())}"
             )
 
+        return data["response"]
+
+    def _generate_local(self, body: dict, timeout: int) -> str:
+        try:
+            parsed = urlsplit(self._base_url)
+            local = (parsed.hostname == "localhost"
+                     or ipaddress.ip_address(parsed.hostname).is_loopback)
+            if (parsed.scheme not in ("http", "https") or parsed.username
+                    or parsed.password or not local):
+                raise ValueError
+        except ValueError:
+            raise OllamaGenerationError("Extraction requires a local loopback Ollama URL.") from None
+        try:
+            with requests.Session() as session:
+                session.trust_env = False
+                response = session.post(
+                    self._base_url.rstrip("/") + OLLAMA_GENERATE_ENDPOINT,
+                    json=body, timeout=timeout,
+                )
+                if response.status_code != 200:
+                    raise OllamaGenerationError("The local model request failed. Check Ollama.")
+                data = response.json()
+        except requests.Timeout:
+            raise OllamaTimeoutError("The local model timed out. Retry or use fewer columns.") from None
+        except requests.RequestException:
+            raise OllamaConnectionError("Could not reach local Ollama. Check that it is running.") from None
+        except ValueError:
+            raise OllamaGenerationError("The local model returned invalid JSON. Retry the request.") from None
+        if not isinstance(data, dict) or not isinstance(data.get("response"), str):
+            raise OllamaGenerationError("The local model returned an invalid response. Retry.")
+        if data.get("done_reason") == "length" or data.get("done") is False:
+            raise OllamaOutputLimitError(data["response"])
         return data["response"]
 
     def chat_completion(

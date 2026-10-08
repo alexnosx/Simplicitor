@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Approved by Alex. Execute Tasks 0 and 1 now, then report both candidate scores before Task 2.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 and 1 are approved and complete. Current authorization covers the currency/null fixes, selected-Qwen rerun, and Task 2. Stop before Task 3.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Tasks 0 and 1 are authorized. Report both candidate scores before Task 2, pass or fail. Commit, push, new dependencies, and release publication retain their explicit authorization gates.
+- Task 2 is authorized after the selected-Qwen rerun. Commit/push to main are authorized for this scope. New dependencies and release publication require separate explicit authorization. Stop before Task 3.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -31,7 +31,7 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 ## Work order
 
-Task 0 prepares v1.2.1 independently, with publication after Alex's explicit go. Task 1 contains readers and the actual-file gate. Report both scores before proceeding to Task 2 (production requests/column proposals/conditional sectioning), regardless of pass or fail. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution stops after Task 1.
+Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution stops after Task 2.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
@@ -82,7 +82,9 @@ def test_quality_boundaries():
 - [x] Score FieldResult.data_value and independently generated flags. Count malformed/missing responses as failures rather than skipped fixtures. Labels are scorer-only. Report candidate/settings and optional timings.
 - [x] Run both PRD candidates on B1 and optional separately marked larger references. **Stop gate:** if neither candidate passes, stop extraction/installer work and report, even if a reference passes. Otherwise select by accuracy and review burden. The safety release remains independent.
 
-Revision complete: token boundaries are checked in both quote and source context; DOCX headers/footers and ordinal dates are supported. Generic prompt/column definitions and eight narrative documents expand the corpus to 28 files/280 fields. The [rerun report](../../evaluation/2026-10-08-task1-rerun.md) records Qwen passing and Llama failing accuracy, with subgroup limits disclosed. Full isolated suite: 732 passed. Both scores have been reported; Task 2 has not started.
+Revision complete: token boundaries are checked in both quote and source context; DOCX headers/footers and ordinal dates are supported. Generic prompt/column definitions and eight narrative documents expand the corpus to 28 files/280 fields. The [rerun report](../../evaluation/2026-10-08-task1-rerun.md) records Qwen passing and Llama failing accuracy, with subgroup limits disclosed. The earlier scores have been reported; this is a historical gate result.
+
+Latest Task 1 result: after the two approved currency/null fixes, the [selected-Qwen rerun](../../evaluation/2026-10-08-task1-qwen-currency-null.md) passed with unchanged prompt, corpus, labels, settings, and thresholds. This is the prerequisite result for Task 2; the earlier reports remain historical.
 
 **Verify:** python -m pytest tests/extraction/test_source_readers.py tests/extraction/test_grounding.py tests/extraction/test_evaluation.py -q, then python scripts/evaluate_extraction.py --manifest tests/extraction/fixtures/manifest.json --profiles tests/extraction/fixtures/profiles.json --report .venv/evaluation/actual-files.json. Required: focused tests pass and at least one candidate passes the PRD gate on actual fixture files.
 
@@ -91,13 +93,17 @@ Revision complete: token boundaries are checked in both quote and source context
 **Create:** simplicitor/extraction/sectioning.py, simplicitor/extraction/pipeline.py; tests/extraction/test_sectioning.py, tests/extraction/test_pipeline.py.
 **Modify:** simplicitor/extraction/models.py, simplicitor/app/services/ollama_client.py, tests/test_ollama_client.py.
 
-**Interfaces:** ExtractionProfile(model, options, timeout); Section(section_id, source_id, unit_ids); ExtractionResult(ordered_source_ids, fields, source_paths, issues, coverage). make_sections(documents: tuple[SourceDocument, ...], profile: ExtractionProfile) -> tuple[Section, ...]; propose_columns(request: str, first_source: SourceDocument, profile: ExtractionProfile, client: OllamaClient, cancel: Event) -> tuple[ColumnSpec, ...]; extract(documents: tuple[SourceDocument, ...], columns: tuple[ColumnSpec, ...], request: str, profile: ExtractionProfile, client: OllamaClient, cancel: Event, progress: Callable) -> ExtractionResult. ExtractionCancelled distinguishes cancellation. Add optional keyword-only options: dict | None = None, think: bool | None = None, local_only: bool = False to OllamaClient.generate, preserving old defaults and string return.
+**Interfaces:** ExtractionProfile(model, options, timeout) merges shared defaults with explicit options; Section(section_id, source_id, unit_ids, excluded=False); ExtractionResult(ordered_source_ids, fields, source_paths, issues, coverage), where coverage maps each anchor to processed, excluded, or failed. FieldResult.alternatives retains additional proposals with their quotes/anchors. make_sections(documents, profile, *, columns=(), request="", carried_fields=None) returns sections; production callers supply the confirmed request context so schema/instructions/carry count against the budget. propose_columns(request, first_source, profile, client, cancel) returns ColumnSpecs. extract(documents, columns, request, profile, client, cancel, progress=None) returns ExtractionResult; progress receives source_id, section_id, completed units, total units. ExtractionCancelled discards cancelled/late results. OllamaClient.generate adds keyword-only options, think, and local_only, preserving old defaults and string return; OllamaOutputLimitError retains response_text separately from its safe message.
 
-- [ ] Test the added client arguments, JSON schema in format, loopback check, trust_env=False, and unchanged old caller payloads. Every new extraction and column-proposal call sends think=False.
-- [ ] Test first-source column suggestions, text fallback, English defaults/overrides, invalid output/manual recovery, and conditional ambiguous-date order. Implement the proposal call using the shared client.
-- [ ] Test a whole-file request when it fits, boundary cases after prompt/schema/output accounting, and context-derived non-overlapping sections only when necessary. Test oversized units and file-field accumulation. Implement conditional sections and calls without a fixed byte budget, truncation, or silently excluded units.
-- [ ] Test missing/unknown IDs, missing fields, invalid JSON, wrong evidence, conflicts, and output exhaustion. Keep the complete file/column roster, literal proposals, and issues.
-- [ ] Test timeout and cooperative cancellation, including a late response. Implement actionable errors, retained setup, and coverage accounting.
+**Shared helpers:** request_format.py owns the unchanged extraction SYSTEM_PROMPT and serialized request, used by both the direct gate and production. Grounding owns parse_fields and failed_fields. The conservative context estimate is defined in architecture; no tokenizer dependency is added.
+
+- [x] Test the added client arguments, JSON schema in format, loopback check, trust_env=False, and unchanged old caller payloads. Every new extraction and column-proposal call sends think=False.
+- [x] Test first-source column suggestions, text fallback, English defaults/overrides, invalid output/manual recovery, and conditional ambiguous-date order. Implement the proposal call using the shared client.
+- [x] Test a whole-file request when it fits, boundary cases after prompt/schema/output accounting, and context-derived non-overlapping sections only when necessary. Test oversized units and file-field accumulation. Implement conditional sections and calls without a fixed byte budget, truncation, or silently excluded units.
+- [x] Test missing/unknown IDs, missing fields, invalid JSON, wrong evidence, conflicts, and output exhaustion. Keep the complete file/column roster, literal proposals, and issues.
+- [x] Test timeout and cooperative cancellation, including a late response. Implement actionable errors, retained setup, and coverage accounting.
+
+Result: the final isolated source suite passed 793 tests. Fresh review's lost-schema-failure finding was reproduced in four tests covering both section orders, fixed, and checked green. All original gate fixtures still plan as whole-file requests under the production budget. No new live-model Task 2 gate was run; full saved-output evaluation remains Task 6. Task 3 has not started.
 
 **Verify:** python -m pytest tests/test_ollama_client.py tests/extraction/test_sectioning.py tests/extraction/test_pipeline.py -q. Required: unit checks pass. No additional model gate runs here; the full-pipeline evaluation belongs to Task 6.
 

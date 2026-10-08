@@ -1,6 +1,6 @@
 # Task 1 Qwen rerun after currency and null fixes
 
-Run date: 2026-10-08 on [B1](../PROJECT_STATUS.md#benchmark-environment), Ollama 0.32.13. [JSON evidence](2026-10-08-task1-qwen-currency-null.json) records settings and per-fixture aggregates.
+Run date: 2026-10-08 on [B1](../PROJECT_STATUS.md#benchmark-environment), Ollama 0.32.13, source [b0c068a](https://github.com/alexnosx/Simplicitor/commit/b0c068ac27656c63150f86b7094e7c6ad41d5545). [JSON evidence](2026-10-08-task1-qwen-currency-null.json) records settings and per-fixture aggregates.
 
 The selected qwen3:8b Q4_K_M candidate scored **277/280 (98.93%)**, with **0/280 unflagged wrong values**: **PASS** under the unchanged 95% accuracy and 1% unflagged-error thresholds.
 

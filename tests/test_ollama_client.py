@@ -363,6 +363,54 @@ class TestGenerate:
         with pytest.raises(OllamaConnectionError):
             client.generate("llama3", "p", "s")
 
+    def test_local_extraction_uses_schema_options_and_proxy_free_session(self):
+        session = MagicMock()
+        session.__enter__.return_value = session
+        session.post.return_value = _mock_response(200, {"response": "result", "done_reason": "stop"})
+        schema = {"type": "object"}
+        options = {"num_ctx": 16384, "num_predict": 4096}
+        with patch("app.services.ollama_client.requests.Session", return_value=session):
+            result = OllamaClient(BASE_URL).generate(
+                "qwen3:8b", "prompt", "system", schema, 180,
+                options=options, think=False, local_only=True,
+            )
+        assert result == "result"
+        assert session.trust_env is False
+        assert session.post.call_args.kwargs == {
+            "json": {"model": "qwen3:8b", "prompt": "prompt", "system": "system",
+                     "stream": False, "format": schema, "options": options, "think": False},
+            "timeout": 180,
+        }
+
+    @pytest.mark.parametrize("url", ["https://remote.example", "http://user:pass@localhost:11434"])
+    def test_local_extraction_rejects_non_loopback_before_http(self, url):
+        with patch("app.services.ollama_client.requests.Session") as session:
+            with pytest.raises(OllamaGenerationError, match="local"):
+                OllamaClient(url).generate("qwen", "p", "s", local_only=True)
+        session.assert_not_called()
+
+    def test_local_output_limit_retains_partial_response_with_safe_error(self):
+        from app.services.ollama_client import OllamaOutputLimitError
+        session = MagicMock()
+        session.__enter__.return_value = session
+        session.post.return_value = _mock_response(200, {
+            "response": '{"records":', "done_reason": "length",
+        })
+        with patch("app.services.ollama_client.requests.Session", return_value=session):
+            with pytest.raises(OllamaOutputLimitError) as failure:
+                OllamaClient(BASE_URL).generate("qwen", "p", "s", local_only=True)
+        assert failure.value.response_text == '{"records":'
+        assert "records" not in str(failure.value)
+
+    @pytest.mark.parametrize("payload", [[], {"response": 42}, {"error": "backend details"}])
+    def test_local_invalid_response_fails_actionably(self, payload):
+        session = MagicMock()
+        session.__enter__.return_value = session
+        session.post.return_value = _mock_response(200, payload)
+        with patch("app.services.ollama_client.requests.Session", return_value=session):
+            with pytest.raises(OllamaGenerationError):
+                OllamaClient(BASE_URL).generate("qwen", "p", "s", local_only=True)
+
 
 # ---------------------------------------------------------------------------
 # chat_completion

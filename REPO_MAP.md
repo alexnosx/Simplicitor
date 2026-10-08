@@ -16,9 +16,9 @@ and 2026-10-08-document-workspace-ui-design.md. The one first-release execution 
 docs/superpowers/plans/2026-10-08-first-release-extraction.md. They link to requirements
 rather than maintaining competing scope or metric tables.
 
-The module map below describes existing source. Task 1 readers, grounding, and the
-evaluation CLI are implemented. Production extraction, XLSX output, and review UI
-remain in the architecture/plan.
+The module map below describes existing source. Readers, grounding, the evaluation
+CLI, and Task 2 production requests/column proposals/conditional sectioning are
+implemented. XLSX output, job handling, and review UI remain in the plan.
 
 | Module under simplicitor/ | Current responsibility |
 |---|---|
@@ -30,7 +30,7 @@ remain in the architecture/plan.
 | app/services/backup_service.py | Legacy filename-based backups. |
 | templates_engine/ | Manifest/import/prompt/validation/repair/rendering pipeline. |
 | app/config/defaults.py | Shared styling, timeouts, and limits. |
-| extraction/ | Anchored read-only DOCX/PDF sources, field schema, literal grounding, and type conversion. |
+| extraction/ | Anchored sources, field contracts, grounding/conversion, shared request format, context-based sections, and production/column-proposal pipeline. |
 
 scripts/evaluate_extraction.py runs the actual-file model gate directly against Ollama.
 scripts/build_extraction_fixtures.py regenerates the synthetic English fixture files.
@@ -166,6 +166,9 @@ simplicitor/
         __init__.py
         grounding.py
         models.py
+        pipeline.py
+        request_format.py
+        sectioning.py
         source_readers.py
     prompts/
         system_excel.txt
@@ -266,6 +269,8 @@ tests/
         test_evaluation.py
         test_fixtures.py
         test_grounding.py
+        test_pipeline.py
+        test_sectioning.py
         test_source_readers.py
     templates_engine/
         fixtures/
@@ -359,8 +364,6 @@ requirements.txt
 - def score_results(actual: Mapping[tuple[str, str], ScoredField], labels: Mapping[tuple[str, str], ExpectedField]) -> EvaluationReport: Score independent labels without feeding them into extraction or flags.
 - def _loopback_url(url: str) -> str
 - def call_ollama(url: str, model: str, source: SourceDocument, columns: tuple[ColumnSpec, ...], settings: dict) -> str: Send the complete fixture in one schema-constrained, thinking-off request.
-- def _failed_fields(columns: tuple[ColumnSpec, ...], issue: str) -> dict[str, FieldResult]
-- def parse_fields(response: str, source: SourceDocument, columns: tuple[ColumnSpec, ...]) -> dict[str, FieldResult]: Keep every requested field, including failures and absent proposals.
 - def _model_details(url: str, model: str) -> dict
 - def _expected(value: object, kind: str) -> ExpectedField
 - def evaluate(manifest: Path, profiles: Path, url: str) -> dict: Run both candidates on actual files; persist aggregate counts only.
@@ -459,6 +462,7 @@ requirements.txt
 - class OllamaConnectionError(Exception): Raised when a network-level error prevents reaching the Ollama API.
 - class OllamaTimeoutError(OllamaConnectionError): Raised when an Ollama API call exceeds its timeout.
 - class OllamaGenerationError(Exception): Raised when the Ollama API returns an unexpected or error response during generation.
+- class OllamaOutputLimitError(OllamaGenerationError): A bounded extraction reply ended early; retain its proposal text for review.
 - class OllamaStatus: Snapshot of Ollama connectivity state.
 - class OllamaClient: HTTP client for the Ollama local API.
 
@@ -569,6 +573,8 @@ requirements.txt
 - def _at_token_boundaries(text: str, start: int, end: int) -> bool
 - def _number(value: str, column: ColumnSpec) -> Decimal | int
 - def _date(value: str, order: str | None) -> date
+- def failed_fields(columns: tuple[ColumnSpec, ...], issue: str) -> dict[str, FieldResult]: Retain the complete requested column roster when no proposal can be mapped.
+- def parse_fields(response: str, source: SourceDocument, columns: tuple[ColumnSpec, ...]) -> dict[str, FieldResult]: Keep every requested field, including failures and absent proposals.
 
 ### simplicitor/extraction/models.py
 
@@ -578,7 +584,31 @@ requirements.txt
 - class ColumnSpec
 - class FieldProposal
 - class FieldResult
+- class ExtractionProfile: Explicit model/request settings, independent of hardware inspection.
+- class Section: A non-overlapping unit group, including visibly excluded oversized groups.
+- class ExtractionResult: The complete source/column roster, proposals, and per-unit coverage status.
 - def build_response_schema(columns: tuple[ColumnSpec, ...], record_ids: tuple[str, ...]) -> dict: Constrain structure while keeping every proposed value a literal string.
+
+### simplicitor/extraction/pipeline.py
+
+- class ExtractionError(ValueError): A sanitized, actionable setup or column-proposal failure.
+- class ExtractionCancelled(ExtractionError): Cooperative cancellation discards late replies and produces no result.
+- def _check_cancel(cancel: Event) -> None
+- def _call(prompt: str, system: str, schema: dict, profile: ExtractionProfile, client: OllamaClient, cancel: Event) -> str
+- def propose_columns(request: str, first_source: SourceDocument, profile: ExtractionProfile, client: OllamaClient, cancel: Event) -> tuple[ColumnSpec, ...]: Suggest editable columns from a labelled leading sample of the first source.
+- def ambiguous_date_columns(documents: tuple[SourceDocument, ...], columns: tuple[ColumnSpec, ...]) -> tuple[str, ...]: Return unconfirmed date columns only when sources contain ambiguous numeric dates.
+- def _merge(previous: FieldResult, current: FieldResult) -> FieldResult
+- def extract(documents: tuple[SourceDocument, ...], columns: tuple[ColumnSpec, ...], request: str, profile: ExtractionProfile, client: OllamaClient, cancel: Event, progress: Callable[[str, str, int, int], None] | None=None) -> ExtractionResult: Extract all confirmed fields, retaining every proposal and source coverage failure.
+
+### simplicitor/extraction/request_format.py
+
+- def build_extraction_prompt(source: SourceDocument, columns: tuple[ColumnSpec, ...], request: str='', unit_ids: tuple[str, ...] | None=None, carried_fields: dict | None=None) -> str: Serialize actual source units and confirmed columns without labels or paths.
+
+### simplicitor/extraction/sectioning.py
+
+- class ContextBudgetError(ValueError): The configured request leaves no source budget; setup must be changed.
+- def request_fits(system: str, prompt: str, schema: dict, profile: ExtractionProfile) -> bool: Estimate one token per UTF-8 byte plus template and reserved output tokens.
+- def make_sections(documents: tuple[SourceDocument, ...], profile: ExtractionProfile, *, columns: tuple[ColumnSpec, ...]=(), request: str='', carried_fields: dict | None=None) -> tuple[Section, ...]: Keep whole files when estimated to fit; otherwise preserve structural groups.
 
 ### simplicitor/extraction/source_readers.py
 
@@ -688,6 +718,8 @@ requirements.txt
 - def test_invalid_evidence_keeps_identifiable_proposed_value(tmp_path)
 - def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_location)
 - def test_blank_model_values_are_absent_and_score_correctly(tmp_path, value)
+- def test_unknown_extra_record_flags_but_retains_the_identifiable_requested_proposal(tmp_path)
+- def test_actual_file_evaluation_counts_a_failed_request_instead_of_skipping_it(tmp_path, monkeypatch)
 
 ### tests/extraction/test_fixtures.py
 
@@ -709,6 +741,41 @@ requirements.txt
 - def test_currency_is_stripped_only_after_verbatim_grounding(value, want)
 - def test_currency_conversion_does_not_accept_labels_or_bad_numeric_grammar(value)
 - def test_blank_proposals_project_to_null(value)
+
+### tests/extraction/test_pipeline.py
+
+- def document(texts, source_id='one')
+- def profile(context=16384)
+- def reply(source_id, fields)
+- class Client
+- def test_small_files_use_one_complete_request_each_and_keep_distinct_records()
+- def test_columns_come_from_first_source_with_types_and_english_defaults()
+- def test_failed_column_suggestion_leaves_inputs_available_for_manual_recovery(output)
+- def test_numeric_date_order_is_required_only_for_ambiguous_source_dates()
+- def test_bad_or_missing_model_fields_never_remove_requested_rows_and_columns(response)
+- def test_wrong_evidence_keeps_the_literal_proposal_flagged()
+- def test_sectioned_fields_accumulate_and_conflicting_quotes_remain_visible()
+- def test_agreeing_section_evidence_is_retained_and_null_does_not_erase_a_value()
+- def test_oversized_unit_is_excluded_visibly_but_other_units_are_processed()
+- def test_timeout_and_output_exhaustion_keep_roster_and_failed_coverage()
+- def test_cancellation_before_request_and_after_late_response_returns_no_result()
+- def test_column_sample_is_leading_complete_units_and_explicitly_labelled()
+- def test_confirmed_number_overrides_are_used_without_changing_literal_evidence()
+- def test_carried_fields_are_rebudgeted_before_each_request()
+- def test_cancellation_between_sections_makes_no_second_request()
+- def test_source_coverage_issues_survive_a_successful_model_call()
+- def test_section_schema_failure_cannot_disappear_behind_a_valid_value(bad_first, bad_kind)
+- def test_prepared_documents_still_obey_the_aggregate_job_page_limit(last_pages, too_large)
+
+### tests/extraction/test_sectioning.py
+
+- def source(texts, groups=None)
+- def profile(context=4096, output=256)
+- def test_request_boundary_counts_system_prompt_schema_and_reserved_output()
+- def test_whole_file_larger_than_old_byte_limit_is_one_request_when_context_allows()
+- def test_small_context_sections_without_overlap_or_dropped_units()
+- def test_table_row_cells_stay_together_and_oversized_group_is_visible()
+- def test_carried_values_reduce_the_same_context_budget()
 
 ### tests/extraction/test_source_readers.py
 
@@ -1380,11 +1447,11 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 54 lines
+- CHANGELOG.md: md, 56 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
-- PRD.md: md, 112 lines
+- PRD.md: md, 114 lines
 - README.md: md, 87 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
@@ -1397,7 +1464,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 41 lines
+- docs/PROJECT_STATUS.md: md, 40 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -1406,7 +1473,7 @@ requirements.txt
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/code-signing.md: md, 41 lines
 - docs/design/document-workspace.html: html, 301 lines
-- docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 377 lines
+- docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
 - docs/evaluation/2026-10-08-task1-rerun.json: json, 780 lines
 - docs/evaluation/2026-10-08-task1-rerun.md: md, 27 lines
@@ -1423,7 +1490,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 167 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 173 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1432,7 +1499,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 107 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 112 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines

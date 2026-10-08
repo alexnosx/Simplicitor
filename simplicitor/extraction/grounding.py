@@ -2,9 +2,10 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
 import re
+import json
 from typing import Mapping
 
-from extraction.models import ColumnSpec, FieldProposal, FieldResult, SourceUnit
+from extraction.models import ColumnSpec, FieldProposal, FieldResult, SourceDocument, SourceUnit
 
 _MONTH_NAMES = (
     "january", "february", "march", "april", "may", "june",
@@ -126,3 +127,53 @@ def _date(value: str, order: str | None) -> date:
     if month_name not in _MONTHS:
         raise ValueError("invalid_month")
     return date(year, _MONTHS[month_name], day)
+
+
+def failed_fields(columns: tuple[ColumnSpec, ...], issue: str) -> dict[str, FieldResult]:
+    """Retain the complete requested column roster when no proposal can be mapped."""
+    return {c.id: FieldResult(FieldProposal(None, "", ""), None, True, (issue,)) for c in columns}
+
+
+def parse_fields(
+    response: str, source: SourceDocument, columns: tuple[ColumnSpec, ...]
+) -> dict[str, FieldResult]:
+    """Keep every requested field, including failures and absent proposals."""
+    try:
+        payload = json.loads(response)
+        if not isinstance(payload, dict):
+            raise ValueError
+        records = payload["records"]
+        if not isinstance(records, list):
+            raise ValueError
+        matching = [r for r in records if isinstance(r, dict)
+                    and r.get("record_id") == source.source_id]
+        if len(matching) != 1:
+            raise ValueError
+        record = matching[0]
+        if not isinstance(record["fields"], dict):
+            raise ValueError
+        fields = record["fields"]
+        schema_issue = (len(records) != 1 or set(payload) != {"records"}
+                        or set(record) != {"record_id", "fields"}
+                        or bool(set(fields) - {c.id for c in columns}))
+    except (ValueError, TypeError, KeyError):
+        return failed_fields(columns, "invalid_response_schema")
+    units = {u.anchor: u for u in source.units}
+    results = {}
+    for column in columns:
+        value = fields.get(column.id)
+        if (not isinstance(value, dict) or set(value) != {"value", "quote", "anchor"}
+                or not isinstance(value["quote"], str) or not isinstance(value["anchor"], str)
+                or (value["value"] is not None and not isinstance(value["value"], str))):
+            raw = value.get("value") if isinstance(value, dict) else None
+            if raw is not None and not isinstance(raw, str):
+                raw = json.dumps(raw, ensure_ascii=False)
+            proposal = FieldProposal(raw, "", "")
+            results[column.id] = FieldResult(proposal, None, True, ("invalid_field_schema",))
+        else:
+            results[column.id] = validate_field(FieldProposal(**value), column, units)
+        if schema_issue:
+            previous = results[column.id]
+            results[column.id] = FieldResult(previous.proposal, None, True,
+                                             previous.issues + ("invalid_response_schema",))
+    return results
