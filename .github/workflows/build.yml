@@ -23,14 +23,27 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install -r requirements-build.txt
+
+      - name: Run source tests on hosted runner
+        shell: pwsh
+        run: |
+          $env:USERPROFILE = Join-Path $env:RUNNER_TEMP 'simplicitor-tests'
+          $env:APPDATA = Join-Path $env:USERPROFILE 'AppData/Roaming'
+          $env:LOCALAPPDATA = Join-Path $env:USERPROFILE 'AppData/Local'
+          python -m pytest -q --basetemp "$env:RUNNER_TEMP/simplicitor-pytest"
 
       - name: Generate icon
         run: python resources/create_icon.py
 
       - name: Build standalone, installer, and portable ZIP
         run: python build.py
+
+      - name: Qualify installer on hosted Windows runner
+        timeout-minutes: 5
+        shell: pwsh
+        run: ./scripts/qualify_windows_installer.ps1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -40,6 +53,7 @@ jobs:
             dist/Simplicitor-setup.exe
             dist/Simplicitor-portable.zip
             dist/SHA256SUMS.json
+            dist/installer-qualification.json
           if-no-files-found: error
 
       - name: Publish to GitHub Release

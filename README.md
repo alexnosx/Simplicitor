@@ -33,7 +33,7 @@ python resources/create_icon.py
 python build.py
 ```
 
-The build script (`build.py`) uses pinned Nuitka 4.2.2 with the PySide6 plugin to compile a standalone payload, create a current-user NSIS installer, and archive that same payload. Outputs are `dist\Simplicitor-setup.exe`, `dist\Simplicitor-portable.zip`, and `dist\SHA256SUMS.json`. No installer is run by the build. See [packaging procedures and qualification limits](docs/code-signing.md) before testing or distributing these unpublished artifacts.
+The build script (`build.py`) uses pinned Nuitka 4.2.2 with the PySide6 plugin to compile a standalone payload, create a current-user NSIS installer, and archive that same payload. Outputs are `dist\Simplicitor-setup.exe`, `dist\Simplicitor-portable.zip`, and `dist\SHA256SUMS.json`. Product version is 2.0.0.0 (unreleased). No installer is run by the build. Installer lifecycle qualification runs only on the hosted GitHub Actions Windows runner; do not run its script on a local PC. See [packaging procedures and qualification limits](docs/code-signing.md) before testing or distributing these unpublished artifacts.
 
 ### Run from source without building
 

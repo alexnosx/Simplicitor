@@ -12,7 +12,6 @@ Run from the repository root (the directory containing this file).
 import hashlib
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -50,7 +49,7 @@ NUITKA_FLAGS = [
     f"--include-data-dir={ASSETS_DIR}=assets",
     f"--windows-icon-from-ico={ICON}",
     "--windows-product-name=Simplicitor",
-    "--windows-product-version=1.2.1.0",
+    "--windows-product-version=2.0.0.0",
     "--windows-company-name=Simplicitor",
     "--windows-file-description=Private local document workspace",
     "--output-filename=Simplicitor",
@@ -60,50 +59,6 @@ NUITKA_FLAGS = [
 def _sha256(path: Path) -> str:
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
-
-
-def correct_uninstall(script: str, payload: Path) -> str:
-    """Replace the pinned backend's exact recursive removal with owned-file removal."""
-    marker = '  RMDir /r "$INSTDIR"\n'
-    section = 'Section "Uninstall"\n'
-    if script.count(section) != 1 or script.count(marker) != 1:
-        raise ValueError("Unexpected Nuitka uninstall script; review the pinned backend.")
-    uninstall = script.split(section, 1)[1].split("SectionEnd", 1)[0]
-    if marker not in uninstall:
-        raise ValueError("Unexpected Nuitka uninstall section; refusing correction.")
-
-    def relative(path: Path) -> str:
-        return str(path.relative_to(payload)).replace("$", "$$")
-
-    files = sorted((p for p in payload.rglob("*") if p.is_file()),
-                   key=lambda p: p.relative_to(payload).as_posix())
-    directories = sorted((p for p in payload.rglob("*") if p.is_dir()),
-                         key=lambda p: (-len(p.parts), str(p)))
-    commands = [f'  Delete "$INSTDIR\\{relative(p)}"' for p in files]
-    commands += [f'  RMDir "$INSTDIR\\{relative(p)}"' for p in directories]
-    commands.append('  RMDir "$INSTDIR"')  # Non-recursive: user files keep their directory.
-    return script.replace(marker, "\n".join(commands) + "\n")
-
-
-def rebuild_installer(payload: Path, installer: Path) -> None:
-    """Correct Nuitka's generated script and compile it with the same NSIS tool."""
-    scripts = list(payload.parent.glob("*.installer-build/installer.nsi"))
-    if len(scripts) != 1 or not installer.is_file():
-        raise ValueError("Missing or ambiguous Nuitka installer outputs.")
-    script = scripts[0]
-    corrected = correct_uninstall(script.read_text(encoding="utf-8"), payload)
-    tool = shutil.which("makensis")
-    if tool is None:
-        cached = list(Path(os.environ["NUITKA_CACHE_DIR"]).glob(
-            "downloads/makensis/*/nsis-*/makensis.exe"))
-        if len(cached) != 1:
-            raise ValueError("Missing or ambiguous cached NSIS compiler.")
-        tool = str(cached[0])
-    script.write_text(corrected, encoding="utf-8")
-    installer.unlink()  # Never retain the original recursive uninstaller as a valid artifact.
-    result = subprocess.run([tool, "/V2", str(script)], cwd=script.parent)
-    if result.returncode:
-        raise ValueError(f"Corrected installer compilation failed ({result.returncode}).")
 
 
 def package_payload(payload: Path, installer: Path) -> None:
@@ -164,7 +119,6 @@ def main() -> int:
         return result.returncode
 
     try:
-        rebuild_installer(output / "main.dist", installer)
         package_payload(output / "main.dist", installer)
     except (OSError, ValueError) as exc:
         for path in (installer, DIST_DIR / "Simplicitor-portable.zip", DIST_DIR / "SHA256SUMS.json"):

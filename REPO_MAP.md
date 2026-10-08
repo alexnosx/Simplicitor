@@ -125,6 +125,7 @@ scripts/
     evaluate_extraction.py
     gen_repo_map.py
     inspect_template.py
+    qualify_windows_installer.ps1
 simplicitor/
     app/
         config/
@@ -353,8 +354,6 @@ requirements.txt
 ### build.py
 
 - def _sha256(path: Path) -> str
-- def correct_uninstall(script: str, payload: Path) -> str: Replace the pinned backend's exact recursive removal with owned-file removal.
-- def rebuild_installer(payload: Path, installer: Path) -> None: Correct Nuitka's generated script and compile it with the same NSIS tool.
 - def package_payload(payload: Path, installer: Path) -> None: Validate resources and archive exactly the payload supplied to NSIS.
 - def main() -> int: Compile once with Nuitka's NSIS backend, then package the same payload.
 
@@ -1187,15 +1186,12 @@ requirements.txt
 
 - def payload(tmp_path, monkeypatch)
 - def make_payload(payload)
-- def make_script(payload)
-- def test_corrected_uninstall_removes_only_packaged_files_and_empty_directories(tmp_path)
-- def test_unexpected_nuitka_uninstall_script_fails_closed(tmp_path, script)
+- def test_build_flags_keep_per_user_builtin_installer()
+- def test_product_version_is_2000()
 - def test_build_produces_matching_portable_payload_and_installer(payload, monkeypatch)
 - def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch, missing)
 - def test_compiler_failure_is_propagated(payload, monkeypatch)
 - def test_missing_icon_fails_before_compilation(payload, monkeypatch)
-- def test_unsafe_installer_is_removed_if_correction_cannot_be_applied(payload, monkeypatch)
-- def test_cached_nsis_selects_nuitkas_root_entry_not_duplicate_bin(payload, monkeypatch)
 
 ### tests/test_cli.py
 
@@ -1594,11 +1590,11 @@ requirements.txt
 
 ## Other files
 
-- .github/workflows/build.yml: yml, 53 lines
+- .github/workflows/build.yml: yml, 67 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 63 lines
+- CHANGELOG.md: md, 65 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1623,7 +1619,7 @@ requirements.txt
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
-- docs/code-signing.md: md, 51 lines
+- docs/code-signing.md: md, 54 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
@@ -1642,7 +1638,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 181 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 180 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1658,6 +1654,7 @@ requirements.txt
 - requirements-dev.txt: txt, 3 lines
 - requirements.txt: txt, 9 lines
 - resources/icon.ico: ico (binary)
+- scripts/qualify_windows_installer.ps1: ps1, 152 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
 - simplicitor/prompts/system_manipulate.txt: txt, 13 lines
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines

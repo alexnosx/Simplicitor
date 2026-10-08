@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 4 and their fixes are accepted; v1.2.1 is published. Current authorization covers the two saved-grid UI fixes and Task 5 packaging. Commit/push to main are authorized. Do not tag, publish, or start Task 6. Alex has no clean Windows environment: do not execute installers, modify registry/shortcuts, or uninstall on his PC without new explicit approval.
+- Tasks 0 through 5 implementation and UI fixes are accepted. Current scope is removal of the uninstall-script correction, product version 2.0.0.0, and hosted GitHub Actions Windows installer qualification/evidence. Commit/push to main are authorized. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or start Task 6.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.

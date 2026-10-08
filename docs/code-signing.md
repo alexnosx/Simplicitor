@@ -17,24 +17,27 @@ Outputs:
 - `dist/Simplicitor-portable.zip`: the exact same payload under a Simplicitor folder.
 - `dist/SHA256SUMS.json`: SHA-256 hashes of the two artifacts and every payload file.
 
-The installer offers Desktop and Start Menu shortcuts and registers the Windows uninstaller. Its normal directory is `%LOCALAPPDATA%\Programs\Simplicitor`; the directory-selection page is disabled to keep it dedicated to runtime files. Nuitka remembers an existing install directory for upgrades. Hiding the chooser does not force a dedicated directory: registry state and NSIS's [/D override](https://nsis.sourceforge.io/Docs/Chapter3.html#installerusage) can still select another path. Close the app before installing/upgrading. The earlier onefile download has no installer registration: installing this payload leaves that manually downloaded executable alone.
+The installer offers Desktop and Start Menu shortcuts and registers the Windows uninstaller. It uses current-user mode and disables the folder chooser, with `%LOCALAPPDATA%\Programs\Simplicitor` as the dedicated runtime directory. Keep Nuitka's built-in uninstaller; no generated-script rewriting or cached-makensis lookup is performed. Its uninstaller removes that runtime directory. Settings remain in `%APPDATA%\Simplicitor`, and templates/documents in their configured locations (normally `Documents\Simplicitor`), outside the program directory. The portable build uses these same user-data locations.
 
-Settings remain in `%APPDATA%\Simplicitor`, templates/documents in their configured locations (normally `Documents\Simplicitor`). The portable build uses these same user-data locations; portable means the runtime can be moved, not that all user data stays beside it. The stock Nuitka uninstaller recursively deletes its runtime directory. Under Alex's approved fallback, build.py requires that exact removal line in the generated Uninstall section, replaces it with Delete instructions for packaged files and non-recursive RMDir instructions, and recompiles with the same NSIS tool. If the expected text is absent/changed/duplicated or correction compilation fails, the build fails and discards the installer/archive/hash outputs. Other files are retained, including files in subdirectories; non-empty directories remain. Packaged runtime/resource files themselves are installer-owned and are removed. This source/build contract is tested; actual installation/uninstall behavior remains unverified.
+Product version is **2.0.0.0**, unreleased. A main-branch push produces CI artifacts. A version-tag push enters the existing release route, but tagging/releasing/publication are not authorized.
 
-These are unpublished development artifacts. Their executable metadata retains 1.2.1.0 from the existing build pending the next release-version decision; they do not replace the published v1.2.1 asset. A main-branch push uploads CI artifacts only. Only a version-tag push enters the existing release step, and no tag/publication is authorized for Task 5.
+## Runner-only installer qualification
 
-## Qualification procedure
+Alex's PC must not run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests. Local checks for this revision are limited to the required build flags/version and PowerShell syntax parsing. Do not execute the qualification script locally, including through mocks or a dry-run harness.
 
-Source tests and an archive hash comparison do not prove installation or clean-machine behavior. Record each check separately in the [local packaging evidence](builds/2026-10-08-task5.json).
+The build workflow runs the source suite on a hosted Windows runner, builds the payload/setup/ZIP, then invokes [qualify_windows_installer.ps1](../scripts/qualify_windows_installer.ps1). The script checks GitHub Actions, Windows, and github-hosted environment markers before any installation action, and refuses pre-existing installation/profile test state.
 
-1. Build with `python build.py`. Inspect the generated NSIS script for per-user scope, install/uninstall paths, shortcut targets, and payload source. Compare every ZIP member with the standalone payload and SHA256SUMS.json.
-2. Launch the ZIP payload with a working directory outside the checkout, using a fresh profile whose USERPROFILE/APPDATA/LOCALAPPDATA point into test scratch. Check prompts, icon, template discovery, source readers, extraction/review/Save As, and normal close. Preserve source hashes. A developer-PC run is local evidence only.
-3. On clean Windows without Python or Office, use the PRD prerequisites and default security protection. Check missing runtime/model messages, the non-blocking warning, the extraction scenario, cancellation/failure, Save As overwrite/source refusal, and cleanup. Record Windows/security-product versions and the exact warning or detection, affected file, and artifact hash. Do not weaken protection.
-4. With approval for the specific test account/machine, install using the current-user setup. Check Desktop/Start Menu shortcut targets and Apps uninstall registration; launch through a shortcut.
-5. Before upgrading, hash synthetic settings, a custom template, and saved documents outside the runtime directory. Install a subsequent test build over the first without changing data locations. Verify runtime replacement, shortcut/registration state, all user-data hashes, template discovery, and normal launch. Test a prior onefile user's existing settings/template locations too.
-6. Run the registered uninstaller only on that approved test installation. Verify runtime files, shortcuts, and uninstall registration are removed, while all external settings/templates/documents retain their hashes. Reinstall and verify those settings/templates are reused.
+The runner performs these checks in sequence; a failed check fails the workflow:
 
-Alex has no clean Windows environment and requires explicit approval before installer execution, registry/shortcut changes, or uninstall on his PC. These checks must stay pending until an approved test environment is available. The build itself must never execute the setup/uninstaller. No clean-machine waiver has been granted for extraction packaging.
+1. Verify setup/ZIP hashes against the build manifest. Confirm the Ollama endpoint is unavailable.
+2. Install silently, verify the dedicated current-user folder, installed version/hash, both shortcut targets, and HKCU uninstall registration.
+3. Launch the installed executable from outside the checkout with QT_QPA_PLATFORM=offscreen. Confirm it remains running for 20 seconds without Ollama, then stop only that test process.
+4. Create a synthetic settings.json in app data, silently install again over the same installation, and verify the app and settings bytes survive unchanged.
+5. Silently uninstall only the fixed, verified test installation. Verify the runtime directory, shortcuts, and uninstall registration disappear while the synthetic settings file retains its hash.
+
+The passing script writes `dist/installer-qualification.json` with its commit/run URL, runner image/OS, check results, and setup/ZIP hashes. Upload this beside the installer, ZIP, and SHA256SUMS.json only after qualification passes. Record the first passing run in docs/builds/ and verify the workflow/artifact state through GitHub. The earlier [local evidence](builds/2026-10-08-task5.json) is historical and predates version 2.0.0.0 and removal of the correction.
+
+This headless hosted-runner lifecycle check does not establish a native extraction/Save As walkthrough, a machine without developer Python/Office, the Task 6 model-accuracy gate, or downloaded-file SmartScreen reputation. Those limits remain explicit; do not infer a release qualification or weaken Windows protection.
 
 ## Windows trust investigation
 

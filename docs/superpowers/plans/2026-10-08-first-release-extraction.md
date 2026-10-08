@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 4 and their fixes are accepted. Current authorization covers the two review-grid UI fixes and Task 5. Commit/push to main are authorized; do not tag, publish, or start Task 6.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 4 and their fixes are accepted. Current authorization covers the stock-installer/version 2.0.0.0 revision and hosted-runner installer qualification/evidence. Commit/push to main are authorized; do not tag, publish, or start Task 6.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Current authorization covers the two saved-grid UI fixes and Task 5. New dependencies and release publication require separate explicit authorization. No installer execution, registry/shortcut changes, or uninstall on Alex's PC without new explicit approval. No clean Windows environment is available. Stop before Task 6.
+- Current authorization covers the stock-installer/version 2.0.0.0 revision and hosted-runner installer qualification/evidence. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner. Stop before Task 6.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -31,7 +31,7 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 ## Work order
 
-Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution stops after Task 5; installation and clean-Windows checks need a permitted test environment.
+Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution stops after Task 5; installer lifecycle checks use the hosted Windows runner; broader release checks remain later.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
@@ -155,13 +155,12 @@ Result: the isolated full suite passes 953 tests. The native Windows walkthrough
 **Interfaces:** Keep the entry point and same standalone payload/resources for installer and ZIP. This is extraction packaging, independent of Task 0's existing-route patch release.
 
 - [x] Prepare standalone build/resource tests after the accepted extraction gate. Build and hash-check all bundled resources, correct compiled resource lookup, launch the portable payload with a working directory outside the checkout, and verify bundled runtimes and template seeding. Full packaged UI workflow remains below.
-- [x] Evaluate pinned Nuitka 4.2.2 built-in NSIS support. Hiding the folder chooser does not force placement because registry paths and /D override remain. Apply Alex's approved exact-text, fail-closed correction to the generated uninstall section, listing only packaged files and empty-directory removal; compile the corrected installer and test template drift.
-- [ ] Test actual current-user install, shortcuts, upgrade/uninstall, and user-data preservation on an approved test environment. Do not run setup on Alex's PC.
-- [ ] After Task 4, qualify the integrated artifacts on clean Windows under PRD prerequisites, without developer Python or Office. Test missing model/runtime, non-blocking model warnings, file extraction/columns/review, Save As, cancellation, and cleanup.
-- [x] Compare the ZIP and standalone payload inventories/hashes and verify the generated NSIS removal list against that same payload. Record the [local evidence](../../builds/2026-10-08-task5.json); no publication.
-- [ ] Record downloaded-artifact/default-security results without weakening protection. Actual launch blocks remain failures requiring a decision.
+- [x] Use pinned Nuitka 4.2.2's stock per-user NSIS installer/uninstaller, retaining --windows-installer-mode=user and --windows-installer-no-user-change-install-dir. Remove the generated-script correction and cached compiler lookup under Alex's reviewed decision. Product version is 2.0.0.0; no tag.
+- [ ] On the hosted GitHub Actions Windows runner only: silently install, verify the dedicated folder/shortcuts/HKCU registration/version, launch offscreen for 20 seconds without Ollama, stop, create synthetic app-data settings, reinstall over the same installation, verify app/settings preservation, and silently uninstall while preserving settings. Failed checks fail the workflow.
+- [ ] Verify the first passing run and setup/ZIP/qualification artifacts; commit its evidence in docs/builds/.
+- [x] Earlier standalone/ZIP payload comparison and local startup evidence are retained historically in [local evidence](../../builds/2026-10-08-task5.json). They predate the stock-uninstaller revision.
 
-**Verify:** python -m pytest tests/test_build_script.py -q, then python build.py with the tested environment and manual clean-machine checks. Required: build/artifacts pass their inventory, launch, workflow, and user-data checks. Local source/build preparation passes (968 tests, including 15 build checks); Task 5 qualification is incomplete until the unchecked installation/packaged-workflow/security checks pass.
+**Verify:** locally run only the required build flag/version tests and parse the PowerShell script without execution. The workflow runs the source suite, python build.py, and scripts/qualify_windows_installer.ps1 on hosted Windows. No install/uninstall/delete tests, installers, or Windows Sandbox on Alex's PC. Do not start Task 6. Hosted lifecycle qualification does not claim the native UI, model-quality, Python-free machine, or SmartScreen checks below.
 
 ### Task 6: Qualify the full pipeline and release
 

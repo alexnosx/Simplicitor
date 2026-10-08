@@ -5,10 +5,12 @@
 - Disable legacy Edit and reject direct save/worker calls before reading, backing up, inferring, or writing. Preserve existing Create and PowerPoint template routes.
 - Publish the existing unsigned executable as version 1.2.1.0 through the tag workflow. Latest status, public asset version, and SHA-256 are verified in docs/releases/v1.2.1.json. Local startup was smoke checked; Alex waived the clean-machine walkthrough for this patch.
 
-## Unreleased extraction development
+## v2.0.0 (unreleased)
+
+- Set Windows product version to 2.0.0.0. Keep Nuitka's stock per-user installer/uninstaller and qualify installation, offscreen startup without Ollama, upgrade, and settings-preserving uninstall only on the GitHub Actions Windows runner. No tag or release.
 
 - Show saved numeric formats in the review grid and omit its Record column, retaining Record in Evidence.
-- Prepare standalone packaging with pinned Nuitka 4.2.2 built-in current-user NSIS support, portable ZIP from the same payload, and SHA-256 inventories. Correct compiled resource lookup and replace recursive uninstall deletion with fail-closed, payload-only removal under the approved fallback. Installation and clean-Windows qualification remain pending; nothing published.
+- Prepare standalone packaging with pinned Nuitka 4.2.2 built-in current-user NSIS support, portable ZIP from the same payload, and SHA-256 inventories. Correct compiled resource lookup and use the built-in uninstaller in the dedicated runtime folder. Local packaging evidence is historical; runner qualification is recorded separately in docs/builds/.
 
 - Add the Task 4 Create workspace: source extraction first, editable/confirmed columns, background workers, saved grid/Evidence review, non-blocking selected-model guidance, and native XLSX Save As. Preserve existing prompt/template creation in From prompt; hide legacy Edit.
 - Preserve numeric leading-zero proposals with leading_zero flags, save unrepresentable numbers as highlighted literals with excel_precision, and require a case-insensitive .xlsx Save As suffix.
