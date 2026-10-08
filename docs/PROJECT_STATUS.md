@@ -7,10 +7,10 @@ Updated 2026-10-08. [PRD.md](../PRD.md) owns release requirements; [architecture
 | Area | Current state |
 |---|---|
 | Existing prompt-only Create and PowerPoint templates | Present in v1.2 source; to be preserved. |
-| Legacy Edit / v1.2.1 safety patch | Disabled in the UI and guarded before I/O at both entry points. Local artifact built and startup smoke checked. Publication authorized and being prepared under the [patch qualification exception](code-signing.md); see [local artifact evidence](releases/v1.2.1-local.json). |
+| Legacy Edit / v1.2.1 safety patch | Published as [v1.2.1 Latest](https://github.com/alexnosx/Simplicitor/releases/tag/v1.2.1). Public executable version and SHA-256 verified; [release evidence](releases/v1.2.1.json). Local build/smoke checked; clean-machine walkthrough waived under the [patch exception](code-signing.md). |
 | Selected-model warning | Current UI uses the older small-model threshold and hides unknown sizes; selected-model recommendation warning is planned. |
 | Structured readers, column proposals, and extraction | Anchored DOCX body/header/footer and PDF readers, token-bounded literal grounding, and ordinal date conversion implemented independently of legacy Edit. Production requests, column proposals, and conditional sectioning remain planned. |
-| Model evaluation | Rerunning both candidates after grounding/prompt fixes and expansion to 28 files/280 fields. The [original report](evaluation/2026-10-08-task1.md) is historical; production and saved-XLSX release evaluation remain pending. |
+| Model evaluation | Revised Task 1 gate complete on 28 files/280 fields: Qwen passes, Llama fails accuracy. [Scores, narrative breakdown, and recommendation](evaluation/2026-10-08-task1-rerun.md). Production and saved-XLSX release evaluation remain pending. |
 | Saved XLSX grid and Save As | Planned. |
 | Standalone installer and portable ZIP | Planned; current build produces an unsigned onefile executable. |
 | Windows security block | Reported; exact warning/detection is still needed. |
@@ -32,10 +32,10 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Open decisions
 
-- Production candidate recommendation awaits both revised Task 1 scores.
+- Recommended production candidate: qwen3:8b, the sole passing candidate in the [revised Task 1 report](evaluation/2026-10-08-task1-rerun.md). Its narrative subgroup remains below the overall accuracy target.
 - Alex's license decision, owned by [PRD.md](../PRD.md#license-decision); LICENSE remains unchanged.
 - Exact Windows warning/detection and tested unsigned artifact behavior.
 
 ## Next step
 
-Finish the authorized Task 1 rerun and v1.2.1 publication, report both candidate scores and the release evidence, then stop before Task 2.
+Task 1 fixes and both revised candidate scores are complete. v1.2.1 is published and its public asset verified. Stop before Task 2; it has not started.

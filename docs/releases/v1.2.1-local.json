@@ -9,7 +9,7 @@
   "build_route": "Existing unsigned Nuitka onefile",
   "source_safety_checks": "4 regression tests; 161 focused safety/generation/template/build checks passed.",
   "local_startup": "Copied outside checkout; offscreen process remained alive for 12 seconds with isolated user folders.",
-  "clean_machine": "Not tested",
+  "clean_machine": "Not tested; explicitly waived by Alex for this patch on 2026-10-08.",
   "download_security_warning": "Not tested",
-  "publication": "Not authorized; no release tag or public release created."
+  "publication": "This local artifact was not uploaded. The tag workflow built and published a separate CI artifact; see v1.2.1.json for the verified release URL and public asset hash."
 }

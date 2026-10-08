@@ -1,0 +1,33 @@
+{
+  "tag": "v1.2.1",
+  "release_url": "https://github.com/alexnosx/Simplicitor/releases/tag/v1.2.1",
+  "release_id": 406908194,
+  "published_at": "2026-10-08T14:13:55Z",
+  "verified_date": "2026-10-08",
+  "latest_verified": true,
+  "latest_verification": "GitHub releases/latest returned release 406908194 and tag v1.2.1.",
+  "source_commit": "35d0a4816e77be0181a02acb65103020348f393f",
+  "workflow_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37786915636",
+  "workflow_conclusion": "success",
+  "workflow_python": "3.11",
+  "pre_tag_version_confirmation": "Remote build.py at the release commit selects --windows-product-version=1.2.1.0; tag-triggered build.yml runs that script and publishes dist/Simplicitor.exe.",
+  "asset": {
+    "id": 622026668,
+    "name": "Simplicitor.exe",
+    "url": "https://github.com/alexnosx/Simplicitor/releases/download/v1.2.1/Simplicitor.exe",
+    "bytes": 50889728,
+    "sha256": "56fbed62d81fbedcd529ec9c529daed54aaabf3c3869cfe17cf4e561684aee6d",
+    "github_digest": "sha256:56fbed62d81fbedcd529ec9c529daed54aaabf3c3869cfe17cf4e561684aee6d",
+    "downloaded_hash_matches_github": true,
+    "product_version": "1.2.1.0",
+    "file_version": "1.2.1.0",
+    "authenticode": "NotSigned"
+  },
+  "qualification": {
+    "local_build_record": "v1.2.1-local.json",
+    "source_suite": "732 passed with isolated user folders.",
+    "clean_machine": "Not performed; explicitly waived by Alex for this patch on 2026-10-08.",
+    "public_asset_checks": "Downloaded release asset; checked PE versions, byte size, SHA-256, and signing status without executing it.",
+    "windows_reputation": "Not verified."
+  }
+}

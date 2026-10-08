@@ -1,14 +1,15 @@
 # Changelog
 
-## v1.2.1 safety patch prepared, not published
+## v1.2.1 safety patch, 2026-10-08
 
 - Disable legacy Edit and reject direct save/worker calls before reading, backing up, inferring, or writing. Preserve existing Create and PowerPoint template routes.
-- Build the existing unsigned executable as version 1.2.1.0. Local startup was smoke checked; clean-machine qualification and explicit publication approval remain pending. Artifact evidence is in docs/releases/v1.2.1-local.json.
+- Publish the existing unsigned executable as version 1.2.1.0 through the tag workflow. Latest status, public asset version, and SHA-256 are verified in docs/releases/v1.2.1.json. Local startup was smoke checked; Alex waived the clean-machine walkthrough for this patch.
 
 ## Unreleased extraction development
 
 - Reject partial-token evidence in both quotes and their source context; accept ordinal English dates and read Word headers/footers with dedicated anchors.
 - Replace fixture-specific prompt hints with generic rules and plain column definitions. Expand the gate to 28 files/280 fields with eight prose documents.
+- Rerun both candidates: Qwen passes the overall gate at 97.14%; Llama fails accuracy at 93.57%. Narrative subgroup limitations and full counts are in docs/evaluation/2026-10-08-task1-rerun.md.
 - Add independent anchored DOCX/text-layer PDF readers, verbatim grounding, deterministic type conversion, and a direct-Ollama evaluation CLI.
 - Add 20 synthetic English fixtures with independent labels. Both candidate models passed the first gate; measured results are in docs/evaluation/2026-10-08-task1.md.
 - Approve whole-file-first production extraction and renumber the plan tasks 0 to 6. Production extraction, XLSX output, and review UI are not implemented yet.

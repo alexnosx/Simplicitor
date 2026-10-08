@@ -69,10 +69,13 @@ docs/
     design/
         document-workspace.html
     evaluation/
+        2026-10-08-task1-rerun.json
+        2026-10-08-task1-rerun.md
         2026-10-08-task1.json
         2026-10-08-task1.md
     releases/
         v1.2.1-local.json
+        v1.2.1.json
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -1371,7 +1374,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 53 lines
+- CHANGELOG.md: md, 54 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1397,9 +1400,12 @@ requirements.txt
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/code-signing.md: md, 41 lines
 - docs/design/document-workspace.html: html, 301 lines
+- docs/evaluation/2026-10-08-task1-rerun.json: json, 780 lines
+- docs/evaluation/2026-10-08-task1-rerun.md: md, 27 lines
 - docs/evaluation/2026-10-08-task1.json: json, 545 lines
 - docs/evaluation/2026-10-08-task1.md: md, 20 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
+- docs/releases/v1.2.1.json: json, 33 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
