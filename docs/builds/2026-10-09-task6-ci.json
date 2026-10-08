@@ -1,0 +1,124 @@
+{
+  "status": "passed",
+  "source_commit": "afe0518a48dd67c6807246db5840496e490db51c",
+  "run_id": "37841754003",
+  "run_attempt": "1",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37841754003",
+  "runner_os": "10.0.26100.0",
+  "runner_image": "20260925.250.1",
+  "product_version": "2.0.0.0",
+  "app_running_seconds": 20,
+  "checks": [
+    "Artifact hash matches: Simplicitor-setup.exe",
+    "Artifact hash matches: Simplicitor-portable.zip",
+    "Ollama endpoint is unavailable",
+    "Silent installer exited successfully",
+    "Dedicated per-user install exists",
+    "Uninstaller exists",
+    "Installed product version is 2.0.0.0",
+    "HKCU uninstall entry points to dedicated folder",
+    "HKCU uninstall version matches",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installed executable matches built payload",
+    "Installed app stays running offscreen for 20 seconds without Ollama",
+    "Silent installer exited successfully",
+    "Dedicated per-user install exists",
+    "Uninstaller exists",
+    "Installed product version is 2.0.0.0",
+    "HKCU uninstall entry points to dedicated folder",
+    "HKCU uninstall version matches",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installer shortcut exists",
+    "Installer shortcut targets installed app",
+    "Installed app survives reinstall over existing installation",
+    "Synthetic settings survive reinstall unchanged",
+    "Uninstall target is the dedicated per-user test folder",
+    "Silent uninstaller exited successfully",
+    "Install folder removed",
+    "HKCU uninstall entry removed",
+    "Desktop shortcut removed",
+    "Start Menu shortcut removed",
+    "Synthetic settings survive uninstall unchanged"
+  ],
+  "artifacts": {
+    "Simplicitor-setup.exe": "2cd709b5a160ab1ffdf406ad93cf5b1da08c5c6372930bdfd87b24584ee9f137",
+    "Simplicitor-portable.zip": "e5d75d443e9b60e6a49b2640e0c7b4050d59a5498371ebbec93ce38501c28ba8"
+  },
+  "limitations": [
+    "Hosted headless lifecycle qualification only. Sectioned extraction fails the separate saved-output evaluation. Native UI, Python/Office-free machine, downloaded-file SmartScreen, and license/business-use decisions are not qualified."
+  ],
+  "verification": {
+    "source_tests": {
+      "passed": 976,
+      "location": "GitHub Actions Windows runner"
+    },
+    "local_checks": {
+      "passed": 39,
+      "scope": "Evaluator, synthetic page limits, notice assembly/ZIP validation, two build flags/version tests, and map tests. No installer, uninstaller, Sandbox, or install/uninstall/delete tests."
+    },
+    "github_run_conclusion": "success",
+    "github_steps": {
+      "Set up job": "success",
+      "Run actions/checkout@v4": "success",
+      "Set up Python": "success",
+      "Install dependencies": "success",
+      "Run source tests on hosted runner": "success",
+      "Generate icon": "success",
+      "Build standalone, installer, and portable ZIP": "success",
+      "Qualify installer on hosted Windows runner": "success",
+      "Upload artifact": "success",
+      "Publish to GitHub Release": "skipped",
+      "Post Set up Python": "success",
+      "Post Run actions/checkout@v4": "success",
+      "Complete job": "success"
+    },
+    "uploaded_artifact": {
+      "id": 11580135313,
+      "name": "Simplicitor-windows",
+      "size_in_bytes": 146536357,
+      "digest": "sha256:01dd76e5a0cd7f202d24e871404e9695ced1eb1ade743d515a249aa919762149",
+      "expired": false
+    },
+    "artifact_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37841754003/artifacts/11580135313",
+    "artifact_files": {
+      "installer-qualification.json": {
+        "bytes": 2309
+      },
+      "SHA256SUMS.json": {
+        "bytes": 66241
+      },
+      "Simplicitor-portable.zip": {
+        "bytes": 73604424
+      },
+      "Simplicitor-setup.exe": {
+        "bytes": 73368594
+      }
+    },
+    "downloaded_setup_zip_hashes_match": true,
+    "portable_payload_file_count": 534,
+    "portable_payload_hashes_match": true,
+    "notices": {
+      "files": 258,
+      "distribution_count": 29,
+      "inventory_hashes_match": true,
+      "full_qt_lgpl_gpl_terms_present": true,
+      "python": "3.11.9",
+      "qt": "6.11.2",
+      "openssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "nuitka": "4.2.2"
+    },
+    "initial_attempt": {
+      "commit": "cce3632625778c953b188ea48174b655efedf9bd",
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37841258247",
+      "source_passed": 970,
+      "source_failed": 5,
+      "reason": "Fresh runner resolved PySide6 6.12.0; notice version guard rejected the 6.11.2 snapshot. Resolved by pinning the already-declared build runtime and installing requirements together."
+    },
+    "saved_output_evaluation": "../evaluation/2026-10-08-task6-full-pipeline.json",
+    "publication": "No tag or release; publication step skipped. LICENSE unchanged."
+  }
+}

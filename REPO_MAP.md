@@ -75,6 +75,7 @@ docs/
     builds/
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
+        2026-10-09-task6-ci.json
     design/
         document-workspace.html
     evaluation/
@@ -1951,7 +1952,8 @@ requirements.txt
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
-- docs/code-signing.md: md, 60 lines
+- docs/builds/2026-10-09-task6-ci.json: json, 124 lines
+- docs/code-signing.md: md, 62 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
