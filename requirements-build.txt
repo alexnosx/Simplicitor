@@ -1,6 +1,8 @@
-# Build-time dependencies — not needed to run Simplicitor
+# Build tools and the qualified Qt runtime version
 # Install with: pip install -r requirements-build.txt
 
 nuitka==4.2.2
+# Keep packaged Qt binaries aligned with the bundled upstream license snapshot.
+PySide6==6.11.2
 ordered-set>=4.1.0
 zstandard>=0.21.0

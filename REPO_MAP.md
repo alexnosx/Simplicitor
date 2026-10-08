@@ -1807,6 +1807,7 @@ requirements.txt
 
 ### tests/test_third_party_notices.py
 
+- def test_build_qt_version_matches_vendored_notice_snapshot()
 - def test_notice_bundle_contains_runtime_versions_and_full_qt_terms(tmp_path)
 - def test_missing_notice_payload_is_rejected_without_writing(tmp_path)
 - def test_build_packaging_checks_notice_payload_before_archiving(tmp_path, monkeypatch)
@@ -1920,7 +1921,7 @@ requirements.txt
 ## Other files
 
 - .gitattributes: text, 4 lines
-- .github/workflows/build.yml: yml, 67 lines
+- .github/workflows/build.yml: yml, 65 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
@@ -1983,7 +1984,7 @@ requirements.txt
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 120 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
 - pytest.ini: ini, 3 lines
-- requirements-build.txt: txt, 6 lines
+- requirements-build.txt: txt, 8 lines
 - requirements-dev.txt: txt, 3 lines
 - requirements.txt: txt, 9 lines
 - resources/icon.ico: ico (binary)

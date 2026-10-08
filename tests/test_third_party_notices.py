@@ -6,6 +6,12 @@ import json
 import pytest
 
 
+def test_build_qt_version_matches_vendored_notice_snapshot():
+    root = Path(__file__).parents[1]
+    version = json.loads((root / "resources/third_party/qt/sources.json").read_text())["qt_version"]
+    assert f"PySide6=={version}" in (root / "requirements-build.txt").read_text().splitlines()
+
+
 def test_notice_bundle_contains_runtime_versions_and_full_qt_terms(tmp_path):
     from scripts.build_third_party_notices import build_notices, validate_notices
     root = Path(__file__).parents[1]
