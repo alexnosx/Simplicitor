@@ -574,6 +574,7 @@ requirements.txt
 
 ### simplicitor/extraction/grounding.py
 
+- class _LeadingZeroError(ValueError): The proposed number may be an identifier whose zeros must be preserved.
 - def validate_field(proposal: FieldProposal, column: ColumnSpec, units: Mapping[str, SourceUnit]) -> FieldResult: Check anchor, normalized quote, literal value span, then column conversion.
 - def _has_grounded_match(value: str, quote: str, source: str) -> bool
 - def _at_token_boundaries(text: str, start: int, end: int) -> bool
@@ -643,7 +644,7 @@ requirements.txt
 - def _put(sheet, row: int, column: int, value, *, flagged: bool=False, number_format: str='General') -> None
 - def _style(sheet) -> None
 - def _verify_saved(workbook: Workbook, path: Path) -> None
-- def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...], path: Path) -> Candidate: Save/reopen one candidate, rejecting truncation, formulas, and numeric loss.
+- def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...], path: Path) -> Candidate: Save/reopen one candidate; preserve imprecise numbers as flagged literals.
 - def read_candidate(candidate: Candidate) -> tuple[ReviewCell, ...]: Build review entirely from saved Data/Evidence, including coverage issues.
 
 ### simplicitor/main.py
@@ -754,6 +755,8 @@ requirements.txt
 
 ### tests/extraction/test_grounding.py
 
+- def test_numeric_leading_zeros_keep_literal_proposals(kind, value)
+- def test_normal_zero_and_fractional_numbers_remain_valid(value, kind, want)
 - def test_currency_context_preserves_literal_amount(quote)
 - def test_english_dates_are_converted_by_code(value)
 - def test_types_do_not_invent_normalization(value, kind, want_flag)
@@ -776,6 +779,8 @@ requirements.txt
 - def test_save_as_refuses_source_path(tmp_path, index, variant)
 - def test_save_as_new_and_confirmed_overwrite(tmp_path)
 - def test_flagged_output_requires_acknowledgement(tmp_path)
+- def test_save_as_refuses_non_xlsx_suffix_without_writing(tmp_path, filename, existing)
+- def test_save_as_accepts_case_insensitive_xlsx_suffix(tmp_path)
 - def test_failed_copy_or_rename_keeps_destination_and_review(tmp_path, monkeypatch, operation, existing)
 - def test_cleanup_only_owned_jobs_strictly_older_than_24_hours(tmp_path)
 - def test_unowned_folder_refused_and_unrelated_files_untouched(tmp_path)
@@ -847,7 +852,9 @@ requirements.txt
 - def test_strings_stay_literal_on_both_sheets(tmp_path, text, flagged)
 - def test_missing_highlight_alternatives_and_file_coverage(tmp_path)
 - def test_unrepresentable_text_fails_without_a_candidate(tmp_path, bad, location)
-- def test_unsafe_numeric_precision_fails_visibly(tmp_path, bad)
+- def test_unsafe_numeric_precision_saves_literal_flag_and_other_fields(tmp_path, bad)
+- def test_leading_zero_proposal_is_saved_as_highlighted_literal(tmp_path, kind, value)
+- def test_excel_precision_preserves_verbatim_currency_and_requires_acknowledgement(tmp_path)
 - def test_failed_rerun_invalidates_old_candidate(tmp_path, monkeypatch)
 - def test_successful_rerun_replaces_saved_values(tmp_path)
 - def test_real_job_candidate_saves_and_reopens_with_acknowledgement(tmp_path)
@@ -1514,7 +1521,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 58 lines
+- CHANGELOG.md: md, 59 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines

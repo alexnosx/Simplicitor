@@ -63,6 +63,30 @@ def test_flagged_output_requires_acknowledgement(tmp_path):
     assert destination.exists()
 
 
+@pytest.mark.parametrize("filename", ["output", "output.csv", "output.xls", "output.xlsx.txt"])
+@pytest.mark.parametrize("existing", [False, True])
+def test_save_as_refuses_non_xlsx_suffix_without_writing(tmp_path, filename, existing):
+    candidate = candidate_in(tmp_path)
+    destination = tmp_path / filename
+    if existing:
+        destination.write_bytes(b"previous bytes")
+    with pytest.raises(ValueError, match=".xlsx"):
+        save_candidate(candidate, destination, False)
+    if existing:
+        assert destination.read_bytes() == b"previous bytes"
+    else:
+        assert not destination.exists()
+    assert candidate.path.read_bytes() == b"candidate bytes"
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_save_as_accepts_case_insensitive_xlsx_suffix(tmp_path):
+    candidate = candidate_in(tmp_path)
+    destination = tmp_path / "output.XlSx"
+    save_candidate(candidate, destination, False)
+    assert destination.read_bytes() == b"candidate bytes"
+
+
 @pytest.mark.parametrize("operation", ["copy", "replace"])
 @pytest.mark.parametrize("existing", [False, True])
 def test_failed_copy_or_rename_keeps_destination_and_review(tmp_path, monkeypatch, operation, existing):

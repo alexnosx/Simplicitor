@@ -1,6 +1,7 @@
 """Typed/literal Data and Evidence output, verified after saving and used for review."""
 from collections import defaultdict
 from copy import copy
+from dataclasses import replace
 from datetime import date, datetime
 from decimal import Decimal
 import math
@@ -103,7 +104,7 @@ def _verify_saved(workbook: Workbook, path: Path) -> None:
 
 def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...],
                     path: Path) -> Candidate:
-    """Save/reopen one candidate, rejecting truncation, formulas, and numeric loss.
+    """Save/reopen one candidate; preserve imprecise numbers as flagged literals.
 
     Replacing a candidate invalidates the previous run immediately, even if this
     write fails. Callers clear their review before each run; cancelled extraction
@@ -155,7 +156,12 @@ def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...],
                     raise ValueError("Excel output is missing a requested field.")
                 value = field.data_value
                 if isinstance(value, (int, Decimal)):
-                    _numeric(value)
+                    try:
+                        _numeric(value)
+                    except (ValueError, ArithmeticError):
+                        field = replace(field, typed_value=None, flagged=True,
+                                        issues=field.issues + ("excel_precision",))
+                        value = field.data_value
                 format_string = "General"
                 if not field.flagged and value is not None:
                     if spec.kind == "date":
@@ -174,7 +180,8 @@ def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...],
                               "flagged" if field.flagged else "verified", "; ".join(field.issues)),
                              field.flagged)
                 if field.flagged:
-                    issues.append(Issue("flagged_field", source, reference,
+                    code = "excel_precision" if "excel_precision" in field.issues else "flagged_field"
+                    issues.append(Issue(code, source, reference,
                                         "A field needs review before saving."))
                 for alternative in field.alternatives:
                     evidence_row((reference, source, label, spec.label, alternative.value,

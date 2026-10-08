@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 2 are accepted; v1.2.1 is published. Current authorization covers Task 3's XLSX candidate writer, owned jobs, and Save As copying. Commit/push to main are authorized for this scope. Stop before Task 4. Further tags or publication require a new explicit go.
+- Tasks 0 through 3 are accepted; v1.2.1 is published. Current authorization covers numeric leading-zero flags, literal fallback for Excel precision failures, and .xlsx Save As suffix validation. Commit/push to main are authorized for this scope. Stop before Task 4. Further tags or publication require a new explicit go.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.

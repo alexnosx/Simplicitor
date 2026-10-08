@@ -16,6 +16,10 @@ _MONTHS.update({name[:3]: i for i, name in enumerate(_MONTH_NAMES, 1)})
 _MONTHS["sept"] = 9
 
 
+class _LeadingZeroError(ValueError):
+    """The proposed number may be an identifier whose zeros must be preserved."""
+
+
 def validate_field(
     proposal: FieldProposal, column: ColumnSpec, units: Mapping[str, SourceUnit]
 ) -> FieldResult:
@@ -46,6 +50,8 @@ def validate_field(
         else:
             raise ValueError("unsupported_type")
         return FieldResult(proposal, value, False)
+    except _LeadingZeroError:
+        return FieldResult(proposal, None, True, ("leading_zero",))
     except (ValueError, InvalidOperation, OverflowError):
         return FieldResult(proposal, None, True, ("conversion_failed",))
 
@@ -88,6 +94,8 @@ def _number(value: str, column: ColumnSpec) -> Decimal | int:
     if not re.fullmatch(pattern, text):
         raise ValueError("invalid_numeric_grammar")
     normalized = text.replace(thousands, "") if thousands else text
+    if re.match(r"[+-]?0[0-9]", normalized):
+        raise _LeadingZeroError
     number = Decimal(normalized.replace(decimal, "."))
     if not number.is_finite():
         raise ValueError("nonfinite")

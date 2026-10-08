@@ -5,6 +5,34 @@ from decimal import Decimal
 import pytest
 
 
+@pytest.mark.parametrize("kind", ["integer", "decimal"])
+@pytest.mark.parametrize("value", ["007", "000452", "+007", "-007", "GBP 000452",
+                                  "000452 USD", "£007", "00.50", "0,007"])
+def test_numeric_leading_zeros_keep_literal_proposals(kind, value):
+    from extraction.grounding import validate_field
+    from extraction.models import ColumnSpec, FieldProposal, SourceUnit
+
+    unit = SourceUnit("one#p:0", f"Recorded {value}.", "paragraph", 0)
+    result = validate_field(FieldProposal(value, unit.text, unit.anchor),
+                            ColumnSpec("id", "ID", "Identifier", kind), {unit.anchor: unit})
+    assert result.flagged and result.issues == ("leading_zero",)
+    assert result.typed_value is None and result.data_value == value
+
+
+@pytest.mark.parametrize("value,kind,want", [
+    ("0", "integer", 0), ("7", "integer", 7), ("0.50", "decimal", Decimal("0.50")),
+    ("-0.50", "decimal", Decimal("-0.50")), ("GBP 0.50", "decimal", Decimal("0.50")),
+])
+def test_normal_zero_and_fractional_numbers_remain_valid(value, kind, want):
+    from extraction.grounding import validate_field
+    from extraction.models import ColumnSpec, FieldProposal, SourceUnit
+
+    unit = SourceUnit("one#p:0", value, "paragraph", 0)
+    result = validate_field(FieldProposal(value, value, unit.anchor),
+                            ColumnSpec("value", "Value", "Value", kind), {unit.anchor: unit})
+    assert not result.flagged and result.typed_value == want
+
+
 @pytest.mark.parametrize("quote", [
     "Total: USD 12,500.00", "$12,500.00 (tax included)",
     "Balance due: £12,500.00", "Total: EUR 12,500.00", "Pay €12,500.00 now",

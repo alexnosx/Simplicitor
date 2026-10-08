@@ -15,9 +15,9 @@ Updated 2026-10-08. [PRD.md](../PRD.md) owns release requirements; [architecture
 | Standalone installer and portable ZIP | Planned; current build produces an unsigned onefile executable. |
 | Windows security block | Reported; exact warning/detection is still needed. |
 | Later extraction/editing/reporting/recognition | Deferred under PRD scope, with separate designs required. |
-| Documentation and plan | Tasks 0 through 2 accepted; Task 3 authorized. Tasks remain numbered 0 to 6. |
+| Documentation and plan | Tasks 0 through 3 accepted; the three numeric/save corrections are authorized. Tasks remain numbered 0 to 6. |
 
-The current source passed 866 tests with isolated user folders, including 61 Task 3 checks. Existing Create/template regressions pass. Task 3 checks reopen real XLSX files, exercise source aliases and failed copy/replace operations, invalidate stale candidates, and check owned cleanup at the retention boundary. Task 2 checks use controlled model replies; live-model accuracy remains the accepted Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new route does not share legacy reading/writing behavior. Source tests and the synthetic model gate do not establish native Excel display, packaged UI, or clean-machine readiness.
+The current source passed 902 tests with isolated user folders, including 152 focused grounding/workbook/job checks. Existing Create/template regressions pass. Numeric leading-zero proposals remain flagged literals; Excel precision failures retain the proposal with excel_precision and save other fields normally. Save As accepts only .xlsx suffixes, case-insensitively. Task 3 checks also exercise source aliases and failed copy/replace operations, invalidate stale candidates, and check owned cleanup at the retention boundary. Task 2 checks use controlled model replies; live-model accuracy remains the accepted Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new route does not share legacy reading/writing behavior. Source tests and the synthetic model gate do not establish native Excel display, packaged UI, or clean-machine readiness.
 
 ## Benchmark environment
 

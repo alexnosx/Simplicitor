@@ -113,12 +113,60 @@ def test_unrepresentable_text_fails_without_a_candidate(tmp_path, bad, location)
 
 
 @pytest.mark.parametrize("bad", [Decimal("123456789012345.67"), 12345678901234567,
-                                   Decimal("NaN"), Decimal("Infinity"), Decimal("1e-400")])
-def test_unsafe_numeric_precision_fails_visibly(tmp_path, bad):
-    with pytest.raises(ValueError, match="Excel"):
-        write_candidate(result_for(tmp_path, {"x": field(str(bad), bad)}),
-                        (ColumnSpec("x", "X", "X", "decimal"),), tmp_path / "candidate.xlsx")
-    assert not (tmp_path / "candidate.xlsx").exists()
+                                   Decimal("NaN"), Decimal("Infinity"), Decimal("1e-400"),
+                                   Decimal("1e1000000")])
+def test_unsafe_numeric_precision_saves_literal_flag_and_other_fields(tmp_path, bad):
+    result = result_for(tmp_path, {"x": field(str(bad), bad), "safe": field("12", 12)})
+    candidate = write_candidate(result, (ColumnSpec("x", "X", "X", "decimal"),
+                                         ColumnSpec("safe", "Safe", "Safe", "integer")),
+                                tmp_path / "candidate.xlsx")
+    wb = load_workbook(candidate.path)
+    assert wb["Data"]["C2"].value == str(bad) and wb["Data"]["C2"].data_type == "s"
+    assert wb["Data"]["C2"].fill.patternType == "solid"
+    assert wb["Data"]["D2"].value == 12 and wb["Data"]["D2"].data_type == "n"
+    assert wb["Data"]["D2"].fill.patternType is None
+    assert wb["Evidence"]["E2"].value == str(bad)
+    assert wb["Evidence"]["H2"].value == "flagged"
+    assert wb["Evidence"]["I2"].value == "excel_precision"
+    wb.close()
+    assert any(issue.code == "excel_precision" for issue in candidate.issues)
+    assert read_candidate(candidate)[0].evidence[0]["Issue"] == "excel_precision"
+    assert result.fields[("one", "x")].flagged is False
+
+
+@pytest.mark.parametrize("kind,value", [("integer", "000452"), ("decimal", "007")])
+def test_leading_zero_proposal_is_saved_as_highlighted_literal(tmp_path, kind, value):
+    from extraction.grounding import validate_field
+    from extraction.models import SourceUnit
+    column = ColumnSpec("x", "ID", "Identifier", kind)
+    unit = SourceUnit("one#p:0", f"ID {value}", "paragraph", 0)
+    validated = validate_field(FieldProposal(value, unit.text, unit.anchor),
+                               column, {unit.anchor: unit})
+    candidate = write_candidate(result_for(tmp_path, {"x": validated}), (column,),
+                                tmp_path / "candidate.xlsx")
+    wb = load_workbook(candidate.path)
+    assert wb["Data"]["C2"].value == value and wb["Data"]["C2"].data_type == "s"
+    assert wb["Data"]["C2"].fill.patternType == "solid"
+    wb.close()
+    assert read_candidate(candidate)[0].evidence[0]["Issue"] == "leading_zero"
+
+
+def test_excel_precision_preserves_verbatim_currency_and_requires_acknowledgement(tmp_path):
+    from extraction.grounding import validate_field
+    from extraction.jobs import save_candidate
+    from extraction.models import SourceUnit
+    value = "GBP 123456789012345.67"
+    column = ColumnSpec("x", "Amount", "Amount", "decimal")
+    unit = SourceUnit("one#p:0", value, "paragraph", 0)
+    validated = validate_field(FieldProposal(value, value, unit.anchor),
+                               column, {unit.anchor: unit})
+    assert not validated.flagged
+    candidate = write_candidate(result_for(tmp_path, {"x": validated}), (column,),
+                                tmp_path / "candidate.xlsx")
+    assert read_candidate(candidate)[0].value == value
+    with pytest.raises(ValueError, match="acknowledg"):
+        save_candidate(candidate, tmp_path / "output.xlsx", False)
+    save_candidate(candidate, tmp_path / "output.xlsx", True)
 
 
 def test_failed_rerun_invalidates_old_candidate(tmp_path, monkeypatch):

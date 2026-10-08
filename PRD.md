@@ -56,7 +56,7 @@ Build JSON schema from confirmed columns and permitted file record IDs; use the 
 
 When a later proposal fails grounding, retain it as an alternative without demoting an earlier verified value. Two verified values that disagree remain a flagged conflict. Request/schema failures, including actual context truncation, cannot be hidden by this merge rule.
 
-Numeric conversion accepts a currency symbol (£, $, €, ¥) or three-letter uppercase code immediately before or after the number, with optional space. Strip that marker only after the complete proposed value passes verbatim grounding. Preserve it in Evidence. Empty or whitespace-only model values represent absent nulls, remain flagged for review, and project to blank Data cells.
+Numeric conversion accepts a currency symbol (£, $, €, ¥) or three-letter uppercase code immediately before or after the number, with optional space. Strip that marker only after the complete proposed value passes verbatim grounding. Preserve it in Evidence. In integer/decimal columns, a leading zero followed by another digit is flagged as leading_zero and retained as literal text; 0.50 remains valid. Empty or whitespace-only model values represent absent nulls, remain flagged for review, and project to blank Data cells.
 
 Grounding checks evidence consistency, not semantic correctness. A correctly quoted invoice date placed in a due-date column can pass it. Review exposes every cell's quote, and the labelled gate limits these unflagged errors.
 
@@ -66,9 +66,9 @@ Write a dedicated Data/Evidence workbook. Data contains one row per file and all
 
 Evidence contains record, field, verbatim model value, quote, source anchor, status, and issue; each Data cell resolves its entry. Include file labels and stable row references without absolute paths. Distinguish coverage issues from model fields.
 
-Keep identifiers and formula-like text literal in both sheets. Never activate formulas/hyperlinks or silently clip, round, or coerce values to fit Excel. Unrepresentable values/evidence cause a visible error before saving a candidate.
+Keep identifiers and formula-like text literal in both sheets. Never activate formulas/hyperlinks or silently clip, round, or coerce values to fit Excel. Numbers Excel cannot represent exactly are retained as highlighted literal proposals with issue excel_precision; save the remaining fields normally. Over-long text and invalid control characters in values/evidence cause a visible error before saving a candidate.
 
-Keep one candidate per job in the application-data folder. Re-running replaces it and resets review. Build the grid from the saved candidate file. Save uses a standard Save As dialog with normal Windows overwrite confirmation, then copies that candidate. Refuse a destination equal to any source path. Stage the copy in the destination folder and rename only after a successful write; failure cannot leave a partial output or show success.
+Keep one candidate per job in the application-data folder. Re-running replaces it and resets review. Build the grid from the saved candidate file. Save uses a standard Save As dialog with normal Windows overwrite confirmation, then copies that candidate. Require an .xlsx destination suffix (case-insensitive) and refuse a destination equal to any source path. Stage the copy in the destination folder and rename only after a successful write; failure cannot leave a partial output or show success.
 
 Delete job folders on normal close after handles/workers finish. At startup, delete only Simplicitor's own job folders older than 24 hours. No crash-recovery UI is required.
 

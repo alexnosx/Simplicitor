@@ -54,6 +54,8 @@ def save_candidate(candidate: Candidate, destination: Path, acknowledge_issues: 
         raise ValueError("Save As cannot replace a source file. Choose another destination.")
     if same_path(destination, candidate.path):
         raise ValueError("Choose a destination outside the temporary candidate file.")
+    if destination.suffix.lower() != ".xlsx":
+        raise ValueError("Save As requires an .xlsx destination.")
     if candidate.issues and not acknowledge_issues:
         raise ValueError("Review acknowledgement is required for flagged or incomplete output.")
     temporary = None
