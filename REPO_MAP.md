@@ -19,11 +19,16 @@ rather than maintaining competing scope or metric tables.
 The module map below describes existing source. Readers, grounding, the evaluation
 CLI, Task 2 production requests/column proposals/conditional sectioning, and Task 3
 typed/literal XLSX output, saved-cell review data, jobs, and Save As copying are
-implemented. Review UI and native dialogs remain Task 4.
+implemented. Task 4 adds the source-first Create workspace, editable/confirmed
+columns, extraction worker, saved-grid/Evidence review, selected-model guidance,
+native XLSX Save As, and worker-aware close cleanup. Prompt/templates remain in
+From prompt; Edit is hidden.
 
 | Module under simplicitor/ | Current responsibility |
 |---|---|
 | app/main_window.py | UI wiring, worker/thread lifecycle, generation/template routing; legacy Edit disabled before I/O. |
+| app/widgets/create_workspace.py, extraction_panel.py | Source-first Create shell, source/column setup, saved review/Evidence, and export acknowledgement. |
+| app/workers/extraction_worker.py | Frozen operation settings and background source/proposal/extraction/save adapter. |
 | app/services/ollama_client.py | Ollama HTTP client; generate supports output_format but existing generation callers omit it. |
 | app/parsers/llm_response_parser.py | Freeform generation parsing. |
 | app/generators/ | Existing Word/Excel/PowerPoint generation. |
@@ -146,8 +151,10 @@ simplicitor/
             __init__.py
             capability_banner.py
             create_panel.py
+            create_workspace.py
             drop_zone.py
             edit_panel.py
+            extraction_panel.py
             file_list.py
             hard_stop_dialog.py
             settings_dialog.py
@@ -156,6 +163,7 @@ simplicitor/
             template_dialog.py
         workers/
             __init__.py
+            extraction_worker.py
             generate_worker.py
             manipulate_worker.py
             ollama_worker.py
@@ -299,6 +307,8 @@ tests/
     test_backup_service.py
     test_build_script.py
     test_cli.py
+    test_extraction_panel.py
+    test_extraction_worker.py
     test_file_generator.py
     test_file_manipulator.py
     test_file_utils.py
@@ -493,11 +503,15 @@ requirements.txt
 
 ### simplicitor/app/widgets/capability_banner.py
 
-- class CapabilityBanner(QWidget): Dismissible banner shown when the active model has < 7B parameters.
+- class CapabilityBanner(QWidget): Dismissible recommendation for a selected model below 8B or of unknown size.
 
 ### simplicitor/app/widgets/create_panel.py
 
 - class CreatePanel(QFrame): Left panel: generate a new Office document from a prompt.
+
+### simplicitor/app/widgets/create_workspace.py
+
+- class CreateWorkspace(QWidget): Host the new source route and the existing prompt/template panel unchanged.
 
 ### simplicitor/app/widgets/drop_zone.py
 
@@ -506,6 +520,10 @@ requirements.txt
 ### simplicitor/app/widgets/edit_panel.py
 
 - class EditPanel(QFrame): Right panel: upload a file, describe changes, save the result (Phase 4).
+
+### simplicitor/app/widgets/extraction_panel.py
+
+- class ExtractionPanel(QWidget): Emit frozen setups; workers do I/O and supply saved cells for review.
 
 ### simplicitor/app/widgets/file_list.py
 
@@ -534,6 +552,11 @@ requirements.txt
 ### simplicitor/app/workers/__init__.py
 
 (no top-level definitions)
+
+### simplicitor/app/workers/extraction_worker.py
+
+- class ExtractionSetup: Snapshot of the selected sources, request, confirmed columns, and model.
+- class ExtractionWorker(QObject): Run one inspection, proposal, extraction, or accepted Save As off-thread.
 
 ### simplicitor/app/workers/generate_worker.py
 
@@ -1177,6 +1200,49 @@ requirements.txt
 - def test_legacy_root_notice_names_both_paths(tmp_path, monkeypatch, capsys): Templates left in the retired APPDATA root produce a notice naming both paths.
 - def test_no_legacy_notice_when_root_absent(tmp_path, monkeypatch, capsys): No legacy folder: no notice.
 
+### tests/test_extraction_panel.py
+
+- def panel(qtbot, tmp_path)
+- def saved_candidate(tmp_path, *, flagged=True, coverage=False)
+- def test_source_picker_preserves_duplicate_attachments_without_copying(panel, monkeypatch)
+- def test_columns_add_edit_remove_and_freeze_before_extract(panel)
+- def test_numeric_defaults_overrides_and_conditional_date_order(panel)
+- def test_invalid_numeric_separators_cannot_confirm_or_start_extraction(panel, thousands, decimal)
+- def test_supported_numeric_separator_overrides_preserve_values(panel, thousands, decimal, value)
+- def test_many_coverage_issues_stay_scrollable_and_keep_controls_accessible(panel, qtbot)
+- def test_failure_retains_editable_setup_and_disconnection_gates_model_calls(panel)
+- def test_saved_grid_literal_flags_evidence_acknowledgement_and_rerun_reset(panel, tmp_path)
+- def test_setup_changes_clear_confirmation_and_review(panel, tmp_path, change)
+- def test_busy_setup_is_frozen_and_save_can_finish_without_cancel(panel)
+- def window(qtbot, tmp_path, monkeypatch)
+- def test_create_workspace_defaults_to_sources_and_preserves_prompt_host(window)
+- def test_selected_model_warning(window, count, warn)
+- def test_banner_dismissal_is_per_selection_and_metadata_lookup_is_queued(window, qtbot)
+- def test_empty_model_discovery_clears_the_selection_and_warning(window)
+- def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_path, monkeypatch, cancel)
+- def test_save_acknowledgement_blocks_native_dialog(window, tmp_path, monkeypatch)
+- def configure_window(window, tmp_path)
+- class ExtractionClient
+- def test_complete_column_review_extract_save_and_confirmed_overwrite(window, tmp_path, qtbot, monkeypatch)
+- def test_save_failure_retains_review_and_previous_destination(window, tmp_path, qtbot, monkeypatch)
+- def test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it(window, tmp_path, qtbot, cancel)
+- def test_close_waits_for_cancelled_worker_before_removing_job(window, tmp_path, qtbot)
+- def test_close_waits_for_queued_finished_handler_even_after_thread_stops(window, tmp_path, qtbot)
+- def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch)
+- def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch)
+- def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
+- def test_source_drop_accepts_only_local_supported_files(panel)
+
+### tests/test_extraction_worker.py
+
+- def setup(tmp_path)
+- class Client
+- def test_inspect_has_no_model_call_and_proposal_uses_first_source(setup, qtbot)
+- def test_extract_emits_reopened_candidate_and_closes_handles(setup, tmp_path, qtbot)
+- def test_cancel_before_or_after_response_never_emits_candidate(setup, tmp_path, qtbot, late)
+- def test_failed_request_is_sanitized_and_setup_retained(setup, tmp_path, qtbot, caplog)
+- def test_worker_runs_on_qthread_and_finishes(setup, qtbot)
+
 ### tests/test_file_generator.py
 
 - def test_file_generator_word(tmp_path)
@@ -1336,7 +1402,7 @@ requirements.txt
 - def test_poll_connected_does_not_emit_disconnected(qtbot) -> None: _poll() must NOT emit disconnected when Ollama is reachable.
 - def test_poll_emits_disconnected_when_ollama_is_down(qtbot) -> None: _poll() emits disconnected() when check_connection is False.
 - def test_poll_disconnected_does_not_emit_connected(qtbot) -> None: _poll() must NOT emit connected when Ollama is unreachable.
-- def test_model_params_ready_emitted_on_first_connection(qtbot) -> None: model_params_ready is emitted when transitioning from disconnected to connected.
+- def test_poll_does_not_fetch_loaded_model_metadata(qtbot) -> None
 - def test_model_params_ready_not_emitted_on_subsequent_polls(qtbot) -> None: model_params_ready must NOT be emitted on every connected poll, only on transition.
 - def test_model_params_ready_not_emitted_when_disconnected(qtbot) -> None: model_params_ready is never emitted when Ollama is down.
 - def test_model_params_ready_emitted_again_after_reconnect(qtbot) -> None: model_params_ready is emitted again when Ollama reconnects after a drop.
@@ -1344,9 +1410,11 @@ requirements.txt
 - def test_poll_handles_get_models_exception(qtbot) -> None: If get_models() raises after a successful check_connection, emit disconnected.
 - def test_worker_starts_with_was_connected_false(qtbot) -> None: _was_connected must start as False so the first connection triggers a transition.
 - def test_worker_timer_is_none_before_setup(qtbot) -> None: _timer must be None before setup() is called (timer is created on the worker thread).
-- def test_model_params_ready_emitted_on_model_change_while_connected(qtbot) -> None: model_params_ready must fire when the running model changes mid-session.
+- def test_selected_metadata_lookup_works_without_loading_model(qtbot)
+- def test_unknown_metadata_still_emits_nonblocking_unknown(qtbot, caplog)
+- def test_loaded_model_change_does_not_fetch_selected_metadata(qtbot) -> None: model_params_ready must fire when the running model changes mid-session.
 - def test_model_params_ready_not_emitted_when_model_unchanged(qtbot) -> None: model_params_ready must NOT fire on every poll when the running model is stable.
-- def test_model_params_ready_emits_empty_when_model_unloaded(qtbot) -> None: When running model drops to empty, emit model_params_ready('', 0) to hide banner.
+- def test_model_unload_does_not_reset_selected_metadata(qtbot) -> None: When running model drops to empty, emit model_params_ready('', 0) to hide banner.
 - def test_poll_uses_short_timeouts(qtbot) -> None: Poll-loop discovery calls pass the short poll timeout, not the 60 s default.
 
 ### tests/test_settings.py
@@ -1521,12 +1589,12 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 59 lines
+- CHANGELOG.md: md, 60 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
 - PRD.md: md, 116 lines
-- README.md: md, 87 lines
+- README.md: md, 115 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
@@ -1538,7 +1606,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 40 lines
+- docs/PROJECT_STATUS.md: md, 42 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -1564,7 +1632,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 177 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 179 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1573,7 +1641,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 118 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 120 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines

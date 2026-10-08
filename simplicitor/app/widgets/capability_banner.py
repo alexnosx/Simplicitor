@@ -6,16 +6,14 @@ from PySide6.QtGui import QFont
 from app.config.defaults import (
     APP_FONT_FAMILY, FONT_SIZE_BODY_PT,
     PRIMARY_ACCENT_COLOR, INFO_BANNER_BG_COLOR, BODY_TEXT_COLOR,
+    EXTRACTION_MODEL_WARNING,
 )
 
-_BANNER_TEXT = (
-    "You are running a lightweight model. Simple tasks will work well. "
-    "For best results with complex documents, try a model with 7B+ parameters."
-)
+_BANNER_TEXT = EXTRACTION_MODEL_WARNING
 
 
 class CapabilityBanner(QWidget):
-    """Dismissible banner shown when the active model has < 7B parameters.
+    """Dismissible recommendation for a selected model below 8B or of unknown size.
 
     Signals:
         dismissed: emitted when the user clicks the X button.

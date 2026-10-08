@@ -15,17 +15,17 @@ Use one /api/show parameter-size lookup for the selected model to show the PRD's
 1. Add DOCX/PDF files through a multi-file picker or drop area. List each separately, including same-named files, without legacy upload copying.
 2. Enter the extraction request. Explain that each file will produce one spreadsheet row; do not show a record-mode picker or table/header mapping controls.
 3. Inspect sources off the UI thread, show page/coverage issues, and ask the model to propose columns from the request and first source. Label this action **Suggest columns**.
-4. Show proposed names, descriptions, and types in an editable list with add/remove actions. Apply the proposal's recognized type, otherwise text. English number settings are prefilled; per-column overrides stay in a compact details control.
+4. Show proposed names, descriptions, and types in an editable list with add/remove actions. Apply the proposal's recognized type, otherwise text. English number settings are prefilled; per-column overrides stay in a compact details control. Confirm only supported separators: comma, full stop, space, apostrophe or empty for thousands; comma or full stop for decimals, different from thousands.
 5. Ask for day/month order only when source inspection finds ambiguous numeric dates for a date column. English month-name dates need no order question.
 6. Require column confirmation before **Extract**. If proposals fail, retain sources/request and allow manual columns or a retry. No failed suggestion starts extraction.
 
-A revised request/source list clears column confirmation and any prior review. Column edits clear review and acknowledgement. A rerun uses the same job candidate rather than adding a version picker.
+A revised request/source list clears column confirmation and any prior review. Column edits clear review and acknowledgement. Each rerun discards the previous owned job before creating its replacement candidate, without a version picker.
 
 ## Extract and review
 
 Disable duplicate submission and setup changes while busy. Show file/section progress, retain instructions after failure, and show cooperative cancellation state. Invalidate the previous review when a rerun starts; a late or failed run cannot revive it.
 
-Build the read-only grid from the saved workbook. Valid fields use their saved typed values. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues stay visible above the grid.
+Build the read-only grid from the saved workbook. Valid fields use their saved typed values. Flagged cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues appear above the grid in a bounded, scrollable view, retaining source and page/unit anchors so long issue lists keep the controls accessible.
 
 There is no PDF rendering pane, cell editor, approval token, or candidate-version selection.
 

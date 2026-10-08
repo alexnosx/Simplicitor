@@ -35,6 +35,34 @@ python build.py
 
 The build script (`build.py`) invokes Nuitka in onefile mode with the PySide6 plugin, bundles the prompt files, the default pptx template, and the built-in templates, and writes `dist\Simplicitor.exe`. Build duration depends on the compiler and machine; installer support is not yet configured in this script.
 
+### Run from source without building
+
+From PowerShell in the checkout, create the environment once if needed:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Start Ollama, then launch the application:
+
+```powershell
+.\.venv\Scripts\python.exe .\simplicitor\main.py
+```
+
+For the existing checkout at `C:\Codex\Simplicitor`, the environment is already installed; only the launch command is needed. Select an installed local model in the top bar. The native walkthrough used `qwen3:8b-q4_K_M`, the installed Q4_K_M tag of the selected Qwen candidate.
+
+Try one synthetic extraction:
+
+1. Keep **From source files** selected. Choose **Add source files**, then `tests\extraction\fixtures\invoice-01.docx`.
+2. Enter: `Extract the invoice number, customer name, gross total, and due date.`
+3. Click **Suggest columns**. Edit the names/descriptions/types if needed. Keep identifiers as text. If a date column has ambiguous numeric dates, choose the day/month order in its details.
+4. Click **Confirm columns**, then **Extract to Excel**.
+5. Select grid values to inspect their saved quotes, anchors, and issues. This fixture should retain invoice ID `00123` as text, gross total `12500` as a number, and due date `2026-04-14` as a date.
+6. If output is flagged or incomplete, review it and check the acknowledgement. Use **Save As** to choose a new `.xlsx` file. Windows asks before replacing an existing output; source files cannot be replaced.
+
+**From prompt** hosts the existing document generation and PowerPoint template flow. These source-run checks do not qualify the future installer or replace the full-pipeline release evaluation.
+
 ## Requirements
 
 A GPU with 8 GB VRAM is recommended, not required or checked.

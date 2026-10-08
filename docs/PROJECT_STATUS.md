@@ -8,16 +8,18 @@ Updated 2026-10-08. [PRD.md](../PRD.md) owns release requirements; [architecture
 |---|---|
 | Existing prompt-only Create and PowerPoint templates | Present in v1.2 source; to be preserved. |
 | Legacy Edit / v1.2.1 safety patch | Published as [v1.2.1 Latest](https://github.com/alexnosx/Simplicitor/releases/tag/v1.2.1). Public executable version and SHA-256 verified; [release evidence](releases/v1.2.1.json). Local build/smoke checked; clean-machine walkthrough waived under the [patch exception](code-signing.md). |
-| Selected-model warning | Current UI uses the older small-model threshold and hides unknown sizes; selected-model recommendation warning is planned. |
-| Structured readers, column proposals, and extraction | Plain-Python core implemented: anchored sources, currency/ordinal conversion, blank-to-null handling, shared-client requests, column suggestions, conservative context sections, field accumulation, coverage, and cancellation. Not yet connected to the UI. |
+| Selected-model warning | Queued /api/show lookup for the selected model; below 8B or unknown shows the PRD's dismissible, non-blocking recommendation. Loaded-model polling preserves an installed explicit selection and stale metadata is ignored. |
+| Structured readers, column proposals, and extraction | Task 4 connects the existing core to the default From source files workspace: source picker/drop, editable/confirmed columns, conditional date-order settings, background extraction, coverage, and cooperative cancellation. From prompt hosts existing Create/templates; Edit is hidden. |
 | Model evaluation | Alex selected qwen3:8b. Its [currency/null rerun](evaluation/2026-10-08-task1-qwen-currency-null.md) passes the unchanged Task 1 gate. Production and saved-XLSX release evaluation remain pending. |
-| Saved XLSX grid and Save As | Task 3 core implemented: typed/literal Data and Evidence, saved-cell review mapping, highlighted proposals/blanks, owned jobs, acknowledged Save As copying, and retention cleanup. Native dialog/grid wiring remains Task 4. |
+| Saved XLSX grid and Save As | Saved read-only Data grid and Evidence panel implemented, with highlighted proposals/blanks, acknowledgement, native .xlsx Save As and ordinary overwrite confirmation. Failed saves retain review. Reruns/cancellation invalidate prior review; normal close waits for worker cleanup before deleting owned jobs. |
 | Standalone installer and portable ZIP | Planned; current build produces an unsigned onefile executable. |
 | Windows security block | Reported; exact warning/detection is still needed. |
 | Later extraction/editing/reporting/recognition | Deferred under PRD scope, with separate designs required. |
-| Documentation and plan | Tasks 0 through 3 accepted; the three numeric/save corrections are authorized. Tasks remain numbered 0 to 6. |
+| Documentation and plan | Tasks 0 through 3 and their fixes accepted; Task 4 authorized. Tasks remain numbered 0 to 6. |
 
-The current source passed 902 tests with isolated user folders, including 152 focused grounding/workbook/job checks. Existing Create/template regressions pass. Numeric leading-zero proposals remain flagged literals; Excel precision failures retain the proposal with excel_precision and save other fields normally. Save As accepts only .xlsx suffixes, case-insensitively. Task 3 checks also exercise source aliases and failed copy/replace operations, invalidate stale candidates, and check owned cleanup at the retention boundary. Task 2 checks use controlled model replies; live-model accuracy remains the accepted Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new route does not share legacy reading/writing behavior. Source tests and the synthetic model gate do not establish native Excel display, packaged UI, or clean-machine readiness.
+The current source passed 953 tests with isolated user folders, including 208 planned affected checks. UI unit-test discovery is offline; the native sample uses the real runtime. Existing Create/template regressions pass. Task 4 checks cover column confirmation, supported numeric separators, selected-model warnings/empty discovery, bounded anchored coverage display, saved Evidence/flags, native-dialog delegation, source refusal, failed/confirmed overwrite, late cancellation, duplicate operations, and close/finished-handler ordering. The native Windows walkthrough used qwen3:8b-q4_K_M and invoice-01.docx: four suggested columns, confirmation/extraction, a literal ID/numeric total/date, selected-cell Evidence, Save As cancellation/new output/observed overwrite confirmation, unchanged source bytes, and normal-close job cleanup all passed. The exported bytes matched the candidate. This is a functional sample, not the Task 6 accuracy gate or installer qualification. [README](../README.md#run-from-source-without-building) has launch and fixture steps.
+
+Numeric leading-zero and Excel precision failures remain flagged literals. Live-model accuracy remains the accepted Task 1 report; full-pipeline qualification is pending. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new route does not share legacy reading/writing behavior. Native Excel display, packaged UI, and clean-machine readiness are not established by these checks.
 
 ## Benchmark environment
 
@@ -37,4 +39,4 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-Task 3 core is complete and locally verified. Stop before Task 4; no new UI or native Save As dialog has been implemented. Full-pipeline live-model and saved-output qualification remain Task 6.
+Task 4 is implemented and locally verified, including the native source-to-save walkthrough. Stop before Task 5. Installer preparation and full-pipeline release qualification remain pending.

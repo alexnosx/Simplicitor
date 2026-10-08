@@ -28,6 +28,7 @@ def window(qtbot, tmp_path, monkeypatch):
     settings.set("templates_dir", str(tmp_path / "templates"))
     win = MainWindow(settings)
     qtbot.addWidget(win)
+    win._workspace._tabs.setCurrentIndex(1)
     yield win
     win.close()
 

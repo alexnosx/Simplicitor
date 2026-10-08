@@ -100,6 +100,8 @@ Native Save As handles overwrite confirmation. Refuse a normalized source path, 
 
 Use existing QObject/QThread patterns and cooperative cancellation. The source readers never write back to supplied files.
 
+The Qt adapter freezes source paths, request, columns, and model profile for each operation. GUI receivers use Qt slots, and thread-finished handlers wait for completion and release ownership before close can stop the GUI event loop. Cancellation invalidates review immediately, including a candidate emitted just before cancellation. An accepted Save As copy finishes without a Cancel action; close waits for it. See Qt's [signal/slot thread guidance](https://doc.qt.io/qtforpython-6/tutorials/basictutorial/signals_and_slots.html) and [QThread completion semantics](https://doc.qt.io/qt-6/qthread.html#isFinished).
+
 ## Evaluation and release order
 
 Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.

@@ -103,11 +103,9 @@ class TopBar(QWidget):
     def set_connected(self, models: list[str], current_model: str = "") -> None:
         """Switch to connected state.
 
-        Populates the model dropdown. If a model is currently running it is
-        pre-selected. If no model is running but installed models exist, the
-        full list is shown and the first entry is pre-selected so the user can
-        generate immediately. If no models are installed at all the dropdown is
-        disabled.
+        Keep an existing selection when installed. Otherwise choose the loaded
+        model or the first installed model. Discovery never replaces a deliberate
+        selection with a different loaded model.
 
         Args:
             models: Full list of installed model names from /api/tags.
@@ -119,16 +117,11 @@ class TopBar(QWidget):
         previous_selection = self._model_combo.currentText()
         self._model_combo.blockSignals(True)
         self._model_combo.clear()
-        if current_model:
-            # A model is actively running — show only that model.
-            self._model_combo.addItem(current_model)
-            self._model_combo.setCurrentText(current_model)
-            self._model_combo.setEnabled(True)
-        elif models:
-            # No model running but models are installed — populate list and pre-select first.
-            for model in models:
-                self._model_combo.addItem(model)
-            self._model_combo.setCurrentIndex(0)
+        choices = list(dict.fromkeys(models + ([current_model] if current_model else [])))
+        if choices:
+            self._model_combo.addItems(choices)
+            selected = previous_selection if previous_selection in choices else current_model or choices[0]
+            self._model_combo.setCurrentText(selected)
             self._model_combo.setEnabled(True)
         else:
             self._model_combo.setPlaceholderText("No model selected")
@@ -136,7 +129,7 @@ class TopBar(QWidget):
         self._model_combo.blockSignals(False)
         # Only notify subscribers when the selection actually changed (not on every poll).
         selected = self._model_combo.currentText()
-        if selected and selected != previous_selection:
+        if selected != previous_selection:
             self.model_changed.emit(selected)
 
     def set_disconnected(self) -> None:

@@ -112,16 +112,13 @@ def test_poll_disconnected_does_not_emit_connected(qtbot) -> None:
 # model_params_ready — only on transition disconnected → connected
 # ---------------------------------------------------------------------------
 
-def test_model_params_ready_emitted_on_first_connection(qtbot) -> None:
-    """model_params_ready is emitted when transitioning from disconnected to connected."""
-    worker = _make_worker(qtbot, connected=True, models=["llama3:8b"],
-                          running_model="llama3:8b", param_count=8_000_000_000)
-    # _was_connected starts False, so first successful poll is a transition.
-    with qtbot.waitSignal(worker.model_params_ready, timeout=1000) as blocker:
-        worker._poll()
-    model_name, param_count = blocker.args
-    assert model_name == "llama3:8b"
-    assert param_count == 8_000_000_000
+def test_poll_does_not_fetch_loaded_model_metadata(qtbot) -> None:
+    worker = _make_worker(qtbot, connected=True, models=["selected", "loaded"], running_model="loaded")
+    emitted = []
+    worker.model_params_ready.connect(lambda *args: emitted.append(args))
+    worker._poll()
+    assert emitted == []
+    worker._client.get_model_params.assert_not_called()
 
 
 def test_model_params_ready_not_emitted_on_subsequent_polls(qtbot) -> None:
@@ -167,10 +164,11 @@ def test_model_params_ready_emitted_again_after_reconnect(qtbot) -> None:
     worker._poll()
     assert worker._was_connected is False
 
-    # Then: reconnect — should emit model_params_ready again
+    # Reconnect, then explicitly request the selected model metadata.
     client.check_connection.return_value = True
     with qtbot.waitSignal(worker.model_params_ready, timeout=1000):
         worker._poll()
+        worker.request_model_params("llama3:8b")
 
 
 # ---------------------------------------------------------------------------
@@ -215,11 +213,28 @@ def test_worker_timer_is_none_before_setup(qtbot) -> None:
     assert worker._timer is None
 
 
+def test_selected_metadata_lookup_works_without_loading_model(qtbot):
+    worker = _make_worker(qtbot, connected=True, running_model="loaded", param_count=8_000_000_000)
+    with qtbot.waitSignal(worker.model_params_ready) as result:
+        worker.request_model_params("selected")
+    assert result.args == ["selected", 8_000_000_000]
+    worker._client.get_model_params.assert_called_once_with("selected", timeout=OLLAMA_POLL_TIMEOUT_S)
+
+
+def test_unknown_metadata_still_emits_nonblocking_unknown(qtbot, caplog):
+    worker = _make_worker(qtbot)
+    worker._client.get_model_params.side_effect = RuntimeError("private response")
+    with qtbot.waitSignal(worker.model_params_ready) as result:
+        worker.request_model_params("selected")
+    assert result.args == ["selected", 0]
+    assert "private response" not in caplog.text
+
+
 # ---------------------------------------------------------------------------
 # model_params_ready — emitted on model change while connected
 # ---------------------------------------------------------------------------
 
-def test_model_params_ready_emitted_on_model_change_while_connected(qtbot) -> None:
+def test_loaded_model_change_does_not_fetch_selected_metadata(qtbot) -> None:
     """model_params_ready must fire when the running model changes mid-session."""
     client = MagicMock(spec=OllamaClient)
     client.check_connection.return_value = True
@@ -235,9 +250,8 @@ def test_model_params_ready_emitted_on_model_change_while_connected(qtbot) -> No
     worker._poll()  # second: still modelA, no emit
     worker._poll()  # third: modelB running, emit
 
-    assert len(params_signals) == 2
-    assert params_signals[0][0] == "modelA"
-    assert params_signals[1][0] == "modelB"
+    assert params_signals == []
+    client.get_model_params.assert_not_called()
 
 
 def test_model_params_ready_not_emitted_when_model_unchanged(qtbot) -> None:
@@ -256,10 +270,10 @@ def test_model_params_ready_not_emitted_when_model_unchanged(qtbot) -> None:
     worker._poll()  # second: same model, no emit
     worker._poll()  # third: same model, no emit
 
-    assert len(params_signals) == 1
+    assert params_signals == []
 
 
-def test_model_params_ready_emits_empty_when_model_unloaded(qtbot) -> None:
+def test_model_unload_does_not_reset_selected_metadata(qtbot) -> None:
     """When running model drops to empty, emit model_params_ready('', 0) to hide banner."""
     client = MagicMock(spec=OllamaClient)
     client.check_connection.return_value = True
@@ -274,8 +288,7 @@ def test_model_params_ready_emits_empty_when_model_unloaded(qtbot) -> None:
     worker._poll()  # first: modelA running, emit ("modelA", 7B)
     worker._poll()  # second: no model running, emit ("", 0)
 
-    assert len(params_signals) == 2
-    assert params_signals[1] == ("", 0)
+    assert params_signals == []  # unloading must not reset a selected-model warning
 
 
 def test_poll_uses_short_timeouts(qtbot) -> None:
@@ -285,6 +298,4 @@ def test_poll_uses_short_timeouts(qtbot) -> None:
         worker._poll()
     worker._client.get_models.assert_called_once_with(timeout=OLLAMA_POLL_TIMEOUT_S)
     worker._client.get_running_model.assert_called_once_with(timeout=OLLAMA_POLL_TIMEOUT_S)
-    worker._client.get_model_params.assert_called_once_with(
-        "llama3:8b", timeout=OLLAMA_POLL_TIMEOUT_S
-    )
+    worker._client.get_model_params.assert_not_called()

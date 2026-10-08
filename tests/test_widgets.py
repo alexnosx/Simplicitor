@@ -36,7 +36,7 @@ def test_top_bar_set_connected_with_running_model(qtbot) -> None:
     bar.set_connected(["llama3:8b", "mistral:7b"], "llama3:8b")
     assert bar.current_model() == "llama3:8b"
     assert bar._model_combo.isEnabled()
-    assert bar._model_combo.count() == 1  # only the running model
+    assert bar._model_combo.count() == 2  # all installed models remain selectable
 
 
 def test_top_bar_set_connected_no_running_model_populates_from_list(qtbot) -> None:
@@ -277,6 +277,7 @@ def test_main_window_has_capability_banner(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     assert hasattr(window, "_capability_banner")
     assert not window._capability_banner.isVisible()
 
@@ -285,12 +286,14 @@ def test_main_window_instantiates(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
 
 
 def test_main_window_title_is_simplicitor(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     assert window.windowTitle() == "Simplicitor"
 
 
@@ -298,6 +301,7 @@ def test_main_window_minimum_size(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     assert window.minimumWidth() >= 1024
     assert window.minimumHeight() >= 640
 
@@ -306,6 +310,7 @@ def test_main_window_opens_settings_dialog(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     # Verify the signal is connected (settings_requested → _open_settings)
     assert window._top_bar.settings_requested is not None
 
@@ -314,6 +319,7 @@ def test_main_window_creates_ollama_thread(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     assert hasattr(window, "_ollama_thread")
     assert hasattr(window, "_ollama_worker")
     assert window._ollama_worker.thread() is window._ollama_thread
@@ -323,7 +329,9 @@ def test_main_window_banner_shows_for_small_model(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     # 3B params < 7B threshold → banner should show
+    window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert window._capability_banner.isVisible()
 
@@ -332,7 +340,9 @@ def test_main_window_banner_hidden_for_large_model(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     # 13B params > 7B threshold → banner should stay hidden
+    window._current_model = "large-model:13b"
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
     assert not window._capability_banner.isVisible()
 
@@ -341,12 +351,15 @@ def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
+    window._current_model = "small-model:3b"
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert window._capability_banner.isVisible()
     # User dismisses
     window._capability_banner._dismiss_btn.click()
     # Same model signals again — banner should stay hidden
+    window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert not window._capability_banner.isVisible()
 
@@ -455,6 +468,7 @@ def test_main_window_on_generate_completed_shows_status(qtbot, tmp_path) -> None
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_generate_completed("/some/path/report.docx")
     assert window._create_panel._status_banner.isVisible()
     assert "File created successfully" in window._create_panel._status_banner.text()
@@ -465,6 +479,7 @@ def test_main_window_on_generate_failed_shows_error(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_generate_failed("AI generation failed: connection refused")
     assert window._create_panel._status_banner.isVisible()
     assert "AI generation failed" in window._create_panel._status_banner.text()
@@ -474,6 +489,7 @@ def test_main_window_on_generate_started_sets_generating(qtbot, tmp_path) -> Non
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_generate_started()
     assert window._create_panel._generate_btn.text() == "Generating\u2026"
     assert not window._create_panel._generate_btn.isEnabled()
@@ -483,6 +499,7 @@ def test_main_window_build_output_path_contains_words_and_timestamp(qtbot, tmp_p
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     path = window._build_output_path(
         "Word (.docx)", str(tmp_path), "Write a quarterly report now please"
     )
@@ -496,6 +513,7 @@ def test_main_window_build_output_path_extension_matches_type(qtbot, tmp_path) -
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     xlsx_path = window._build_output_path("Excel (.xlsx)", str(tmp_path), "Budget report")
     pptx_path = window._build_output_path("PowerPoint (.pptx)", str(tmp_path), "Sales deck")
     assert Path(xlsx_path).suffix == ".xlsx"
@@ -506,10 +524,13 @@ def test_main_window_model_small_passed_to_panel(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     # 3B params < 7B threshold → model is small
+    window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert window._create_panel._model_is_small is True
     # 13B params > 7B threshold → model is not small
+    window._current_model = "large-model:13b"
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
     assert window._create_panel._model_is_small is False
 
@@ -767,18 +788,20 @@ def test_main_window_on_save_completed_shows_status(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_manipulate_completed("/path/result.docx", "/path/backups/result_backup.docx")
-    assert window._edit_panel._status_banner.isVisible()
+    assert not window._edit_panel._status_banner.isHidden()
     assert "File saved. Backup created." in window._edit_panel._status_banner.text()
-    assert window._edit_panel._open_file_btn.isVisible()
+    assert not window._edit_panel._open_file_btn.isHidden()
 
 
 def test_main_window_on_save_failed_shows_error(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_manipulate_failed("Could not read file: bad bytes")
-    assert window._edit_panel._status_banner.isVisible()
+    assert not window._edit_panel._status_banner.isHidden()
     assert "Could not read" in window._edit_panel._status_banner.text()
 
 
@@ -786,6 +809,7 @@ def test_main_window_on_save_started_sets_saving(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_manipulate_started()
     assert window._edit_panel._save_btn.text() == "Saving\u2026"
 
@@ -794,6 +818,7 @@ def test_main_window_has_manipulate_slots(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     assert hasattr(window, "_on_save_requested")
     assert hasattr(window, "_on_manipulate_started")
     assert hasattr(window, "_on_manipulate_progress")
@@ -806,6 +831,7 @@ def test_main_window_on_ollama_connected_updates_current_model(qtbot, tmp_path) 
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._on_ollama_connected(["gemma3"], "gemma3")
     assert window._current_model == "gemma3"
 
@@ -815,6 +841,7 @@ def test_main_window_on_ollama_connected_no_model_does_not_clear(qtbot, tmp_path
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._current_model = "llama3"
     window._on_ollama_connected(["llama3"], "")
     assert window._current_model == "llama3"  # unchanged
@@ -826,6 +853,7 @@ def test_main_window_generate_auto_creates_output_dir(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
+    window._workspace._tabs.setCurrentIndex(1)
     window._current_model = "llama3"
 
     new_dir = tmp_path / "nonexistent" / "subdir"
