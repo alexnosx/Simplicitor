@@ -45,18 +45,18 @@ Adapt _extract_docx/_extract_pdf into structured readers without truncation. DOC
 
 PDF page text uses source_id#page:number with one-based page numbers. Call each pdfplumber page's extract_text(); retain page counts and zero/near-zero-text issues. File mode needs no PDF table extraction.
 
-record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sections split at paragraph, DOCX table-row, or PDF page boundaries without overlap. Carry the file's accumulated values/anchors; retain agreeing evidence and flag conflicts. Oversized indivisible units become coverage issues.
+record_id equals source_id. Same-named or identical-content attachments keep separate rows. Production sends the whole file when its token count fits num_ctx minus prompt, schema, and reserved output tokens. Otherwise derive the section budget from the same remaining context and split at paragraph, DOCX table-row, or PDF page boundaries without overlap. Carry the file's accumulated values/anchors; retain agreeing evidence and flag conflicts. Oversized indivisible units become coverage issues.
 
 ## Implementation settings
 
-Review these proposals with the plan and store accepted values once in defaults.py.
+Implementation values are approved. Store shared values once in defaults.py.
 
 | Setting | Proposal |
 |---|---|
 | DOCX page equivalents | max(1, ceil(extracted_body_characters / 3000)) per file, including supported table cells. Display estimates. |
 | Input file limit | 50 MiB per file. The aggregate page limit belongs to PRD.md. |
 | PDF near-zero text | Fewer than 40 non-whitespace extracted characters per page. |
-| Production section budget | Up to 8000 UTF-8 source bytes, with room for schema and carried fields in the request context. Oversized units fail visibly. |
+| Production input budget | num_ctx minus prompt, schema, and reserved output tokens, also accounting for carried fields on subsequent calls. Prefer a whole file; derive sections from the remaining context only when needed. Oversized indivisible units fail visibly. |
 | Request settings | num_ctx=16384, num_predict=4096, temperature=0, seed=0, think=False, HTTP timeout=180 seconds. |
 
 The early fixtures fit whole in one request and do not use sectioning. Production column suggestions use the first source's leading complete units within the request budget, labelled a sample; extraction still covers all supported units.
@@ -67,7 +67,7 @@ The early fixtures fit whole in one request and do not use sectioning. Productio
 
 Task 1's CLI calls /api/generate directly through requests.Session with trust_env=False and a loopback URL check. It submits all anchored units of each fixture in one request, with confirmed fixture columns and a JSON response schema. Thinking is always off.
 
-Task 3 adds optional options, think, and local_only arguments to OllamaClient.generate while preserving existing callers. Extraction calls use output_format for schema, think=False, and local_only for the same loopback/trust_env=False transport. Column suggestions use these same settings. Diagnostics contain aggregate metadata and short errors, not document content or raw response bodies.
+Task 2 adds optional options, think, and local_only arguments to OllamaClient.generate while preserving existing callers. Extraction calls use output_format for schema, think=False, and local_only for the same loopback/trust_env=False transport. Column suggestions use these same settings. Diagnostics contain aggregate metadata and short errors, not document content or raw response bodies.
 
 ## Grounding and conversion
 
@@ -91,7 +91,7 @@ Use existing QObject/QThread patterns and cooperative cancellation. The source r
 
 Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.
 
-After it passes, implement the production pipeline and UI. Task 3 has unit checks only. Task 7 adds the CLI's --full-pipeline option to run the same actual-file corpus through production sectioning/extraction as the final release check. Both paths use the same scorer; optional timings decide nothing.
+After it passes, implement the production pipeline and UI. Task 2 has unit checks only. Task 6 adds the CLI's --full-pipeline option and labelled files exceeding one request context to score both whole-file and sectioned production paths as the final release check. Both paths use the same scorer; optional timings decide nothing.
 
 The v1.2.1 safety release uses the existing build route and its own checks, independently of extraction. Publication requires Alex's explicit go. New installer preparation may run alongside extraction and stops if the early gate fails.
 

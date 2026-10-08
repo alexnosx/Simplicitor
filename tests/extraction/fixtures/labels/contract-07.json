@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-007",
+  "supplier": "Gorse Training Ltd",
+  "client": "Silverline Energy Ltd",
+  "effective_date": "2026-06-09",
+  "expiry_date": "2027-06-08",
+  "contract_value": "8400.00",
+  "currency": "EUR",
+  "employee_id": "06007",
+  "reference": "=HYPERLINK(\"https://example.invalid\",\"Open\")",
+  "notice_days": 30
+}

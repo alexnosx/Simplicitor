@@ -1,0 +1,103 @@
+%PDF-1.3
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 2
+/Kids [ 5 0 R 7 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+>>
+endobj
+5 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 215
+>>
+stream
+BT /F1 10 Tf 40 750 Td 15 TL
+(Invoice number: INV-006) Tj T*
+(Supplier: Fieldwork LLP) Tj T*
+(Customer: Harbor Labs Ltd) Tj T*
+(Invoice date: 2026-02-28) Tj T*
+(Currency: GBP) Tj T*
+(Subtotal: GBP 1,000.00) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 215
+>>
+stream
+BT /F1 10 Tf 40 750 Td 15 TL
+(Payment due: 2026-03-30) Tj T*
+(Total including tax: £1,200.00) Tj T*
+(Purchase order: PO-006) Tj T*
+(Payment terms: Net 30) Tj T*
+(Billing contact: accounts@fieldwork.example) Tj T*
+ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000119 00000 n 
+0000000168 00000 n 
+0000000265 00000 n 
+0000000397 00000 n 
+0000000663 00000 n 
+0000000795 00000 n 
+trailer
+<<
+/Size 9
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+1061
+%%EOF

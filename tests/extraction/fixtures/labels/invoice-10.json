@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-010",
+  "supplier": "Juniper Tools Ltd",
+  "customer": "Lantern Research Ltd",
+  "invoice_date": "2026-12-01",
+  "due_date": "2026-12-31",
+  "total": "1999.99",
+  "currency": "EUR",
+  "purchase_order": "2026-PO-10",
+  "payment_terms": "Net 30",
+  "contact_email": null
+}

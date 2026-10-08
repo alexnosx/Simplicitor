@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-005",
+  "supplier": "Ember Logistics Ltd",
+  "customer": "Grove Foods Ltd",
+  "invoice_date": "2026-03-15",
+  "due_date": "2026-04-14",
+  "total": "0.00",
+  "currency": "USD",
+  "purchase_order": "00105",
+  "payment_terms": "Settled on receipt",
+  "contact_email": "ar@ember.example"
+}

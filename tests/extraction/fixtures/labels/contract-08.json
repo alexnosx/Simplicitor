@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-008",
+  "supplier": "Hazel Advisory Ltd",
+  "client": "Tern Finance Ltd",
+  "effective_date": "2026-07-10",
+  "expiry_date": "2027-07-09",
+  "contract_value": "99999.99",
+  "currency": "USD",
+  "employee_id": "00008",
+  "reference": "Case-08",
+  "notice_days": null
+}

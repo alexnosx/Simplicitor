@@ -1,0 +1,6 @@
+{
+  "candidates": [
+    {"name": "qwen3:8b", "model": "qwen3:8b-q4_K_M", "reference_only": false},
+    {"name": "llama3.1:8b", "model": "llama3.1:8b-instruct-q4_K_M", "reference_only": false}
+  ]
+}

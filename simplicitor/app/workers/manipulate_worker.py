@@ -11,6 +11,7 @@ from app.config.defaults import (
     MANIPULATION_OUT_OF_SCOPE_KEYWORDS,
     MANIPULATION_VISUAL_EXTENSIONS,
     OLLAMA_MANIPULATION_TIMEOUT_S,
+    LEGACY_EDIT_DISABLED_MESSAGE,
 )
 from app.services.backup_service import BackupService
 from app.services.file_manipulator import FileManipulator, ManipulationError
@@ -73,7 +74,10 @@ class ManipulateWorker(QObject):
         self.backup_dir = backup_dir
 
     def run(self) -> None:
-        """Execute the manipulation pipeline. Called by QThread via started signal."""
+        """Reject retired editing before any file, backup, or model operation."""
+        self.failed.emit(LEGACY_EDIT_DISABLED_MESSAGE)
+        return
+
         # ── Scope check ───────────────────────────────────────────────────────
         # Detect visual/styling requests that the v1 pipeline cannot fulfill.
         # Must run before started.emit() so no spinner shows, no backup is

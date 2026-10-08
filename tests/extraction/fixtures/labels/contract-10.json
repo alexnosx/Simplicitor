@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-010",
+  "supplier": "Jade Maintenance Ltd",
+  "client": "Violet Manufacturing Ltd",
+  "effective_date": "2026-09-01",
+  "expiry_date": "2027-08-31",
+  "contract_value": "6550.75",
+  "currency": "EUR",
+  "employee_id": "00110",
+  "reference": "Final-10",
+  "notice_days": 30
+}

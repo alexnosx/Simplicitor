@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-007",
+  "supplier": "Granite Office Ltd",
+  "customer": "Iris Legal Ltd",
+  "invoice_date": "2026-09-09",
+  "due_date": "2026-10-09",
+  "total": "98765.43",
+  "currency": "EUR",
+  "purchase_order": "05007",
+  "payment_terms": "Net 30",
+  "contact_email": "billing@granite.example"
+}

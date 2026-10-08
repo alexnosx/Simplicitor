@@ -12,6 +12,7 @@ from app.config.defaults import (
     APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
     WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, SMALL_MODEL_PARAM_THRESHOLD,
     FILE_TYPE_EXTENSIONS, TEMPLATE_FILE_TYPE,
+    LEGACY_EDIT_DISABLED_MESSAGE,
 )
 from app.utils.file_utils import resource_path, truncate_path
 from app.config.settings import Settings
@@ -84,6 +85,8 @@ class MainWindow(QMainWindow):
         # Two-panel area — QFrame panels in a horizontal layout with padding and gap
         self._create_panel = CreatePanel(self._settings)
         self._edit_panel = EditPanel(self._settings)
+        self._edit_panel.setEnabled(False)
+        self._edit_panel.show_status(LEGACY_EDIT_DISABLED_MESSAGE, is_error=True)
 
         panels_layout = QHBoxLayout()
         panels_layout.setContentsMargins(16, 16, 16, 16)
@@ -434,6 +437,9 @@ class MainWindow(QMainWindow):
             file_path: Absolute path to the uploaded file to manipulate.
             prompt: The user's natural-language change instruction.
         """
+        self._edit_panel.show_status(LEGACY_EDIT_DISABLED_MESSAGE, is_error=True)
+        return
+
         if not self._current_model:
             logger.warning("Save requested but no model selected")
             self._edit_panel.show_status(

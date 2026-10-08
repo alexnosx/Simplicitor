@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-006",
+  "supplier": "Fir Managed Services Ltd",
+  "client": "River Health Ltd",
+  "effective_date": "2026-05-01",
+  "expiry_date": "2027-04-30",
+  "contract_value": "15000.50",
+  "currency": "GBP",
+  "employee_id": null,
+  "reference": "Ref-006",
+  "notice_days": 14
+}

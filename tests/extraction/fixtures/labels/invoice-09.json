@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-009",
+  "supplier": "Indigo Analytics Ltd",
+  "customer": "Kestrel Care Ltd",
+  "invoice_date": "2026-11-05",
+  "due_date": "2026-12-05",
+  "total": "75.00",
+  "currency": "GBP",
+  "purchase_order": "00009",
+  "payment_terms": "Net 30",
+  "contact_email": "finance@indigo.example"
+}

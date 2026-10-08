@@ -16,12 +16,13 @@ and 2026-10-08-document-workspace-ui-design.md. The one first-release execution 
 docs/superpowers/plans/2026-10-08-first-release-extraction.md. They link to requirements
 rather than maintaining competing scope or metric tables.
 
-The module map below describes existing source. Proposed extraction modules are listed
-in the architecture/plan until implemented.
+The module map below describes existing source. Task 1 readers, grounding, and the
+evaluation CLI are implemented. Production extraction, XLSX output, and review UI
+remain in the architecture/plan.
 
 | Module under simplicitor/ | Current responsibility |
 |---|---|
-| app/main_window.py | UI wiring, worker/thread lifecycle, generation/template/legacy Edit routing. |
+| app/main_window.py | UI wiring, worker/thread lifecycle, generation/template routing; legacy Edit disabled before I/O. |
 | app/services/ollama_client.py | Ollama HTTP client; generate supports output_format but existing generation callers omit it. |
 | app/parsers/llm_response_parser.py | Freeform generation parsing. |
 | app/generators/ | Existing Word/Excel/PowerPoint generation. |
@@ -29,6 +30,10 @@ in the architecture/plan until implemented.
 | app/services/backup_service.py | Legacy filename-based backups. |
 | templates_engine/ | Manifest/import/prompt/validation/repair/rendering pipeline. |
 | app/config/defaults.py | Shared styling, timeouts, and limits. |
+| extraction/ | Anchored read-only DOCX/PDF sources, field schema, literal grounding, and type conversion. |
+
+scripts/evaluate_extraction.py runs the actual-file model gate directly against Ollama.
+scripts/build_extraction_fixtures.py regenerates the synthetic English fixture files.
 
 Workers use QObject/QThread and signals. OllamaTimeoutError subclasses
 OllamaConnectionError, so catch it first when messages differ. Templates use a distinct
@@ -63,6 +68,11 @@ docs/
         PRD_v1.2.md
     design/
         document-workspace.html
+    evaluation/
+        2026-10-08-task1.json
+        2026-10-08-task1.md
+    releases/
+        v1.2.1-local.json
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -98,6 +108,8 @@ resources/
     icon.ico
 scripts/
     build_business_pitch_pptx.py
+    build_extraction_fixtures.py
+    evaluate_extraction.py
     gen_repo_map.py
     inspect_template.py
 simplicitor/
@@ -145,6 +157,11 @@ simplicitor/
             template_worker.py
         __init__.py
         main_window.py
+    extraction/
+        __init__.py
+        grounding.py
+        models.py
+        source_readers.py
     prompts/
         system_excel.txt
         system_manipulate.txt
@@ -177,6 +194,57 @@ simplicitor/
     cli.py
     main.py
 tests/
+    extraction/
+        fixtures/
+            labels/
+                contract-01.json
+                contract-02.json
+                contract-03.json
+                contract-04.json
+                contract-05.json
+                contract-06.json
+                contract-07.json
+                contract-08.json
+                contract-09.json
+                contract-10.json
+                invoice-01.json
+                invoice-02.json
+                invoice-03.json
+                invoice-04.json
+                invoice-05.json
+                invoice-06.json
+                invoice-07.json
+                invoice-08.json
+                invoice-09.json
+                invoice-10.json
+            .gitattributes
+            README.md
+            authored_cases.json
+            contract-01.docx
+            contract-02.pdf
+            contract-03.docx
+            contract-04.pdf
+            contract-05.docx
+            contract-06.pdf
+            contract-07.docx
+            contract-08.pdf
+            contract-09.docx
+            contract-10.pdf
+            invoice-01.docx
+            invoice-02.pdf
+            invoice-03.docx
+            invoice-04.pdf
+            invoice-05.docx
+            invoice-06.pdf
+            invoice-07.docx
+            invoice-08.pdf
+            invoice-09.docx
+            invoice-10.pdf
+            manifest.json
+            profiles.json
+        test_evaluation.py
+        test_grounding.py
+        test_source_readers.py
     templates_engine/
         fixtures/
             broken_duplicate_manifest.yaml
@@ -206,6 +274,7 @@ tests/
     test_generate_worker.py
     test_generators.py
     test_hard_stop_dialog.py
+    test_legacy_edit_disabled.py
     test_llm_response_parser.py
     test_main_window_teardown.py
     test_main_window_template.py
@@ -251,6 +320,29 @@ requirements.txt
 - def _strip_slides(prs) -> int: Delete every slide from *prs* in place. Returns the count removed.
 - def build(source: Path) -> None
 - def main() -> None
+
+### scripts/build_extraction_fixtures.py
+
+- def write_pdf(path: Path, pages: list[list[str]]) -> None: Write small text-layer pages using the existing pypdf dependency.
+- def build(root: Path=ROOT) -> None: Build real files; labels come from authored JSON, never a model or reader.
+
+### scripts/evaluate_extraction.py
+
+- class EvaluationError(ValueError): A safe evaluation error code without source or server contents.
+- class ScoredField
+- class ExpectedField
+- class EvaluationReport
+- def passes_quality_gate(correct: int, unflagged_wrong: int, total: int) -> bool: No rounding: 95% accuracy and at most 1% unflagged wrong slots.
+- def _matches(actual: object, expected: ExpectedField) -> bool
+- def score_results(actual: Mapping[tuple[str, str], ScoredField], labels: Mapping[tuple[str, str], ExpectedField]) -> EvaluationReport: Score independent labels without feeding them into extraction or flags.
+- def _loopback_url(url: str) -> str
+- def call_ollama(url: str, model: str, source: SourceDocument, columns: tuple[ColumnSpec, ...], settings: dict) -> str: Send the complete fixture in one schema-constrained, thinking-off request.
+- def _failed_fields(columns: tuple[ColumnSpec, ...], issue: str) -> dict[str, FieldResult]
+- def parse_fields(response: str, source: SourceDocument, columns: tuple[ColumnSpec, ...]) -> dict[str, FieldResult]: Keep every requested field, including failures and absent proposals.
+- def _model_details(url: str, model: str) -> dict
+- def _expected(value: object, kind: str) -> ExpectedField
+- def evaluate(manifest: Path, profiles: Path, url: str) -> dict: Run both candidates on actual files; persist aggregate counts only.
+- def main(argv: list[str] | None=None) -> int: Write JSON and Markdown reports; return nonzero when the gate fails.
 
 ### scripts/gen_repo_map.py
 
@@ -444,6 +536,34 @@ requirements.txt
 - def _build_parser() -> argparse.ArgumentParser
 - def main() -> int
 
+### simplicitor/extraction/__init__.py
+
+(no top-level definitions)
+
+### simplicitor/extraction/grounding.py
+
+- def validate_field(proposal: FieldProposal, column: ColumnSpec, units: Mapping[str, SourceUnit]) -> FieldResult: Check anchor, normalized quote, literal value span, then column conversion.
+- def _number(value: str, column: ColumnSpec) -> Decimal | int
+- def _date(value: str, order: str | None) -> date
+
+### simplicitor/extraction/models.py
+
+- class Issue
+- class SourceUnit
+- class SourceDocument
+- class ColumnSpec
+- class FieldProposal
+- class FieldResult
+- def build_response_schema(columns: tuple[ColumnSpec, ...], record_ids: tuple[str, ...]) -> dict: Constrain structure while keeping every proposed value a literal string.
+
+### simplicitor/extraction/source_readers.py
+
+- class SourceReadError(ValueError): A safe reader failure, optionally carrying page/structure issues.
+- def read_source(path: Path, source_id: str) -> SourceDocument: Read the complete supported source with stable, job-local anchors.
+- def read_sources(paths: Sequence[Path]) -> tuple[SourceDocument, ...]: Read attachments independently and enforce the aggregate page budget.
+- def _read_docx(path: Path, source_id: str) -> SourceDocument
+- def _read_pdf(path: Path, source_id: str) -> SourceDocument
+
 ### simplicitor/main.py
 
 - def main() -> None: Application entry point.
@@ -530,6 +650,39 @@ requirements.txt
 ### tests/conftest.py
 
 - def auto_show_widgets(qtbot, monkeypatch): Auto-show top-level widgets registered with qtbot unless they were explicitly hidden.
+
+### tests/extraction/test_evaluation.py
+
+- def test_quality_boundaries(correct, wrong, passed)
+- def test_real_quote_in_wrong_column_is_counted_unflagged()
+- def test_missing_slots_and_correct_flag_review_burden()
+- def test_response_schema_keeps_all_values_as_literal_strings()
+- def test_direct_call_sends_whole_file_schema_and_thinking_off(monkeypatch, tmp_path)
+- def test_remote_transport_is_rejected_before_a_request(tmp_path)
+- def test_invalid_output_retains_every_field(tmp_path)
+- def test_invalid_evidence_keeps_identifiable_proposed_value(tmp_path)
+- def test_extra_schema_properties_flag_but_retain_known_proposal(tmp_path, extra_location)
+
+### tests/extraction/test_grounding.py
+
+- def test_currency_context_preserves_literal_amount(quote)
+- def test_english_dates_are_converted_by_code(value)
+- def test_types_do_not_invent_normalization(value, kind, want_flag)
+- def test_quote_must_belong_to_the_referenced_unit()
+- def test_quote_whitespace_can_vary_but_value_must_be_literal()
+- def test_whitespace_is_not_evidence_of_a_missing_text_value()
+
+### tests/extraction/test_source_readers.py
+
+- def test_docx_keeps_paragraphs_table_cells_and_long_tail(tmp_path)
+- def test_docx_merged_cells_are_not_repeated(tmp_path)
+- def test_empty_pdf_pages_are_reported_not_dropped(tmp_path)
+- def test_unsupported_and_malformed_files_fail_safely(tmp_path)
+- def test_job_page_limit_and_distinct_source_ids(tmp_path)
+- def test_per_file_limit_is_checked_before_parsing(tmp_path)
+- def test_pdf_keeps_page_text_and_flags_only_near_zero_page(tmp_path)
+- def test_simple_word_fields_are_disclosed_as_unsupported(tmp_path)
+- def test_empty_docx_fails_before_model_work(tmp_path)
 
 ### tests/templates_engine/__init__.py
 
@@ -927,6 +1080,11 @@ requirements.txt
 - def test_hard_stop_cancel_button_returns_cancel_choice(qtbot)
 - def test_hard_stop_cancel_only_when_no_builtin(qtbot)
 
+### tests/test_legacy_edit_disabled.py
+
+- def test_worker_rejects_legacy_edit_without_io(tmp_path, model_output)
+- def test_main_window_blocks_programmatic_save(qtbot, tmp_path, monkeypatch)
+
 ### tests/test_llm_response_parser.py
 
 - def _json(obj: dict) -> str: Serialize dict to a JSON string.
@@ -946,8 +1104,8 @@ requirements.txt
 - class _FakeManipulateWorker(QObject)
 - def window(qtbot, tmp_path, monkeypatch)
 - def test_close_after_completed_generation_does_not_raise(window, qtbot, tmp_path, monkeypatch): A completed generation deleteLater's its QThread; closeEvent must not quit() it.
-- def test_close_after_completed_manipulation_does_not_raise(window, qtbot, tmp_path, monkeypatch): Same as above for the manipulate thread.
-- def test_second_save_after_completed_manipulation_starts_again(window, qtbot, tmp_path, monkeypatch): The in-flight guard must not probe the freed thread: before the fix,
+- def test_close_after_rejected_edit_does_not_raise(window, qtbot, tmp_path, monkeypatch): Disabled editing leaves no thread for closeEvent to touch.
+- def test_repeated_edit_requests_never_construct_worker(window, qtbot, tmp_path, monkeypatch): Repeated programmatic requests remain disabled without starting a thread.
 
 ### tests/test_main_window_template.py
 
@@ -968,24 +1126,8 @@ requirements.txt
 
 ### tests/test_manipulate_worker.py
 
-- def make_worker(file_path: str=str(Path(tempfile.gettempdir()) / 'doc.txt'), prompt: str='Make it shorter', model: str='llama3', client=None, backup_dir: str=str(Path(tempfile.gettempdir()) / 'backups')) -> ManipulateWorker
-- def test_manipulate_worker_has_signals()
-- def test_manipulate_worker_emits_completed_on_success(qtbot, tmp_path)
-- def test_manipulate_worker_emits_started(qtbot, tmp_path)
-- def test_manipulate_worker_emits_progress(qtbot, tmp_path)
-- def test_manipulate_worker_fails_on_ollama_error(qtbot, tmp_path)
-- def test_manipulate_worker_fails_on_empty_file(qtbot, tmp_path)
-- def test_manipulate_worker_fails_on_missing_prompt_file(qtbot, tmp_path)
-- def test_manipulate_worker_emits_failed_on_unreadable_file(qtbot, tmp_path)
-- def _make_valid_pptx(path: Path) -> None: Write a minimal valid .pptx file with one slide for testing.
-- def _make_valid_docx(path: Path) -> None: Write a minimal valid .docx file for testing.
-- def test_scope_check_rejects_styling_prompt_for_pptx(qtbot, tmp_path): Styling keyword in prompt + .pptx → failed with scope message; Ollama not called.
-- def test_scope_check_rejects_styling_prompt_for_docx(qtbot, tmp_path): Styling keyword in prompt + .docx → same scope rejection.
-- def test_scope_check_does_not_block_txt_with_styling_keyword(qtbot, tmp_path): Styling keyword in prompt + .txt → scope check does NOT fire; Ollama IS called.
-- def test_scope_check_does_not_block_pptx_with_safe_prompt(qtbot, tmp_path): Non-styling prompt + .pptx → scope check passes; pipeline continues normally.
-- def test_scope_check_allows_word_containing_keyword(qtbot, tmp_path): Keyword embedded in a longer word ("Colorado", "lifestyle") must not trigger.
-- def test_scope_check_still_rejects_plural_keyword(qtbot, tmp_path): Plural forms of out-of-scope keywords stay rejected.
-- def test_scope_check_is_case_insensitive(qtbot, tmp_path): Uppercase keywords are still caught.
+- def test_disabled_worker_does_not_read_or_write(tmp_path, monkeypatch, suffix, prompt)
+- def test_disabled_worker_does_not_need_prompt_or_existing_source(tmp_path, monkeypatch)
 
 ### tests/test_ollama_client.py
 
@@ -1198,7 +1340,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 40 lines
+- CHANGELOG.md: md, 51 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1215,7 +1357,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 6 lines
-- docs/PROJECT_STATUS.md: md, 43 lines
+- docs/PROJECT_STATUS.md: md, 42 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -1224,6 +1366,9 @@ requirements.txt
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/code-signing.md: md, 39 lines
 - docs/design/document-workspace.html: html, 301 lines
+- docs/evaluation/2026-10-08-task1.json: json, 545 lines
+- docs/evaluation/2026-10-08-task1.md: md, 18 lines
+- docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
@@ -1233,7 +1378,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 163 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 167 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1262,6 +1407,51 @@ requirements.txt
 - simplicitor/templates_engine/builtin/business_pitch/template.pptx: pptx (binary)
 - simplicitor/templates_engine/builtin/technical_overview/manifest.yaml: yaml, 45 lines
 - simplicitor/templates_engine/builtin/technical_overview/template.pptx: pptx (binary)
+- tests/extraction/fixtures/.gitattributes: text, 1 lines
+- tests/extraction/fixtures/README.md: md, 11 lines
+- tests/extraction/fixtures/authored_cases.json: json, 704 lines
+- tests/extraction/fixtures/contract-01.docx: docx (binary)
+- tests/extraction/fixtures/contract-02.pdf: pdf, 103 lines
+- tests/extraction/fixtures/contract-03.docx: docx (binary)
+- tests/extraction/fixtures/contract-04.pdf: pdf, 103 lines
+- tests/extraction/fixtures/contract-05.docx: docx (binary)
+- tests/extraction/fixtures/contract-06.pdf: pdf, 103 lines
+- tests/extraction/fixtures/contract-07.docx: docx (binary)
+- tests/extraction/fixtures/contract-08.pdf: pdf, 103 lines
+- tests/extraction/fixtures/contract-09.docx: docx (binary)
+- tests/extraction/fixtures/contract-10.pdf: pdf, 103 lines
+- tests/extraction/fixtures/invoice-01.docx: docx (binary)
+- tests/extraction/fixtures/invoice-02.pdf: pdf, 103 lines
+- tests/extraction/fixtures/invoice-03.docx: docx (binary)
+- tests/extraction/fixtures/invoice-04.pdf: pdf, 103 lines
+- tests/extraction/fixtures/invoice-05.docx: docx (binary)
+- tests/extraction/fixtures/invoice-06.pdf: pdf, 103 lines
+- tests/extraction/fixtures/invoice-07.docx: docx (binary)
+- tests/extraction/fixtures/invoice-08.pdf: pdf, 103 lines
+- tests/extraction/fixtures/invoice-09.docx: docx (binary)
+- tests/extraction/fixtures/invoice-10.pdf: pdf, 103 lines
+- tests/extraction/fixtures/labels/contract-01.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-02.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-03.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-04.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-05.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-06.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-07.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-08.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-09.json: json, 12 lines
+- tests/extraction/fixtures/labels/contract-10.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-01.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-02.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-03.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-04.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-05.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-06.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-07.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-08.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-09.json: json, 12 lines
+- tests/extraction/fixtures/labels/invoice-10.json: json, 12 lines
+- tests/extraction/fixtures/manifest.json: json, 1384 lines
+- tests/extraction/fixtures/profiles.json: json, 6 lines
 - tests/templates_engine/fixtures/broken_duplicate_manifest.yaml: yaml, 16 lines
 - tests/templates_engine/fixtures/broken_kind_manifest.yaml: yaml, 12 lines
 - tests/templates_engine/fixtures/render_manifest.yaml: yaml, 40 lines

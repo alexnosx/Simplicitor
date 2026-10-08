@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-002",
+  "supplier": "Bramble Software Ltd",
+  "client": "Northstar Retail Ltd",
+  "effective_date": "2026-03-01",
+  "expiry_date": "2027-02-28",
+  "contract_value": "48000.00",
+  "currency": "GBP",
+  "employee_id": "00702",
+  "reference": "=1+1",
+  "notice_days": 60
+}

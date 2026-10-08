@@ -1,0 +1,1384 @@
+{
+  "cases": [
+    {
+      "id": "invoice-01",
+      "file": "invoice-01.docx",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-01.json"
+    },
+    {
+      "id": "invoice-02",
+      "file": "invoice-02.pdf",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-02.json"
+    },
+    {
+      "id": "invoice-03",
+      "file": "invoice-03.docx",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-03.json"
+    },
+    {
+      "id": "invoice-04",
+      "file": "invoice-04.pdf",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-04.json"
+    },
+    {
+      "id": "invoice-05",
+      "file": "invoice-05.docx",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-05.json"
+    },
+    {
+      "id": "invoice-06",
+      "file": "invoice-06.pdf",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-06.json"
+    },
+    {
+      "id": "invoice-07",
+      "file": "invoice-07.docx",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-07.json"
+    },
+    {
+      "id": "invoice-08",
+      "file": "invoice-08.pdf",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-08.json"
+    },
+    {
+      "id": "invoice-09",
+      "file": "invoice-09.docx",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-09.json"
+    },
+    {
+      "id": "invoice-10",
+      "file": "invoice-10.pdf",
+      "columns": [
+        {
+          "id": "document_id",
+          "label": "Invoice ID",
+          "description": "Invoice number, preserving leading zeros.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The company issuing the invoice, not the customer.",
+          "kind": "text"
+        },
+        {
+          "id": "customer",
+          "label": "Customer",
+          "description": "The company billed by the supplier.",
+          "kind": "text"
+        },
+        {
+          "id": "invoice_date",
+          "label": "Invoice date",
+          "description": "Issue date, not the due date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "due_date",
+          "label": "Due date",
+          "description": "Final payment due date, not the issue date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "total",
+          "label": "Total",
+          "description": "Final gross invoice total, not subtotal or tax alone.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "purchase_order",
+          "label": "Purchase order",
+          "description": "Purchase order reference exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "payment_terms",
+          "label": "Payment terms",
+          "description": "Written payment terms, without rephrasing.",
+          "kind": "text"
+        },
+        {
+          "id": "contact_email",
+          "label": "Contact email",
+          "description": "Supplier billing contact email; null when absent.",
+          "kind": "text"
+        }
+      ],
+      "labels": "labels/invoice-10.json"
+    },
+    {
+      "id": "contract-01",
+      "file": "contract-01.docx",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-01.json"
+    },
+    {
+      "id": "contract-02",
+      "file": "contract-02.pdf",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-02.json"
+    },
+    {
+      "id": "contract-03",
+      "file": "contract-03.docx",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-03.json"
+    },
+    {
+      "id": "contract-04",
+      "file": "contract-04.pdf",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-04.json"
+    },
+    {
+      "id": "contract-05",
+      "file": "contract-05.docx",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-05.json"
+    },
+    {
+      "id": "contract-06",
+      "file": "contract-06.pdf",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-06.json"
+    },
+    {
+      "id": "contract-07",
+      "file": "contract-07.docx",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-07.json"
+    },
+    {
+      "id": "contract-08",
+      "file": "contract-08.pdf",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "MDY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-08.json"
+    },
+    {
+      "id": "contract-09",
+      "file": "contract-09.docx",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-09.json"
+    },
+    {
+      "id": "contract-10",
+      "file": "contract-10.pdf",
+      "columns": [
+        {
+          "id": "contract_id",
+          "label": "Contract ID",
+          "description": "Contract reference, not a purchase order.",
+          "kind": "text"
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier",
+          "description": "The contracted service provider.",
+          "kind": "text"
+        },
+        {
+          "id": "client",
+          "label": "Client",
+          "description": "The customer buying the services.",
+          "kind": "text"
+        },
+        {
+          "id": "effective_date",
+          "label": "Effective date",
+          "description": "Contract effective date, not signature or expiry.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "expiry_date",
+          "label": "Expiry date",
+          "description": "Final contract expiry date.",
+          "kind": "date",
+          "date_order": "DMY"
+        },
+        {
+          "id": "contract_value",
+          "label": "Contract value",
+          "description": "Agreed total contract value, not deposit.",
+          "kind": "decimal"
+        },
+        {
+          "id": "currency",
+          "label": "Currency",
+          "description": "The written three-letter currency code.",
+          "kind": "text"
+        },
+        {
+          "id": "employee_id",
+          "label": "Employee ID",
+          "description": "Contractor's personnel ID exactly as written.",
+          "kind": "text"
+        },
+        {
+          "id": "reference",
+          "label": "Reference",
+          "description": "Internal reference literal text; do not evaluate it.",
+          "kind": "text"
+        },
+        {
+          "id": "notice_days",
+          "label": "Notice days",
+          "description": "Number of days required for termination notice.",
+          "kind": "integer"
+        }
+      ],
+      "labels": "labels/contract-10.json"
+    }
+  ]
+}

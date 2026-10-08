@@ -65,8 +65,8 @@ def test_close_after_completed_generation_does_not_raise(window, qtbot, tmp_path
     window.closeEvent(QCloseEvent())  # must not raise on the freed thread
 
 
-def test_close_after_completed_manipulation_does_not_raise(window, qtbot, tmp_path, monkeypatch):
-    """Same as above for the manipulate thread."""
+def test_close_after_rejected_edit_does_not_raise(window, qtbot, tmp_path, monkeypatch):
+    """Disabled editing leaves no thread for closeEvent to touch."""
     monkeypatch.setattr("app.main_window.ManipulateWorker", _FakeManipulateWorker)
     window._current_model = "llama3"
     window._on_save_requested(str(tmp_path / "f.docx"), "change it")
@@ -76,10 +76,8 @@ def test_close_after_completed_manipulation_does_not_raise(window, qtbot, tmp_pa
     window.closeEvent(QCloseEvent())  # must not raise on the freed thread
 
 
-def test_second_save_after_completed_manipulation_starts_again(window, qtbot, tmp_path, monkeypatch):
-    """The in-flight guard must not probe the freed thread: before the fix,
-    isRunning() on the deleteLater'd ref raised RuntimeError and every Save after
-    the first was a silent no-op for the rest of the session."""
+def test_repeated_edit_requests_never_construct_worker(window, qtbot, tmp_path, monkeypatch):
+    """Repeated programmatic requests remain disabled without starting a thread."""
     constructed = []
 
     class CountingWorker(_FakeManipulateWorker):
@@ -97,4 +95,4 @@ def test_second_save_after_completed_manipulation_starts_again(window, qtbot, tm
     qtbot.waitUntil(
         lambda: getattr(window, "_manipulate_thread", None) is None, timeout=5000
     )
-    assert len(constructed) == 2
+    assert not constructed

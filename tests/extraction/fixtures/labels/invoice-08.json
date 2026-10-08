@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-008",
+  "supplier": "Hawthorn Design Ltd",
+  "customer": "Juniper Works Ltd",
+  "invoice_date": "2026-10-01",
+  "due_date": "2026-10-31",
+  "total": "350.25",
+  "currency": "USD",
+  "purchase_order": null,
+  "payment_terms": "Pay within 30 days",
+  "contact_email": "billing@hawthorn.example"
+}

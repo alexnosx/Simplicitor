@@ -1,0 +1,12 @@
+{
+  "document_id": "2026/004",
+  "supplier": "Dovetail Consulting Ltd",
+  "customer": "Fable Group Ltd",
+  "invoice_date": "2026-04-03",
+  "due_date": "2026-05-03",
+  "total": "2500.00",
+  "currency": "USD",
+  "purchase_order": "000004",
+  "payment_terms": "Net 30",
+  "contact_email": "billing@dovetail.example"
+}

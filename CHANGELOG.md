@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.1 safety patch prepared, not published
+
+- Disable legacy Edit and reject direct save/worker calls before reading, backing up, inferring, or writing. Preserve existing Create and PowerPoint template routes.
+- Build the existing unsigned executable as version 1.2.1.0. Local startup was smoke checked; clean-machine qualification and explicit publication approval remain pending. Artifact evidence is in docs/releases/v1.2.1-local.json.
+
+## Unreleased extraction development
+
+- Add independent anchored DOCX/text-layer PDF readers, verbatim grounding, deterministic type conversion, and a direct-Ollama evaluation CLI.
+- Add 20 synthetic English fixtures with independent labels. Both candidate models passed the first gate; measured results are in docs/evaluation/2026-10-08-task1.md.
+- Approve whole-file-first production extraction and renumber the plan tasks 0 to 6. Production extraction, XLSX output, and review UI are not implemented yet.
+
 ## Unreleased documentation
 
 - Consolidate the revised first-release contract in PRD.md and add one implementation plan.

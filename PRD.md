@@ -38,7 +38,7 @@ Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data c
 
 Read structured units with stable source references, without truncation or source changes. Read DOCX body paragraphs and table cells in document order, because file-level fields often sit in invoice header tables. Read PDF page text; PDF table extraction is unnecessary for this release. Disclose supported body scope and flag unsupported structures.
 
-Every attachment defines exactly one output row, even when files share a name or identical contents. Accumulate that file record's fields across structural sections without overlapping source text. Do not discover multiple narrative records or implement row-level continuation/header matching. Code owns the complete file/column roster; model omission cannot silently remove rows or fields.
+Every attachment defines exactly one output row, even when files share a name or identical contents. Send the whole file in one request whenever it fits num_ctx after accounting for prompt, schema, and output tokens. Only oversized files are sectioned, using a budget derived from that same context. Accumulate the file's fields across non-overlapping sections. Do not discover multiple narrative records or implement row-level continuation/header matching. Code owns the complete file/column roster; model omission cannot silently remove rows or fields.
 
 Inspect every PDF page for zero/near-zero extracted text. List affected pages in review and Evidence; never presume they are empty. They block a claim of complete extraction. A fully unreadable source fails preflight; partially readable output requires explicit acknowledgement of incomplete coverage. This check cannot recognize image-borne text on otherwise text-bearing pages.
 
@@ -72,7 +72,7 @@ Delete job folders on normal close after handles/workers finish. At startup, del
 
 | Measure | Requirement or retained proposal |
 |---|---|
-| Maximum source size per job | Retain the 300-page total proposal. PDF uses actual pages; DOCX uses displayed page equivalents as defined in architecture, without Office pagination. |
+| Maximum source size per job | 300 pages total, approved. PDF uses actual pages; DOCX uses displayed page equivalents as defined in architecture, without Office pagination. |
 | Labelled fixtures | About 20 synthetic English DOCX/text-PDF contracts and invoices, at least 200 scored field slots. One record per file, including table-contained fields, competing dates, missing fields, literal strings, and fields spread across pages. |
 | Field accuracy | At least 95% correct Data values against independent labels under confirmed column types. Missing records/fields count as incorrect except labelled absent values. Flagging alone does not make a wrong value correct. |
 | Unflagged wrong values | At most 1% of all scored slots, including semantic errors that pass grounding. At 200 slots, at most two; fail at three. Flags come from extraction/validation, never labels. |
@@ -81,7 +81,7 @@ Delete job folders on normal close after handles/workers finish. At startup, del
 
 Run evaluation on [B1](docs/PROJECT_STATUS.md#benchmark-environment) using the actual English fixture files, anchored readers, and shared grounding/scorer. Each whole fixture fits one request. Record the candidate, quantization, and fixed settings described in [architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md#model-requests).
 
-Task 1 is the single early stop gate on actual fixture files, before production pipeline/UI work. Stop and report if neither candidate passes, including when only a reference model passes; Alex decides any scope change. Task 7 reruns the corpus through the full production pipeline as the release check. Timings may be recorded for information only; speed is not a release criterion and these measurements are not performance claims.
+Task 1 is the single early stop gate on actual fixture files, testing the common whole-file production path. Stop and report if neither candidate passes, including when only a reference model passes; Alex decides any scope change. Task 6 reruns the corpus through the full production pipeline as the release check, including labelled files too large for a single request. Timings may be recorded for information only; speed is not a release criterion and these measurements are not performance claims.
 
 ## Privacy and failure behavior
 

@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-004",
+  "supplier": "Dahlia Security Ltd",
+  "client": "Pine Grove Ltd",
+  "effective_date": "2026-04-03",
+  "expiry_date": "2027-04-02",
+  "contract_value": "36000.00",
+  "currency": "USD",
+  "employee_id": "00404",
+  "reference": "1_000",
+  "notice_days": 30
+}

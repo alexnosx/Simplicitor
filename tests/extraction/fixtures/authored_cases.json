@@ -1,0 +1,704 @@
+{
+  "cases": [
+    {
+      "id": "invoice-01",
+      "format": "docx",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: 00123",
+          "Supplier: Alder Services Ltd",
+          "Customer: Blue Finch Ltd",
+          "Invoice date: 15 March 2026",
+          "Currency: USD",
+          "Subtotal: USD 10,000.00"
+        ],
+        [
+          "Payment due date: 14 April 2026",
+          "Final invoice total: USD 12,500.00",
+          "Purchase order: 00071",
+          "Payment terms: Net 30",
+          "Billing contact: accounts@alder.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "00123",
+        "supplier": "Alder Services Ltd",
+        "customer": "Blue Finch Ltd",
+        "invoice_date": "2026-03-15",
+        "due_date": "2026-04-14",
+        "total": "12500.00",
+        "currency": "USD",
+        "purchase_order": "00071",
+        "payment_terms": "Net 30",
+        "contact_email": "accounts@alder.example"
+      }
+    },
+    {
+      "id": "invoice-02",
+      "format": "pdf",
+      "kind": "invoice",
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Invoice number: INV-204",
+          "Supplier: Beacon Parts Ltd",
+          "Customer: Delta Stores Ltd",
+          "Issue date: March 5, 2026",
+          "Currency: GBP",
+          "Subtotal: GBP 1,200.00"
+        ],
+        [
+          "Due date: April 4, 2026",
+          "Gross total: £1,440.00",
+          "Purchase order: PO-002",
+          "Payment terms: Due within 30 days",
+          "Billing contact: billing@beacon.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-204",
+        "supplier": "Beacon Parts Ltd",
+        "customer": "Delta Stores Ltd",
+        "invoice_date": "2026-03-05",
+        "due_date": "2026-04-04",
+        "total": "1440.00",
+        "currency": "GBP",
+        "purchase_order": "PO-002",
+        "payment_terms": "Due within 30 days",
+        "contact_email": "billing@beacon.example"
+      }
+    },
+    {
+      "id": "invoice-03",
+      "format": "docx",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: INV-030",
+          "Supplier: Copper Digital Ltd",
+          "Customer: Elm Studio Ltd",
+          "Invoice date: 15-Mar-2026",
+          "Currency: EUR",
+          "Net subtotal: EUR 900.42"
+        ],
+        [
+          "Due date: 15-Apr-2026",
+          "Final invoice total: EUR 1,080.50",
+          "Purchase order: =1+1",
+          "Payment terms: Net 31",
+          "No billing email was provided with this invoice."
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-030",
+        "supplier": "Copper Digital Ltd",
+        "customer": "Elm Studio Ltd",
+        "invoice_date": "2026-03-15",
+        "due_date": "2026-04-15",
+        "total": "1080.50",
+        "currency": "EUR",
+        "purchase_order": "=1+1",
+        "payment_terms": "Net 31",
+        "contact_email": null
+      }
+    },
+    {
+      "id": "invoice-04",
+      "format": "pdf",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: 2026/004",
+          "Supplier: Dovetail Consulting Ltd",
+          "Customer: Fable Group Ltd",
+          "Invoice date: 03/04/2026",
+          "Currency: USD",
+          "Subtotal: USD 2,000.00"
+        ],
+        [
+          "Due date: 03/05/2026",
+          "Total: USD 2,500.00",
+          "Purchase order: 000004",
+          "Payment terms: Net 30",
+          "Billing contact: billing@dovetail.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "2026/004",
+        "supplier": "Dovetail Consulting Ltd",
+        "customer": "Fable Group Ltd",
+        "invoice_date": "2026-04-03",
+        "due_date": "2026-05-03",
+        "total": "2500.00",
+        "currency": "USD",
+        "purchase_order": "000004",
+        "payment_terms": "Net 30",
+        "contact_email": "billing@dovetail.example"
+      }
+    },
+    {
+      "id": "invoice-05",
+      "format": "docx",
+      "kind": "invoice",
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Invoice number: INV-005",
+          "Supplier: Ember Logistics Ltd",
+          "Customer: Grove Foods Ltd",
+          "Invoice date: 03/15/2026",
+          "Currency: USD",
+          "Subtotal: USD 0.00"
+        ],
+        [
+          "Due date: 04/14/2026",
+          "Final invoice total: USD 0.00",
+          "Purchase order: 00105",
+          "Payment terms: Settled on receipt",
+          "Billing contact: ar@ember.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-005",
+        "supplier": "Ember Logistics Ltd",
+        "customer": "Grove Foods Ltd",
+        "invoice_date": "2026-03-15",
+        "due_date": "2026-04-14",
+        "total": "0.00",
+        "currency": "USD",
+        "purchase_order": "00105",
+        "payment_terms": "Settled on receipt",
+        "contact_email": "ar@ember.example"
+      }
+    },
+    {
+      "id": "invoice-06",
+      "format": "pdf",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: INV-006",
+          "Supplier: Fieldwork LLP",
+          "Customer: Harbor Labs Ltd",
+          "Invoice date: 2026-02-28",
+          "Currency: GBP",
+          "Subtotal: GBP 1,000.00"
+        ],
+        [
+          "Payment due: 2026-03-30",
+          "Total including tax: £1,200.00",
+          "Purchase order: PO-006",
+          "Payment terms: Net 30",
+          "Billing contact: accounts@fieldwork.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-006",
+        "supplier": "Fieldwork LLP",
+        "customer": "Harbor Labs Ltd",
+        "invoice_date": "2026-02-28",
+        "due_date": "2026-03-30",
+        "total": "1200.00",
+        "currency": "GBP",
+        "purchase_order": "PO-006",
+        "payment_terms": "Net 30",
+        "contact_email": "accounts@fieldwork.example"
+      }
+    },
+    {
+      "id": "invoice-07",
+      "format": "docx",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: INV-007",
+          "Supplier: Granite Office Ltd",
+          "Customer: Iris Legal Ltd",
+          "Invoice date: 9 September 2026",
+          "Currency: EUR",
+          "Subtotal: EUR 82,000.00"
+        ],
+        [
+          "Due date: 9 October 2026",
+          "Final total: EUR 98,765.43",
+          "Purchase order: 05007",
+          "Payment terms: Net 30",
+          "Billing contact: billing@granite.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-007",
+        "supplier": "Granite Office Ltd",
+        "customer": "Iris Legal Ltd",
+        "invoice_date": "2026-09-09",
+        "due_date": "2026-10-09",
+        "total": "98765.43",
+        "currency": "EUR",
+        "purchase_order": "05007",
+        "payment_terms": "Net 30",
+        "contact_email": "billing@granite.example"
+      }
+    },
+    {
+      "id": "invoice-08",
+      "format": "pdf",
+      "kind": "invoice",
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Invoice number: INV-008",
+          "Supplier: Hawthorn Design Ltd",
+          "Customer: Juniper Works Ltd",
+          "Invoice date: October 1, 2026",
+          "Currency: USD",
+          "Subtotal: USD 280.20"
+        ],
+        [
+          "Due date: October 31, 2026",
+          "Final invoice total: $350.25",
+          "Payment terms: Pay within 30 days",
+          "Billing contact: billing@hawthorn.example",
+          "This invoice was issued without a purchase order."
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-008",
+        "supplier": "Hawthorn Design Ltd",
+        "customer": "Juniper Works Ltd",
+        "invoice_date": "2026-10-01",
+        "due_date": "2026-10-31",
+        "total": "350.25",
+        "currency": "USD",
+        "purchase_order": null,
+        "payment_terms": "Pay within 30 days",
+        "contact_email": "billing@hawthorn.example"
+      }
+    },
+    {
+      "id": "invoice-09",
+      "format": "docx",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: INV-009",
+          "Supplier: Indigo Analytics Ltd",
+          "Customer: Kestrel Care Ltd",
+          "Invoice date: 5-Nov-2026",
+          "Currency: GBP",
+          "Subtotal: GBP 60.00"
+        ],
+        [
+          "Due date: 5-Dec-2026",
+          "Final invoice total: GBP 75.00",
+          "Purchase order: 00009",
+          "Payment terms: Net 30",
+          "Billing contact: finance@indigo.example"
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-009",
+        "supplier": "Indigo Analytics Ltd",
+        "customer": "Kestrel Care Ltd",
+        "invoice_date": "2026-11-05",
+        "due_date": "2026-12-05",
+        "total": "75.00",
+        "currency": "GBP",
+        "purchase_order": "00009",
+        "payment_terms": "Net 30",
+        "contact_email": "finance@indigo.example"
+      }
+    },
+    {
+      "id": "invoice-10",
+      "format": "pdf",
+      "kind": "invoice",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Invoice number: INV-010",
+          "Supplier: Juniper Tools Ltd",
+          "Customer: Lantern Research Ltd",
+          "Invoice date: 2026-12-01",
+          "Currency: EUR",
+          "Subtotal: EUR 1,600.00"
+        ],
+        [
+          "Due date: 2026-12-31",
+          "Total: EUR 1,999.99",
+          "Purchase order: 2026-PO-10",
+          "Payment terms: Net 30",
+          "Please contact your account manager; no billing email is listed."
+        ]
+      ],
+      "labels": {
+        "document_id": "INV-010",
+        "supplier": "Juniper Tools Ltd",
+        "customer": "Lantern Research Ltd",
+        "invoice_date": "2026-12-01",
+        "due_date": "2026-12-31",
+        "total": "1999.99",
+        "currency": "EUR",
+        "purchase_order": "2026-PO-10",
+        "payment_terms": "Net 30",
+        "contact_email": null
+      }
+    },
+    {
+      "id": "contract-01",
+      "format": "docx",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Service agreement, contract ID: C-001",
+          "Supplier: Aster Engineering Ltd",
+          "Client: Morrow Systems Ltd",
+          "Effective date: 15 March 2026",
+          "Currency: USD",
+          "A deposit of USD 25,000.00 is due at signing."
+        ],
+        [
+          "Expiry date: 14 March 2027",
+          "Agreed total contract value: USD 125,000.00",
+          "Employee ID: 00123",
+          "Internal reference: NaN",
+          "Termination requires 30 days of notice."
+        ]
+      ],
+      "labels": {
+        "contract_id": "C-001",
+        "supplier": "Aster Engineering Ltd",
+        "client": "Morrow Systems Ltd",
+        "effective_date": "2026-03-15",
+        "expiry_date": "2027-03-14",
+        "contract_value": "125000.00",
+        "currency": "USD",
+        "employee_id": "00123",
+        "reference": "NaN",
+        "notice_days": 30
+      }
+    },
+    {
+      "id": "contract-02",
+      "format": "pdf",
+      "kind": "contract",
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Software services contract ID: CT-002",
+          "Supplier: Bramble Software Ltd",
+          "Client: Northstar Retail Ltd",
+          "Effective date: March 1, 2026",
+          "Currency: GBP",
+          "Initial deposit: GBP 4,000.00"
+        ],
+        [
+          "Expiry date: February 28, 2027",
+          "Agreed contract value: £48,000.00",
+          "Employee ID: 00702",
+          "Internal reference: =1+1",
+          "Termination notice: 60 days"
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-002",
+        "supplier": "Bramble Software Ltd",
+        "client": "Northstar Retail Ltd",
+        "effective_date": "2026-03-01",
+        "expiry_date": "2027-02-28",
+        "contract_value": "48000.00",
+        "currency": "GBP",
+        "employee_id": "00702",
+        "reference": "=1+1",
+        "notice_days": 60
+      }
+    },
+    {
+      "id": "contract-03",
+      "format": "docx",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Testing services contract ID: CT-003",
+          "Supplier: Cedar Testing LLP",
+          "Client: Oak Road Ltd",
+          "Effective date: 1-Apr-2026",
+          "Currency: EUR",
+          "Deposit payable on signature: EUR 6,000.00"
+        ],
+        [
+          "Expiry date: 31-Mar-2027",
+          "Total contract value: EUR 72,000.00",
+          "Employee ID: 00003",
+          "Internal reference: inf",
+          "Termination requires 90 days of notice."
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-003",
+        "supplier": "Cedar Testing LLP",
+        "client": "Oak Road Ltd",
+        "effective_date": "2026-04-01",
+        "expiry_date": "2027-03-31",
+        "contract_value": "72000.00",
+        "currency": "EUR",
+        "employee_id": "00003",
+        "reference": "inf",
+        "notice_days": 90
+      }
+    },
+    {
+      "id": "contract-04",
+      "format": "pdf",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Security services contract ID: CT-004",
+          "Supplier: Dahlia Security Ltd",
+          "Client: Pine Grove Ltd",
+          "Effective date: 03/04/2026",
+          "Currency: USD",
+          "Deposit: USD 3,000.00"
+        ],
+        [
+          "Expiry date: 02/04/2027",
+          "Agreed total contract value: USD 36,000.00",
+          "Employee ID: 00404",
+          "Internal reference: 1_000",
+          "Termination notice period: 30 days"
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-004",
+        "supplier": "Dahlia Security Ltd",
+        "client": "Pine Grove Ltd",
+        "effective_date": "2026-04-03",
+        "expiry_date": "2027-04-02",
+        "contract_value": "36000.00",
+        "currency": "USD",
+        "employee_id": "00404",
+        "reference": "1_000",
+        "notice_days": 30
+      }
+    },
+    {
+      "id": "contract-05",
+      "format": "docx",
+      "kind": "contract",
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Support trial contract ID: CT-005",
+          "Supplier: Elm Support Ltd",
+          "Client: Quartz Media Ltd",
+          "Effective date: 04/15/2026",
+          "Currency: USD",
+          "This trial is provided at no charge."
+        ],
+        [
+          "Expiry date: 04/14/2027",
+          "Total contract value: USD 0.00",
+          "Employee ID: 00505",
+          "Internal reference: Trial",
+          "Termination notice: 0 days"
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-005",
+        "supplier": "Elm Support Ltd",
+        "client": "Quartz Media Ltd",
+        "effective_date": "2026-04-15",
+        "expiry_date": "2027-04-14",
+        "contract_value": "0.00",
+        "currency": "USD",
+        "employee_id": "00505",
+        "reference": "Trial",
+        "notice_days": 0
+      }
+    },
+    {
+      "id": "contract-06",
+      "format": "pdf",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Managed services contract ID: CT-006",
+          "Supplier: Fir Managed Services Ltd",
+          "Client: River Health Ltd",
+          "Effective date: 2026-05-01",
+          "Currency: GBP",
+          "Deposit: GBP 1,000.00"
+        ],
+        [
+          "Expiry date: 2027-04-30",
+          "Agreed contract value: £15,000.50",
+          "The supplier has not provided a personnel identifier.",
+          "Internal reference: Ref-006",
+          "Termination notice: 14 days"
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-006",
+        "supplier": "Fir Managed Services Ltd",
+        "client": "River Health Ltd",
+        "effective_date": "2026-05-01",
+        "expiry_date": "2027-04-30",
+        "contract_value": "15000.50",
+        "currency": "GBP",
+        "employee_id": null,
+        "reference": "Ref-006",
+        "notice_days": 14
+      }
+    },
+    {
+      "id": "contract-07",
+      "format": "docx",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Training services contract ID: CT-007",
+          "Supplier: Gorse Training Ltd",
+          "Client: Silverline Energy Ltd",
+          "Effective date: 9 June 2026",
+          "Currency: EUR",
+          "Deposit: EUR 700.00"
+        ],
+        [
+          "Expiry date: 8 June 2027",
+          "Total contract value: EUR 8,400.00",
+          "Employee ID: 06007",
+          "Internal reference: =HYPERLINK(\"https://example.invalid\",\"Open\")",
+          "Termination notice: 30 days"
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-007",
+        "supplier": "Gorse Training Ltd",
+        "client": "Silverline Energy Ltd",
+        "effective_date": "2026-06-09",
+        "expiry_date": "2027-06-08",
+        "contract_value": "8400.00",
+        "currency": "EUR",
+        "employee_id": "06007",
+        "reference": "=HYPERLINK(\"https://example.invalid\",\"Open\")",
+        "notice_days": 30
+      }
+    },
+    {
+      "id": "contract-08",
+      "format": "pdf",
+      "kind": "contract",
+      "date_order": "MDY",
+      "pages": [
+        [
+          "Advisory services contract ID: CT-008",
+          "Supplier: Hazel Advisory Ltd",
+          "Client: Tern Finance Ltd",
+          "Effective date: July 10, 2026",
+          "Currency: USD",
+          "Deposit: USD 5,000.00"
+        ],
+        [
+          "Expiry date: July 9, 2027",
+          "Total contract value: USD 99,999.99",
+          "Employee ID: 00008",
+          "Internal reference: Case-08",
+          "Termination will be agreed mutually; there is no fixed notice period."
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-008",
+        "supplier": "Hazel Advisory Ltd",
+        "client": "Tern Finance Ltd",
+        "effective_date": "2026-07-10",
+        "expiry_date": "2027-07-09",
+        "contract_value": "99999.99",
+        "currency": "USD",
+        "employee_id": "00008",
+        "reference": "Case-08",
+        "notice_days": null
+      }
+    },
+    {
+      "id": "contract-09",
+      "format": "docx",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Integration services contract ID: CT-009",
+          "Supplier: Iris Integration Ltd",
+          "Client: Umber Foods Ltd",
+          "Effective date: 15-Aug-2026",
+          "Currency: GBP",
+          "Deposit: GBP 1,250.00"
+        ],
+        [
+          "Expiry date: 14-Aug-2027",
+          "Total contract value: GBP 12,250.00",
+          "Employee ID: 00009",
+          "Internal reference: 001_009",
+          "Termination requires 45 days of notice."
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-009",
+        "supplier": "Iris Integration Ltd",
+        "client": "Umber Foods Ltd",
+        "effective_date": "2026-08-15",
+        "expiry_date": "2027-08-14",
+        "contract_value": "12250.00",
+        "currency": "GBP",
+        "employee_id": "00009",
+        "reference": "001_009",
+        "notice_days": 45
+      }
+    },
+    {
+      "id": "contract-10",
+      "format": "pdf",
+      "kind": "contract",
+      "date_order": "DMY",
+      "pages": [
+        [
+          "Maintenance contract ID: CT-010",
+          "Supplier: Jade Maintenance Ltd",
+          "Client: Violet Manufacturing Ltd",
+          "Effective date: 2026-09-01",
+          "Currency: EUR",
+          "Deposit: EUR 500.00"
+        ],
+        [
+          "Expiry date: 2027-08-31",
+          "Total contract value: EUR 6,550.75",
+          "Employee ID: 00110",
+          "Internal reference: Final-10",
+          "Termination notice: 30 days"
+        ]
+      ],
+      "labels": {
+        "contract_id": "CT-010",
+        "supplier": "Jade Maintenance Ltd",
+        "client": "Violet Manufacturing Ltd",
+        "effective_date": "2026-09-01",
+        "expiry_date": "2027-08-31",
+        "contract_value": "6550.75",
+        "currency": "EUR",
+        "employee_id": "00110",
+        "reference": "Final-10",
+        "notice_days": 30
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Do not execute before Alex approves the revised plan.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Approved by Alex. Execute Tasks 0 and 1 now, then report both candidate scores before Task 2.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Documentation only until plan approval. Commit, push, dependencies, and release publication retain their explicit authorization gates.
+- Tasks 0 and 1 are authorized. Report both candidate scores before Task 2, pass or fail. Commit, push, new dependencies, and release publication retain their explicit authorization gates.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -25,26 +25,28 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 - A real quote in the wrong column still counts as an unflagged error; Task 1 pins the PRD fraction boundaries.
 - A normalized amount can look correct while lacking literal evidence; Task 1 tests currency symbols, codes, labels, and exact value spans.
-- Same-named attachments and table/page fields must retain one row per file; Tasks 1 and 3 test reading and accumulation.
-- Flagged values, leading-zero IDs, and formula-like text must survive Excel; Task 4 tests actual saved cells.
-- Cancelled/rerun work and failed Save As must not export stale or partial results; Tasks 3 through 5 test these ordinary workflow failures.
+- Same-named attachments and table/page fields must retain one row per file; Tasks 1 and 2 test reading and accumulation.
+- Flagged values, leading-zero IDs, and formula-like text must survive Excel; Task 3 tests actual saved cells.
+- Cancelled/rerun work and failed Save As must not export stale or partial results; Tasks 2 through 4 test these ordinary workflow failures.
 
 ## Work order
 
-Task 0 releases v1.2.1 independently after its checks and Alex's publication go. Task 1 contains the readers and the single early actual-file stop gate; the previous separate Task 2 is folded into it. Tasks 3, 4, and 5 build pipeline, writer, and UI in order. Task 6 installer preparation can run alongside extraction but stops if the early gate fails. Task 7 checks the full pipeline for release. Parallel scheduling does not authorize agent dispatch or publication.
+Task 0 prepares v1.2.1 independently, with publication after Alex's explicit go. Task 1 contains readers and the actual-file gate. Report both scores before proceeding to Task 2 (production requests/column proposals/conditional sectioning), regardless of pass or fail. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution stops after Task 1.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
 **Modify:** simplicitor/app/main_window.py, simplicitor/app/workers/manipulate_worker.py, simplicitor/app/config/defaults.py, build.py for patch version, CHANGELOG.md, and docs/PROJECT_STATUS.md. Inspect .github/workflows/build.yml's tag-triggered publication before any release action.
 **Tests:** tests/test_manipulate_worker.py, tests/test_widgets.py, tests/test_build_script.py, and affected MainWindow/generation/template tests.
 
-**Interfaces:** Keep constructors, signals, creation routes, and ManipulationError imports. MainWindow._on_save_requested and ManipulateWorker.run must return disabled/failed before extraction, backup, inference, or writes. Disable visible Edit in this patch; Task 5 removes it from the extraction shell. Build product version is 1.2.1.0.
+**Interfaces:** Keep constructors, signals, creation routes, and ManipulationError imports. MainWindow._on_save_requested and ManipulateWorker.run must return disabled/failed before extraction, backup, inference, or writes. Disable visible Edit in this patch; Task 4 removes it from the extraction shell. Build product version is 1.2.1.0.
 
-- [ ] Add test_legacy_edit_disabled_before_io for both entry points: assert zero extractor/model/backup/writer calls, no completed signal, and unchanged source bytes. Confirm the current source fails.
-- [ ] Add unconditional guards and one shared message; preserve the legacy module needed by template exception imports. Update version expectations and release notes.
-- [ ] Run focused safety/build/generation/template/teardown regressions in an isolated home.
+- [x] Add test_legacy_edit_disabled_before_io for both entry points: assert zero extractor/model/backup/writer calls, no completed signal, and unchanged source bytes. Confirm the current source fails.
+- [x] Add unconditional guards and one shared message; preserve the legacy module needed by template exception imports. Update version expectations and release notes.
+- [x] Run focused safety/build/generation/template/teardown regressions in an isolated home.
 - [ ] Build the patch using the existing release route; no new installer is required for this patch. On clean Windows/default protection, verify disabled Edit cannot write sources, existing Create/templates work, and the artifact has the patch version. Record the exact artifact/hash and any launch block.
 - [ ] Prepare release notes and the concrete artifact, then request Alex's explicit publication go. On authorization, publish v1.2.1 through the reviewed release route immediately after its own checks pass. Check the published asset/version and safety behavior; do not make extraction progress a prerequisite.
+
+Local preparation: [artifact/hash and startup evidence](../../releases/v1.2.1-local.json). Source regressions and the build passed. The clean-machine walkthrough and publication remain pending, so Task 0 is not released.
 
 **Verify:** python -m pytest tests/test_manipulate_worker.py tests/test_widgets.py tests/test_build_script.py tests/test_generate_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_main_window_teardown.py -q with isolated home/base directory, then python build.py and the patch walkthrough. Required: safety/regressions/build pass. Task 0's final release outcome is the verified v1.2.1 asset after publication go; before go, report prepared and awaiting publication, not released.
 
@@ -60,11 +62,11 @@ Task 0 releases v1.2.1 independently after its checks and Alex's publication go.
 - In the CLI, ScoredField(value, flagged) and ExpectedField(expected_value, expected_type) feed score_results(actual: Mapping[tuple[str, str], ScoredField], labels: Mapping[tuple[str, str], ExpectedField]) -> EvaluationReport. Keys are (source_id, column_id). Report counts correct/wrong/unflagged slots, flags on correct/missing values, failures, and optional timings.
 - passes_quality_gate(correct: int, unflagged_wrong: int, total: int) -> bool compares the PRD fractions without percentage rounding. call_ollama(url: str, model: str, source: SourceDocument, columns: tuple[ColumnSpec, ...], settings: dict) -> str sends one whole fixture's anchored text directly to /api/generate.
 
-- [ ] Add reader tests for complete DOCX paragraphs/tables beyond legacy truncation, stable anchors, physical-cell aliases, same-named files, PDF page text, and zero/near-zero pages. Add per-file size and aggregate page-boundary checks; assert sources stay unchanged.
-- [ ] Implement the small readers from existing _extract_docx/_extract_pdf logic, without modifying legacy Edit. Close source handles and keep structured units.
-- [ ] Add grounding tests: source/anchor mismatch, missing quote/value, literal value present/absent, English date/number conversion, text IDs, and missing proposals. For "Total: USD 12,500.00", assert "12,500.00" passes and becomes 12500.00, while "12500.00" fails. Also cover "$12,500.00 (tax included)", "Balance due: £12,500.00", and "Total: EUR 12,500.00", with the value taken verbatim from the quote.
-- [ ] Implement one literal value-in-quote check for every type, followed by code conversion. Conversion failures retain the proposal, flagged. Build schema from fixture columns.
-- [ ] Add test_wrong_column_counts_unflagged: validate a real invoice-date span proposed for due_date, then score it against the different labelled due date. Assert not field.flagged, report.correct == 0, and report.unflagged_wrong == 1. Keep review burden separate. Pin these boundaries:
+- [x] Add reader tests for complete DOCX paragraphs/tables beyond legacy truncation, stable anchors, physical-cell aliases, same-named files, PDF page text, and zero/near-zero pages. Add per-file size and aggregate page-boundary checks; assert sources stay unchanged.
+- [x] Implement the small readers from existing _extract_docx/_extract_pdf logic, without modifying legacy Edit. Close source handles and keep structured units.
+- [x] Add grounding tests: source/anchor mismatch, missing quote/value, literal value present/absent, English date/number conversion, text IDs, and missing proposals. For "Total: USD 12,500.00", assert "12,500.00" passes and becomes 12500.00, while "12500.00" fails. Also cover "$12,500.00 (tax included)", "Balance due: £12,500.00", and "Total: EUR 12,500.00", with the value taken verbatim from the quote.
+- [x] Implement one literal value-in-quote check for every type, followed by code conversion. Conversion failures retain the proposal, flagged. Build schema from fixture columns.
+- [x] Add test_wrong_column_counts_unflagged: validate a real invoice-date span proposed for due_date, then score it against the different labelled due date. Assert not field.flagged, report.correct == 0, and report.unflagged_wrong == 1. Keep review burden separate. Pin these boundaries:
 
 ~~~python
 def test_quality_boundaries():
@@ -75,14 +77,16 @@ def test_quality_boundaries():
     assert not passes_quality_gate(correct=189, unflagged_wrong=0, total=200)
 ~~~
 
-- [ ] Create the PRD-sized English contract/invoice corpus using python-docx and existing pypdf. Include table-contained fields, fields across pages, competing dates, missing values, currency context, and literal strings. Every whole fixture fits the request context; independently check field labels against the actual files.
-- [ ] Implement CLI --manifest, --profiles, --report. Read actual fixtures, query candidate parameter size through /api/show, then call Ollama directly with all units of each file, schema, and think=False. Test one inference call per fixture, whole-file coverage, loopback URL validation, and trust_env=False. No source sectioning is needed here.
-- [ ] Score FieldResult.data_value and independently generated flags. Count malformed/missing responses as failures rather than skipped fixtures. Labels are scorer-only. Report candidate/settings and optional timings.
-- [ ] Run both PRD candidates on B1 and optional separately marked larger references. **Stop gate:** if neither candidate passes, stop extraction/installer work and report, even if a reference passes. Otherwise select by accuracy and review burden. The safety release remains independent.
+- [x] Create the PRD-sized English contract/invoice corpus using python-docx and existing pypdf. Include table-contained fields, fields across pages, competing dates, missing values, currency context, and literal strings. Every whole fixture fits the request context; independently check field labels against the actual files.
+- [x] Implement CLI --manifest, --profiles, --report. Read actual fixtures, query candidate parameter size through /api/show, then call Ollama directly with all units of each file, schema, and think=False. Test one inference call per fixture, whole-file coverage, loopback URL validation, and trust_env=False. No source sectioning is needed here.
+- [x] Score FieldResult.data_value and independently generated flags. Count malformed/missing responses as failures rather than skipped fixtures. Labels are scorer-only. Report candidate/settings and optional timings.
+- [x] Run both PRD candidates on B1 and optional separately marked larger references. **Stop gate:** if neither candidate passes, stop extraction/installer work and report, even if a reference passes. Otherwise select by accuracy and review burden. The safety release remains independent.
+
+Result: both candidates passed the [actual-file gate](../../evaluation/2026-10-08-task1.md). The full isolated source suite passed 709 tests after review repairs. Scores have been reported; Task 2 has not started.
 
 **Verify:** python -m pytest tests/extraction/test_source_readers.py tests/extraction/test_grounding.py tests/extraction/test_evaluation.py -q, then python scripts/evaluate_extraction.py --manifest tests/extraction/fixtures/manifest.json --profiles tests/extraction/fixtures/profiles.json --report .venv/evaluation/actual-files.json. Required: focused tests pass and at least one candidate passes the PRD gate on actual fixture files.
 
-### Task 3: Add production requests, column proposals, and sectioning
+### Task 2: Add production requests, column proposals, and sectioning
 
 **Create:** simplicitor/extraction/sectioning.py, simplicitor/extraction/pipeline.py; tests/extraction/test_sectioning.py, tests/extraction/test_pipeline.py.
 **Modify:** simplicitor/extraction/models.py, simplicitor/app/services/ollama_client.py, tests/test_ollama_client.py.
@@ -91,13 +95,13 @@ def test_quality_boundaries():
 
 - [ ] Test the added client arguments, JSON schema in format, loopback check, trust_env=False, and unchanged old caller payloads. Every new extraction and column-proposal call sends think=False.
 - [ ] Test first-source column suggestions, text fallback, English defaults/overrides, invalid output/manual recovery, and conditional ambiguous-date order. Implement the proposal call using the shared client.
-- [ ] Test non-overlapping paragraph/table-row/page sections, oversized units, and file-field accumulation. Implement sections and calls without truncating or silently excluding units.
+- [ ] Test a whole-file request when it fits, boundary cases after prompt/schema/output accounting, and context-derived non-overlapping sections only when necessary. Test oversized units and file-field accumulation. Implement conditional sections and calls without a fixed byte budget, truncation, or silently excluded units.
 - [ ] Test missing/unknown IDs, missing fields, invalid JSON, wrong evidence, conflicts, and output exhaustion. Keep the complete file/column roster, literal proposals, and issues.
 - [ ] Test timeout and cooperative cancellation, including a late response. Implement actionable errors, retained setup, and coverage accounting.
 
-**Verify:** python -m pytest tests/test_ollama_client.py tests/extraction/test_sectioning.py tests/extraction/test_pipeline.py -q. Required: unit checks pass. No additional model gate runs here; the full-pipeline evaluation belongs to Task 7.
+**Verify:** python -m pytest tests/test_ollama_client.py tests/extraction/test_sectioning.py tests/extraction/test_pipeline.py -q. Required: unit checks pass. No additional model gate runs here; the full-pipeline evaluation belongs to Task 6.
 
-### Task 4: Write the saved candidate and implement standard Save As copying
+### Task 3: Write the saved candidate and implement standard Save As copying
 
 **Create:** simplicitor/extraction/xlsx_writer.py, simplicitor/extraction/jobs.py; tests/extraction/test_xlsx_writer.py, tests/extraction/test_jobs.py.
 **Modify:** simplicitor/extraction/models.py for Candidate(job_id, path, source_paths, issues) and ReviewCell(row, column, value, data_type, evidence).
@@ -108,13 +112,13 @@ def test_quality_boundaries():
 - [ ] Test invalid controls, excessive cell text, and unsafe numeric precision. Unrepresentable workbook content fails visibly; values/evidence are never silently clipped or rounded.
 - [ ] Implement the dedicated writer using FieldResult.data_value, literal string typing, confirmed date/number formats, and shared styling. Reopen the candidate to verify its saved values/types, records, Evidence, and flags; build review from that file.
 - [ ] Keep one candidate.xlsx in each owned app-data job. Rerunning replaces it and clears old review; failed/cancelled runs cannot offer the previous file as their new result.
-- [ ] Add test_save_as_refuses_source_path for each source and normalized path variants. Test new destinations, replacing the destination chosen through Save As, and temporary write/rename failure. Assert sources and previous destination remain intact on failure and no success is emitted. Task 5 tests native confirmation/cancellation before the core call.
+- [ ] Add test_save_as_refuses_source_path for each source and normalized path variants. Test new destinations, replacing the destination chosen through Save As, and temporary write/rename failure. Assert sources and previous destination remain intact on failure and no success is emitted. Task 4 tests native confirmation/cancellation before the core call.
 - [ ] Implement destination-folder temporary copying followed by rename/replace only after the copy closes successfully. Keep review available after failure; normal Windows overwrite confirmation remains the user's choice.
 - [ ] Test normal-close cleanup after handles finish and startup age boundaries from PRD retention. Remove only owned app-data job folders; leave newer jobs and unrelated files.
 
 **Verify:** python -m pytest tests/extraction/test_xlsx_writer.py tests/extraction/test_jobs.py -q. Required: saved-grid values/Evidence agree, flagged proposals remain literal, confirmed overwrite succeeds, source refusal/failed writes preserve existing bytes, and cleanup respects ownership/age.
 
-### Task 5: Build the Create workspace, column editor, and grid review
+### Task 4: Build the Create workspace, column editor, and grid review
 
 **Create:** simplicitor/app/widgets/create_workspace.py, simplicitor/app/widgets/extraction_panel.py; simplicitor/app/workers/extraction_worker.py; tests/test_extraction_panel.py, tests/test_extraction_worker.py.
 **Modify:** simplicitor/app/main_window.py, simplicitor/app/widgets/capability_banner.py, simplicitor/app/workers/ollama_worker.py for selected-model metadata lookup, simplicitor/app/config/defaults.py for warning copy/threshold, and affected tests/test_widgets.py, tests/test_ollama_worker.py, teardown tests.
@@ -131,7 +135,7 @@ def test_quality_boundaries():
 
 **Verify:** python -m pytest tests/test_extraction_panel.py tests/test_extraction_worker.py tests/test_widgets.py tests/test_ollama_worker.py tests/test_main_window_template.py tests/test_template_worker.py tests/test_generate_worker.py tests/test_main_window_teardown.py -q with isolated homes, followed by the native walkthrough. Required: focused regressions and the observed Save As/column-review flow pass.
 
-### Task 6: Prepare installer in parallel and qualify after integration
+### Task 5: Prepare installer in parallel and qualify after integration
 
 **Modify:** build.py, build.bat, .github/workflows/build.yml, requirements-build.txt only as needed for a tested build version, tests/test_build_script.py, and docs/code-signing.md.
 **Reference:** [packaging procedure](../../code-signing.md) and [PRD packaging contract](../../../PRD.md#packaging).
@@ -140,19 +144,19 @@ def test_quality_boundaries():
 
 - [ ] Prepare standalone build/resource tests alongside model work; stop this work if the extraction gate fails. Verify prompts, icons, templates, and libraries from outside the checkout.
 - [ ] Evaluate Nuitka's built-in NSIS installer support with a pinned tested version before adding a custom script. Test current-user install, shortcuts, upgrade/uninstall, and user-data preservation.
-- [ ] After Task 5, qualify the integrated artifacts on clean Windows under PRD prerequisites, without developer Python or Office. Test missing model/runtime, non-blocking model warnings, file extraction/columns/review, Save As, cancellation, and cleanup.
+- [ ] After Task 4, qualify the integrated artifacts on clean Windows under PRD prerequisites, without developer Python or Office. Test missing model/runtime, non-blocking model warnings, file extraction/columns/review, Save As, cancellation, and cleanup.
 - [ ] Compare installer/ZIP payload inventories and hashes; record default-security results without weakening protection. Actual launch blocks remain failures requiring a decision. Do not publish during preparation.
 
 **Verify:** python -m pytest tests/test_build_script.py -q, then python build.py with the tested environment and manual clean-machine checks. Required: build/artifacts pass their inventory, launch, workflow, and user-data checks.
 
-### Task 7: Qualify the full pipeline and release
+### Task 6: Qualify the full pipeline and release
 
 **Tests:** full isolated suite, actual-file corpus, tests/test_gen_repo_map.py, and clean-machine/native UI checks.
 **Modify:** scripts/evaluate_extraction.py and tests/extraction/test_evaluation.py for --full-pipeline; docs/PROJECT_STATUS.md for current state.
 
 - [ ] Add --full-pipeline to the same CLI. It always reads actual fixture files, runs production sectioning/extraction, writes/reopens the XLSX candidate, and scores saved Data values plus their flags with the Task 1 scorer.
 - [ ] Run the full suite in isolated user folders. Run the fixed English corpus through --full-pipeline with the selected candidate and settings; check PRD accuracy/error fractions, coverage, and review burden.
-- [ ] Exercise a job at the page limit and a just-over-limit rejection. Complete the UI/package walkthrough: suggested columns, all-cell evidence, highlighted proposals, incomplete-output acknowledgement, cancellation/rerun, overwrite, source-path refusal, and cleanup.
+- [ ] Extend the labelled corpus with files too large for one request and score the sectioned path as well as whole-file extraction. Exercise a job at the page limit and a just-over-limit rejection. Complete the UI/package walkthrough: suggested columns, all-cell evidence, highlighted proposals, incomplete-output acknowledgement, cancellation/rerun, overwrite, source-path refusal, and cleanup.
 - [ ] Regenerate the map, update status, and check dependency notices. Leave LICENSE unchanged and Alex's business-use decision open.
 - [ ] Release only after the full-pipeline quality, coverage/type, Windows launch, and license decisions are resolved. Commit/push/tag/publication require explicit authorization.
 
@@ -160,4 +164,4 @@ def test_quality_boundaries():
 
 ## Plan self-review
 
-Task 1 contains only fixtures/labels, actual readers, grounding/scoring, and direct whole-file evaluation. Readers no longer have a separate task. Task 3 adds shared-client requests and production sectioning without another early gate. Task 7 checks the complete saved output. Removed mechanisms do not reappear as tests; remaining checks cover accuracy, literal Excel values, normal workflow failures, and the independent legacy safety patch.
+Task 1 contains fixtures/labels, actual readers, grounding/scoring, and direct whole-file evaluation. Task 2 adds shared-client requests and whole-file-first extraction, sectioning only oversized files. Task 6 checks the complete saved output. Removed mechanisms do not reappear as tests; remaining checks cover accuracy, literal Excel values, normal workflow failures, and the independent legacy safety patch.

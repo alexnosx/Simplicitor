@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- The current task is documentation and one first-release plan. Do not write application or harness code until Alex approves the plan. The separate legacy Edit safeguard is a planned item, not permission to implement during planning.
+- The revised plan is approved. Current authorization covers Task 0 (safety patch preparation) and Task 1 (readers and evaluation). Report both candidate scores before starting Task 2, pass or fail. v1.2.1 publication still requires Alex's explicit go.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.

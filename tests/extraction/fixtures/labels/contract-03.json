@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-003",
+  "supplier": "Cedar Testing LLP",
+  "client": "Oak Road Ltd",
+  "effective_date": "2026-04-01",
+  "expiry_date": "2027-03-31",
+  "contract_value": "72000.00",
+  "currency": "EUR",
+  "employee_id": "00003",
+  "reference": "inf",
+  "notice_days": 90
+}

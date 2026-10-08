@@ -1,0 +1,12 @@
+{
+  "contract_id": "CT-009",
+  "supplier": "Iris Integration Ltd",
+  "client": "Umber Foods Ltd",
+  "effective_date": "2026-08-15",
+  "expiry_date": "2027-08-14",
+  "contract_value": "12250.00",
+  "currency": "GBP",
+  "employee_id": "00009",
+  "reference": "001_009",
+  "notice_days": 45
+}

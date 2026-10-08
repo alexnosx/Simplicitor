@@ -1,0 +1,103 @@
+%PDF-1.3
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 2
+/Kids [ 5 0 R 7 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+>>
+endobj
+5 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 236
+>>
+stream
+BT /F1 10 Tf 40 750 Td 15 TL
+(Maintenance contract ID: CT-010) Tj T*
+(Supplier: Jade Maintenance Ltd) Tj T*
+(Client: Violet Manufacturing Ltd) Tj T*
+(Effective date: 2026-09-01) Tj T*
+(Currency: EUR) Tj T*
+(Deposit: EUR 500.00) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 206
+>>
+stream
+BT /F1 10 Tf 40 750 Td 15 TL
+(Expiry date: 2027-08-31) Tj T*
+(Total contract value: EUR 6,550.75) Tj T*
+(Employee ID: 00110) Tj T*
+(Internal reference: Final-10) Tj T*
+(Termination notice: 30 days) Tj T*
+ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000119 00000 n 
+0000000168 00000 n 
+0000000265 00000 n 
+0000000397 00000 n 
+0000000684 00000 n 
+0000000816 00000 n 
+trailer
+<<
+/Size 9
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+1073
+%%EOF

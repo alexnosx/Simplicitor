@@ -1,0 +1,12 @@
+{
+  "document_id": "INV-030",
+  "supplier": "Copper Digital Ltd",
+  "customer": "Elm Studio Ltd",
+  "invoice_date": "2026-03-15",
+  "due_date": "2026-04-15",
+  "total": "1080.50",
+  "currency": "EUR",
+  "purchase_order": "=1+1",
+  "payment_terms": "Net 31",
+  "contact_email": null
+}

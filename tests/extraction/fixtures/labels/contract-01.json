@@ -1,0 +1,12 @@
+{
+  "contract_id": "C-001",
+  "supplier": "Aster Engineering Ltd",
+  "client": "Morrow Systems Ltd",
+  "effective_date": "2026-03-15",
+  "expiry_date": "2027-03-14",
+  "contract_value": "125000.00",
+  "currency": "USD",
+  "employee_id": "00123",
+  "reference": "NaN",
+  "notice_days": 30
+}

@@ -34,6 +34,20 @@ OLLAMA_MANIPULATION_TIMEOUT_S = 120  # manipulation sends file content → needs
 OLLAMA_TEMPLATE_TIMEOUT_S = 180      # templated path: heavier prompt + larger expected output (slow local models)
 OLLAMA_REPAIR_MAX_TOKENS = 8192      # max_tokens budget for templated attempt 1 and truncation-bump repair
 SMALL_MODEL_PARAM_THRESHOLD = 7_000_000_000
+LEGACY_EDIT_DISABLED_MESSAGE = (
+    "Editing is disabled in v1.2.1 while safe document editing is being rebuilt. "
+    "Your file has not been changed."
+)
+
+# Approved extraction limits and fixed evaluation request settings.
+EXTRACTION_MAX_JOB_PAGES = 300
+EXTRACTION_MAX_FILE_BYTES = 50 * 1024 * 1024
+EXTRACTION_DOCX_CHARS_PER_PAGE = 3000
+EXTRACTION_PDF_MIN_TEXT_CHARS = 40
+EXTRACTION_JOB_RETENTION_HOURS = 24
+EXTRACTION_NUM_CTX = 16384
+EXTRACTION_NUM_PREDICT = 4096
+EXTRACTION_TIMEOUT_S = 180
 
 # ── PowerPoint layout indices (standard Blank template) ──────────────────────
 PPTX_LAYOUT_TITLE_SLIDE = 0       # "Title Slide" layout

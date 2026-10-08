@@ -1,0 +1,15 @@
+{
+  "version": "1.2.1.0",
+  "filename": "Simplicitor.exe",
+  "bytes": 59448320,
+  "sha256": "604043b3580ebd6c8ca69c0644618618ea66315ab811d6b78338b5470674b10c",
+  "build_date": "2026-10-08",
+  "python": "3.12.14",
+  "nuitka": "4.2.2",
+  "build_route": "Existing unsigned Nuitka onefile",
+  "source_safety_checks": "4 regression tests; 161 focused safety/generation/template/build checks passed.",
+  "local_startup": "Copied outside checkout; offscreen process remained alive for 12 seconds with isolated user folders.",
+  "clean_machine": "Not tested",
+  "download_security_warning": "Not tested",
+  "publication": "Not authorized; no release tag or public release created."
+}

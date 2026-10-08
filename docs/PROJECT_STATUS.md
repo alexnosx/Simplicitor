@@ -7,17 +7,17 @@ Updated 2026-10-08. [PRD.md](../PRD.md) owns release requirements; [architecture
 | Area | Current state |
 |---|---|
 | Existing prompt-only Create and PowerPoint templates | Present in v1.2 source; to be preserved. |
-| Legacy Edit / v1.2.1 safety patch | Edit remains enabled with known reconstruction, truncation, empty-response, and filename-collision hazards. Independent disabling/release work is planned. |
+| Legacy Edit / v1.2.1 safety patch | Disabled in the UI and guarded before I/O at both entry points. Local artifact built and startup smoke checked; clean-machine qualification and publication remain pending. See [artifact evidence](releases/v1.2.1-local.json). |
 | Selected-model warning | Current UI uses the older small-model threshold and hides unknown sizes; selected-model recommendation warning is planned. |
-| Structured readers, column proposals, and extraction | Reading primitives/libraries exist; the new file-record pipeline is planned. |
-| Model evaluation | No labelled candidate scores have been produced. The planned early gate reads actual fixture files and calls Ollama directly, one whole file per request. |
+| Structured readers, column proposals, and extraction | Anchored DOCX/PDF readers and literal grounding implemented independently of legacy Edit. Production requests, column proposals, and conditional sectioning remain planned. |
+| Model evaluation | Both candidates passed the actual-file Task 1 gate. [Measured scores and recommendation](evaluation/2026-10-08-task1.md); production and saved-XLSX release evaluation remain pending. |
 | Saved XLSX grid and Save As | Planned. |
 | Standalone installer and portable ZIP | Planned; current build produces an unsigned onefile executable. |
 | Windows security block | Reported; exact warning/detection is still needed. |
 | Later extraction/editing/reporting/recognition | Deferred under PRD scope, with separate designs required. |
-| Documentation and plan | Revised for Alex's review decisions; awaiting approval before application/harness code. |
+| Documentation and plan | Approved with whole-file-first extraction and tasks renumbered 0 to 6. Tasks 0 and 1 authorized. |
 
-Earlier source regression evidence: the source reviewed on 2026-10-07 passed 668 tests with an isolated test home. Known additional defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths.
+The current source passed 709 tests with isolated user folders. Existing Create/template regressions pass. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new readers do not share legacy extraction behavior. Source tests and the synthetic model gate do not establish packaged UI or clean-machine readiness.
 
 ## Benchmark environment
 
@@ -32,12 +32,11 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Open decisions
 
-- Alex's approval of the revised plan and remaining implementation proposals, including DOCX page accounting and text-layer threshold.
-- Passing evaluation candidate after labelled scoring.
+- Recommended production candidate: qwen3:8b, based on equal accuracy and lower review burden in the [Task 1 report](evaluation/2026-10-08-task1.md).
 - Alex's license decision, owned by [PRD.md](../PRD.md#license-decision); LICENSE remains unchanged.
 - Alex's explicit go to publish the separately qualified safety release.
 - Exact Windows warning/detection and tested unsigned artifact behavior.
 
 ## Next step
 
-Review and approve the revised plan. Prepare the independent safety patch/release first, then run the actual-file stop gate before dependent extraction work. Stop and report if none passes. No application/harness changes or model benchmark are included in this documentation revision.
+Task 1 is complete and both candidate scores have been reported. Stop before Task 2. Finish clean-machine qualification of the independently prepared safety patch; v1.2.1 publication remains pending Alex's explicit go.
