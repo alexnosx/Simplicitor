@@ -1,0 +1,39 @@
+{
+  "source_commit": "64157283232f615957ed5ec3e9ef992b309d84a5",
+  "run_id": 37853345402,
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37853345402",
+  "local_checks": {
+    "passed": 185,
+    "scope": "Grounding, extraction/sectioning, saved-value review policy, path gates, corpus/page limits, map, and positive shared-writer value/type/literal/format checks; isolated workspace homes."
+  },
+  "hosted_full_source_suite": {
+    "conclusion": "success",
+    "completed_at_utc": "2026-10-08T22:27:11Z",
+    "job_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37853345402/job/113571537388"
+  },
+  "overall_run_at_recording": {
+    "status": "in_progress",
+    "conclusion": "",
+    "packaging_and_installer_result": "Not verified for this source revision; automatic workflow still running at recording."
+  },
+  "live_evaluation": {
+    "report": "2026-10-09-sectioned-review-policy.json",
+    "runs": 1,
+    "exit_code": 0,
+    "passed": true
+  },
+  "saved_output_checks": {
+    "sectioned_cells_flagged_highlighted_with_sectioned_source": 40,
+    "unflagged_sectioned_values": 0,
+    "all_320_values_types_formats_match_preceding_run": true,
+    "no_data_formulas": true
+  },
+  "unchanged": [
+    "SYSTEM_PROMPT and request format",
+    "fixture corpus and labels",
+    "model profiles/settings",
+    "dependencies",
+    "LICENSE"
+  ],
+  "restrictions": "No new sectioned fixtures, extra model trials, local installer/uninstaller/Windows Sandbox/install-uninstall-delete tests, tag, release, or publication."
+}

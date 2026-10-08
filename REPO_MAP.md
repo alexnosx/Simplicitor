@@ -91,6 +91,7 @@ docs/
         2026-10-09-sectioned-rerun.md
         2026-10-09-sectioned-review-policy.json
         2026-10-09-sectioned-review-policy.md
+        2026-10-09-sectioned-review-verification.json
         2026-10-09-sectioned-verification.json
     releases/
         v1.2.1-local.json
@@ -1991,6 +1992,7 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-rerun.md: md, 37 lines
 - docs/evaluation/2026-10-09-sectioned-review-policy.json: json, 716 lines
 - docs/evaluation/2026-10-09-sectioned-review-policy.md: md, 29 lines
+- docs/evaluation/2026-10-09-sectioned-review-verification.json: json, 39 lines
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
