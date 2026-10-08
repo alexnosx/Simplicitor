@@ -89,6 +89,7 @@ docs/
         2026-10-08-task6-full-pipeline.md
         2026-10-09-sectioned-rerun.json
         2026-10-09-sectioned-rerun.md
+        2026-10-09-sectioned-verification.json
     releases/
         v1.2.1-local.json
         v1.2.1.json
@@ -1978,6 +1979,7 @@ requirements.txt
 - docs/evaluation/2026-10-08-task6-full-pipeline.md: md, 36 lines
 - docs/evaluation/2026-10-09-sectioned-rerun.json: json, 707 lines
 - docs/evaluation/2026-10-09-sectioned-rerun.md: md, 37 lines
+- docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/screenshot.png: png (binary)

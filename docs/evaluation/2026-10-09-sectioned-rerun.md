@@ -30,7 +30,7 @@ This is one observed run. No repeated trials, prompt tuning, changed labels/sett
 
 ## Verification and boundaries
 
-The permitted local suite passed 164 checks, including both merge orders, retained alternatives/conflicts, request/schema/truncation flags, literal-null parsing/projection, non-null text containing "null", context accounting, saved-cell path gates/exit codes, failed saving/processing coverage, the actual corpus, page boundaries, and map generation. Full-suite verification runs only on the hosted Windows runner because the full suite includes deletion tests.
+The permitted local suite passed 164 checks, including both merge orders, retained alternatives/conflicts, request/schema/truncation flags, literal-null parsing/projection, non-null text containing "null", context accounting, saved-cell path gates/exit codes, failed saving/processing coverage, the actual corpus, page boundaries, and map generation. The full source suite also passed on the hosted Windows runner; [verification](2026-10-09-sectioned-verification.json) records the exact source commit and step result. It ran only there because the full suite includes deletion tests. The automatic packaging/installer result is not verified for this source revision.
 
 The evaluator's `output_complete` tracks successful saved output and processing states. Pre-existing reader-warning handling is unchanged; the key alone does not prove absence of source-reader warnings on other documents. This corpus reported none.
 

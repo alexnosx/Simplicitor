@@ -1,0 +1,32 @@
+{
+  "source_commit": "85652a498ee718eb5b00d793b18e83cf6651f199",
+  "run_id": 37848960075,
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37848960075",
+  "local_checks": {
+    "passed": 164,
+    "scope": "Grounding, pipeline, sectioning, saved-output evaluator/path criteria, actual fixtures/page limits, and map generation; isolated workspace test homes."
+  },
+  "hosted_full_source_suite": {
+    "conclusion": "success",
+    "completed_at_utc": "2026-10-08T21:47:08Z",
+    "job_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37848960075/job/113556811637"
+  },
+  "overall_run_at_recording": {
+    "status": "in_progress",
+    "conclusion": "",
+    "packaging_and_installer_result": "Not verified for this source-only revision; automatic workflow still running at recording."
+  },
+  "live_evaluation": {
+    "report": "2026-10-09-sectioned-rerun.json",
+    "exit_code": 1,
+    "passed": false
+  },
+  "unchanged": [
+    "SYSTEM_PROMPT",
+    "fixtures and labels",
+    "model profiles/settings",
+    "dependencies",
+    "LICENSE"
+  ],
+  "restrictions": "No local installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests. No tag, release, publication, or additional semantic repairs."
+}
