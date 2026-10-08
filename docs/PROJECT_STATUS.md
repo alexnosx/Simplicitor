@@ -9,15 +9,15 @@ Updated 2026-10-08. [PRD.md](../PRD.md) owns release requirements; [architecture
 | Existing prompt-only Create and PowerPoint templates | Present in v1.2 source; to be preserved. |
 | Legacy Edit / v1.2.1 safety patch | Published as [v1.2.1 Latest](https://github.com/alexnosx/Simplicitor/releases/tag/v1.2.1). Public executable version and SHA-256 verified; [release evidence](releases/v1.2.1.json). Local build/smoke checked; clean-machine walkthrough waived under the [patch exception](code-signing.md). |
 | Selected-model warning | Current UI uses the older small-model threshold and hides unknown sizes; selected-model recommendation warning is planned. |
-| Structured readers, column proposals, and extraction | Plain-Python core implemented: anchored sources, currency/ordinal conversion, blank-to-null handling, shared-client requests, column suggestions, conservative context sections, field accumulation, coverage, and cancellation. Not yet connected to the UI or XLSX output. |
+| Structured readers, column proposals, and extraction | Plain-Python core implemented: anchored sources, currency/ordinal conversion, blank-to-null handling, shared-client requests, column suggestions, conservative context sections, field accumulation, coverage, and cancellation. Not yet connected to the UI. |
 | Model evaluation | Alex selected qwen3:8b. Its [currency/null rerun](evaluation/2026-10-08-task1-qwen-currency-null.md) passes the unchanged Task 1 gate. Production and saved-XLSX release evaluation remain pending. |
-| Saved XLSX grid and Save As | Planned. |
+| Saved XLSX grid and Save As | Task 3 core implemented: typed/literal Data and Evidence, saved-cell review mapping, highlighted proposals/blanks, owned jobs, acknowledged Save As copying, and retention cleanup. Native dialog/grid wiring remains Task 4. |
 | Standalone installer and portable ZIP | Planned; current build produces an unsigned onefile executable. |
 | Windows security block | Reported; exact warning/detection is still needed. |
 | Later extraction/editing/reporting/recognition | Deferred under PRD scope, with separate designs required. |
-| Documentation and plan | Tasks 0 and 1 approved; Task 2 authorized after the selected-model rerun. Tasks remain numbered 0 to 6. |
+| Documentation and plan | Tasks 0 through 2 accepted; Task 3 authorized. Tasks remain numbered 0 to 6. |
 
-The current source passed 805 tests with isolated user folders. Existing Create/template regressions pass. Task 2 checks include the corrected context estimate, actual prompt-usage truncation, and retaining verified values over failed grounding alternatives. These use controlled model replies; live-model accuracy remains the accepted Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new readers do not share legacy extraction behavior. Source tests and the synthetic model gate do not establish packaged UI or clean-machine readiness.
+The current source passed 866 tests with isolated user folders, including 61 Task 3 checks. Existing Create/template regressions pass. Task 3 checks reopen real XLSX files, exercise source aliases and failed copy/replace operations, invalidate stale candidates, and check owned cleanup at the retention boundary. Task 2 checks use controlled model replies; live-model accuracy remains the accepted Task 1 report. Known legacy defects include Excel text-ID coercion, omitted DOCX tables, and content-bearing diagnostic paths; the new route does not share legacy reading/writing behavior. Source tests and the synthetic model gate do not establish native Excel display, packaged UI, or clean-machine readiness.
 
 ## Benchmark environment
 
@@ -37,4 +37,4 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-Task 2 core is complete and verified; the selected-Qwen gate is recorded. Stop before Task 3. No XLSX writer, job handling, or new UI has been implemented.
+Task 3 core is complete and locally verified. Stop before Task 4; no new UI or native Save As dialog has been implemented. Full-pipeline live-model and saved-output qualification remain Task 6.

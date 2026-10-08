@@ -105,6 +105,25 @@ class ExtractionResult:
     coverage: Mapping[str, str]
 
 
+@dataclass(frozen=True)
+class Candidate:
+    """One saved review workbook and the source paths it must never overwrite."""
+    job_id: str
+    path: Path
+    source_paths: tuple[Path, ...]
+    issues: tuple[Issue, ...]
+
+
+@dataclass(frozen=True)
+class ReviewCell:
+    """A saved Data cell, with its field and file-coverage Evidence rows."""
+    row: int
+    column: int
+    value: str | int | float | date | None
+    data_type: str
+    evidence: tuple[Mapping[str, str | None], ...]
+
+
 def build_response_schema(
     columns: tuple[ColumnSpec, ...], record_ids: tuple[str, ...]
 ) -> dict:

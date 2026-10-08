@@ -90,7 +90,11 @@ Column suggestions consume the request and first-source sample. Users edit/confi
 
 Use a dedicated openpyxl writer. Valid fields use confirmed types; flagged proposals use highlighted literal strings, and absent proposals are highlighted blanks. Evidence maps every Data cell to its quote, anchor, and issue. Force text to data_type s, including formula-like strings.
 
+Data starts with Record and File, followed by confirmed columns. Evidence stores the Data cell address, record, file basename, field, verbatim value, quote, anchor, status, and issue. Alternatives have their own rows; file coverage rows apply to every field of that record. ReviewCell uses saved worksheet coordinates and evidence rows. Candidate retains source paths only for Save As refusal; absolute paths are not written into the workbook. Validate Excel text limits/characters and numeric precision before serialization, then reopen the staged workbook to check values, types, formats, flags, and Evidence before accepting it.
+
 Each app-data job has one candidate.xlsx. Rerunning clears review and replaces that candidate; a failed run cannot revive the old review. Read grid values/Evidence from the saved workbook.
+
+Jobs live under app-data/extraction-jobs/job-<UUID>, with an ownership marker containing the job ID and UTC creation time. Clear review and discard the previous job before starting a new run, including reruns that fail or are cancelled before writing. The writer also invalidates an existing candidate before attempting replacement. Cleanup checks the directory name and ownership marker; the age boundary is strictly older than retention. Its caller waits for workers and file handles before normal-close deletion.
 
 Native Save As handles overwrite confirmation. Refuse a normalized source path, copy through a destination-folder temporary file, close it, then rename/replace. Write failure retains the previous destination and review, without saved success. Normal close removes the job after workers/handles finish; startup removes only owned jobs older than the PRD retention period.
 

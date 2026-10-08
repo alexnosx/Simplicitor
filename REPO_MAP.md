@@ -17,8 +17,9 @@ docs/superpowers/plans/2026-10-08-first-release-extraction.md. They link to requ
 rather than maintaining competing scope or metric tables.
 
 The module map below describes existing source. Readers, grounding, the evaluation
-CLI, and Task 2 production requests/column proposals/conditional sectioning are
-implemented. XLSX output, job handling, and review UI remain in the plan.
+CLI, Task 2 production requests/column proposals/conditional sectioning, and Task 3
+typed/literal XLSX output, saved-cell review data, jobs, and Save As copying are
+implemented. Review UI and native dialogs remain Task 4.
 
 | Module under simplicitor/ | Current responsibility |
 |---|---|
@@ -30,7 +31,7 @@ implemented. XLSX output, job handling, and review UI remain in the plan.
 | app/services/backup_service.py | Legacy filename-based backups. |
 | templates_engine/ | Manifest/import/prompt/validation/repair/rendering pipeline. |
 | app/config/defaults.py | Shared styling, timeouts, and limits. |
-| extraction/ | Anchored sources, field contracts, grounding/conversion, shared request format, context-based sections, and production/column-proposal pipeline. |
+| extraction/ | Anchored sources, field contracts, grounding/conversion, shared request format, context-based sections, production/column-proposal pipeline, Data/Evidence XLSX output, saved-cell review mapping, and owned jobs/Save As. |
 
 scripts/evaluate_extraction.py runs the actual-file model gate directly against Ollama.
 scripts/build_extraction_fixtures.py regenerates the synthetic English fixture files.
@@ -165,11 +166,13 @@ simplicitor/
     extraction/
         __init__.py
         grounding.py
+        jobs.py
         models.py
         pipeline.py
         request_format.py
         sectioning.py
         source_readers.py
+        xlsx_writer.py
     prompts/
         system_excel.txt
         system_manipulate.txt
@@ -269,9 +272,11 @@ tests/
         test_evaluation.py
         test_fixtures.py
         test_grounding.py
+        test_jobs.py
         test_pipeline.py
         test_sectioning.py
         test_source_readers.py
+        test_xlsx_writer.py
     templates_engine/
         fixtures/
             broken_duplicate_manifest.yaml
@@ -577,6 +582,15 @@ requirements.txt
 - def failed_fields(columns: tuple[ColumnSpec, ...], issue: str) -> dict[str, FieldResult]: Retain the complete requested column roster when no proposal can be mapped.
 - def parse_fields(response: str, source: SourceDocument, columns: tuple[ColumnSpec, ...]) -> dict[str, FieldResult]: Keep every requested field, including failures and absent proposals.
 
+### simplicitor/extraction/jobs.py
+
+- def same_path(first: Path, second: Path) -> bool: Recognize normalized paths and existing aliases without opening content.
+- def create_job(app_data: Path) -> Path: Create an owned job; each new run starts with no candidate or review.
+- def save_candidate(candidate: Candidate, destination: Path, acknowledge_issues: bool) -> Path: Copy after native Save As acceptance, including its overwrite confirmation.
+- def _created_at(job_dir: Path) -> datetime
+- def discard_job(job_dir: Path) -> None: Remove only an owned job, after its workers and workbook handles finish.
+- def cleanup_old_jobs(app_data: Path, now: datetime) -> int: Remove owned jobs strictly older than retention; naive now means UTC.
+
 ### simplicitor/extraction/models.py
 
 - class Issue
@@ -588,6 +602,8 @@ requirements.txt
 - class ExtractionProfile: Explicit model/request settings, independent of hardware inspection.
 - class Section: A non-overlapping unit group, including visibly excluded oversized groups.
 - class ExtractionResult: The complete source/column roster, proposals, and per-unit coverage status.
+- class Candidate: One saved review workbook and the source paths it must never overwrite.
+- class ReviewCell: A saved Data cell, with its field and file-coverage Evidence rows.
 - def build_response_schema(columns: tuple[ColumnSpec, ...], record_ids: tuple[str, ...]) -> dict: Constrain structure while keeping every proposed value a literal string.
 
 ### simplicitor/extraction/pipeline.py
@@ -619,6 +635,16 @@ requirements.txt
 - def _read_docx(path: Path, source_id: str) -> SourceDocument
 - def _read_blocks(blocks: Iterable[Paragraph | Table], prefix: str, source_id: str, units: list[SourceUnit], issues: list[Issue]) -> None
 - def _read_pdf(path: Path, source_id: str) -> SourceDocument
+
+### simplicitor/extraction/xlsx_writer.py
+
+- def _text(value: str) -> None
+- def _numeric(value: int | Decimal) -> int | float
+- def _put(sheet, row: int, column: int, value, *, flagged: bool=False, number_format: str='General') -> None
+- def _style(sheet) -> None
+- def _verify_saved(workbook: Workbook, path: Path) -> None
+- def write_candidate(result: ExtractionResult, columns: tuple[ColumnSpec, ...], path: Path) -> Candidate: Save/reopen one candidate, rejecting truncation, formulas, and numeric loss.
+- def read_candidate(candidate: Candidate) -> tuple[ReviewCell, ...]: Build review entirely from saved Data/Evidence, including coverage issues.
 
 ### simplicitor/main.py
 
@@ -743,6 +769,21 @@ requirements.txt
 - def test_currency_conversion_does_not_accept_labels_or_bad_numeric_grammar(value)
 - def test_blank_proposals_project_to_null(value)
 
+### tests/extraction/test_jobs.py
+
+- def candidate_in(tmp_path, *, issues=())
+- def test_owned_unique_jobs_and_normal_close_cleanup(tmp_path)
+- def test_save_as_refuses_source_path(tmp_path, index, variant)
+- def test_save_as_new_and_confirmed_overwrite(tmp_path)
+- def test_flagged_output_requires_acknowledgement(tmp_path)
+- def test_failed_copy_or_rename_keeps_destination_and_review(tmp_path, monkeypatch, operation, existing)
+- def test_cleanup_only_owned_jobs_strictly_older_than_24_hours(tmp_path)
+- def test_unowned_folder_refused_and_unrelated_files_untouched(tmp_path)
+- def test_failed_rerun_cannot_save_stale_candidate(tmp_path)
+- def test_save_as_refuses_existing_source_alias(tmp_path)
+- def test_cleanup_preserves_invalid_ownership_markers(tmp_path, marker)
+- def test_failed_job_creation_removes_its_partial_marker(tmp_path, monkeypatch)
+
 ### tests/extraction/test_pipeline.py
 
 - def document(texts, source_id='one')
@@ -797,6 +838,25 @@ requirements.txt
 - def test_empty_docx_fails_before_model_work(tmp_path)
 - def test_docx_reads_header_footer_paragraphs_and_cells_once(tmp_path)
 - def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path)
+
+### tests/extraction/test_xlsx_writer.py
+
+- def result_for(tmp_path, values, *, issues=(), coverage=None): Two same-named attachments remain distinct records.
+- def field(value, typed=None, flagged=False, issues=(), alternatives=())
+- def test_saved_values_types_evidence_and_selection_mapping(tmp_path)
+- def test_strings_stay_literal_on_both_sheets(tmp_path, text, flagged)
+- def test_missing_highlight_alternatives_and_file_coverage(tmp_path)
+- def test_unrepresentable_text_fails_without_a_candidate(tmp_path, bad, location)
+- def test_unsafe_numeric_precision_fails_visibly(tmp_path, bad)
+- def test_failed_rerun_invalidates_old_candidate(tmp_path, monkeypatch)
+- def test_successful_rerun_replaces_saved_values(tmp_path)
+- def test_real_job_candidate_saves_and_reopens_with_acknowledgement(tmp_path)
+- def test_failed_validation_rerun_removes_old_review(tmp_path)
+- def test_candidate_writer_refuses_source_before_invalidating_it(tmp_path)
+- def test_flagged_alternative_evidence_is_highlighted(tmp_path)
+- def test_safe_numeric_extremes_round_trip(tmp_path, value)
+- def test_missing_field_fails_instead_of_dropping_it(tmp_path)
+- def test_failed_candidate_replace_leaves_no_previous_review(tmp_path, monkeypatch)
 
 ### tests/templates_engine/__init__.py
 
@@ -1454,7 +1514,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 57 lines
+- CHANGELOG.md: md, 58 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 133 lines
 - LICENSE_NOTICE.md: md, 7 lines
@@ -1497,7 +1557,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 175 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 177 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -1506,7 +1566,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 114 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 118 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 44 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 6 lines

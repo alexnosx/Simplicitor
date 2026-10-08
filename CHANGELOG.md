@@ -7,15 +7,16 @@
 
 ## Unreleased extraction development
 
+- Add Task 3's typed/literal Data and Evidence writer, saved-file review mapping, owned temporary jobs, acknowledged Save As copying, source-path refusal, and age-based cleanup. Native dialogs and review UI remain Task 4.
 - Correct context estimation to 2.5 UTF-8 bytes per token without counting output schema; reject actual prompt usage at the reserved-output boundary. Preserve verified values when later grounding fails, retaining failed alternatives and verified conflicts.
 - Accept grounded currency-bearing numbers and normalize blank model values to null. The selected Qwen rerun passes at 277/280 with zero unflagged wrong values; see docs/evaluation/2026-10-08-task1-qwen-currency-null.md.
-- Add Task 2 core transport, column suggestions, conservative context-based sections, retained proposals/coverage, and cooperative cancellation. XLSX output and UI integration remain planned.
+- Add Task 2 core transport, column suggestions, conservative context-based sections, retained proposals/coverage, and cooperative cancellation.
 - Reject partial-token evidence in both quotes and their source context; accept ordinal English dates and read Word headers/footers with dedicated anchors.
 - Replace fixture-specific prompt hints with generic rules and plain column definitions. Expand the gate to 28 files/280 fields with eight prose documents.
 - Rerun both candidates: Qwen passes the overall gate at 97.14%; Llama fails accuracy at 93.57%. Narrative subgroup limitations and full counts are in docs/evaluation/2026-10-08-task1-rerun.md.
 - Add independent anchored DOCX/text-layer PDF readers, verbatim grounding, deterministic type conversion, and a direct-Ollama evaluation CLI.
 - Add 20 synthetic English fixtures with independent labels. Both candidate models passed the first gate; measured results are in docs/evaluation/2026-10-08-task1.md.
-- Approve whole-file-first production extraction and renumber the plan tasks 0 to 6. Production extraction, XLSX output, and review UI are not implemented yet.
+- Approve whole-file-first production extraction and renumber the plan tasks 0 to 6.
 
 ## Unreleased documentation
 
