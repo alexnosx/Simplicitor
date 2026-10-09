@@ -98,6 +98,7 @@ docs/
         v1.2.1.json
         v2.0.0-notes.md
     reviews/
+        2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
     superpowers/
         plans/
@@ -2008,6 +2009,7 @@ requirements.txt
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/releases/v2.0.0-notes.md: md, 26 lines
+- docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
@@ -2019,7 +2021,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
-- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 1594 lines
+- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2334 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
