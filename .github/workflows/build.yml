@@ -16,6 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check release notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          RELEASE_NOTES: docs/releases/${{ github.ref_name }}-notes.md
+        run: |
+          if (-not (Test-Path -LiteralPath $env:RELEASE_NOTES -PathType Leaf)) {
+            throw "Release notes file is missing: $env:RELEASE_NOTES"
+          }
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -58,6 +68,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          body_path: docs/releases/${{ github.ref_name }}-notes.md
           files: |
             dist/Simplicitor-setup.exe
             dist/Simplicitor-portable.zip
