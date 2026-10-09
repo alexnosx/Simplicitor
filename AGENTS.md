@@ -15,13 +15,13 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Tasks 0 through 5, Task 6 notices/page limits/evaluator, and the three sectioned-extraction fixes are accepted. Current authorization covers the 2.0.0 sectioned_source review policy, zero-unflagged-values PRD/evaluator criterion, and one full-corpus qwen3:8b rerun. Preserve verified values/types/formats under the review flag. Commit/push to main are authorized. Preserve SYSTEM_PROMPT, existing fixtures/labels, model settings, dependencies, and LICENSE; do not add sectioned fixtures. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or extend scope beyond these three items.
+- Current authorization covers MIT licensing from 2.0.0 onward, copyright (c) 2026 Alexandru Pop, the requested licensing documentation/version boundary, and packaged LICENSE inclusion/integrity checks. Releases through v1.2.1 remain under PolyForm Noncommercial 1.0.0; do not alter their tags, assets, or historical license files. Commit/push to main are authorized. Preserve application behavior, fixtures/labels, model settings, and dependencies. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or extend scope beyond these three items.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.
 - Preserve user changes and backups. Do not delete unrelated legacy code or reorganize imports for appearance.
 - Preserve existing generation/template behavior when changing shared components. Follow the release boundaries in PRD.md.
-- License decisions belong to Alex; do not modify licensing through implementation or packaging.
+- License decisions belong to Alex. MIT for 2.0.0 onward is explicitly approved; further licensing changes require his authorization, and third-party licenses remain separate.
 
 ## Implementation conventions
 

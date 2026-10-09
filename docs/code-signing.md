@@ -12,7 +12,7 @@ For v1.2.1 only, Alex authorized publication on 2026-10-08 using the recorded lo
 
 Outputs:
 
-- `dist/standalone/main.dist/`: compiled runtime payload, including Qt/document libraries, prompts, icons, both built-in templates, and `third_party/` license notices.
+- `dist/standalone/main.dist/`: compiled runtime payload, including Qt/document libraries, prompts, icons, both built-in templates, root `LICENSE`, and `third_party/` license notices.
 - `dist/Simplicitor-setup.exe`: unsigned current-user installer, without a UAC requirement.
 - `dist/Simplicitor-portable.zip`: the exact same payload under a Simplicitor folder.
 - `dist/SHA256SUMS.json`: SHA-256 hashes of the two artifacts and every payload file.
@@ -27,7 +27,7 @@ The [Task 6 hosted build](builds/2026-10-09-task6-ci.json) passes all source tes
 
 Before compilation, [build_third_party_notices.py](../scripts/build_third_party_notices.py) assembles `third_party/` from the installed runtime dependency closure and the upstream Qt notice snapshot in [resources/third_party](../resources/third_party/THIRD_PARTY_NOTICES.txt). Platform-conditional installed dependencies are conservatively included; test/build dependencies are excluded except Nuitka's embedded runtime terms. Original wheel license, licence, copyright, and notice files retain their bytes. Python's runtime license and full LGPL/GPL texts accompany the Qt/PySide terms and third-party attributions, including Qt PDF's PDFium dependencies. The inventory records versions and file hashes; the upstream snapshot records exact source URLs and hashes.
 
-Nuitka includes this directory before creating the installer. The archive step rejects absent, empty, or altered notices, so the ZIP has the same notice payload. requirements-build.txt pins the existing PySide6 dependency to the qualified 6.11.2 snapshot. A version change requires refreshing the upstream notices and build pin together. The version check explicitly fails mismatches instead of silently reusing outdated terms. The first Task 6 hosted run caught a fresh install of 6.12.0; the build pin resolves that drift without changing the local environment or adding a dependency. Simplicitor's LICENSE is unchanged; Alex's separate license decision remains open.
+Nuitka includes this directory before creating the installer. The archive step rejects absent, empty, or altered notices, so the ZIP has the same notice payload. requirements-build.txt pins the existing PySide6 dependency to the qualified 6.11.2 snapshot. A version change requires refreshing the upstream notices and build pin together. The version check explicitly fails mismatches instead of silently reusing outdated terms. The first Task 6 hosted run caught a fresh install of 6.12.0; the build pin resolves that drift without changing the local environment or adding a dependency. Simplicitor 2.0.0 onward uses MIT, copyright (c) 2026 Alexandru Pop; versions through v1.2.1 retain PolyForm Noncommercial 1.0.0. Third-party terms are unchanged. The build includes the application LICENSE at the payload root beside third_party/ before NSIS creates the installer. Packaging rejects missing/empty LICENSE files and compares their SHA-256 against the current repository LICENSE before writing the ZIP/manifest. The notice inventory and application license remain separate.
 
 ## Runner-only installer qualification
 

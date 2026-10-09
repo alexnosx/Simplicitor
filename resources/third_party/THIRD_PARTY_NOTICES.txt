@@ -3,8 +3,9 @@ Simplicitor third-party notices
 
 Simplicitor uses the separately licensed libraries listed in inventory.json.
 Their original license, copyright and notice files accompany this document.
-These notices do not change Simplicitor's LICENSE or restrict rights granted
-by the third-party licenses.
+Simplicitor 2.0.0 onward uses MIT; its LICENSE is beside the third_party folder.
+These notices do not change that license or restrict rights granted by the
+third-party licenses.
 
 Qt, PySide6 and Shiboken
 -----------------------
@@ -46,4 +47,4 @@ Their redistribution conditions are described in the Python Windows-binary
 license and at https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/.
 
 This notice bundle supplies attributions and license texts. Publishing remains
-subject to the project's separate release and licensing decisions.
+subject to the project's explicit release authorization.

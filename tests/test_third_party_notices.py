@@ -64,6 +64,7 @@ def test_notice_payload_is_preserved_in_portable_archive(tmp_path, monkeypatch):
     installer.write_bytes(b"synthetic installer, never executed")
     build.package_payload(payload, installer)
     with ZipFile(tmp_path / "Simplicitor-portable.zip") as archive:
+        assert archive.read("Simplicitor/LICENSE") == (build.ROOT / "LICENSE").read_bytes()
         for path in (payload / "third_party").rglob("*"):
             if path.is_file():
                 assert archive.read("Simplicitor/" + path.relative_to(payload).as_posix()) == path.read_bytes()

@@ -1,5 +1,7 @@
 # Simplicitor
 
+[![License: MIT from 2.0.0](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Windows desktop document work with local models.
 
 English is the target language. Other languages may work but are not tested or claimed.
@@ -104,11 +106,11 @@ Use the [repository map](REPO_MAP.md) for existing module responsibilities, the 
 
 ## License
 
-Simplicitor is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). You may read, fork, modify, and use it for personal and noncommercial purposes. You may not sell it, include it in a paid product, or use it as part of a commercial offering. See [LICENSE_NOTICE.md](LICENSE_NOTICE.md) for a plain-English summary.
+Simplicitor 2.0.0 onward is licensed under the [MIT License](LICENSE), copyright (c) 2026 Alexandru Pop. Personal and commercial use, modification, and distribution are permitted under its terms. Releases up to and including v1.2.1 remain under [PolyForm Noncommercial 1.0.0](https://github.com/alexnosx/Simplicitor/blob/v1.2.1/LICENSE). See [LICENSE_NOTICE.md](LICENSE_NOTICE.md) for a plain-English summary and the third-party license distinction.
 
 ## Contributing
 
-Issues are welcome but not guaranteed to be addressed — this is a personal demonstration project with limited maintenance bandwidth. Pull requests are not currently accepted. Forks for personal use are encouraged under the license terms.
+Issues are welcome but not guaranteed to be addressed — this is a personal demonstration project with limited maintenance bandwidth. Pull requests are not currently accepted. Forks are encouraged under the license terms.
 
 ## Author
 

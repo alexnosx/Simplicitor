@@ -1,6 +1,6 @@
 # First-release extraction implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5, Task 6 notices/page limits/evaluator, and the three sectioned-extraction fixes are accepted. Current authorization covers the 2.0.0 sectioned-source review policy below only. Commit/push to main are authorized; do not tag, release, publish, change LICENSE, or extend implementation to broader release qualification.
+> **For agentic workers:** Use superpowers:executing-plans for native execution or superpowers:subagent-driven-development if Alex selects delegation. Track steps with checkboxes. Tasks 0 through 5, Task 6 notices/page limits/evaluator, and the three sectioned-extraction fixes are accepted. Current authorization covers the MIT licensing revision below only. Commit/push to main are authorized; do not tag, release, publish, or extend implementation to broader release qualification.
 
 **Goal:** Deliver the [PRD extraction workflow](../../../PRD.md#workflow-scope), preserve existing Create/templates, and release the independent safety patch.
 
@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Current authorization covers sectioned_source flags on every extracted sectioned cell, the zero-unflagged-values criterion, and one selected-Qwen full-corpus rerun. Preserve valid saved values/types/formats and add no sectioned fixtures. Preserve SYSTEM_PROMPT, fixtures/labels, model settings, and LICENSE. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
+- Current authorization covers MIT from 2.0.0 onward, the licensing/version-boundary documentation, and packaged LICENSE inclusion/checks. Preserve historical releases/licenses through v1.2.1 and all application behavior, prompts, fixtures/labels, model settings, and dependencies. New dependencies and release publication require separate explicit authorization. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Lifecycle checks run only on the hosted GitHub Actions Windows runner.
 - File records and English fixtures only. Keep labels out of prompts and flags, and preserve all requested files/columns.
 - Use the PRD page limit and architecture per-file size limit/settings. Thinking is off for every extraction/column-suggestion call.
 - The only model check is reported parameter size: product warning stays non-blocking; evaluation candidates follow PRD.md. Hardware recommendations are not checked.
@@ -31,7 +31,7 @@ Start each task with focused failing tests, implement its contract, then rerun t
 
 ## Work order
 
-Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the three authorized sectioned-source review items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
+Task 0 released v1.2.1 independently. Task 1 contains readers and the actual-file gate; its selected-Qwen currency/null rerun is recorded below. Task 2 builds production requests, column proposals, and conditional sectioning. Tasks 3 and 4 build writer and UI. Task 5 prepares packaging; Task 6 checks release quality. Current execution covers only the three authorized MIT licensing items; full source and installer lifecycle checks use the hosted Windows runner. Broader native/clean-machine release checks remain later.
 
 ### Task 0: Disable legacy Edit and release v1.2.1 independently
 
@@ -170,7 +170,7 @@ Result: the isolated full suite passes 953 tests. The native Windows walkthrough
 1. [x] Add --full-pipeline to the same CLI: read actual files, run production extraction including sectioning, write/reopen the XLSX candidate, and score saved Data values and saved Evidence flags with the existing scorer. Failures retain the denominator.
 2. [x] Add four independently labelled synthetic English DOCX/text-PDF documents too large for one request, with facts across sections. Retain the original 28 cases/labels, prompt, options, and thresholds. Run selected qwen3:8b on all 32 files and report whole-file and sectioned scores separately. [Result](../../evaluation/2026-10-08-task6-full-pipeline.md): whole-file passes, sectioned fails; the aggregate fraction passes but does not establish sectioned readiness.
 3. [x] Read, extract, and save a synthetic job at exactly 300 DOCX page equivalents; reject 301 pages before a model call. This boundary check uses a deterministic fake model, not a 300-page live quality claim.
-4. [x] Include runtime library license texts/notices and full Qt/PySide LGPL terms before Nuitka compiles the installer. Validate notice presence/inventory hashes before ZIP packaging. Keep LICENSE unchanged and Alex's business-use decision open.
+4. [x] Include runtime library license texts/notices and full Qt/PySide LGPL terms before Nuitka compiles the installer. Validate notice presence/inventory hashes before ZIP packaging. At the original Task 6 stage LICENSE was unchanged; Alex subsequently approved MIT from 2.0.0 onward under the revision below.
 
 **Verify:** focused evaluator, corpus, notices, flag/version checks locally; full python -m pytest -q and build.py only on hosted Windows. Use the existing selected-Qwen profile with --full-pipeline --manifest tests/extraction/fixtures/full-pipeline-manifest.json; raw workbooks remain in ignored workspace output, aggregate report is tracked. Timings decide nothing. Hosted verification passed 976 source tests, the real build and existing lifecycle qualification; downloaded setup/ZIP, all payload files and notice hashes match [CI evidence](../../builds/2026-10-09-task6-ci.json).
 
@@ -191,6 +191,13 @@ Result: the isolated full suite passes 953 tests. The native Windows walkthrough
 1. [x] Mark sources that require sectioning. Flag/highlight every extracted Data cell with sectioned_source, retain proposals and original issues, and preserve otherwise verified values/types/formats. Reuse saved Evidence/grid and Save As acknowledgement. The marker is not a coverage failure; whole-file cells keep existing behavior.
 2. [x] Change the PRD/evaluator sectioned criterion to zero unflagged values, including correct values. Report accuracy without gating it. Whole-file thresholds, saved-output and processing-state checks remain unchanged. Pin the policy with saved-file tests and a deliberately unflagged correct cell that must fail the CLI.
 3. [x] Run --full-pipeline once on the existing full corpus with qwen3:8b and unchanged prompt/model settings/labels. [Result](../../evaluation/2026-10-09-sectioned-review-policy.md): whole-file 277/280 passes; sectioned 33/40 informational, all 40 cells flagged/zero unflagged values passes. 185 permitted local checks and the hosted full source suite pass. [Verification](../../evaluation/2026-10-09-sectioned-review-verification.json) records the tested source commit; automatic packaging is not verified. Scoped code/report committed and pushed to main. Full source suite only on hosted Windows; no local installer/uninstaller/Sandbox/install-uninstall-delete tests. No tag, release, publication, or LICENSE change.
+
+
+### MIT licensing from 2.0.0
+
+1. [x] Replace LICENSE with standard MIT text, copyright (c) 2026 Alexandru Pop. Preserve released tags/assets/license files through v1.2.1 under PolyForm Noncommercial 1.0.0.
+2. [x] Update README badge/text, LICENSE_NOTICE, PRD license decision, status/open decisions, changelog, packaging procedures, and the draft v2.0.0 license notes. No local v2 notes or GitHub draft existed; add a repository draft license section without creating a release.
+3. [x] Include LICENSE at payload root beside third_party/ before the built-in installer is compiled. Require nonempty, current repository bytes before ZIP packaging. Unit checks cover inclusion, missing/empty/stale rejection, and archive bytes. Verify the real build only on the hosted Windows runner after authorized commit/push. No local installer/uninstaller/Sandbox/install-uninstall-delete tests, tag, release, or publication.
 
 ## Plan self-review
 

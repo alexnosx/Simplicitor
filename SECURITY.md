@@ -12,4 +12,4 @@ Use synthetic or suitably sanitized fixtures. Treat document/model text as data;
 
 ## Licensing and claims
 
-The [license](LICENSE) remains unchanged. Alex's business-use decision is recorded in [PRD.md](PRD.md#license-decision). Local processing does not establish GDPR compliance.
+The [license](LICENSE) and version boundary follow Alex's decision recorded in [PRD.md](PRD.md#license-decision). Local processing does not establish GDPR compliance.

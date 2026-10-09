@@ -113,4 +113,4 @@ PDF write-back, general agents, RAG/indexing, model management, cloud services, 
 
 ## License decision
 
-PolyForm Noncommercial conflicts with the business audience. Alex owns this decision. Leave LICENSE and existing rights unchanged; free distribution does not imply business-use permission.
+Decision made: Simplicitor 2.0.0 onward uses the MIT License. Copyright (c) 2026 Alexandru Pop. Releases up to and including v1.2.1 remain under PolyForm Noncommercial 1.0.0; their release licenses are unchanged. Bundle the application LICENSE at the payload root beside third_party/. Third-party libraries retain their separate terms and notices. Publication still requires explicit authorization.

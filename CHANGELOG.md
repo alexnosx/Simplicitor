@@ -7,12 +7,14 @@
 
 ## v2.0.0 (unreleased)
 
+- License Simplicitor 2.0.0 onward under MIT, copyright (c) 2026 Alexandru Pop. Releases through v1.2.1 remain under PolyForm Noncommercial 1.0.0. Bundle the application LICENSE beside third-party notices and reject missing, empty, or stale copies during packaging.
+
 - Require review of every extracted cell from sectioned sources with sectioned_source, preserving verified values/types/formats. The sectioned evaluation criterion is zero unflagged values; accuracy is reported without gating it. The single full-corpus run passes both path criteria, with sectioned accuracy 33/40 and all 40 cells flagged; see docs/evaluation/2026-10-09-sectioned-review-policy.md.
 
 - Make section requests independent, normalize literal "null" values, and select verified proposals symmetrically while retaining alternatives and conflicts. Apply separate whole-file/sectioned criteria to full-pipeline exit status. The revised saved-output run passes whole-file extraction but still fails sectioned zero-unflagged-wrong; see docs/evaluation/2026-10-09-sectioned-rerun.md.
 
 - Add saved-XLSX full-pipeline evaluation, four large synthetic sources, and 300/301-page checks. Whole-file Qwen accuracy passes; sectioned accuracy fails. Scores are recorded in docs/evaluation/2026-10-08-task6-full-pipeline.md without changing prompts, existing labels, or model settings.
-- Bundle runtime dependency notices, full Qt/PySide LGPL/GPL terms, Qt third-party attributions, Python and Nuitka runtime licenses. Validate notice presence/hashes before packaging; LICENSE is unchanged.
+- Bundle runtime dependency notices, full Qt/PySide LGPL/GPL terms, Qt third-party attributions, Python and Nuitka runtime licenses. Validate notice presence/hashes before packaging; bundled libraries retain their original licenses.
 
 - Set Windows product version to 2.0.0.0. Keep Nuitka's stock per-user installer/uninstaller and qualify installation, offscreen startup without Ollama, upgrade, and settings-preserving uninstall only on the GitHub Actions Windows runner. No tag or release.
 

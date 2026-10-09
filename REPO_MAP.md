@@ -96,6 +96,7 @@ docs/
     releases/
         v1.2.1-local.json
         v1.2.1.json
+        v2.0.0-notes.md
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -630,6 +631,7 @@ tests/
     test_manipulate_worker.py
     test_ollama_client.py
     test_ollama_worker.py
+    test_packaged_license.py
     test_settings.py
     test_status_banner.py
     test_template_dialog.py
@@ -1532,7 +1534,7 @@ requirements.txt
 ### tests/test_build_script.py
 
 - def payload(tmp_path, monkeypatch)
-- def make_payload(payload, *, notices=True)
+- def make_payload(payload, *, notices=True, include_license=True)
 - def test_build_flags_keep_per_user_builtin_installer()
 - def test_product_version_is_2000()
 - def test_build_produces_matching_portable_payload_and_installer(payload, monkeypatch)
@@ -1769,6 +1771,12 @@ requirements.txt
 - def test_model_unload_does_not_reset_selected_metadata(qtbot) -> None: When running model drops to empty, emit model_params_ready('', 0) to hide banner.
 - def test_poll_uses_short_timeouts(qtbot) -> None: Poll-loop discovery calls pass the short poll timeout, not the 60 s default.
 
+### tests/test_packaged_license.py
+
+- def test_license_is_included_in_the_nuitka_payload()
+- def test_missing_application_license_fails_before_archiving(tmp_path, monkeypatch)
+- def test_empty_or_stale_application_license_fails_before_archiving(tmp_path, monkeypatch, wrong)
+
 ### tests/test_settings.py
 
 - def test_default_paths_contain_simplicitor(tmp_path: Path) -> None
@@ -1951,12 +1959,12 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 72 lines
+- CHANGELOG.md: md, 74 lines
 - CLAUDE.md: md, 1 lines
-- LICENSE: text, 133 lines
-- LICENSE_NOTICE.md: md, 7 lines
+- LICENSE: text, 21 lines
+- LICENSE_NOTICE.md: md, 11 lines
 - PRD.md: md, 116 lines
-- README.md: md, 115 lines
+- README.md: md, 117 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
@@ -1996,6 +2004,7 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
+- docs/releases/v2.0.0-notes.md: md, 9 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
@@ -2005,7 +2014,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-01-phase-i-prompt-builder.md: md, 754 lines
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
-- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 197 lines
+- docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -2021,7 +2030,7 @@ requirements.txt
 - requirements-dev.txt: txt, 3 lines
 - requirements.txt: txt, 9 lines
 - resources/icon.ico: ico (binary)
-- resources/third_party/THIRD_PARTY_NOTICES.txt: txt, 49 lines
+- resources/third_party/THIRD_PARTY_NOTICES.txt: txt, 50 lines
 - resources/third_party/qt/pyside-setup/LICENSES/Apache-2.0.txt: txt, 61 lines
 - resources/third_party/qt/pyside-setup/LICENSES/BSD-3-Clause.txt: txt, 9 lines
 - resources/third_party/qt/pyside-setup/LICENSES/GFDL-1.3-no-invariants-only.txt: txt, 451 lines

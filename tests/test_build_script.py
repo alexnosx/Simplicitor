@@ -22,7 +22,7 @@ def payload(tmp_path, monkeypatch):
     return tmp_path / "dist" / "standalone" / "main.dist"
 
 
-def make_payload(payload, *, notices=True):
+def make_payload(payload, *, notices=True, include_license=True):
     files = {
         "Simplicitor.exe": b"compiled application",
         "prompts/system_word.txt": b"word prompt",
@@ -42,6 +42,8 @@ def make_payload(payload, *, notices=True):
         path.write_bytes(data)
     if notices:
         build.build_notices(build.ROOT, payload / "third_party")
+    if include_license:
+        (payload / "LICENSE").write_bytes((build.ROOT / "LICENSE").read_bytes())
     return files
 
 

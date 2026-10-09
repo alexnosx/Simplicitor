@@ -49,6 +49,7 @@ NUITKA_FLAGS = [
     "--include-data-dir=templates_engine/builtin=templates_engine/builtin",
     # Bundle the assets directory so icons are available at runtime.
     f"--include-data-dir={ASSETS_DIR}=assets",
+    f"--include-data-files={ROOT / 'LICENSE'}=LICENSE",
     f"--windows-icon-from-ico={ICON}",
     "--windows-product-name=Simplicitor",
     "--windows-product-version=2.0.0.0",
@@ -66,7 +67,7 @@ def _sha256(path: Path) -> str:
 def package_payload(payload: Path, installer: Path) -> None:
     """Validate resources and archive exactly the payload supplied to NSIS."""
     required = (
-        "Simplicitor.exe", "prompts/system_word.txt", "prompts/system_excel.txt",
+        "Simplicitor.exe", "LICENSE", "prompts/system_word.txt", "prompts/system_excel.txt",
         "prompts/system_pptx.txt", "templates/pptx_default.pptx",
         "templates_engine/builtin/business_pitch/manifest.yaml",
         "templates_engine/builtin/business_pitch/template.pptx",
@@ -77,6 +78,8 @@ def package_payload(payload: Path, installer: Path) -> None:
     for path in (*(payload / name for name in required), installer):
         if not path.is_file() or not path.stat().st_size:
             raise ValueError(f"Missing or empty build output: {path}")
+    if _sha256(payload / "LICENSE") != _sha256(ROOT / "LICENSE"):
+        raise ValueError("Packaged LICENSE does not match the project's current LICENSE.")
     validate_notices(payload / "third_party")
     files = sorted(p for p in payload.rglob("*") if p.is_file())
     portable = DIST_DIR / "Simplicitor-portable.zip"

@@ -1,7 +1,11 @@
 # License Notice
 
-Simplicitor is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+Simplicitor 2.0.0 onward is licensed under the [MIT License](LICENSE).
 
-You are free to read, fork, modify, and use Simplicitor for personal and noncommercial purposes. You may not sell it, include it in a paid product, or use it as part of any commercial offering. This license was chosen because Simplicitor is a demonstration project — it will remain free forever, but commercial rights are reserved by the author. See the [LICENSE](LICENSE) file for the complete legal terms.
+Copyright (c) 2026 Alexandru Pop.
 
-For commercial licensing inquiries: alex@thursdaysoftware.com
+MIT permits personal and commercial use, modification, and distribution, subject to retaining the copyright and permission notice. The software is provided without warranty; see [LICENSE](LICENSE) for the complete terms.
+
+Releases up to and including v1.2.1 remain under [PolyForm Noncommercial 1.0.0](https://github.com/alexnosx/Simplicitor/blob/v1.2.1/LICENSE). This decision does not change the license of those released versions.
+
+Bundled third-party libraries retain their own licenses, including Qt/PySide LGPL terms. Their notices and license texts are packaged separately under third_party/.
