@@ -97,6 +97,8 @@ docs/
         v1.2.1-local.json
         v1.2.1.json
         v2.0.0-notes.md
+    reviews/
+        2026-10-09-release-2.1.0-codex.md
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -108,6 +110,7 @@ docs/
             2026-06-02-phase-j-pipeline.md
             2026-06-02-phase-k-gui-integration.md
             2026-10-08-first-release-extraction.md
+            2026-10-09-release-2.1.0.md
         specs/
             2026-05-29-phase-h-renderer-design.md
             2026-06-01-phase-i-prompt-builder-design.md
@@ -1955,7 +1958,7 @@ requirements.txt
 ## Other files
 
 - .gitattributes: text, 4 lines
-- .github/workflows/build.yml: yml, 65 lines
+- .github/workflows/build.yml: yml, 76 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 47 lines
 - BUILD_STORY.md: md, 84 lines
@@ -2004,7 +2007,8 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
-- docs/releases/v2.0.0-notes.md: md, 9 lines
+- docs/releases/v2.0.0-notes.md: md, 26 lines
+- docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
@@ -2015,6 +2019,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
+- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 1594 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
