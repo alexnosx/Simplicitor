@@ -81,7 +81,7 @@ class GenerateWorker(QObject):
         try:
             system_prompt = prompt_path.read_text(encoding="utf-8")
         except OSError as exc:
-            logger.error("Could not read system prompt file %s: %s", prompt_path, exc)
+            logger.error("Could not read system prompt file: %s", type(exc).__name__)
             self.failed.emit(
                 f"System configuration error: missing prompt file {prompt_filename}"
             )
@@ -94,13 +94,13 @@ class GenerateWorker(QObject):
         try:
             llm_response = self._client.generate(self.model, self.prompt, system_prompt)
         except OllamaConnectionError as exc:
-            logger.error("Ollama connection lost during generation: %s", exc)
+            logger.error("Ollama connection lost during generation: %s", type(exc).__name__)
             self.failed.emit(
                 "The AI engine stopped responding. Please check Ollama is running."
             )
             return
         except OllamaGenerationError as exc:
-            logger.error("Ollama generation error: %s", exc)
+            logger.error("Ollama generation error: %s", type(exc).__name__)
             self.failed.emit("The AI returned an unexpected response. Please try again.")
             return
 
@@ -119,7 +119,8 @@ class GenerateWorker(QObject):
         except FileGenerationError as exc:
             # Retry once with a simplified prompt
             logger.warning(
-                "First generation attempt failed (%s), retrying with simplified prompt", exc
+                "First generation attempt failed (%s), retrying with simplified prompt",
+                type(exc).__name__
             )
             self.progress.emit("Retrying with simplified prompt\u2026")
             simplified = f"Generate a simple {self.file_type} document about: {self.prompt[:200]}"
@@ -132,37 +133,37 @@ class GenerateWorker(QObject):
                 )
                 result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
             except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
-                logger.error("Retry Ollama call failed: %s", retry_exc)
+                logger.error("Retry Ollama call failed: %s", type(retry_exc).__name__)
                 self.failed.emit(
                     "The AI engine stopped responding. Please check Ollama is running."
                 )
                 return
             except FileGenerationError as retry_exc:
-                logger.error("Retry also produced unparseable response: %s", retry_exc)
+                logger.error("Retry also produced unparseable response: %s", type(retry_exc).__name__)
                 self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
                 return
             except OSError as retry_exc:
-                logger.error("Retry file write failed: %s", retry_exc)
+                logger.error("Retry file write failed: %s", type(retry_exc).__name__)
                 self.failed.emit(
                     f"Could not save file to {self.save_path}. "
                     "Check the folder exists and you have write permission."
                 )
                 return
             except Exception as retry_exc:
-                logger.error("Retry unexpected error: %s", retry_exc)
+                logger.error("Retry unexpected error: %s", type(retry_exc).__name__)
                 self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
                 return
             self.completed.emit(str(result_path))
             return
         except OSError as exc:
-            logger.error("File write failed: %s", exc)
+            logger.error("File write failed: %s", type(exc).__name__)
             self.failed.emit(
                 f"Could not save file to {self.save_path}. "
                 "Check the folder exists and you have write permission."
             )
             return
         except Exception as exc:
-            logger.error("Unexpected error during file generation: %s", exc)
+            logger.error("Unexpected error during file generation: %s", type(exc).__name__)
             self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
             return
 

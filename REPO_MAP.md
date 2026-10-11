@@ -1097,6 +1097,7 @@ requirements.txt
 ### tests/conftest.py
 
 - def auto_show_widgets(qtbot, monkeypatch): Auto-show top-level widgets registered with qtbot unless they were explicitly hidden.
+- def isolated_profile(tmp_path, monkeypatch): Point every per-user folder at tmp_path before Settings or MainWindow exist.
 
 ### tests/extraction/test_evaluation.py
 
@@ -1683,6 +1684,7 @@ requirements.txt
 - def test_generate_worker_excel_success(qtbot, tmp_path)
 - def test_generate_worker_pptx_success(qtbot, tmp_path)
 - def test_generate_worker_writes_pdf(qtbot, tmp_path)
+- def test_pdf_route_logs_contain_no_file_name(qtbot, tmp_path, caplog, monkeypatch)
 
 ### tests/test_generators.py
 
@@ -1741,6 +1743,7 @@ requirements.txt
 - def test_template_completed_notes_formatting_issues(window)
 - def test_template_failed_keeps_loaded(window)
 - def test_template_generate_end_to_end_clears_loaded(window, qtbot, tmp_path, monkeypatch)
+- def test_generation_logs_have_no_file_name(qtbot, isolated_profile, caplog)
 
 ### tests/test_manipulate_worker.py
 

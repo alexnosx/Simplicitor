@@ -213,3 +213,16 @@ def test_template_generate_end_to_end_clears_loaded(window, qtbot, tmp_path, mon
     qtbot.waitUntil(lambda: window._loaded_template is None, timeout=5000)
     assert window._create_panel._open_file_btn.isVisible()
     assert "From template" in window._create_panel._from_template_btn.text()
+
+
+def test_generation_logs_have_no_file_name(qtbot, isolated_profile, caplog):
+    import logging
+    caplog.set_level(logging.INFO)
+    from app.main_window import MainWindow
+    window = MainWindow(isolated_profile)
+    qtbot.addWidget(window)
+    window._on_generate_completed("C:/Users/x/Documents/Salary review for Jane.pdf")
+    window._on_generate_failed("Could not save file to C:/Users/x/Salary review for Jane.pdf.")
+    window._on_template_completed("C:/Users/x/Documents/Salary review for Jane.pptx", [])
+    window._on_template_failed("Could not save file to C:/Users/x/Salary review for Jane.pptx.")
+    assert "Jane" not in caplog.text

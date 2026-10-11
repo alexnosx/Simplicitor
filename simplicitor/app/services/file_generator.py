@@ -66,14 +66,14 @@ class FileGenerator:
             raise FileGenerationError(f"Could not parse LLM response: {exc}") from exc
         logger.debug("LLM response parsed successfully for %r", file_type)
 
-        logger.debug("Writing %r file to %s", file_type, output_path)
+        logger.debug("Writing %r file", file_type)
         try:
             result = generator_cls().generate(parsed, output_path)
         except OSError as exc:
-            logger.error("Failed to write file %s: %s", output_path, exc)
+            logger.error("Failed to write %r file: %s", file_type, type(exc).__name__)
             raise FileGenerationError(f"Could not write file to {output_path}: {exc}") from exc
         except Exception as exc:
-            logger.error("Unexpected error writing %r file %s: %s", file_type, output_path, exc)
+            logger.error("Unexpected error writing %r file: %s", file_type, type(exc).__name__)
             raise FileGenerationError(f"Unexpected error generating file: {exc}") from exc
 
         return result

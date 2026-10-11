@@ -56,3 +56,20 @@ def auto_show_widgets(qtbot, monkeypatch):
 
     monkeypatch.setattr(qtbot, "addWidget", patched_add)
     yield
+
+
+@pytest.fixture
+def isolated_profile(tmp_path, monkeypatch):
+    """Point every per-user folder at tmp_path before Settings or MainWindow exist."""
+    home = tmp_path / "home"
+    for name, path in (("USERPROFILE", home), ("APPDATA", home / "AppData" / "Roaming"),
+                       ("LOCALAPPDATA", home / "AppData" / "Local")):
+        path.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv(name, str(path))
+    from app.config.settings import Settings
+    config = home / "AppData" / "Roaming" / "Simplicitor"
+    config.mkdir(parents=True, exist_ok=True)
+    settings = Settings(config)
+    for folder in (settings.generated_dir, settings.templates_dir):
+        assert str(folder).startswith(str(home))
+    return settings

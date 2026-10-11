@@ -175,3 +175,20 @@ def test_generate_worker_writes_pdf(qtbot, tmp_path):
         worker.run()
     assert blocker.args[0] == str(out)
     assert out.read_bytes().startswith(b"%PDF")
+
+
+def test_pdf_route_logs_contain_no_file_name(qtbot, tmp_path, caplog, monkeypatch):
+    from unittest.mock import MagicMock
+    from app.generators import pdf_generator
+    secret = tmp_path / "Salary review for Jane.pdf"
+
+    def failing_print(document, writer):
+        raise OSError(f"Permission denied: '{secret}'")
+
+    monkeypatch.setattr(pdf_generator, "_print_document", failing_print)
+    client = MagicMock()
+    client.generate.return_value = '{"title": "T", "sections": []}'
+    worker = make_worker(file_type="PDF (.pdf)", save_path=str(secret), client=client)
+    with qtbot.waitSignal(worker.failed, timeout=10000):
+        worker.run()
+    assert "Jane" not in caplog.text and str(tmp_path) not in caplog.text

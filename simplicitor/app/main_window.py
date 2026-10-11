@@ -475,7 +475,7 @@ class MainWindow(QMainWindow):
             tooltip=path,
         )
         self._create_panel.show_open_file_btn(path)
-        logger.info("Generation completed: %s", path)
+        logger.info("Generation completed")
 
     def _on_generate_failed(self, msg: str) -> None:
         """Called when GenerateWorker cannot complete generation.
@@ -487,7 +487,7 @@ class MainWindow(QMainWindow):
         self._create_panel.set_generating(False)
         self._workspace.set_busy(False)
         self._create_panel.show_status(msg, is_error=True)
-        logger.error("Generation failed: %s", msg)
+        logger.error("Generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
     def _on_generate_thread_finished(self) -> None:
@@ -578,7 +578,7 @@ class MainWindow(QMainWindow):
         self._create_panel.show_open_file_btn(path)
         self._loaded_template = None
         self._create_panel.set_template_loaded(False)
-        logger.info("Template generation completed: %s", path)
+        logger.info("Template generation completed")
 
     def _on_template_failed(self, msg: str) -> None:
         """Called when the template pipeline fails. Keeps the loaded template for retry."""
@@ -586,7 +586,7 @@ class MainWindow(QMainWindow):
         self._create_panel.set_generating(False)
         self._workspace.set_busy(False)
         self._create_panel.show_status(msg, is_error=True)
-        logger.error("Template generation failed: %s", msg)
+        logger.error("Template generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
     def _on_template_thread_finished(self) -> None:
