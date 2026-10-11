@@ -94,7 +94,7 @@ MANIPULATION_OUT_OF_SCOPE_KEYWORDS = [
 MANIPULATION_VISUAL_EXTENSIONS = {".pptx", ".docx"}
 
 # ── File Types ────────────────────────────────────────────────────────────────
-GENERATE_FILE_TYPES = ["Word (.docx)", "Excel (.xlsx)", "PowerPoint (.pptx)"]
+GENERATE_FILE_TYPES = ["Word (.docx)", "PDF (.pdf)", "Excel (.xlsx)", "PowerPoint (.pptx)"]
 # The template engine fills PowerPoint layouts only; the "From template" button is
 # enabled only when this file type is selected.
 TEMPLATE_FILE_TYPE = "PowerPoint (.pptx)"
@@ -120,6 +120,10 @@ BACKUP_SUFFIX = "_backup"
 
 # ── Prompt placeholder text ───────────────────────────────────────────────────
 PROMPT_PLACEHOLDERS = {
+    "PDF (.pdf)": (
+        "Describe the document you need, e.g.: Create a one-page project summary "
+        "with goals, timeline, and contacts"
+    ),
     "Word (.docx)": (
         "Describe the document you need, e.g.: Create a project status report "
         "with sections for timeline, risks, and next steps"
@@ -147,6 +151,7 @@ EDIT_PROMPT_PLACEHOLDERS = {
 }
 
 FILE_TYPE_EXTENSIONS = {
+    "PDF (.pdf)": ".pdf",
     "Word (.docx)": ".docx",
     "Excel (.xlsx)": ".xlsx",
     "PowerPoint (.pptx)": ".pptx",

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.config.defaults import GENERATE_FILE_TYPES
 from app.generators.excel_generator import ExcelGenerator
+from app.generators.pdf_generator import PdfGenerator
 from app.generators.pptx_generator import PptxGenerator
 from app.generators.word_generator import WordGenerator
 from app.parsers.llm_response_parser import ParseError, parse_excel, parse_pptx, parse_word
@@ -25,17 +26,18 @@ class FileGenerator:
 
     # Map file_type strings to (parser_fn, generator_class, extension)
     _DISPATCH: dict = {
+        "PDF (.pdf)": (parse_word, PdfGenerator, ".pdf"),
         "Word (.docx)": (parse_word, WordGenerator, ".docx"),
         "Excel (.xlsx)": (parse_excel, ExcelGenerator, ".xlsx"),
         "PowerPoint (.pptx)": (parse_pptx, PptxGenerator, ".pptx"),
     }
 
     def generate(self, file_type: str, llm_response: str, output_path: Path) -> Path:
-        """Parse llm_response and write the appropriate Office file.
+        """Parse llm_response and write the requested document.
 
         Args:
             file_type: One of GENERATE_FILE_TYPES ("Word (.docx)", "Excel (.xlsx)",
-                       "PowerPoint (.pptx)")
+                       "PowerPoint (.pptx)", "PDF (.pdf)")
             llm_response: Raw text returned by the LLM.
             output_path: Full path including filename where the file should be written.
 

@@ -90,11 +90,12 @@ def test_create_panel_generate_button_disabled_by_default(qtbot, tmp_path) -> No
     assert not panel._generate_btn.isEnabled()
 
 
-def test_create_panel_has_three_file_types(qtbot, tmp_path) -> None:
+def test_create_panel_has_four_file_types(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = CreatePanel(settings)
     qtbot.addWidget(panel)
-    assert panel._type_combo.count() == 3
+    assert panel._type_combo.count() == 4
+    assert panel._type_combo.itemText(1) == "PDF (.pdf)"
 
 
 def test_create_panel_prompt_empty_by_default(qtbot, tmp_path) -> None:

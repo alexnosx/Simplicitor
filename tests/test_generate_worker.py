@@ -162,3 +162,16 @@ def test_generate_worker_pptx_success(qtbot, tmp_path):
         worker.run()
     assert blocker.args[0] == str(out)
     assert out.exists()
+
+
+def test_generate_worker_writes_pdf(qtbot, tmp_path):
+    from unittest.mock import MagicMock
+    out = tmp_path / "summary.pdf"
+    client = MagicMock()
+    client.generate.return_value = (
+        '{"title": "Summary", "sections": [{"heading": "Goals", "content": "Ship 2.1.0", "type": "text"}]}')
+    worker = make_worker(file_type="PDF (.pdf)", save_path=str(out), client=client)
+    with qtbot.waitSignal(worker.completed, timeout=10000) as blocker:
+        worker.run()
+    assert blocker.args[0] == str(out)
+    assert out.read_bytes().startswith(b"%PDF")

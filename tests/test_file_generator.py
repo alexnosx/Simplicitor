@@ -62,3 +62,13 @@ def test_file_generator_excel_parse_error_raises_file_generation_error(tmp_path)
 def test_file_generator_pptx_parse_error_raises_file_generation_error(tmp_path):
     with pytest.raises(FileGenerationError):
         FileGenerator().generate("PowerPoint (.pptx)", "not json", tmp_path / "out.pptx")
+
+
+def test_file_generator_pdf(qapp, tmp_path):
+    out = FileGenerator().generate("PDF (.pdf)", VALID_WORD_JSON, tmp_path / "out.pdf")
+    assert out.read_bytes().startswith(b"%PDF")
+
+
+def test_pdf_type_uses_the_word_prompt():
+    from app.workers.generate_worker import _PROMPT_FILES
+    assert _PROMPT_FILES["PDF (.pdf)"] == "system_word.txt"

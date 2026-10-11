@@ -1622,6 +1622,8 @@ requirements.txt
 - def test_file_generator_returns_correct_output_path(tmp_path)
 - def test_file_generator_excel_parse_error_raises_file_generation_error(tmp_path)
 - def test_file_generator_pptx_parse_error_raises_file_generation_error(tmp_path)
+- def test_file_generator_pdf(qapp, tmp_path)
+- def test_pdf_type_uses_the_word_prompt()
 
 ### tests/test_file_manipulator.py
 
@@ -1680,6 +1682,7 @@ requirements.txt
 - def test_generate_worker_missing_prompt_file_emits_failed(qtbot, tmp_path): Worker should emit failed if the system prompt file cannot be read.
 - def test_generate_worker_excel_success(qtbot, tmp_path)
 - def test_generate_worker_pptx_success(qtbot, tmp_path)
+- def test_generate_worker_writes_pdf(qtbot, tmp_path)
 
 ### tests/test_generators.py
 
@@ -1886,7 +1889,7 @@ requirements.txt
 - def test_top_bar_settings_signal_emits(qtbot) -> None
 - def test_create_panel_instantiates(qtbot, tmp_path) -> None
 - def test_create_panel_generate_button_disabled_by_default(qtbot, tmp_path) -> None
-- def test_create_panel_has_three_file_types(qtbot, tmp_path) -> None
+- def test_create_panel_has_four_file_types(qtbot, tmp_path) -> None
 - def test_create_panel_prompt_empty_by_default(qtbot, tmp_path) -> None
 - def test_create_panel_emits_generate_requested(qtbot, tmp_path) -> None
 - def test_edit_panel_instantiates(qtbot, tmp_path) -> None

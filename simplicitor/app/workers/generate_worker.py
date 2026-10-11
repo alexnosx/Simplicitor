@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 PROMPTS_DIR = Path(__file__).parent.parent.parent / "prompts"
 
 _PROMPT_FILES: dict[str, str] = {
+    "PDF (.pdf)": "system_word.txt",
     "Word (.docx)": "system_word.txt",
     "Excel (.xlsx)": "system_excel.txt",
     "PowerPoint (.pptx)": "system_pptx.txt",
