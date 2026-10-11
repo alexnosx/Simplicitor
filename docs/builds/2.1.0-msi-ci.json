@@ -1,0 +1,149 @@
+{
+  "verified_at": "2026-10-11T21:39:54.522238+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38174785306",
+  "commit": "58d53a47919c92c1dff788dabdf5c8a3926bdfa7",
+  "conclusion": "success",
+  "workflow_event": "workflow_dispatch",
+  "publication": "skipped",
+  "artifact_bundle": {
+    "name": "Simplicitor-windows",
+    "id": 11715839457,
+    "bytes": 136323138,
+    "sha256": "d6cffcda397cdf990c4bc5955d90ec87c62392189d8ea4a43da5839de5fadc06"
+  },
+  "artifacts": [
+    {
+      "name": "SHA256SUMS.json",
+      "bytes": 66326,
+      "sha256": "4a06c88292587fa3d3864151684a2a39ea1216f2d6bb94ec2f0a6e7533ca31a3"
+    },
+    {
+      "name": "Simplicitor-2.1.0.msi",
+      "bytes": 61163385,
+      "sha256": "4738035e2e09bc37f3691bf486d1f11220791696a68cd508933c7ed030be47ed"
+    },
+    {
+      "name": "Simplicitor-portable.zip",
+      "bytes": 75574122,
+      "sha256": "64c5eaec91df2988ed4de9f8bd00e2391ba06445c9b17f5bb063968d2a7519e8"
+    },
+    {
+      "name": "installer-qualification.json",
+      "bytes": 3112,
+      "sha256": "57ebe5f1b30af02524822392c4f219eb8500a161f12cd0bfaf8d701b84b7843d"
+    }
+  ],
+  "qualification": {
+    "status": "passed",
+    "source_commit": "58d53a47919c92c1dff788dabdf5c8a3926bdfa7",
+    "run_id": "38174785306",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38174785306",
+    "runner_os": "10.0.26100.0",
+    "runner_image": "20260925.250.1",
+    "msi_version": "2.1.0",
+    "executable_version": "2.1.0.0",
+    "upgrade_probe_msi_version": "2.1.99",
+    "checks": [
+      "No Simplicitor product before qualification",
+      "Intended MSI exists: Simplicitor-2.1.0.msi",
+      "Artifact hash matches: Simplicitor-2.1.0.msi",
+      "Artifact hash matches: Simplicitor-portable.zip",
+      "Ollama endpoint is unavailable",
+      "MSI refuses to install over Simplicitor 2.0.0",
+      "Refused install left no files",
+      "Refused install registered nothing",
+      "Silent MSI install succeeded",
+      "Install: exactly one Simplicitor product",
+      "Install: product version 2.1.0",
+      "Install: install location",
+      "Install: executable present",
+      "Install: executable version 2.1.0.0",
+      "Install: executable matches built payload",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: app stays running for 20 seconds without Ollama",
+      "Repair target is inside the verified test installation",
+      "Same-version repair succeeded",
+      "Repair restored the removed file",
+      "Repair: exactly one Simplicitor product",
+      "Repair: product version 2.1.0",
+      "Repair: install location",
+      "Repair: executable present",
+      "Repair: executable version 2.1.0.0",
+      "Repair: executable matches built payload",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Settings survive repair",
+      "Upgrade probe package built",
+      "Upgrade probe package validated",
+      "Major upgrade to 2.1.99 succeeded",
+      "Upgrade: exactly one Simplicitor product",
+      "Upgrade: product version 2.1.99",
+      "Upgrade: install location",
+      "Upgrade: executable present",
+      "Upgrade: executable version 2.1.0.0",
+      "Upgrade: executable matches built payload",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade replaced the previous ProductCode",
+      "Previous product no longer registered",
+      "Upgrade: app stays running for 20 seconds without Ollama",
+      "Settings survive upgrade",
+      "Silent uninstall succeeded",
+      "No Simplicitor product after uninstall",
+      "Install folder removed, including subfolders",
+      "Desktop shortcut removed",
+      "Start Menu shortcut removed",
+      "Settings survive uninstall"
+    ],
+    "artifacts": {
+      "Simplicitor-2.1.0.msi": "4738035e2e09bc37f3691bf486d1f11220791696a68cd508933c7ed030be47ed",
+      "Simplicitor-portable.zip": "64c5eaec91df2988ed4de9f8bd00e2391ba06445c9b17f5bb063968d2a7519e8"
+    },
+    "limitations": [
+      "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
+    ]
+  },
+  "checks": {
+    "downloaded_bundle_digest_matches_github": true,
+    "msi_and_portable_hashes_match_manifest_and_qualification": true
+  },
+  "local_tests": {
+    "A3 follow-up": 1017,
+    "B1": 1017,
+    "B2": 1020,
+    "B3": 1022,
+    "B4": 1022,
+    "B5": 1022,
+    "C1": 1023,
+    "B5 CLI correction": 1023,
+    "B5 GUID correction": 1024,
+    "B5 COM access correction": 1024
+  },
+  "earlier_attempt": {
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38168623542",
+    "commit": "dc26278a10de3e4e1034ea78872e7b875baf508d",
+    "conclusion": "failure",
+    "cause": "Plan supplied -sice on wix build; v5.0.2 accepts it on wix msi validate. Corrected to separate compile and validation commands."
+  },
+  "second_attempt": {
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38170353244",
+    "commit": "853d9a9b9df0f8a6f7778680311e2e08b588f1ba",
+    "conclusion": "failure",
+    "cause": "WIX0230 rejects automatic GUIDs for components combining files with registry key paths; generated folder components now use stable explicit UUID5 identifiers."
+  },
+  "third_attempt": {
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38172670822",
+    "commit": "1c102834aed3b4c124e6af02b01a7af4568319ca",
+    "conclusion": "failure",
+    "cause": "MSI compile and ICE validation passed; fresh installation passed, but PowerShell did not expose Product.Context through its COM adapter. Qualification now dispatches product properties explicitly with InvokeMember."
+  },
+  "local_execution": "Source tests and read-only artifact hashing only; payloads were not extracted or executed. No local build, installer, uninstaller, msiexec, Sandbox, WiX or qualification script.",
+  "mockup": "C1 pushed; Edge click-through, viewport and console checks assigned to Alex; mockup approval pending."
+}

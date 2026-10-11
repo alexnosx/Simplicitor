@@ -75,6 +75,7 @@ docs/
     archive/
         PRD_v1.2.md
     builds/
+        2.1.0-msi-ci.json
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
         2026-10-09-task6-ci.json
@@ -2043,6 +2044,7 @@ requirements.txt
 - docs/Simplicitor_UI_Fixes_Round2.md: md, 144 lines
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
+- docs/builds/2.1.0-msi-ci.json: json, 149 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines
@@ -2079,7 +2081,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
-- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2662 lines
+- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2682 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
