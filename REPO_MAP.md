@@ -431,6 +431,7 @@ simplicitor/
         generators/
             __init__.py
             excel_generator.py
+            pdf_generator.py
             pptx_generator.py
             word_generator.py
         parsers/
@@ -636,6 +637,7 @@ tests/
     test_ollama_client.py
     test_ollama_worker.py
     test_packaged_license.py
+    test_pdf_generator.py
     test_settings.py
     test_status_banner.py
     test_template_dialog.py
@@ -760,6 +762,14 @@ requirements.txt
 ### simplicitor/app/generators/excel_generator.py
 
 - class ExcelGenerator: Generates .xlsx files from parsed LLM output (Phase 3).
+
+### simplicitor/app/generators/pdf_generator.py
+
+- def _print_document(document: QTextDocument, writer: QPdfWriter) -> None: Separate seam so tests can simulate a write failure.
+- def _validate_pdf(path: Path) -> None: Reject empty or truncated output before it replaces anything.
+- def _split_row(line: str) -> list[str]
+- def _escape(text: str) -> str
+- class PdfGenerator: Generates .pdf files from the same parsed structure as WordGenerator.
 
 ### simplicitor/app/generators/pptx_generator.py
 
@@ -1781,6 +1791,18 @@ requirements.txt
 - def test_missing_application_license_fails_before_archiving(tmp_path, monkeypatch)
 - def test_empty_or_stale_application_license_fails_before_archiving(tmp_path, monkeypatch, wrong)
 
+### tests/test_pdf_generator.py
+
+- def _text(path: Path) -> str
+- def test_fonts_are_available_for_offscreen_rendering(qapp)
+- def test_pdf_contains_title_headings_lists_and_table(qapp, tmp_path)
+- def test_single_line_breaks_stay_line_breaks(qapp, tmp_path)
+- def test_long_document_spans_pages_and_keeps_the_end(qapp, tmp_path)
+- def test_write_failure_leaves_no_file(qapp, tmp_path, monkeypatch)
+- def test_incomplete_pdf_is_rejected_and_existing_file_kept(qapp, tmp_path, monkeypatch)
+- def test_validate_pdf_rejects_truncated_bytes(tmp_path)
+- def test_failure_log_contains_no_path(qapp, tmp_path, monkeypatch, caplog)
+
 ### tests/test_settings.py
 
 - def test_default_paths_contain_simplicitor(tmp_path: Path) -> None
@@ -1959,9 +1981,9 @@ requirements.txt
 ## Other files
 
 - .gitattributes: text, 4 lines
-- .github/workflows/build.yml: yml, 76 lines
+- .github/workflows/build.yml: yml, 92 lines
 - .gitignore: text, 84 lines
-- AGENTS.md: md, 47 lines
+- AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
 - CHANGELOG.md: md, 74 lines
 - CLAUDE.md: md, 1 lines
@@ -1980,7 +2002,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 42 lines
+- docs/PROJECT_STATUS.md: md, 43 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2021,7 +2043,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
-- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2334 lines
+- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2660 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

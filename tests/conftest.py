@@ -1,6 +1,9 @@
 import os
 # Use offscreen rendering so widget tests run without a display (CI, headless Windows)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+# Windows-specific: the offscreen platform reads fonts from QT_QPA_FONTDIR via
+# FreeType. Without it, PDF text layers are empty in tests.
+os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
 
 import pytest
 from PySide6.QtCore import Qt
