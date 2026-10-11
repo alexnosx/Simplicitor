@@ -16,6 +16,7 @@ SPEC.loader.exec_module(build)
 @pytest.fixture
 def payload(tmp_path, monkeypatch):
     monkeypatch.setattr(build, "DIST_DIR", tmp_path / "dist")
+    monkeypatch.setattr(build, "FRAGMENT", tmp_path / "msi" / "payload.wxs")
     monkeypatch.setattr(build, "ICON", tmp_path / "icon.ico")
     build.ICON.write_bytes(b"test icon")
     monkeypatch.setenv("NUITKA_CACHE_DIR", str(tmp_path / "cache"))
@@ -47,63 +48,87 @@ def make_payload(payload, *, notices=True, include_license=True):
     return files
 
 
-def test_build_flags_keep_per_user_builtin_installer():
-    assert "--windows-create-installer" in build.NUITKA_FLAGS
-    assert "--windows-installer-mode=user" in build.NUITKA_FLAGS
-    assert "--windows-installer-no-user-change-install-dir" in build.NUITKA_FLAGS
+def test_build_flags_have_no_nsis_installer():
+    assert not any(flag.startswith("--windows-installer") or flag == "--windows-create-installer"
+                   for flag in build.NUITKA_FLAGS)
 
 
-def test_product_version_is_2000():
-    assert "--windows-product-version=2.0.0.0" in build.NUITKA_FLAGS
+
+def test_product_version_is_210():
+    assert build.PRODUCT_VERSION == "2.1.0"
+    assert "--windows-product-version=2.1.0.0" in build.NUITKA_FLAGS
 
 
-def test_build_produces_matching_portable_payload_and_installer(payload, monkeypatch):
+def test_build_produces_matching_portable_payload_and_msi(payload, monkeypatch):
     captured = []
+    msi = build.DIST_DIR / "Simplicitor-2.1.0.msi"
 
-    def compile_app(command, *, cwd):
+    def run(command, *, cwd):
         captured.append((command, cwd))
-        make_payload(payload)
-        (build.DIST_DIR / "Simplicitor-setup.exe").write_bytes(b"NSIS installer")
+        if command[:3] == ["dotnet", "wix", "build"]:
+            msi.write_bytes(b"MSI package")
+        elif command[0] != "dotnet":
+            make_payload(payload)
         return SimpleNamespace(returncode=0)
 
-    monkeypatch.setattr(build.subprocess, "run", compile_app)
+    monkeypatch.setattr(build.shutil, "which", lambda name: "dotnet.exe")
+    monkeypatch.setattr(build.subprocess, "run", run)
     assert build.main() == 0
-    command, cwd = captured[0]
-    assert len(captured) == 1
-    assert "--mode=standalone" in command and "--onefile" not in command
-    assert "--windows-create-installer" in command
-    assert "--windows-installer-mode=user" in command
-    assert "--windows-installer-shortcuts=desktop,start-menu" in command
-    assert "--windows-installer-no-user-change-install-dir" in command
-    assert "--enable-plugin=pyside6" in command and "--windows-console-mode=disable" in command
-    assert "--include-data-dir=prompts=prompts" in command
-    assert "--include-data-dir=templates_engine/builtin=templates_engine/builtin" in command
-    assert any(flag.startswith("--include-data-dir=") and flag.endswith("=third_party")
-               for flag in command)
-    assert command[-1] == "main.py" and cwd == build.SIMPLICITOR_DIR
-    with ZipFile(build.DIST_DIR / "Simplicitor-portable.zip") as archive:
-        contents = {name.removeprefix("Simplicitor/"): archive.read(name)
-                    for name in archive.namelist()}
-    assert contents == {p.relative_to(payload).as_posix(): p.read_bytes()
-                        for p in payload.rglob("*") if p.is_file()}
+    nuitka, cwd = captured[0]
+    assert "--mode=standalone" in nuitka and cwd == build.SIMPLICITOR_DIR
+    assert captured[1][0] == ["dotnet", "tool", "restore"]
+    wix = captured[2][0]
+    assert wix[:3] == ["dotnet", "wix", "build"]
+    assert str(build.WIX_SOURCE) in wix and str(build.FRAGMENT) in wix
+    assert "ProductVersion=2.1.0" in wix and f"payload={payload}" in wix
+    assert build.FRAGMENT.read_text(encoding="utf-8") == build.payload_fragment(payload)
     manifest = json.loads((build.DIST_DIR / "SHA256SUMS.json").read_text())
-    assert manifest["payload"]["Simplicitor.exe"] == hashlib.sha256(b"compiled application").hexdigest()
-    for name in ("Simplicitor-setup.exe", "Simplicitor-portable.zip"):
+    assert set(manifest["artifacts"]) == {"Simplicitor-2.1.0.msi", "Simplicitor-portable.zip"}
+    for name in manifest["artifacts"]:
         assert manifest["artifacts"][name] == hashlib.sha256((build.DIST_DIR / name).read_bytes()).hexdigest()
+    assert not (build.DIST_DIR / "Simplicitor-setup.exe").exists()
+
+
+def _payload_only(payload):
+    def run(command, *, cwd):
+        if command[0] != "dotnet":
+            make_payload(payload)
+        return SimpleNamespace(returncode=0)
+    return run
+
+
+def test_ci_build_fails_without_dotnet(payload, monkeypatch):
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setattr(build.shutil, "which", lambda name: None)
+    monkeypatch.setattr(build.subprocess, "run", _payload_only(payload))
+    assert build.main() != 0
+    assert not (build.DIST_DIR / "Simplicitor-portable.zip").exists()
+
+
+def test_local_build_without_dotnet_skips_msi_only(payload, monkeypatch):
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setattr(build.shutil, "which", lambda name: None)
+    monkeypatch.setattr(build.subprocess, "run", _payload_only(payload))
+    assert build.main() == 0
+    manifest = json.loads((build.DIST_DIR / "SHA256SUMS.json").read_text())
+    assert set(manifest["artifacts"]) == {"Simplicitor-portable.zip"}
 
 
 @pytest.mark.parametrize("missing", ["Simplicitor.exe", "prompts/system_word.txt",
                                     "templates/pptx_default.pptx",
                                     "templates_engine/builtin/business_pitch/template.pptx",
-                                    "assets/icons/simplicitor.ico", "installer"])
+                                    "assets/icons/simplicitor.ico", "msi"])
 def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch, missing):
-    def incomplete(*args, **kwargs):
-        make_payload(payload)
-        if missing != "installer":
-            (payload / missing).unlink()
-            (build.DIST_DIR / "Simplicitor-setup.exe").write_bytes(b"installer")
+    monkeypatch.setattr(build.shutil, "which", lambda name: "dotnet.exe")
+    def incomplete(command, *, cwd):
+        if command[:3] == ["dotnet", "wix", "build"]:
+            if missing != "msi":
+                (build.DIST_DIR / "Simplicitor-2.1.0.msi").write_bytes(b"msi")
+        elif command[0] != "dotnet":
+            make_payload(payload)
+            if missing != "msi":
+                (payload / missing).unlink()
         return SimpleNamespace(returncode=0)
-
     monkeypatch.setattr(build.subprocess, "run", incomplete)
     assert build.main() != 0
     assert not (build.DIST_DIR / "Simplicitor-portable.zip").exists()

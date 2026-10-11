@@ -678,8 +678,9 @@ requirements.txt
 - def _sha256(path: Path) -> str
 - def _wix_id(prefix: str, relative: str) -> str
 - def payload_fragment(payload: Path) -> str: WiX fragment: one per-user component per payload folder (HKCU key path,
-- def package_payload(payload: Path, installer: Path) -> None: Validate resources and archive exactly the payload supplied to NSIS.
-- def main() -> int: Compile once with Nuitka's NSIS backend, then package the same payload.
+- def build_msi(payload: Path, version: str, output: Path) -> None: Compile the per-user MSI from the standalone payload with the pinned WiX tool.
+- def package_payload(payload: Path, artifacts: tuple[Path, ...]) -> None: Validate resources and archive exactly the payload supplied to the MSI.
+- def main() -> int: Compile the standalone payload, build its MSI, then package the same payload.
 
 ### resources/create_icon.py
 
@@ -1560,9 +1561,12 @@ requirements.txt
 
 - def payload(tmp_path, monkeypatch)
 - def make_payload(payload, *, notices=True, include_license=True)
-- def test_build_flags_keep_per_user_builtin_installer()
-- def test_product_version_is_2000()
-- def test_build_produces_matching_portable_payload_and_installer(payload, monkeypatch)
+- def test_build_flags_have_no_nsis_installer()
+- def test_product_version_is_210()
+- def test_build_produces_matching_portable_payload_and_msi(payload, monkeypatch)
+- def _payload_only(payload)
+- def test_ci_build_fails_without_dotnet(payload, monkeypatch)
+- def test_local_build_without_dotnet_skips_msi_only(payload, monkeypatch)
 - def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch, missing)
 - def test_compiler_failure_is_propagated(payload, monkeypatch)
 - def test_missing_icon_fails_before_compilation(payload, monkeypatch)

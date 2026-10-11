@@ -15,7 +15,7 @@ def test_missing_application_license_fails_before_archiving(tmp_path, monkeypatc
     installer = tmp_path / "setup.exe"
     installer.write_bytes(b"synthetic artifact, never executed")
     with pytest.raises(ValueError, match="LICENSE"):
-        build.package_payload(payload, installer)
+        build.package_payload(payload, (installer,))
     assert not (tmp_path / "Simplicitor-portable.zip").exists()
 
 
@@ -28,5 +28,5 @@ def test_empty_or_stale_application_license_fails_before_archiving(tmp_path, mon
     installer = tmp_path / "setup.exe"
     installer.write_bytes(b"synthetic artifact, never executed")
     with pytest.raises(ValueError, match="LICENSE"):
-        build.package_payload(payload, installer)
+        build.package_payload(payload, (installer,))
     assert not (tmp_path / "Simplicitor-portable.zip").exists()

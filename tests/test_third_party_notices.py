@@ -50,7 +50,7 @@ def test_build_packaging_checks_notice_payload_before_archiving(tmp_path, monkey
     installer = tmp_path / "setup.exe"
     installer.write_bytes(b"test installer")
     with pytest.raises(ValueError, match="notice"):
-        build.package_payload(payload, installer)
+        build.package_payload(payload, (installer,))
     assert not (tmp_path / "Simplicitor-portable.zip").exists()
 
 
@@ -62,7 +62,7 @@ def test_notice_payload_is_preserved_in_portable_archive(tmp_path, monkeypatch):
     make_payload(payload)
     installer = tmp_path / "setup.exe"
     installer.write_bytes(b"synthetic installer, never executed")
-    build.package_payload(payload, installer)
+    build.package_payload(payload, (installer,))
     with ZipFile(tmp_path / "Simplicitor-portable.zip") as archive:
         assert archive.read("Simplicitor/LICENSE") == (build.ROOT / "LICENSE").read_bytes()
         for path in (payload / "third_party").rglob("*"):
