@@ -54,6 +54,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
       - name: Install dependencies
         run: pip install -r requirements-dev.txt -r requirements-build.txt
 
@@ -68,12 +73,20 @@ jobs:
         shell: pwsh
         run: ./scripts/qualify_windows_installer.ps1
 
+      - name: Upload MSI logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-logs
+          path: dist/msi-logs/
+          if-no-files-found: ignore
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Simplicitor-windows
           path: |
-            dist/Simplicitor-setup.exe
+            dist/Simplicitor-*.msi
             dist/Simplicitor-portable.zip
             dist/SHA256SUMS.json
             dist/installer-qualification.json
@@ -86,7 +99,7 @@ jobs:
           name: Simplicitor ${{ github.ref_name }}
           body_path: docs/releases/${{ github.ref_name }}-notes.md
           files: |
-            dist/Simplicitor-setup.exe
+            dist/Simplicitor-*.msi
             dist/Simplicitor-portable.zip
             dist/SHA256SUMS.json
           fail_on_unmatched_files: true

@@ -2013,7 +2013,7 @@ requirements.txt
 
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
-- .github/workflows/build.yml: yml, 92 lines
+- .github/workflows/build.yml: yml, 105 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
