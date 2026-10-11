@@ -60,3 +60,10 @@ Microsoft documents that EV signing no longer automatically bypasses SmartScreen
 - [Microsoft SmartScreen guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation).
 
 These are build/trust references. Simplicitor's licensing decision remains owned by [PRD.md](../PRD.md#license-decision).
+
+
+## WiX terms for 2.1.0
+
+Checked 2026-10-11: WiX Toolset **5.0.2** is pinned as a repo-local .NET tool in [.config/dotnet-tools.json](../.config/dotnet-tools.json). It runs only on the hosted build runner; no local tool install is authorized. The [tagged license](https://github.com/wixtoolset/wix/blob/v5.0.2/LICENSE.TXT) is MS-RL. The [maintenance-fee policy](https://docs.firegiant.com/wix/osmf/) introduces the fee in v6, so it does not apply to 5.0.2. The upstream [license clarification](https://docs.firegiant.com/wix/#source-code-license) excludes generated installer packages from MS-RL; this does not change Simplicitor's MIT license. No incompatible fee or licensing obligation was found for this build-only use.
+
+Published consumer security support for v5 [ended on 2026-02-05](https://docs.firegiant.com/wix/#lifecycle). The approved plan accepts that limitation because WiX is only a hosted build tool. Do not upgrade it automatically to a version with different terms.

@@ -55,6 +55,8 @@ for known defects; passing old tests does not negate reproduced behavior.
 ## Directory tree
 
 ```
+.config/
+    dotnet-tools.json
 .github/
     workflows/
         build.yml
@@ -1993,6 +1995,7 @@ requirements.txt
 
 ## Other files
 
+- .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 92 lines
 - .gitignore: text, 84 lines
@@ -2026,7 +2029,7 @@ requirements.txt
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
-- docs/code-signing.md: md, 62 lines
+- docs/code-signing.md: md, 69 lines
 - docs/design/document-workspace.html: html, 301 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
