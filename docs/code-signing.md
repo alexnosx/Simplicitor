@@ -19,7 +19,7 @@ Outputs:
 
 The installer offers Desktop and Start Menu shortcuts and registers the Windows uninstaller. It uses current-user mode and disables the folder chooser, with `%LOCALAPPDATA%\Programs\Simplicitor` as the dedicated runtime directory. Keep Nuitka's built-in uninstaller; no generated-script rewriting or cached-makensis lookup is performed. Its uninstaller removes that runtime directory. Settings remain in `%APPDATA%\Simplicitor`, and templates/documents in their configured locations (normally `Documents\Simplicitor`), outside the program directory. The portable build uses these same user-data locations.
 
-Product version is **2.0.0.0**, unreleased. A main-branch push produces CI artifacts. A version-tag push enters the existing release route, but tagging/releasing/publication are not authorized.
+Product version remains **2.0.0.0** until the approved version-change task. A main-branch push runs source tests; a manual milestone dispatch produces CI artifacts. A version-tag push enters the existing release route, but tagging/releasing/publication are not authorized.
 
 ### Bundled notices
 
@@ -31,7 +31,7 @@ Nuitka includes this directory before creating the installer. The archive step r
 
 ## Runner-only installer qualification
 
-Alex's PC must not run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests. Local checks may cover source evaluation, synthetic limits, notice assembly/read-only validation, ZIP creation, required build flags/version, and PowerShell syntax parsing. Do not execute the qualification script or the build's artifact-deletion tests locally, including through mocks or a dry-run harness.
+Run the full local source suite after each task with an isolated profile under `.venv/test-home` and `--basetemp .venv/pytest-tmp`. Synthetic temporary-file creation and deletion are allowed; build tests mock external tools. Never run installers, uninstallers, msiexec, Windows Sandbox, or the qualification script on Alex's PC. Do not install tools or dependencies locally. Follow the [2.1.0 testing policy](superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy): pushes run hosted source tests only; full builds run on GitHub by manual dispatch at Task 0 baseline, B5, C2.7 and D1, and on authorized version tags.
 
 The build workflow runs the source suite on a hosted Windows runner, builds the payload/setup/ZIP, then invokes [qualify_windows_installer.ps1](../scripts/qualify_windows_installer.ps1). The script checks GitHub Actions, Windows, and github-hosted environment markers before any installation action, and refuses pre-existing installation/profile test state.
 

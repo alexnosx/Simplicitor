@@ -15,7 +15,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ## Scope and authorization
 
-- Current authorization covers MIT licensing from 2.0.0 onward, copyright (c) 2026 Alexandru Pop, the requested licensing documentation/version boundary, and packaged LICENSE inclusion/integrity checks. Releases through v1.2.1 remain under PolyForm Noncommercial 1.0.0; do not alter their tags, assets, or historical license files. Commit/push to main are authorized. Preserve application behavior, fixtures/labels, model settings, and dependencies. Never run installers, uninstallers, Windows Sandbox, or install/uninstall/delete tests on Alex's PC. Do not tag, release, publish, or extend scope beyond these three items.
+- Current authorization covers the approved 2.1.0 revision 3 plan merge, Task 0, and Part A (A1, A2, A3). Commit/push to main per task are authorized. Do not start Part B, Part C1, or later tasks. Do not tag, release, or publish. Preserve existing extraction behavior, fixtures/labels, model settings, dependencies, and historical releases.
 - Complete agreed work without repeatedly asking about routine choices. Ask when unresolved ambiguity materially changes scope, safety, or outcome.
 - Never commit, push, amend, change branches, rewrite history, tag, or publish without explicit authorization for that action.
 - Do not add third-party dependencies without specific authorization. Check declared libraries first.
@@ -34,6 +34,11 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 - Keep client content, prompts, responses, quotes, identifiers, filenames, and sensitive paths out of logs and tracked files. Use synthetic fixtures.
 
 ## Verification and reporting
+
+### Testing policy
+
+Run the full local source suite after each task with USERPROFILE, APPDATA, and LOCALAPPDATA redirected under `.venv/test-home`, using `.venv/Scripts/python.exe -m pytest -q --basetemp .venv/pytest-tmp`. Synthetic temporary-file creation and deletion in that suite are allowed. Build tests mock external tools. Never run installers, uninstallers, msiexec, Windows Sandbox, or the qualification script on Alex's PC; do not install build tools or dependencies locally. Pushes run hosted source tests only. Full CI builds run on GitHub at the plan milestones (Task 0 baseline, B5, C2.7, D1), by manual dispatch, and on authorized version tags. See the [2.1.0 plan testing policy](docs/superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy).
+
 
 - Define observable checks before implementation and run them before claiming success. Valid JSON or a valid workbook is not proof of accuracy.
 - Separate source tests, live-model evaluation, UI checks, clean-machine packaging, and deployed behavior.
