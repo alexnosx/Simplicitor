@@ -1,0 +1,81 @@
+{
+  "tag": "v2.0.0",
+  "release_url": "https://github.com/alexnosx/Simplicitor/releases/tag/v2.0.0",
+  "release_id": 407588175,
+  "published_at": "2026-10-09T06:24:00Z",
+  "verified_at": "2026-10-09T06:25:02.981572+00:00",
+  "latest_verified": true,
+  "latest_verification": "GitHub releases/latest returned this release ID and v2.0.0.",
+  "source_commit": "7793d61c12f5f07556406f67489055f27eaf467b",
+  "workflow_url": "https://github.com/alexnosx/Simplicitor/actions/runs/37891457014",
+  "workflow_conclusion": "success",
+  "workflow_steps": {
+    "Set up job": "success",
+    "Run actions/checkout@v4": "success",
+    "Check release notes": "success",
+    "Set up Python": "success",
+    "Install dependencies": "success",
+    "Run source tests on hosted runner": "success",
+    "Generate icon": "success",
+    "Build standalone, installer, and portable ZIP": "success",
+    "Qualify installer on hosted Windows runner": "success",
+    "Upload artifact": "success",
+    "Publish to GitHub Release": "success",
+    "Post Set up Python": "success",
+    "Post Run actions/checkout@v4": "success",
+    "Complete job": "success"
+  },
+  "release_notes": {
+    "path": "docs/releases/v2.0.0-notes.md",
+    "matches_published_body": true,
+    "comparison": "Exact tagged text after normalizing CRLF and final newlines.",
+    "normalized_sha256": "313ceaa3f682a8c90cbef2936c9d0d9cf56e170ce52b71b77a6941aabec89890"
+  },
+  "assets": [
+    {
+      "id": 624101035,
+      "name": "SHA256SUMS.json",
+      "url": "https://github.com/alexnosx/Simplicitor/releases/download/v2.0.0/SHA256SUMS.json",
+      "bytes": 66325,
+      "sha256": "ad0d02de2f22ad5a0588878c147d6999342c4c076366feac9280ec17d67c0ea3",
+      "github_digest": "sha256:ad0d02de2f22ad5a0588878c147d6999342c4c076366feac9280ec17d67c0ea3",
+      "downloaded_hash_matches_github": true,
+      "checksum_manifest_match": null
+    },
+    {
+      "id": 624101028,
+      "name": "Simplicitor-portable.zip",
+      "url": "https://github.com/alexnosx/Simplicitor/releases/download/v2.0.0/Simplicitor-portable.zip",
+      "bytes": 73606080,
+      "sha256": "26d9d988e27905e62b30a1c1aeffd5c13513cf860765beeb30481c0d28c4697d",
+      "github_digest": "sha256:26d9d988e27905e62b30a1c1aeffd5c13513cf860765beeb30481c0d28c4697d",
+      "downloaded_hash_matches_github": true,
+      "checksum_manifest_match": true
+    },
+    {
+      "id": 624101030,
+      "name": "Simplicitor-setup.exe",
+      "url": "https://github.com/alexnosx/Simplicitor/releases/download/v2.0.0/Simplicitor-setup.exe",
+      "bytes": 73369982,
+      "sha256": "9fef63609cb85943227c424d534e1e83cd9f196a08d9d32cb4087d09bc0874bf",
+      "github_digest": "sha256:9fef63609cb85943227c424d534e1e83cd9f196a08d9d32cb4087d09bc0874bf",
+      "downloaded_hash_matches_github": true,
+      "checksum_manifest_match": true
+    }
+  ],
+  "verification": {
+    "downloaded_file_hashes_match_github": true,
+    "installer_and_zip_hashes_match_manifest": true,
+    "portable_payload_files": 535,
+    "portable_payload_hashes_match": true,
+    "packaged_mit_license_matches_tag": true,
+    "third_party_notices_present": true,
+    "local_execution": "Downloads read and hashed only; no installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests.",
+    "hosted_qualification": "Installer lifecycle qualification passed on the GitHub Actions Windows runner.",
+    "windows_reputation": "Not verified.",
+    "source_tests": {
+      "passed": 1001,
+      "location": "GitHub Actions Windows runner"
+    }
+  }
+}
