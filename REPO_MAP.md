@@ -2036,7 +2036,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 49 lines
+- docs/PROJECT_STATUS.md: md, 53 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2283,7 +2283,7 @@ requirements.txt
 - resources/third_party/qt/qtwebengine/LICENSES/MIT.txt: txt, 11 lines
 - resources/third_party/qt/qtwebengine/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
 - resources/third_party/qt/sources.json: json, 930 lines
-- scripts/qualify_windows_installer.ps1: ps1, 193 lines
+- scripts/qualify_windows_installer.ps1: ps1, 201 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
 - simplicitor/prompts/system_manipulate.txt: txt, 13 lines
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines

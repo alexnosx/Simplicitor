@@ -44,12 +44,20 @@ $UserUnmanaged = 2
 function Get-SimplicitorProducts {
     $found = @()
     foreach ($product in $installer.ProductsEx('', '', $UserUnmanaged)) {
-        if ($product.Context -ne $UserUnmanaged) { throw 'Unexpected installation context.' }
-        if ($product.InstallProperty('ProductName') -eq 'Simplicitor') {
+        # Use COM dispatch directly; PowerShell's adapter does not expose these reliably.
+        $productType = $product.GetType()
+        $context = $productType.InvokeMember('Context', 'GetProperty', $null, $product, $null)
+        if ($context -ne $UserUnmanaged) { throw 'Unexpected installation context.' }
+        $name = $productType.InvokeMember('InstallProperty', 'GetProperty', $null, $product,
+                                         @('ProductName'))
+        if ($name -eq 'Simplicitor') {
             $found += [pscustomobject]@{
-                ProductCode = $product.ProductCode
-                Version = $product.InstallProperty('VersionString')
-                Location = $product.InstallProperty('InstallLocation')
+                ProductCode = $productType.InvokeMember('ProductCode', 'GetProperty',
+                                                        $null, $product, $null)
+                Version = $productType.InvokeMember('InstallProperty', 'GetProperty',
+                                                    $null, $product, @('VersionString'))
+                Location = $productType.InvokeMember('InstallProperty', 'GetProperty',
+                                                     $null, $product, @('InstallLocation'))
             }
         }
     }
