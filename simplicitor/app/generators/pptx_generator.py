@@ -59,7 +59,7 @@ class PptxGenerator:
                     self._add_content_slide(prs, slide_title, bullets)
             except Exception as exc:
                 logger.error(
-                    "Failed to add slide %d (type=%r, title=%r): %s", idx, slide_type, slide_title, exc
+                    "Failed to generate PowerPoint file: %s", type(exc).__name__
                 )
                 raise
 
@@ -67,9 +67,9 @@ class PptxGenerator:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             prs.save(str(output_path))
         except OSError as exc:
-            logger.error("Failed to write %s: %s", output_path, exc)
+            logger.error("Failed to write PowerPoint file: %s", type(exc).__name__)
             raise
-        logger.debug("PowerPoint file written successfully: %s", output_path)
+        logger.debug("PowerPoint file written successfully")
         return output_path
 
     def _add_title_slide(self, prs: Presentation, title: str, bullets: list[str]) -> None:

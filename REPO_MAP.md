@@ -629,6 +629,7 @@ tests/
     test_file_utils.py
     test_gen_repo_map.py
     test_generate_worker.py
+    test_generator_logging.py
     test_generators.py
     test_hard_stop_dialog.py
     test_legacy_edit_disabled.py
@@ -1687,6 +1688,10 @@ requirements.txt
 - def test_generate_worker_pptx_success(qtbot, tmp_path)
 - def test_generate_worker_writes_pdf(qtbot, tmp_path)
 - def test_pdf_route_logs_contain_no_file_name(qtbot, tmp_path, caplog, monkeypatch)
+
+### tests/test_generator_logging.py
+
+- def test_failed_write_does_not_log_prompt_words(generator, parsed, suffix, tmp_path, caplog)
 
 ### tests/test_generators.py
 

@@ -57,7 +57,7 @@ class WordGenerator:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             doc.save(str(output_path))
         except OSError as exc:
-            logger.error("Failed to write %s: %s", output_path, exc)
+            logger.error("Failed to write Word file: %s", type(exc).__name__)
             raise
         return output_path
 

@@ -60,8 +60,8 @@ class FileGenerator:
             parsed = parser_fn(llm_response)
         except ParseError as exc:
             logger.error(
-                "Failed to parse LLM response for %r (%d chars, %s): %s",
-                file_type, len(llm_response), type(exc).__name__, exc,
+                "Failed to parse LLM response for %r (%d chars, %s)",
+                file_type, len(llm_response), type(exc).__name__,
             )
             raise FileGenerationError(f"Could not parse LLM response: {exc}") from exc
         logger.debug("LLM response parsed successfully for %r", file_type)

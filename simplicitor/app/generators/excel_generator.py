@@ -64,7 +64,7 @@ class ExcelGenerator:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             wb.save(str(output_path))
         except OSError as exc:
-            logger.error("Failed to write %s: %s", output_path, exc)
+            logger.error("Failed to write Excel file: %s", type(exc).__name__)
             raise
         return output_path
 
