@@ -157,8 +157,10 @@ Assert-Check ((Get-FileHash -LiteralPath $settingsPath -Algorithm SHA256).Hash -
 $probeVersion = '2.1.99'
 $probe = Join-Path $env:RUNNER_TEMP "Simplicitor-$probeVersion-probe.msi"
 & dotnet wix build (Join-Path $repoRoot 'packaging/simplicitor.wxs') (Join-Path $repoRoot '.nuitka/msi/payload.wxs') `
-    -arch x64 -d "ProductVersion=$probeVersion" -bindpath "payload=$payloadDir" -sice ICE91 -o $probe
+    -arch x64 -d "ProductVersion=$probeVersion" -bindpath "payload=$payloadDir" -o $probe
 Assert-Check ($LASTEXITCODE -eq 0) 'Upgrade probe package built'
+& dotnet wix msi validate $probe -sice ICE91
+Assert-Check ($LASTEXITCODE -eq 0) 'Upgrade probe package validated'
 Assert-Check ((Invoke-Msi '/i' $probe 'upgrade.log') -eq 0) "Major upgrade to $probeVersion succeeded"
 $probeCode = Assert-Installed $probeVersion 'Upgrade:'
 Assert-Check ($probeCode -ne $firstCode) 'Upgrade replaced the previous ProductCode'

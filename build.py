@@ -112,10 +112,14 @@ def build_msi(payload: Path, version: str, output: Path) -> None:
     result = subprocess.run(
         ["dotnet", "wix", "build", str(WIX_SOURCE), str(FRAGMENT), "-arch", "x64",
          "-d", f"ProductVersion={version}", "-bindpath", f"payload={payload}",
-         # ICE91 flags per-user install locations; this package is per-user by design.
-         "-sice", "ICE91", "-o", str(output)], cwd=ROOT)
+         "-o", str(output)], cwd=ROOT)
     if result.returncode or not output.is_file() or not output.stat().st_size:
         raise ValueError(f"MSI build failed ({result.returncode}).")
+    # CLI builds do not run ICE validation. ICE91 flags intentional per-user locations.
+    validation = subprocess.run(
+        ["dotnet", "wix", "msi", "validate", str(output), "-sice", "ICE91"], cwd=ROOT)
+    if validation.returncode:
+        raise ValueError(f"MSI validation failed ({validation.returncode}).")
 
 def package_payload(payload: Path, artifacts: tuple[Path, ...]) -> None:
     """Validate resources and archive exactly the payload supplied to the MSI."""

@@ -81,6 +81,10 @@ def test_build_produces_matching_portable_payload_and_msi(payload, monkeypatch):
     assert wix[:3] == ["dotnet", "wix", "build"]
     assert str(build.WIX_SOURCE) in wix and str(build.FRAGMENT) in wix
     assert "ProductVersion=2.1.0" in wix and f"payload={payload}" in wix
+    assert "-sice" not in wix
+    assert captured[3][0] == [
+        "dotnet", "wix", "msi", "validate", str(msi), "-sice", "ICE91",
+    ]
     assert build.FRAGMENT.read_text(encoding="utf-8") == build.payload_fragment(payload)
     manifest = json.loads((build.DIST_DIR / "SHA256SUMS.json").read_text())
     assert set(manifest["artifacts"]) == {"Simplicitor-2.1.0.msi", "Simplicitor-portable.zip"}
@@ -112,6 +116,25 @@ def test_local_build_without_dotnet_skips_msi_only(payload, monkeypatch):
     assert build.main() == 0
     manifest = json.loads((build.DIST_DIR / "SHA256SUMS.json").read_text())
     assert set(manifest["artifacts"]) == {"Simplicitor-portable.zip"}
+
+
+def test_failed_msi_validation_prevents_archive(payload, monkeypatch):
+    msi = build.DIST_DIR / "Simplicitor-2.1.0.msi"
+
+    def run(command, *, cwd):
+        if command[:3] == ["dotnet", "wix", "build"]:
+            msi.write_bytes(b"synthetic MSI")
+        elif command[:4] == ["dotnet", "wix", "msi", "validate"]:
+            return SimpleNamespace(returncode=7)
+        elif command[0] != "dotnet":
+            make_payload(payload)
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(build.shutil, "which", lambda name: "dotnet.exe")
+    monkeypatch.setattr(build.subprocess, "run", run)
+    assert build.main() != 0
+    assert not msi.exists()
+    assert not (build.DIST_DIR / "Simplicitor-portable.zip").exists()
 
 
 @pytest.mark.parametrize("missing", ["Simplicitor.exe", "prompts/system_word.txt",

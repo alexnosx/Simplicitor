@@ -1567,6 +1567,7 @@ requirements.txt
 - def _payload_only(payload)
 - def test_ci_build_fails_without_dotnet(payload, monkeypatch)
 - def test_local_build_without_dotnet_skips_msi_only(payload, monkeypatch)
+- def test_failed_msi_validation_prevents_archive(payload, monkeypatch)
 - def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch, missing)
 - def test_compiler_failure_is_propagated(payload, monkeypatch)
 - def test_missing_icon_fails_before_compilation(payload, monkeypatch)
@@ -2281,7 +2282,7 @@ requirements.txt
 - resources/third_party/qt/qtwebengine/LICENSES/MIT.txt: txt, 11 lines
 - resources/third_party/qt/qtwebengine/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
 - resources/third_party/qt/sources.json: json, 930 lines
-- scripts/qualify_windows_installer.ps1: ps1, 191 lines
+- scripts/qualify_windows_installer.ps1: ps1, 193 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
 - simplicitor/prompts/system_manipulate.txt: txt, 13 lines
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines
