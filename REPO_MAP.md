@@ -135,6 +135,8 @@ docs/
     Simplicitor_UI_Polish_and_Icon.md
     code-signing.md
     screenshot.png
+packaging/
+    simplicitor.wxs
 resources/
     third_party/
         qt/
@@ -639,6 +641,7 @@ tests/
     test_main_window_teardown.py
     test_main_window_template.py
     test_manipulate_worker.py
+    test_msi_fragment.py
     test_ollama_client.py
     test_ollama_worker.py
     test_packaged_license.py
@@ -673,6 +676,8 @@ requirements.txt
 ### build.py
 
 - def _sha256(path: Path) -> str
+- def _wix_id(prefix: str, relative: str) -> str
+- def payload_fragment(payload: Path) -> str: WiX fragment: one per-user component per payload folder (HKCU key path,
 - def package_payload(payload: Path, installer: Path) -> None: Validate resources and archive exactly the payload supplied to NSIS.
 - def main() -> int: Compile once with Nuitka's NSIS backend, then package the same payload.
 
@@ -1759,6 +1764,13 @@ requirements.txt
 - def test_disabled_worker_does_not_read_or_write(tmp_path, monkeypatch, suffix, prompt)
 - def test_disabled_worker_does_not_need_prompt_or_existing_source(tmp_path, monkeypatch)
 
+### tests/test_msi_fragment.py
+
+- def _payload(root)
+- def test_every_folder_has_one_component_with_hkcu_key_path_and_cleanup(tmp_path)
+- def test_every_file_appears_once_and_ids_are_unique(tmp_path)
+- def test_fragment_is_deterministic(tmp_path)
+
 ### tests/test_ollama_client.py
 
 - def _mock_response(status_code: int=200, json_data: dict | None=None) -> MagicMock: Return a minimal mock that looks like a requests.Response.
@@ -2072,6 +2084,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 123 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 48 lines
+- packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
 - requirements-dev.txt: txt, 3 lines

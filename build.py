@@ -15,6 +15,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from xml.sax.saxutils import quoteattr
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from scripts.build_third_party_notices import build_notices, validate_notices
@@ -63,6 +64,42 @@ def _sha256(path: Path) -> str:
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
+
+def _wix_id(prefix: str, relative: str) -> str:
+    return prefix + hashlib.sha256(relative.encode("utf-8")).hexdigest()[:40]
+
+
+def payload_fragment(payload: Path) -> str:
+    """WiX fragment: one per-user component per payload folder (HKCU key path,
+    the folder's files, and its RemoveFolder) under INSTALLFOLDER."""
+    folders = [payload] + sorted((p for p in payload.rglob("*") if p.is_dir()),
+                                 key=lambda p: p.relative_to(payload).as_posix())
+    rel = {f: (f.relative_to(payload).as_posix() or ".") for f in folders}
+    dir_id = {f: ("INSTALLFOLDER" if f == payload else _wix_id("d", rel[f])) for f in folders}
+    lines = ['<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">', "  <Fragment>",
+             '    <DirectoryRef Id="INSTALLFOLDER">']
+
+    def nest(folder: Path, depth: int) -> None:
+        for child in sorted(p for p in folder.iterdir() if p.is_dir()):
+            pad = "  " * depth
+            lines.append(f'{pad}<Directory Id="{dir_id[child]}" Name={quoteattr(child.name)}>')
+            nest(child, depth + 1)
+            lines.append(f"{pad}</Directory>")
+
+    nest(payload, 3)
+    lines += ["    </DirectoryRef>", '    <ComponentGroup Id="Payload">']
+    for folder in folders:
+        lines.append(f'      <Component Id="{_wix_id("c", rel[folder])}" Directory="{dir_id[folder]}">')
+        lines.append('        <RegistryValue Root="HKCU" Key="Software\\Simplicitor\\Installer\\Payload" '
+                     f'Name={quoteattr(rel[folder])} Type="integer" Value="1" KeyPath="yes" />')
+        lines.append(f'        <RemoveFolder Id="{_wix_id("r", rel[folder])}" On="uninstall" />')
+        for file in sorted(p for p in folder.iterdir() if p.is_file()):
+            relative = file.relative_to(payload).as_posix()
+            source = "!(bindpath.payload)\\" + relative.replace("/", "\\")
+            lines.append(f'        <File Id="{_wix_id("f", relative)}" Source={quoteattr(source)} />')
+        lines.append("      </Component>")
+    lines += ["    </ComponentGroup>", "  </Fragment>", "</Wix>"]
+    return "\n".join(lines) + "\n"
 
 def package_payload(payload: Path, installer: Path) -> None:
     """Validate resources and archive exactly the payload supplied to NSIS."""

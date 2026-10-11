@@ -1,0 +1,56 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Simplicitor" Manufacturer="Alexandru Pop" Version="$(var.ProductVersion)"
+           UpgradeCode="3C7A15F3-1C9C-4CF6-B367-38443B025FE2" Scope="perUser" Compressed="yes">
+    <!-- afterInstallInitialize lets Windows Installer roll back removal of the
+         previous version if the upgrade fails. -->
+    <MajorUpgrade Schedule="afterInstallInitialize"
+                  DowngradeErrorMessage="A newer version of Simplicitor is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Simplicitor 2.0.0 used an NSIS installer in the same folder. Refuse to mix them. -->
+    <Property Id="NSISINSTALL">
+      <RegistrySearch Id="NsisSimplicitor" Root="HKCU"
+                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\Simplicitor"
+                      Name="UninstallString" Type="raw" />
+    </Property>
+    <Launch Condition="Installed OR NOT NSISINSTALL"
+            Message="Simplicitor 2.0.0 is installed. Uninstall it from Settings &gt; Apps, then run this installer again. Your settings and documents are kept." />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsDir" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="Simplicitor" />
+      </Directory>
+    </StandardDirectory>
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" />
+
+    <ComponentGroupRef Id="Payload" />
+
+    <!-- Programs is shared with other per-user apps; RemoveFolder removes it only if empty. -->
+    <Component Id="ProgramsDirCleanup" Directory="ProgramsDir">
+      <RemoveFolder Id="RemoveProgramsDir" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\Simplicitor\Installer" Name="ProgramsDir"
+                     Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut">
+        <Shortcut Id="StartMenu" Name="Simplicitor" Target="[INSTALLFOLDER]Simplicitor.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\Simplicitor\Installer" Name="StartMenuShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut">
+        <Shortcut Id="Desktop" Name="Simplicitor" Target="[INSTALLFOLDER]Simplicitor.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\Simplicitor\Installer" Name="DesktopShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Icon Id="SimplicitorIcon" SourceFile="!(bindpath.payload)\assets\icons\simplicitor.ico" />
+    <Property Id="ARPPRODUCTICON" Value="SimplicitorIcon" />
+  </Package>
+</Wix>
