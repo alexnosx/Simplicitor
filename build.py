@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from uuid import NAMESPACE_URL, uuid5
 from xml.sax.saxutils import quoteattr
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -90,7 +91,10 @@ def payload_fragment(payload: Path) -> str:
     nest(payload, 3)
     lines += ["    </DirectoryRef>", '    <ComponentGroup Id="Payload">']
     for folder in folders:
-        lines.append(f'      <Component Id="{_wix_id("c", rel[folder])}" Directory="{dir_id[folder]}">')
+        # WiX cannot auto-generate GUIDs for components with files and a registry key path.
+        guid = uuid5(NAMESPACE_URL, "https://simplicitor.com/msi/payload/" + rel[folder])
+        lines.append(f'      <Component Id="{_wix_id("c", rel[folder])}" '
+                     f'Guid="{guid}" Directory="{dir_id[folder]}">')
         lines.append('        <RegistryValue Root="HKCU" Key="Software\\Simplicitor\\Installer\\Payload" '
                      f'Name={quoteattr(rel[folder])} Type="integer" Value="1" KeyPath="yes" />')
         lines.append(f'        <RemoveFolder Id="{_wix_id("r", rel[folder])}" On="uninstall" />')

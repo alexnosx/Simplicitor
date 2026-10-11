@@ -1,5 +1,6 @@
 # tests/test_msi_fragment.py
 import xml.etree.ElementTree as ET
+from uuid import UUID
 
 import build
 
@@ -43,3 +44,25 @@ def test_every_file_appears_once_and_ids_are_unique(tmp_path):
 def test_fragment_is_deterministic(tmp_path):
     payload = _payload(tmp_path / "main.dist")
     assert build.payload_fragment(payload) == build.payload_fragment(payload)
+
+
+def test_component_guids_are_explicit_unique_and_stable_across_builds(tmp_path):
+    def guids(payload):
+        tree = ET.fromstring(build.payload_fragment(payload))
+        components = tree.findall(".//w:ComponentGroup[@Id='Payload']/w:Component", NS)
+        result = {}
+        for component in components:
+            guid = component.get("Guid")
+            assert guid and guid != "*"
+            assert UUID(guid).version == 5
+            key = component.find("w:RegistryValue", NS).get("Name")
+            result[key] = guid
+        assert len(set(result.values())) == len(result)
+        return result
+
+    first = _payload(tmp_path / "first" / "main.dist")
+    second = _payload(tmp_path / "second" / "main.dist")
+    before = guids(first)
+    assert guids(second) == before
+    (second / "prompts" / "new.txt").write_text("synthetic")
+    assert guids(second) == before

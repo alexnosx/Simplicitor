@@ -1775,6 +1775,7 @@ requirements.txt
 - def test_every_folder_has_one_component_with_hkcu_key_path_and_cleanup(tmp_path)
 - def test_every_file_appears_once_and_ids_are_unique(tmp_path)
 - def test_fragment_is_deterministic(tmp_path)
+- def test_component_guids_are_explicit_unique_and_stable_across_builds(tmp_path)
 
 ### tests/test_ollama_client.py
 
