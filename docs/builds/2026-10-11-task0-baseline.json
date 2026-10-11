@@ -1,0 +1,227 @@
+{
+  "scope": "2.1.0 Task 0 hosted baseline; existing 2.0.0 NSIS route unchanged",
+  "commit": "25e697d02ecac1d70ce9c5cec9e6e9b5410b3edf",
+  "run": {
+    "conclusion": "success",
+    "createdAt": "2026-10-11T18:51:43Z",
+    "event": "workflow_dispatch",
+    "headSha": "25e697d02ecac1d70ce9c5cec9e6e9b5410b3edf",
+    "jobs": [
+      {
+        "completedAt": "2026-10-11T18:53:37Z",
+        "conclusion": "success",
+        "databaseId": 114547352940,
+        "name": "tests",
+        "startedAt": "2026-10-11T18:51:46Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-11T18:51:48Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-11T18:51:47Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:51:53Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-10-11T18:51:48Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:51:53Z",
+            "conclusion": "success",
+            "name": "Set up Python",
+            "number": 3,
+            "startedAt": "2026-10-11T18:51:53Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:52:46Z",
+            "conclusion": "success",
+            "name": "Install dependencies",
+            "number": 4,
+            "startedAt": "2026-10-11T18:51:53Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:32Z",
+            "conclusion": "success",
+            "name": "Run source tests on hosted runner",
+            "number": 5,
+            "startedAt": "2026-10-11T18:52:47Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:33Z",
+            "conclusion": "success",
+            "name": "Post Set up Python",
+            "number": 9,
+            "startedAt": "2026-10-11T18:53:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:35Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 10,
+            "startedAt": "2026-10-11T18:53:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:35Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "startedAt": "2026-10-11T18:53:35Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/alexnosx/Simplicitor/actions/runs/38165584313/job/114547352940"
+      },
+      {
+        "completedAt": "2026-10-11T19:21:11Z",
+        "conclusion": "success",
+        "databaseId": 114547734672,
+        "name": "build",
+        "startedAt": "2026-10-11T18:53:40Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-11T18:53:42Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-11T18:53:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:51Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-10-11T18:53:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:51Z",
+            "conclusion": "skipped",
+            "name": "Check release notes",
+            "number": 3,
+            "startedAt": "2026-10-11T18:53:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:53:51Z",
+            "conclusion": "success",
+            "name": "Set up Python",
+            "number": 4,
+            "startedAt": "2026-10-11T18:53:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:55:02Z",
+            "conclusion": "success",
+            "name": "Install dependencies",
+            "number": 5,
+            "startedAt": "2026-10-11T18:53:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T18:55:02Z",
+            "conclusion": "success",
+            "name": "Generate icon",
+            "number": 6,
+            "startedAt": "2026-10-11T18:55:02Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:20:27Z",
+            "conclusion": "success",
+            "name": "Build standalone, installer, and portable ZIP",
+            "number": 7,
+            "startedAt": "2026-10-11T18:55:02Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:21:02Z",
+            "conclusion": "success",
+            "name": "Qualify installer on hosted Windows runner",
+            "number": 8,
+            "startedAt": "2026-10-11T19:20:27Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:21:08Z",
+            "conclusion": "success",
+            "name": "Upload artifact",
+            "number": 9,
+            "startedAt": "2026-10-11T19:21:02Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:21:08Z",
+            "conclusion": "skipped",
+            "name": "Publish to GitHub Release",
+            "number": 10,
+            "startedAt": "2026-10-11T19:21:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:21:08Z",
+            "conclusion": "success",
+            "name": "Post Set up Python",
+            "number": 19,
+            "startedAt": "2026-10-11T19:21:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:21:10Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 20,
+            "startedAt": "2026-10-11T19:21:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-11T19:21:10Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 21,
+            "startedAt": "2026-10-11T19:21:10Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/alexnosx/Simplicitor/actions/runs/38165584313/job/114547734672"
+      }
+    ],
+    "status": "completed",
+    "updatedAt": "2026-10-11T19:21:11Z",
+    "url": "https://github.com/alexnosx/Simplicitor/actions/runs/38165584313"
+  },
+  "local_source_tests": {
+    "Task 0": 1001,
+    "A1": 1009,
+    "A2": 1012,
+    "A3": 1014
+  },
+  "local_execution": "Source tests only. No local build, installer, uninstaller, msiexec, Sandbox, or qualification script.",
+  "sample": "Synthetic PDF produced by test_pdf_contains_title_headings_lists_and_table; no live model.",
+  "artifacts": [
+    {
+      "digest": "sha256:ae1a0ae205ce92a76ea7b839f2434b6eda241613eccdde2105bdfde25ec3e913",
+      "expired": false,
+      "id": 11712992133,
+      "name": "Simplicitor-windows",
+      "size_in_bytes": 146552821
+    }
+  ],
+  "push_trigger": {
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38165584608",
+    "tests": "success",
+    "build": "skipped"
+  }
+}

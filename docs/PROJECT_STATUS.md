@@ -1,6 +1,6 @@
 # Simplicitor project status
 
-Updated 2026-10-09. [PRD.md](../PRD.md) owns release requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md), and the [single plan](superpowers/plans/2026-10-08-first-release-extraction.md) are the review set.
+Updated 2026-10-11. [PRD.md](../PRD.md) owns release requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md), and the [single plan](superpowers/plans/2026-10-08-first-release-extraction.md) are the review set.
 
 ## Current status
 
@@ -40,3 +40,9 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 ## Next step
 
 Verify the MIT-bearing payload on the hosted Windows runner, then await Alex's review of the licensing and packaged LICENSE evidence. This task does not authorize a tag, release, or publication. Native UI, a machine without developer Python/Office, and downloaded-file SmartScreen behavior remain unverified. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests run on Alex's PC. Releases through v1.2.1 and their historical license files are unchanged.
+
+## 2.1.0 progress
+
+Task 0 and Part A of the [revision 3 plan](superpowers/plans/2026-10-09-release-2.1.0.md) are complete. Pushes run source tests only; manual milestone runs build and qualify the unchanged NSIS payload on GitHub. The [Task 0 baseline](builds/2026-10-11-task0-baseline.json) passed both hosted jobs, including installer qualification and artifact upload; publication was skipped. Local source suites passed: Task 0 1,001; A1 1,009; A2 1,012; A3 1,014.
+
+PDF is available in From prompt, through the Word response structure and Qt writer, with staged validation before replacement. The prescribed shared generation/window logs omit output paths and exception messages. Unchanged raw ParseError logging and legacy Word write-failure logging remain a privacy limitation. The synthetic PDF sample came from source tests; live-model/manual PDF readability and packaged PDF behavior remain unverified. No local build or installation action ran. Part B and Part C have not started; no new tag or release was created.

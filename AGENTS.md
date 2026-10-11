@@ -37,7 +37,7 @@ Historical PRDs, guides, and phase plans do not override these sources or Alex's
 
 ### Testing policy
 
-Run the full local source suite after each task with USERPROFILE, APPDATA, and LOCALAPPDATA redirected under `.venv/test-home`, using `.venv/Scripts/python.exe -m pytest -q --basetemp .venv/pytest-tmp`. Synthetic temporary-file creation and deletion in that suite are allowed. Build tests mock external tools. Never run installers, uninstallers, msiexec, Windows Sandbox, or the qualification script on Alex's PC; do not install build tools or dependencies locally. Pushes run hosted source tests only. Full CI builds run on GitHub at the plan milestones (Task 0 baseline, B5, C2.7, D1), by manual dispatch, and on authorized version tags. See the [2.1.0 plan testing policy](docs/superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy).
+Run the full local source suite after each task with USERPROFILE, APPDATA, and LOCALAPPDATA redirected under `.venv/test-home`, using `.venv/Scripts/python.exe -m pytest -q --basetemp .venv/pytest-tmp`. Synthetic temporary-file creation and deletion in that suite are allowed. Build tests mock external tools. Never run installers, uninstallers, msiexec, Windows Sandbox, or the qualification script on Alex's PC; do not install build tools or dependencies locally. Pushes run hosted source tests only. Full CI builds run on GitHub at the plan milestones (Task 0 baseline, B5, C2.7, D1), by manual dispatch, and on authorized version tags. See the [2.1.0 plan testing policy](docs/superpowers/plans/2026-10-09-release-2.1.0.md).
 
 
 - Define observable checks before implementation and run them before claiming success. Valid JSON or a valid workbook is not proof of accuracy.

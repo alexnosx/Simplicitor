@@ -31,7 +31,7 @@ Nuitka includes this directory before creating the installer. The archive step r
 
 ## Runner-only installer qualification
 
-Run the full local source suite after each task with an isolated profile under `.venv/test-home` and `--basetemp .venv/pytest-tmp`. Synthetic temporary-file creation and deletion are allowed; build tests mock external tools. Never run installers, uninstallers, msiexec, Windows Sandbox, or the qualification script on Alex's PC. Do not install tools or dependencies locally. Follow the [2.1.0 testing policy](superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy): pushes run hosted source tests only; full builds run on GitHub by manual dispatch at Task 0 baseline, B5, C2.7 and D1, and on authorized version tags.
+Run the full local source suite after each task with an isolated profile under `.venv/test-home` and `--basetemp .venv/pytest-tmp`. Synthetic temporary-file creation and deletion are allowed; build tests mock external tools. Never run installers, uninstallers, msiexec, Windows Sandbox, or the qualification script on Alex's PC. Do not install tools or dependencies locally. Follow the [2.1.0 testing policy](superpowers/plans/2026-10-09-release-2.1.0.md): pushes run hosted source tests only; full builds run on GitHub by manual dispatch at Task 0 baseline, B5, C2.7 and D1, and on authorized version tags.
 
 The build workflow runs the source suite on a hosted Windows runner, builds the payload/setup/ZIP, then invokes [qualify_windows_installer.ps1](../scripts/qualify_windows_installer.ps1). The script checks GitHub Actions, Windows, and github-hosted environment markers before any installation action, and refuses pre-existing installation/profile test state.
 
