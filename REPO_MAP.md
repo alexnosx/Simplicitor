@@ -522,6 +522,7 @@ simplicitor/
         __init__.py
         breakdown.py
         config.py
+        deck_style.py
         llm.py
         manifest.py
         pipeline.py
@@ -625,9 +626,11 @@ tests/
             valid_manifest.yaml
         __init__.py
         conftest.py
+        decks.py
         test_breakdown.py
         test_builtin_templates.py
         test_config.py
+        test_deck_style.py
         test_llm.py
         test_manifest.py
         test_pipeline.py
@@ -1088,6 +1091,46 @@ requirements.txt
 - def ensure_default_templates(templates_root: str | Path) -> None: Ensure the curated default templates exist in *templates_root*.
 - def import_template(pptx_path: str | Path, user_root: Path) -> dict[str, Any]: Import a .pptx file as a user template.
 
+### simplicitor/templates_engine/deck_style.py
+
+- class TextStyle
+- class Fill
+- class Logo
+- class DeckStyle
+- class _Theme
+- class _Run
+- class _Deck
+- def _open(path: str | Path)
+- def _theme(master) -> _Theme: A master's theme: colors by slot name, the raw color scheme, the two fonts.
+- def _color_map(*owners): The color map in force: the first override among *owners*, else the last one's map.
+- def _colors(theme: _Theme, mapping) -> dict[str, str]: The theme's slots plus bg1, tx1, bg2, tx2 and any other name the color map gives.
+- def _fraction(color, tag: str) -> float | None
+- def _variant(value: str, color) -> str: Apply PowerPoint's lighter and darker variants (lumMod, lumOff) to "RRGGBB".
+- def _color(element, colors: dict[str, str]) -> str | None
+- def _first(*styles: TextStyle) -> TextStyle: Each property from the first style that sets it.
+- def _props(element, colors: dict[str, str], major: str | None, minor: str | None) -> TextStyle: What one a:rPr or a:defRPr element sets; unset properties are None.
+- def _level(styles, level: int, colors, major, minor) -> TextStyle: One paragraph level of a list or text style, over that style's default paragraph.
+- def _list_style(shape)
+- def _inherited_styles(shape, master, presentation) -> list: Style elements the shape's text inherits, nearest first, excluding the shape itself.
+- def _runs(shape, master, presentation, colors, major, minor) -> list[_Run]: The effective style of every non-empty run, and whether the slide overrides it.
+- def _iter_shapes(shapes)
+- def _title_shape(shapes: list, height: int): The title placeholder, else the shape near the top with the largest text.
+- def _weighted_median(values: list[tuple[float, int]]) -> float | None
+- def _dominant(runs: list[_Run], font: str | None, color: str | None) -> TextStyle: The most used font, color and boldness, and the median size, weighted by characters.
+- def _readable(blob: bytes) -> bool: True when the whole image decodes; opening an image reads only its header.
+- def _picture(shape): (blob, extension, SHA-1) of a picture's embedded image, or None when unusable.
+- def _fill(parent, part, colors: dict[str, str]) -> Fill | None: Read a solid, gradient (first stop) or picture fill under *parent*.
+- def _covers(shape, width: int, height: int) -> bool
+- def _own_fill(owner, colors: dict[str, str], width: int, height: int) -> Fill | None: The background a slide, layout or master sets itself, or None when it sets none.
+- def _key(fill: Fill | None)
+- def _common_background(fills: list[Fill | None]) -> Fill | None: The most common background; the plain default (None) counts too.
+- def _logo(slides, width: int, height: int) -> Logo | None: A small picture repeated in the same place on at least half the slides.
+- def _read_deck(path: str | Path) -> _Deck
+- def _mostly_on_slide(runs: list[_Run]) -> bool
+- def look_is_on_slides(path: str | Path) -> bool: True when the slides override their layouts.
+- def capture_style(path: str | Path) -> DeckStyle: Read size, theme colors, text styles, backgrounds and a repeated logo.
+- def describe_capture(style: DeckStyle, skipped: tuple[str, ...]=()) -> str: One plain sentence naming what the new template took from the deck.
+
 ### simplicitor/templates_engine/llm.py
 
 - def _client(client: OllamaClient | None=None) -> OllamaClient
@@ -1311,6 +1354,24 @@ requirements.txt
 - def tmp_template(tmp_path): Temp dir with a default Presentation saved as template.pptx and render_manifest.yaml.
 - def tiny_png(tmp_path): A file at tmp_path/test_image.png. Content is not a valid PNG image.
 
+### tests/templates_engine/decks.py
+
+- def png(color: tuple[int, int, int], size: tuple[int, int]=(64, 36)) -> io.BytesIO
+- def _text(slide, text: str, top: float, font: str, size: int, color: str, bold: bool=False)
+- def free_form(path: Path, slides: int=4, logo: bool=True) -> Path: Like a Canva export: blank layouts, a full-slide picture, free text boxes, a logo.
+- def hand_built(path: Path) -> Path: Built in PowerPoint slide by slide: standard layouts, own solid backgrounds.
+- def company_template(path: Path) -> Path: A real template: the look lives in the master, slides follow it.
+- def white_manual(path: Path) -> Path: Built by hand on the plain white theme: own fonts and a logo on every slide.
+- def paragraph_styled(path: Path) -> Path: Titles and body text styled on the paragraph instead of on each run.
+- def master_branded(path: Path) -> Path: A company template: the title font, size and color are set once, on the master.
+- def layout_defaults(path: Path, slide_fonts: tuple[str, str] | None=None) -> Path: A template whose layout sets fonts in its placeholders' default paragraph style.
+- def layout_background(path: Path, fill: str=DARK_GREEN, own_fonts: bool=True) -> Path: Slides inheriting their layout's background; with *own_fonts*, white text set on each.
+- def dark_theme(path: Path, on_layout: bool=False) -> Path: Built by hand on a dark theme variant: the color map swaps background and text.
+- def two_masters(path: Path, repeat_fonts: bool=False) -> Path: Slides pasted from another deck: a second master whose theme uses Georgia and Verdana.
+- def corrupt_png() -> bytes: A PNG whose header and checksums are valid but whose pixel data cannot be decoded.
+- def webp() -> bytes: A real picture in a format python-pptx does not support.
+- def damage_pictures(path: Path, data: bytes) -> Path: Replace the bytes of every embedded picture; the deck itself stays readable.
+
 ### tests/templates_engine/test_breakdown.py
 
 - def _make_minimal_pptx(path: Path) -> Path: Save a default-layout Presentation to path and return it.
@@ -1438,6 +1499,25 @@ requirements.txt
 - def test_list_library_entry_has_required_keys(tmp_path)
 - def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path)
 - def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch)
+
+### tests/templates_engine/test_deck_style.py
+
+- def test_free_form_deck_gives_fonts_colors_backgrounds_and_logo(tmp_path)
+- def test_hand_built_deck_reads_slide_backgrounds_and_placeholder_titles(tmp_path)
+- def test_paragraph_and_master_formatting_are_inherited(tmp_path)
+- def test_default_paragraph_styles_are_inherited(tmp_path)
+- def test_each_slide_is_read_against_its_own_master(tmp_path)
+- def test_inherited_layout_background_is_captured(tmp_path)
+- def test_dark_color_map_keeps_a_dark_background_and_light_text(tmp_path, on_layout)
+- def test_lighter_and_darker_theme_colors_are_applied(tmp_path)
+- def test_unstyled_text_follows_the_master_and_theme(tmp_path)
+- def test_deck_without_slides_gives_theme_only(tmp_path)
+- def test_look_is_on_slides_when_slides_override_their_layouts(tmp_path, factory, expected)
+- def test_inherited_formatting_is_not_an_override(tmp_path, factory, expected)
+- def test_summary_names_only_what_was_found(tmp_path)
+- def test_cover_only_picture_stays_on_the_title_slide(tmp_path)
+- def test_broken_picture_links_are_ignored(tmp_path)
+- def test_unreadable_pictures_are_skipped_and_the_rest_is_kept(tmp_path, data)
 
 ### tests/templates_engine/test_llm.py
 
