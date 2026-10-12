@@ -49,8 +49,10 @@ def test_anchor_issue_and_coverage_text_are_plain():
     assert describe_issues("something_new") == "Check this value."
     assert describe_coverage("invoice-02.pdf", "source-2#page:3", "unreadable_page") == (
         "invoice-02.pdf, page 3: this page has too little text to read.")
-    assert describe_coverage("a.docx", "source-1", "unsupported_structure") == (
-        "a.docx: some parts of this file (such as text boxes, tracked changes or footnotes) were not read.")
+    assert describe_coverage("a.docx", "source-1#", "skipped_text_box") == (
+        "a.docx: text in text boxes was not read.")
+    assert describe_coverage("a.docx", "source-1", "skipped_footnotes") == (
+        "a.docx: footnotes and endnotes were not read.")
 
 
 from pathlib import Path
@@ -646,3 +648,28 @@ def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp
     assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Excel (.xlsx)"]
     screen.set_file_type("Word (.docx)")
     assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Word (.docx)"]
+
+
+def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path):
+    from app.widgets.create_screen import COVERAGE_HEADER
+    assert COVERAGE_HEADER == (
+        "Some information may be missing from the table. Check these problems before you use it:")
+    screen = _screen(qtbot, isolated_profile)
+    source = tmp_path / "boxes.docx"
+    document = Document()
+    document.add_paragraph("Invoice 100")
+    document.save(source)
+    documents = read_sources((source,))
+    source_id = documents[0].source_id
+    skipped = Issue("skipped_text_box", source_id, source_id + "#",
+                    "Text in text boxes was not read.")
+    with_issue = (replace(documents[0], issues=(skipped,)),)
+    screen.show_inspection(with_issue)
+    assert screen._source_coverage.toPlainText().splitlines() == [
+        COVERAGE_HEADER, "boxes.docx: text in text boxes was not read."]
+    # Processing problems can keep flagged values, so the heading must not say values are unused.
+    screen.show_failure("Could not complete the request.", (
+        Issue("request_failed", source_id, source_id + "#p:0", "A section failed."),))
+    assert screen._source_coverage.toPlainText().splitlines()[0] == COVERAGE_HEADER
+    screen.show_inspection(documents)
+    assert screen._source_coverage.isHidden()

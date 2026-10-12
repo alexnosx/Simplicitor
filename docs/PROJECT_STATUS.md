@@ -1,6 +1,6 @@
 # Simplicitor project status
 
-Updated 2026-10-12 after v2.1.0 publication and release verification. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) are the current review set. The [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retains its earlier execution record.
+Updated 2026-10-12 after 2.2.0 Part A implementation. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
 
 ## Current status
 
@@ -8,15 +8,20 @@ Updated 2026-10-12 after v2.1.0 publication and release verification. [PRD.md](.
 |---|---|
 | Published releases | [v2.1.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.1.0) is published and verified as Latest with Simplicitor-2.1.0.msi, portable ZIP, checksums and the tagged notes as its body. The tag points to 2202cce; [release evidence](releases/v2.1.0.json). Earlier [v2.0.0](releases/v2.0.0.json) and [v1.2.1](releases/v1.2.1.json) releases and licenses remain unchanged. |
 | 2.1.0 release | Task 0, Parts A/B/C1/C2, both C2 follow-ups, D1 and the final README corrections are accepted. Published from the tested README commit 2202cce; MSI version 2.1.0 and executable version 2.1.0.0. The [tag workflow](https://github.com/alexnosx/Simplicitor/actions/runs/38233039100) passed source tests, build, MSI qualification and publication. Downloaded hashes and the release body are verified in the release record. |
+| 2.2.0 Part A | A1-A4 complete in source: finished extraction progress clears while final messages stay; source-aware prompt hints and Settings guidance; one shared version for UI/build/upgrade qualification; named Word reading problems and a general review heading. The product version remains 2.1.0 until E1. Part B and later implementation have not started; no 2.2.0 build or release. |
 | Prompt creation and templates | Word, Excel and PowerPoint generation remain available. PDF uses the existing Word response structure and Qt writer with staged validation. PowerPoint's template picker/import/generation remains available. Alex reports that PDF generation from a prompt and click-through of the new screens passed from source. |
 | Create and Edit modes | Create new uses Describe, optional sources, Choose columns, Review and save, then Saved. Edit document is explanatory only; legacy editing remains disabled. Settings/mode switching freeze during work. |
-| Extraction and review | DOCX and text-layer PDF readers, column proposals, grounding, cancellation and XLSX Data/Evidence output remain unchanged. The saved grid displays number formats and hides Record; Record stays in workbook/Evidence. Every sectioned-source Data cell requires review while preserving valid values/types/formats. Save to Excel requires acknowledgement for highlighted values, reading problems or both, then uses native XLSX Save As. |
+| Extraction and review | DOCX and text-layer PDF reading coverage, column proposals, grounding, cancellation and XLSX Data/Evidence behavior remain unchanged. Word coverage issues now name the skipped structures. The saved grid displays number formats and hides Record; Record stays in workbook/Evidence. Every sectioned-source Data cell requires review while preserving valid values/types/formats. Save to Excel requires acknowledgement for highlighted values, reading problems or both, then uses native XLSX Save As. |
 | Model warning | Queued /api/show metadata lookup; below 8B or unknown shows the PRD's non-blocking recommendation. No hardware check. Explicit local model selection is preserved and stale metadata is ignored. |
 | Model evaluation | The [2.0.0 review-policy run](evaluation/2026-10-09-sectioned-review-policy.md) passes both criteria: whole-file 277/280 (98.93%, zero unflagged wrong); sectioned 33/40 (82.5%, informational), all 40 cells flagged and zero unflagged values. CLI exits 0. Settings, prompts, fixtures/labels and criteria are unchanged in 2.1.0. This is retained evaluation, not a new D1 model run. |
 | MSI and portable packaging | One Nuitka 4.2.2 standalone payload, pinned WiX 5.0.2 per-user MSI and matching ZIP/checksums. The published MSI is 61,187,961 bytes. The tag workflow passed all 57 hosted lifecycle checks. Release asset digests and both artifact hashes match; all 535 portable payload files match the manifest. [Release evidence](releases/v2.1.0.json). Earlier [Part B](builds/2.1.0-msi-ci.json) and [C2.7](builds/2.1.0-ui-ci.json) milestones retain their historical results. |
 | Licensing | MIT for 2.0.0 onward, copyright (c) 2026 Alexandru Pop. Versions through v1.2.1 retain PolyForm Noncommercial 1.0.0. Application LICENSE and separately validated third-party notices remain packaged. No licensing change in 2.1.0. |
 | Windows trust | Installer is unsigned. Exact warning/detection and downloaded-artifact reputation remain unverified; MSI does not establish publisher trust. |
 | Later work | Selective editing, source-based Word/PDF reports, table-row extraction and scanned-PDF recognition remain deferred under PRD scope. |
+
+## 2.2.0 Part A verification
+
+The planned test-first checks reproduced their expected failures before each change. Isolated full local source suites passed after A1 (1,079), A2 (1,081), A3 (1,085) and A4 (1,089). Targeted suites passed 23, 70, 137 and 315 tests respectively. The qualification script has zero parse errors and was not executed; packaging tools stay mocked in source tests. Existing prompts, model settings and evaluation fixtures/labels were preserved; no live-model evaluation was run.
 
 ## 2.1.0 verification
 
@@ -57,4 +62,4 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-v2.1.0 is published and verified; the [release record](releases/v2.1.0.json) owns its URL, Latest verification, workflow result, asset hashes and body comparison. Future extraction, editing, reporting or recognition work needs a separately approved scope. Historical releases remain unchanged.
+The next implementation block is 2.2.0 B1-B3, followed by Alex's eight-deck gate, when separately authorized. Claude and Alex own the C1 mockup. Part D follows mockup approval; E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.

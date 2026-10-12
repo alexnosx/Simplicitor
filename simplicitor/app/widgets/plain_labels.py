@@ -27,8 +27,14 @@ _ISSUES = {
 }
 _COVERAGE = {
     "unreadable_page": "this page has too little text to read.",
-    "unsupported_structure": "some parts of this file (such as text boxes, tracked changes "
-                             "or footnotes) were not read.",
+    "skipped_text_box": "text in text boxes was not read.",
+    "skipped_tracked_changes": "text in tracked changes was not read. Accept or reject the "
+                               "changes in Word, then add the file again.",
+    "skipped_content_control": "text in form fields was not read.",
+    "skipped_field": "text in fields, such as dates Word fills in, was not read.",
+    "skipped_embedded_document": "an embedded document was not read.",
+    "skipped_footnotes": "footnotes and endnotes were not read.",
+    "skipped_nested_table": "a table inside this table cell was not read.",
     "oversized_unit": "one part of this file was too large to read.",
     "context_budget": "this file could not be read with the current settings.",
     "context_truncated": "part of this file was cut off and not read.",

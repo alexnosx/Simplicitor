@@ -18,6 +18,15 @@ from app.config.defaults import (
 from extraction.models import Issue, SourceDocument, SourceUnit
 
 _W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+# Word content this version does not read: (XML tag, issue code, Evidence message).
+_SKIPPED_PARTS = (
+    ("txbxContent", "skipped_text_box", "Text in text boxes was not read."),
+    ("ins", "skipped_tracked_changes", "Text in tracked changes was not read."),
+    ("del", "skipped_tracked_changes", "Text in tracked changes was not read."),
+    ("sdt", "skipped_content_control", "Text in form fields was not read."),
+    ("fldSimple", "skipped_field", "Text in fields was not read."),
+    ("altChunk", "skipped_embedded_document", "An embedded document was not read."),
+)
 
 
 class SourceReadError(ValueError):
@@ -83,16 +92,17 @@ def _read_docx(path: Path, source_id: str) -> SourceDocument:
                 containers.append((prefix, container, part.element))
     for prefix, container, element in containers:
         _read_blocks(container.iter_inner_content(), prefix, source_id, units, issues)
-        if any(list(element.iter(_W + tag))
-               for tag in ("sdt", "ins", "del", "txbxContent", "altChunk", "fldSimple")):
-            issues.append(Issue("unsupported_structure", source_id, prefix,
-                                "Content controls, revisions, fields, or embedded text need review."))
+        found = {}
+        for tag, code, message in _SKIPPED_PARTS:
+            if next(element.iter(_W + tag), None) is not None:
+                found.setdefault(code, message)
+        issues.extend(Issue(code, source_id, prefix, message) for code, message in found.items())
     for part in doc.part.package.parts:
         if any(token in str(part.partname) for token in ("/footnotes", "/endnotes")):
             root = ElementTree.fromstring(part.blob)
             if any((n.text or "").strip() for n in root.iter(_W + "t")):
-                issues.append(Issue("unsupported_structure", source_id, source_id,
-                                    "Footnotes and endnotes are outside supported reading."))
+                issues.append(Issue("skipped_footnotes", source_id, source_id,
+                                    "Footnotes and endnotes were not read."))
                 break
     count = sum(len(u.text) for u in units)
     if not any(u.text.strip() for u in units):
@@ -120,8 +130,8 @@ def _read_blocks(
                     anchor = f"{group}:c:{cell_index}"
                     units.append(SourceUnit(anchor, text, "cell", len(units), group))
                     if cell.tables:
-                        issues.append(Issue("unsupported_structure", source_id, anchor,
-                                            "Nested tables are outside supported reading."))
+                        issues.append(Issue("skipped_nested_table", source_id, anchor,
+                                            "A table inside a table cell was not read."))
             table_index += 1
 
 

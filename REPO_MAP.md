@@ -1277,6 +1277,7 @@ requirements.txt
 - def test_empty_docx_fails_before_model_work(tmp_path)
 - def test_docx_reads_header_footer_paragraphs_and_cells_once(tmp_path)
 - def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path)
+- def test_skipped_word_parts_are_named_and_their_text_is_not_read(tmp_path, code)
 
 ### tests/extraction/test_xlsx_writer.py
 
@@ -1660,6 +1661,7 @@ requirements.txt
 - def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path)
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 - def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
+- def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path)
 
 ### tests/test_extraction_worker.py
 
@@ -2123,7 +2125,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 60 lines
+- docs/PROJECT_STATUS.md: md, 65 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)

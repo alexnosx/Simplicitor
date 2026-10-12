@@ -256,7 +256,7 @@ def test_source_coverage_issues_survive_a_successful_model_call():
     from dataclasses import replace
     from extraction.models import Issue
     from extraction.pipeline import extract
-    issue = Issue("unsupported_structure", "one", "one#", "Embedded text needs review.")
+    issue = Issue("skipped_text_box", "one", "one#", "Text in text boxes was not read.")
     doc = replace(document(["ID 00123"]), issues=(issue,))
     client = Client([reply("one", {"id": ("00123", "ID 00123", "one#p:0")})])
     result = extract((doc,), (ColumnSpec("id", "ID", ""),), "", profile(), client, Event())

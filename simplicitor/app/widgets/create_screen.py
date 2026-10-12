@@ -33,6 +33,8 @@ EXCEL = "Excel (.xlsx)"
 SOURCE_SUFFIXES = {".docx", ".pdf"}
 SOURCES_NOTE = ("Files you add are turned into an Excel table. "
                 "Reports from files come in a later version.")
+COVERAGE_HEADER = ("Some information may be missing from the table. "
+                   "Check these problems before you use it:")
 ROUTE_PROMPT = ["Describe", "Save"]
 ROUTE_SOURCES = ["Describe", "Choose columns", "Review and save"]
 TYPE_NAMES = {"text": "Text", "integer": "Whole number", "decimal": "Decimal number",
@@ -460,6 +462,8 @@ class CreateScreen(QWidget):
                 for issue in issues))
 
     def _set_coverage(self, text: str) -> None:
+        if text:
+            text = f"{COVERAGE_HEADER}\n{text}"
         for view in {self._source_coverage, self._coverage_view}:
             view.setPlainText(text)
             view.setVisible(bool(text))

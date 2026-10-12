@@ -119,7 +119,7 @@ def test_simple_word_fields_are_disclosed_as_unsupported(tmp_path):
     source = tmp_path / "field.docx"
     doc.save(source)
     result = read_source(source, "one")
-    assert any(i.code == "unsupported_structure" for i in result.issues)
+    assert [i.code for i in result.issues] == ["skipped_field"]
 
 
 def test_empty_docx_fails_before_model_work(tmp_path):
@@ -172,3 +172,28 @@ def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path)
     result = read_source(source, "one")
     assert result.page_cost == 2
     assert any(u.text == "h" * 3001 for u in result.units)
+
+
+_WNS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+SKIPPED_XML = {
+    "skipped_text_box": (f'<w:r {_WNS} xmlns:v="urn:schemas-microsoft-com:vml"><w:pict><v:shape>'
+                         '<v:textbox><w:txbxContent><w:p><w:r><w:t>Box 901</w:t></w:r></w:p>'
+                         '</w:txbxContent></v:textbox></v:shape></w:pict></w:r>'),
+    "skipped_tracked_changes": (f'<w:ins {_WNS} w:id="1" w:author="Reviewer"><w:r>'
+                                '<w:t>Inserted 902</w:t></w:r></w:ins>'),
+    "skipped_content_control": (f'<w:sdt {_WNS}><w:sdtContent><w:r><w:t>Control 903</w:t></w:r>'
+                                '</w:sdtContent></w:sdt>'),
+}
+
+
+@pytest.mark.parametrize("code", SKIPPED_XML)
+def test_skipped_word_parts_are_named_and_their_text_is_not_read(tmp_path, code):
+    from docx.oxml import parse_xml
+    from extraction.source_readers import read_source
+    doc = Document()
+    doc.add_paragraph("Invoice 100 ")._p.append(parse_xml(SKIPPED_XML[code]))
+    source = tmp_path / "parts.docx"
+    doc.save(source)
+    result = read_source(source, "one")
+    assert [issue.code for issue in result.issues] == [code]
+    assert not any("90" in unit.text for unit in result.units)
