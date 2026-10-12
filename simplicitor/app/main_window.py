@@ -345,7 +345,11 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _on_extraction_thread_finished(self) -> None:
-        self._extraction_thread.wait()
+        if self._extraction_thread is None:
+            return
+        if not self._extraction_thread.wait(0):
+            QTimer.singleShot(10, self._on_extraction_thread_finished)
+            return
         self._extraction_thread.deleteLater()
         action = self._extraction_worker.action
         self._extraction_thread = self._extraction_worker = None
@@ -382,7 +386,11 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _on_ollama_thread_finished(self) -> None:
-        self._ollama_thread.wait()
+        if self._ollama_thread is None:
+            return
+        if not self._ollama_thread.wait(0):
+            QTimer.singleShot(10, self._on_ollama_thread_finished)
+            return
         self._ollama_thread.deleteLater()
         self._ollama_thread = self._ollama_worker = None
         self._close_when_idle()

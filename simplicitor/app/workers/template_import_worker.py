@@ -4,7 +4,7 @@
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, Slot
 
 from app.services.file_manipulator import ManipulationError
 from templates_engine import config
@@ -30,12 +30,14 @@ class TemplateImportWorker(QObject):
     started = Signal()
     completed = Signal(object)   # import_template result dict
     failed = Signal(str)
+    finished = Signal()
 
     def __init__(self, pptx_path: str, user_root: str) -> None:
         super().__init__()
         self._pptx_path = pptx_path
         self._user_root = user_root
 
+    @Slot()
     def run(self) -> None:
         """Execute the import. Called via QThread.started.
 
@@ -43,22 +45,25 @@ class TemplateImportWorker(QObject):
         """
         self.started.emit()
         try:
-            result = config.import_template(
-                self._pptx_path, user_root=Path(self._user_root)
-            )
-        except ValueError as exc:
-            logger.error("Template import rejected (bad file): %s", exc)
-            self.failed.emit("That file is not a usable PowerPoint deck.")
-            return
-        except ManipulationError as exc:
-            logger.error("Template import write failure: %s", exc)
-            self.failed.emit(
-                "Could not save the imported template. Check disk space and permissions."
-            )
-            return
-        except Exception as exc:  # defensive net; matches the other workers
-            logger.error("Unexpected error during template import: %s", exc)
-            self.failed.emit("Something went wrong while importing. Please try again.")
-            return
+            try:
+                result = config.import_template(
+                    self._pptx_path, user_root=Path(self._user_root)
+                )
+            except ValueError as exc:
+                logger.error("Template import rejected (bad file): %s", exc)
+                self.failed.emit("That file is not a usable PowerPoint deck.")
+                return
+            except ManipulationError as exc:
+                logger.error("Template import write failure: %s", exc)
+                self.failed.emit(
+                    "Could not save the imported template. Check disk space and permissions."
+                )
+                return
+            except Exception as exc:  # defensive net; matches the other workers
+                logger.error("Unexpected error during template import: %s", exc)
+                self.failed.emit("Something went wrong while importing. Please try again.")
+                return
 
-        self.completed.emit(result)
+            self.completed.emit(result)
+        finally:
+            self.finished.emit()

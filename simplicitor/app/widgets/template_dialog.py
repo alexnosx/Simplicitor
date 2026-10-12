@@ -5,7 +5,7 @@
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QCloseEvent, QFont
 from PySide6.QtWidgets import (
     QApplication, QDialog, QFileDialog, QHBoxLayout, QLabel, QListWidget,
@@ -47,6 +47,8 @@ class TemplateDialog(QDialog):
         self._import_thread: QThread | None = None
         self._import_worker: TemplateImportWorker | None = None
         self._importing: bool = False
+        self._import_result: dict | None = None
+        self._import_error: str | None = None
         self.setWindowTitle("Create from a template")
         self.setMinimumSize(640, 520)
         self._build_ui()
@@ -205,6 +207,9 @@ class TemplateDialog(QDialog):
         re-save of a large .pptx would freeze the UI if run in this slot; the
         import_template status-dict / exception contract is dispatched on the GUI
         thread in _on_import_completed / _on_import_failed."""
+        if self._import_thread is not None:
+            return
+        self._import_result = self._import_error = None
         self._clear_selection_error()
         self._set_importing(True)
         self._import_worker = TemplateImportWorker(path, str(self._templates_dir))
@@ -214,10 +219,9 @@ class TemplateDialog(QDialog):
         self._import_thread.started.connect(self._import_worker.run)
         self._import_worker.completed.connect(self._on_import_completed)
         self._import_worker.failed.connect(self._on_import_failed)
-        self._import_worker.completed.connect(self._import_thread.quit)
-        self._import_worker.failed.connect(self._import_thread.quit)
+        self._import_worker.finished.connect(
+            self._import_thread.quit, Qt.ConnectionType.DirectConnection)
         self._import_thread.finished.connect(self._import_worker.deleteLater)
-        self._import_thread.finished.connect(self._import_thread.deleteLater)
         self._import_thread.finished.connect(self._on_import_thread_finished)
 
         self._import_thread.start()
@@ -233,9 +237,13 @@ class TemplateDialog(QDialog):
         else:
             QApplication.restoreOverrideCursor()
 
+    @Slot(object)
     def _on_import_completed(self, result: dict) -> None:
-        """Dispatch the import_template status dict (GUI thread)."""
-        self._set_importing(False)
+        """Retain the result until the dialog's worker has fully stopped."""
+        self._import_result = result
+
+    def _apply_import_result(self, result: dict) -> None:
+        """Dispatch the joined worker's status dict on the GUI thread."""
         status = result["status"]
         if status == "exists":
             self._show_selection_error(
@@ -253,27 +261,40 @@ class TemplateDialog(QDialog):
         self._refresh_templates(select_name=result["name"])
         self._select_current(report=result.get("report", ""))
 
+    @Slot(str)
     def _on_import_failed(self, msg: str) -> None:
-        """Show the worker's user-facing failure message (GUI thread)."""
-        self._set_importing(False)
-        self._show_selection_error(msg)
+        """Retain the failure until the dialog's worker has fully stopped."""
+        self._import_error = msg
 
+    @Slot()
     def _on_import_thread_finished(self) -> None:
-        """Clear the thread and worker references once finished (their C++ objects
-        are deleteLater'd; null the Python refs so nothing touches a freed object)."""
+        """Join without blocking the GUI before releasing ownership or prompting."""
+        if self._import_thread is None:
+            return
+        if not self._import_thread.wait(0):
+            QTimer.singleShot(10, self._on_import_thread_finished)
+            return
+        self._import_thread.deleteLater()
         self._import_thread = None
         self._import_worker = None
+        result, error = self._import_result, self._import_error
+        self._import_result = self._import_error = None
+        self._set_importing(False)
+        if error is not None:
+            self._show_selection_error(error)
+        elif result is not None:
+            self._apply_import_result(result)
 
     def reject(self) -> None:
         """Block dismissal while an import is running: the worker would be orphaned
         mid-write. Esc lands here; the title-bar X lands in closeEvent."""
-        if self._importing:
+        if self._import_thread is not None:
             return
         super().reject()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Block the title-bar X while an import is running (mirrors reject)."""
-        if self._importing:
+        if self._import_thread is not None:
             event.ignore()
             return
         super().closeEvent(event)

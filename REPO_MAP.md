@@ -81,6 +81,7 @@ docs/
         2026-10-08-task5.json
         2026-10-09-task6-ci.json
         2026-10-11-task0-baseline.json
+        2026-10-12-c2-test-followup.json
     design/
         document-workspace.html
     evaluation/
@@ -1576,6 +1577,7 @@ requirements.txt
 
 ### tests/test_build_script.py
 
+- def test_hosted_source_job_has_a_bounded_diagnostic_failure()
 - def payload(tmp_path, monkeypatch)
 - def make_payload(payload, *, notices=True, include_license=True)
 - def test_build_flags_have_no_nsis_installer()
@@ -1783,6 +1785,7 @@ requirements.txt
 - def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch)
 - def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
 - def saved_candidate(tmp_path, *, flagged=True, coverage=False)
+- def test_thread_cleanup_keeps_gui_responsive_until_native_thread_exits(window, qtbot, kind)
 
 ### tests/test_main_window_modes.py
 
@@ -1949,6 +1952,8 @@ requirements.txt
 - def test_import_runs_off_the_gui_thread(qtbot, dialog, monkeypatch)
 - def test_import_unexpected_exception_shows_generic_error(qtbot, dialog, monkeypatch)
 - def test_dismissal_blocked_while_importing_then_allowed(qtbot, dialog, monkeypatch)
+- def test_import_result_does_not_allow_dismissal_before_thread_cleanup(qtbot, dialog, monkeypatch, qapp, failed)
+- def test_headless_dialog_without_an_explicit_answer_fails(qtbot)
 
 ### tests/test_template_worker.py
 
@@ -2076,7 +2081,7 @@ requirements.txt
 
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
-- .github/workflows/build.yml: yml, 105 lines
+- .github/workflows/build.yml: yml, 106 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
@@ -2097,7 +2102,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 53 lines
+- docs/PROJECT_STATUS.md: md, 59 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2110,6 +2115,7 @@ requirements.txt
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
+- docs/builds/2026-10-12-c2-test-followup.json: json, 105 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/document-workspace.html: html, 153 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines

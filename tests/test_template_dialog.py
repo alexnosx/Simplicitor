@@ -336,3 +336,52 @@ def test_dismissal_blocked_while_importing_then_allowed(qtbot, dialog, monkeypat
     assert dialog._sel_upload_btn.isEnabled()        # busy state cleared
     dialog.reject()                                  # allowed after completion
     assert rejected == [True]
+
+
+@pytest.mark.parametrize("failed", [False, True])
+def test_import_result_does_not_allow_dismissal_before_thread_cleanup(
+        qtbot, dialog, monkeypatch, qapp, failed):
+    from threading import Event
+
+    entered, return_result, emitting, release = (Event() for _ in range(4))
+
+    def import_result(*args, **kwargs):
+        entered.set()
+        assert return_result.wait(2)
+        if failed:
+            raise ValueError("synthetic invalid deck")
+        return {"status": "wat"}
+
+    def pause_after_result(*args):
+        emitting.set()
+        release.wait(2)
+
+    monkeypatch.setattr(config, "import_template", import_result)
+    dialog._do_import("synthetic.pptx")
+    assert entered.wait(2)
+    signal = dialog._import_worker.failed if failed else dialog._import_worker.completed
+    signal.connect(pause_after_result, Qt.ConnectionType.DirectConnection)
+    return_result.set()
+    try:
+        assert emitting.wait(2)
+        qapp.processEvents()  # Deliver the result while its worker is still unwinding.
+        assert dialog._importing
+        assert not dialog._sel_upload_btn.isEnabled()
+        assert not dialog.close()
+        assert dialog.isVisible()
+    finally:
+        release.set()
+        qtbot.waitUntil(lambda: dialog._import_thread is None, timeout=5000)
+    assert not dialog._importing
+    assert dialog._sel_error.isVisible()
+
+
+def test_headless_dialog_without_an_explicit_answer_fails(qtbot):
+    from PySide6.QtCore import QTimer
+    from PySide6.QtWidgets import QDialog
+
+    popup = QDialog()
+    qtbot.addWidget(popup)
+    QTimer.singleShot(20, popup.reject)  # Bounded RED: never wait for a person.
+    with pytest.raises(pytest.fail.Exception, match="unmocked dialog"):
+        popup.exec()

@@ -13,6 +13,19 @@ build = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(build)
 
 
+def test_hosted_source_job_has_a_bounded_diagnostic_failure():
+    import yaml
+
+    workflow = yaml.safe_load(
+        (Path(__file__).parents[1] / ".github/workflows/build.yml").read_text())
+    job = workflow["jobs"]["tests"]
+    assert job["timeout-minutes"] == 15
+    command = next(step["run"] for step in job["steps"]
+                   if step.get("name") == "Run source tests on hosted runner")
+    assert "pytest -vv" in command
+    assert "faulthandler_timeout=60" in command
+
+
 @pytest.fixture
 def payload(tmp_path, monkeypatch):
     monkeypatch.setattr(build, "DIST_DIR", tmp_path / "dist")

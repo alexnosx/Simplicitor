@@ -314,3 +314,41 @@ def saved_candidate(tmp_path, *, flagged=True, coverage=False):
                               (issue,) if coverage else (), {})
     return write_candidate(result, (ColumnSpec("id", "ID", "Identifier"),),
                            tmp_path / "candidate.xlsx")
+
+
+@pytest.mark.parametrize("kind", ["extraction", "ollama"])
+def test_thread_cleanup_keeps_gui_responsive_until_native_thread_exits(
+        window, qtbot, kind):
+    from types import SimpleNamespace
+    from PySide6.QtCore import QThread, QTimer
+
+    entered, release = Event(), Event()
+    thread = QThread(window)
+    attribute = f"_{kind}_thread"
+    setattr(window, attribute, thread)
+    setattr(window, f"_{kind}_worker", SimpleNamespace(action="inspect"))
+    handler = getattr(window, f"_on_{kind}_thread_finished")
+    thread.finished.connect(handler)
+
+    def finishing():
+        entered.set()
+        release.wait(0.5)  # Bounded fallback makes the broken implementation fail, not hang.
+
+    thread.finished.connect(finishing, Qt.ConnectionType.DirectConnection)
+    thread.started.connect(thread.quit, Qt.ConnectionType.DirectConnection)
+    thread.start()
+    assert entered.wait(2)  # Its GUI cleanup is queued before the heartbeat below.
+    heartbeat = []
+
+    def acknowledge_cleanup():
+        heartbeat.append(getattr(window, attribute) is thread)
+        release.set()
+
+    QTimer.singleShot(0, acknowledge_cleanup)
+    try:
+        qtbot.waitUntil(lambda: getattr(window, attribute) is None and bool(heartbeat),
+                        timeout=5000)
+    finally:
+        release.set()
+        thread.wait(2000) if getattr(window, attribute) is not None else None
+    assert heartbeat == [True]

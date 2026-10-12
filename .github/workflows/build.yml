@@ -11,6 +11,7 @@ on:
 jobs:
   tests:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +29,7 @@ jobs:
           $env:USERPROFILE = Join-Path $env:RUNNER_TEMP 'simplicitor-tests'
           $env:APPDATA = Join-Path $env:USERPROFILE 'AppData/Roaming'
           $env:LOCALAPPDATA = Join-Path $env:USERPROFILE 'AppData/Local'
-          python -m pytest -q --basetemp "$env:RUNNER_TEMP/simplicitor-pytest"
+          python -m pytest -vv -o faulthandler_timeout=60 --basetemp "$env:RUNNER_TEMP/simplicitor-pytest"
 
   build:
     needs: tests

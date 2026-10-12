@@ -19,6 +19,16 @@ def auto_show_widgets(qtbot, monkeypatch):
     (panels, dialogs) are shown so that child-widget isVisible() checks work correctly.
     """
     from app import main_window
+    from PySide6.QtWidgets import QDialog, QFileDialog
+
+    def unexpected_dialog(*args, **kwargs):
+        pytest.fail("A headless source test opened an unmocked dialog. "
+                    "Supply an explicit simulated answer in that test.")
+
+    monkeypatch.setattr(QDialog, "exec", unexpected_dialog)
+    for name in ("getOpenFileName", "getOpenFileNames", "getSaveFileName",
+                 "getExistingDirectory"):
+        monkeypatch.setattr(QFileDialog, name, unexpected_dialog)
 
     original_client = main_window.OllamaClient
 
@@ -35,16 +45,21 @@ def auto_show_widgets(qtbot, monkeypatch):
     original_add = qtbot.addWidget
 
     def patched_add(widget, **kwargs):
-        if hasattr(widget, "_close_when_idle"):
+        thread_names = (
+            ("_ollama_thread", "_extraction_thread", "_generate_thread",
+             "_template_thread", "_manipulate_thread")
+            if hasattr(widget, "_close_when_idle") else
+            ("_import_thread",) if hasattr(widget, "_import_thread") else ())
+        if thread_names:
             prior_close = kwargs.pop("before_close_func", None)
 
             def close_and_wait(window):
                 if prior_close is not None:
                     prior_close(window)
                 window.close()
-                qtbot.waitUntil(lambda: all(getattr(window, name, None) is None for name in (
-                    "_ollama_thread", "_extraction_thread", "_generate_thread",
-                    "_template_thread", "_manipulate_thread")), timeout=15000)
+                qtbot.waitUntil(lambda: all(getattr(window, name, None) is None
+                                            for name in thread_names), timeout=15000)
+                window.close()
 
             # pytest-qt otherwise deletes the window even when closeEvent waits
             # for a live worker. Match the application's asynchronous close.
