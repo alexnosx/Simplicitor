@@ -458,6 +458,7 @@ simplicitor/
             __init__.py
             capability_banner.py
             create_panel.py
+            create_screen.py
             create_workspace.py
             drop_zone.py
             edit_panel.py
@@ -865,6 +866,10 @@ requirements.txt
 ### simplicitor/app/widgets/create_panel.py
 
 - class CreatePanel(QFrame): Left panel: generate a new Office document from a prompt.
+
+### simplicitor/app/widgets/create_screen.py
+
+- class CreateScreen(QWidget): Emit frozen work requests and display results supplied by GUI-thread slots.
 
 ### simplicitor/app/widgets/create_workspace.py
 
@@ -1606,6 +1611,19 @@ requirements.txt
 - def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile)
 - def test_step_indicator_keeps_state_and_layout(qtbot, isolated_profile)
 - def test_anchor_issue_and_coverage_text_are_plain()
+- def _screen(qtbot, isolated_profile)
+- def test_without_sources_all_types_and_create_file_uses_chosen_folder(qtbot, isolated_profile, tmp_path)
+- def test_sources_force_excel_and_wait_for_inspection(qtbot, isolated_profile, tmp_path)
+- def test_same_named_files_stay_separate(qtbot, isolated_profile, tmp_path)
+- def test_removing_all_sources_restores_every_type(qtbot, isolated_profile, tmp_path)
+- def test_busy_freezes_setup_and_reports(qtbot, isolated_profile)
+- def test_show_status_accepts_secondary_and_tooltip(qtbot, isolated_profile)
+- def test_source_changes_are_ignored_while_busy(qtbot, isolated_profile, tmp_path)
+- def test_switch_from_powerpoint_to_sources_notifies_type_once(qtbot, isolated_profile, tmp_path)
+- def test_failed_inspection_ends_reading_and_keeps_setup(qtbot, isolated_profile, tmp_path)
+- def test_cancel_is_outside_the_frozen_setup(qtbot, isolated_profile)
+- def test_saved_prompt_page_and_start_another_preserve_folder(qtbot, isolated_profile, tmp_path)
+- def test_source_route_hides_save_folder_and_saved_reset_clears_sources(qtbot, isolated_profile, tmp_path)
 
 ### tests/test_extraction_panel.py
 
@@ -2106,7 +2124,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-02-phase-j-pipeline.md: md, 1108 lines
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
-- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2737 lines
+- docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
