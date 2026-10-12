@@ -1,25 +1,31 @@
 """One Create workspace for prompt generation and read-only source extraction."""
 import logging
 import os
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtWidgets import (
-    QComboBox, QFileDialog, QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QPlainTextEdit, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
+    QAbstractItemView, QCheckBox, QComboBox, QFileDialog, QFormLayout, QFrame, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
+    QPlainTextEdit, QPushButton, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget,
 )
+from PySide6.QtGui import QColor
 
 from app.config.defaults import (
     BORDER_COLOR, GENERATE_FILE_TYPES, MAX_PROMPT_CHARS, PRIMARY_ACCENT_COLOR,
     PROMPT_COMPLEXITY_THRESHOLD_CHARS, PROMPT_PLACEHOLDERS, STYLING_KEYWORDS,
-    EXTRACTION_SOURCE_FILTER, TEMPLATE_FILE_TYPE,
+    EXTRACTION_SOURCE_FILTER, TEMPLATE_FILE_TYPE, EXTRACTION_FLAG_COLOR,
 )
 from app.config.settings import Settings
-from app.widgets.plain_labels import describe_coverage
+from app.widgets.plain_labels import describe_anchor, describe_coverage, describe_issues
 from app.widgets.status_banner import StatusBanner
 from app.widgets.step_indicator import StepIndicator
 from app.workers.extraction_worker import ExtractionSetup
-from extraction.models import ExtractionProfile
+from extraction.models import Candidate, ColumnSpec, ExtractionProfile, ReviewCell
+from extraction.pipeline import ambiguous_date_columns
 
 logger = logging.getLogger(__name__)
 EXCEL = "Excel (.xlsx)"
@@ -28,6 +34,8 @@ SOURCES_NOTE = ("Files you add are turned into an Excel table. "
                 "Reports from files come in a later version.")
 ROUTE_PROMPT = ["Describe", "Save"]
 ROUTE_SOURCES = ["Describe", "Choose columns", "Review and save"]
+TYPE_NAMES = {"text": "Text", "integer": "Whole number", "decimal": "Decimal number",
+              "date": "Date"}
 
 
 class CreateScreen(QWidget):
@@ -58,6 +66,8 @@ class CreateScreen(QWidget):
         self._candidate = None
         self._cells: dict = {}
         self._last_generated_path = ""
+        self._column_settings: dict[str, ColumnSpec] = {}
+        self._next_column = 0
         self.setAcceptDrops(True)
         self.setStyleSheet(
             f"QFrame#documentCard {{ background: white; border: 1px solid {BORDER_COLOR}; "
@@ -84,6 +94,10 @@ class CreateScreen(QWidget):
         self._saved_page = self._build_saved_page()
         self._pages.addWidget(self._describe_page)
         self._pages.addWidget(self._saved_page)
+        self._columns_page = self._build_columns_page()
+        self._review_page = self._build_review_page()
+        self._pages.addWidget(self._columns_page)
+        self._pages.addWidget(self._review_page)
         self._status = StatusBanner()
         self._cancel_btn = QPushButton("Cancel")
         self._cancel_btn.setEnabled(False)
@@ -99,6 +113,7 @@ class CreateScreen(QWidget):
         self._type_combo.currentTextChanged.connect(self._type_changed)
         self._prompt_edit.setPlaceholderText(PROMPT_PLACEHOLDERS[self.file_type()])
         self._refresh()
+        self._update_details()
 
     @staticmethod
     def _card() -> tuple[QFrame, QVBoxLayout]:
@@ -271,6 +286,9 @@ class CreateScreen(QWidget):
             row.setContentsMargins(2, 2, 2, 2)
             label = QLabel(path.name)
             label.setTextFormat(Qt.TextFormat.PlainText)
+            label.setWordWrap(True)
+            label.setMinimumWidth(0)
+            item.setToolTip(str(path))
             remove = QPushButton("Remove")
             remove.clicked.connect(lambda _checked=False, i=index: self._remove_index(i))
             row.addWidget(label, 1)
@@ -388,7 +406,11 @@ class CreateScreen(QWidget):
     def _setup_controls(self) -> tuple:
         return (self._prompt_edit, self._type_combo, self._source_list, self._browse_btn,
                 self._change_folder_btn, self._template_btn, self._retry_btn, self._read_again_btn,
-                self._primary_btn, self._open_file_btn, self._another_btn)
+                self._primary_btn, self._open_file_btn, self._another_btn,
+                self._columns_table, self._add_column_btn, self._remove_column_btn,
+                self._thousands_edit, self._decimal_edit, self._date_order_combo,
+                self._back_btn, self._extract_btn, self._ack_checkbox, self._save_btn,
+                self._back_columns_btn)
 
     def set_generating(self, in_progress: bool) -> None:
         """Display generation progress without allowing a duplicate request."""
@@ -411,6 +433,9 @@ class CreateScreen(QWidget):
     @Slot(str, object)
     def show_failure(self, message: str, issues: tuple) -> None:
         """Retain editable instructions and show plain source-reading problems."""
+        if (self._paths and self._documents and not self._inspecting
+                and self._pages.currentWidget() is self._describe_page):
+            self.set_columns(())  # A failed proposal still permits manual column entry.
         self.show_status(message, True)
         if issues:
             labels = {doc.source_id: doc.label for doc in self._documents}
@@ -461,10 +486,6 @@ class CreateScreen(QWidget):
             self._save_dir = chosen
             self._folder_label.setText(chosen)
 
-    def current_columns(self) -> tuple:
-        """Return editor columns; the editor is added in C2.5."""
-        return ()
-
     def snapshot(self, include_columns: bool = True) -> ExtractionSetup:
         """Freeze setup for the worker without sharing live widget state."""
         return ExtractionSetup(self._paths, self._prompt_edit.toPlainText().strip(),
@@ -485,6 +506,13 @@ class CreateScreen(QWidget):
     def clear_review(self) -> None:
         """Invalidate the preceding candidate when setup changes."""
         self._candidate, self._cells = None, {}
+        self._grid.clear()
+        self._grid.setRowCount(0)
+        self._grid.setColumnCount(0)
+        self._evidence.clear()
+        self._ack_checkbox.setChecked(False)
+        self._ack_checkbox.hide()
+        self._review_note.hide()
         self._set_coverage("")
         self._refresh()
 
@@ -514,6 +542,269 @@ class CreateScreen(QWidget):
         self._tip_label.setVisible(self._model_is_small and (
             len(text) > PROMPT_COMPLEXITY_THRESHOLD_CHARS
             or any(keyword in text.lower() for keyword in STYLING_KEYWORDS)))
+        self._refresh_actions()
+
+    def _build_columns_page(self) -> QWidget:
+        page, layout = self._card()
+        layout.addWidget(QLabel("Choose columns"))
+        self._columns_table = QTableWidget(0, 3)
+        self._columns_table.setHorizontalHeaderLabels(["Name", "Description", "Type"])
+        self._columns_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self._columns_table.verticalHeader().hide()
+        self._columns_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self._columns_table.itemChanged.connect(self._setup_edited)
+        self._columns_table.currentCellChanged.connect(self._update_details)
+        layout.addWidget(self._columns_table, 1)
+        actions = QHBoxLayout()
+        self._add_column_btn = QPushButton("Add column")
+        self._remove_column_btn = QPushButton("Remove")
+        self._add_column_btn.clicked.connect(self._add_column)
+        self._remove_column_btn.clicked.connect(self._remove_column)
+        actions.addWidget(self._add_column_btn)
+        actions.addWidget(self._remove_column_btn)
+        actions.addStretch()
+        layout.addLayout(actions)
+        details = QGroupBox("Selected column details")
+        detail_layout = QVBoxLayout(details)
+        self._numeric_details = QWidget()
+        numeric = QFormLayout(self._numeric_details)
+        numeric.setContentsMargins(0, 0, 0, 0)
+        self._thousands_edit, self._decimal_edit = QLineEdit(","), QLineEdit(".")
+        for edit in (self._thousands_edit, self._decimal_edit):
+            edit.setMaxLength(1)
+            edit.textChanged.connect(self._details_edited)
+        numeric.addRow("Thousands separator", self._thousands_edit)
+        numeric.addRow("Decimal separator", self._decimal_edit)
+        self._date_details = QWidget()
+        dates = QHBoxLayout(self._date_details)
+        dates.setContentsMargins(0, 0, 0, 0)
+        question = QLabel("Dates in your files are written like 03/04/2026. "
+                          "Is that day/month or month/day?")
+        question.setWordWrap(True)
+        self._date_order_combo = QComboBox()
+        self._date_order_combo.addItem("Choose...", None)
+        self._date_order_combo.addItem("Day/month", "DMY")
+        self._date_order_combo.addItem("Month/day", "MDY")
+        self._date_order_combo.currentIndexChanged.connect(self._details_edited)
+        dates.addWidget(question, 1)
+        dates.addWidget(self._date_order_combo)
+        self._details_hint = QLabel()
+        detail_layout.addWidget(self._numeric_details)
+        detail_layout.addWidget(self._date_details)
+        detail_layout.addWidget(self._details_hint)
+        layout.addWidget(details)
+        bottom = QHBoxLayout()
+        self._extract_btn = QPushButton("Extract to Excel")
+        self._extract_btn.setProperty("primary", True)
+        self._extract_btn.clicked.connect(self._confirm_and_extract)
+        self._back_btn = QPushButton("Back")
+        self._back_btn.clicked.connect(self._back_to_describe)
+        bottom.addWidget(self._extract_btn)
+        bottom.addWidget(self._back_btn)
+        bottom.addStretch()
+        layout.addLayout(bottom)
+        return page
+
+    def _build_review_page(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        review, left = self._card()
+        left.addWidget(QLabel("Review your table"))
+        self._review_note = QLabel("Highlighted values need a check before you save.")
+        self._review_note.setWordWrap(True)
+        self._review_note.setStyleSheet("background: #FFF8E9; padding: 10px;")
+        left.addWidget(self._review_note)
+        self._grid = QTableWidget()
+        self._grid.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self._grid.currentCellChanged.connect(self._show_evidence)
+        left.addWidget(self._grid, 1)
+        self._coverage_view = QPlainTextEdit()
+        self._coverage_view.setReadOnly(True)
+        self._coverage_view.setMaximumHeight(100)
+        self._coverage_view.hide()
+        left.addWidget(self._coverage_view)
+        self._ack_checkbox = QCheckBox()
+        self._ack_checkbox.toggled.connect(self._refresh_actions)
+        self._ack_checkbox.hide()
+        left.addWidget(self._ack_checkbox)
+        bottom = QHBoxLayout()
+        self._save_btn = QPushButton("Save to Excel")
+        self._save_btn.setProperty("primary", True)
+        self._save_btn.clicked.connect(self._save_review)
+        self._back_columns_btn = QPushButton("Back to columns")
+        self._back_columns_btn.clicked.connect(self._back_to_columns)
+        bottom.addWidget(self._save_btn)
+        bottom.addWidget(self._back_columns_btn)
+        bottom.addStretch()
+        left.addLayout(bottom)
+        evidence, right = self._card()
+        right.addWidget(QLabel("Where this value came from"))
+        self._evidence = QPlainTextEdit()
+        self._evidence.setReadOnly(True)
+        right.addWidget(self._evidence, 1)
+        splitter.addWidget(review)
+        splitter.addWidget(evidence)
+        splitter.setStretchFactor(0, 65)
+        splitter.setStretchFactor(1, 35)
+        splitter.setSizes([650, 350])
+        layout.addWidget(splitter)
+        return page
+
+    def _back_to_describe(self) -> None:
+        self._pages.setCurrentWidget(self._describe_page)
+        self._steps.set_current(0)
+        self._caption.setText("Describe what you need.")
+
+    def _back_to_columns(self) -> None:
+        self._ack_checkbox.setChecked(False)
+        self._pages.setCurrentWidget(self._columns_page)
+        self._steps.set_current(1)
+        self._caption.setText("Choose the information you want in Excel.")
+
+    @Slot(object)
+    def set_columns(self, columns: tuple[ColumnSpec, ...]) -> None:
+        """Install editable proposals and open the column-confirmation step."""
+        self._loading = True
+        self._columns_table.setRowCount(0)
+        self._column_settings.clear()
+        for column in columns:
+            self._append_column(column)
+        self._loading = False
+        self._setup_edited()
+        if columns:
+            self._columns_table.selectRow(0)
+        self._update_details()
+        self._pages.setCurrentWidget(self._columns_page)
+        self._steps.set_current(1)
+        self._caption.setText("Choose the information you want in Excel.")
+
+    def _confirm_and_extract(self) -> None:
+        try:
+            columns = self.current_columns()
+            if not columns:
+                raise ValueError("Add at least one column.")
+            if any(not column.description.strip() for column in columns):
+                raise ValueError("Give every column a description.")
+            if not self._documents:
+                self._pending_confirm = True
+                if not self._inspecting:
+                    self._inspecting = True
+                    self.inspect_requested.emit(self.snapshot(False))
+                return
+            if self._busy:
+                return
+            if ambiguous_date_columns(self._documents, columns):
+                raise ValueError("Choose day/month or month/day for the date columns.")
+        except ValueError as exc:
+            self.show_status(str(exc), True)
+            return
+        self._confirmed = True
+        self.extract_requested.emit(self.snapshot())
+
+    def _refresh_actions(self, *_args) -> None:
+        if not hasattr(self, "_extract_btn") or not hasattr(self, "_save_btn"):
+            return
+        try:
+            columns = self.current_columns()
+            valid = (bool(columns) and all(column.description.strip() for column in columns)
+                     and not ambiguous_date_columns(self._documents, columns))
+        except ValueError:
+            valid = False
+        ready = (not self._busy and not self._generating and self._connected and bool(self._model)
+                 and bool(self._paths) and bool(self._prompt_edit.toPlainText().strip()))
+        self._extract_btn.setEnabled(ready and valid)
+        self._save_btn.setEnabled(bool(self._candidate) and not self._busy
+            and (not self._candidate.issues or self._ack_checkbox.isChecked()))
+
+    def _save_review(self) -> None:
+        if self._save_btn.isEnabled() and self._candidate is not None:
+            self.save_requested.emit(self._candidate, self._ack_checkbox.isChecked())
+
+    @Slot(object, object)
+    def show_candidate(self, candidate: Candidate, cells: tuple[ReviewCell, ...]) -> None:
+        """Review saved cells and evidence, preserving typed values and formats."""
+        self._candidate = candidate
+        self._cells = {(cell.row - 2, cell.column - 2): cell for cell in cells}
+        rows = max((cell.row - 1 for cell in cells), default=0)
+        cols = max((cell.column - 1 for cell in cells), default=1)
+        self._grid.setRowCount(rows)
+        self._grid.setColumnCount(cols)
+        labels = ["File"] + [""] * (cols - 1)
+        highlighted = False
+        coverage = set()
+        for (row, col), cell in self._cells.items():
+            entry = cell.evidence[0]
+            labels[col] = entry["Field"]
+            self._grid.setItem(row, 0, QTableWidgetItem(entry["File"]))
+            text = cell.value.isoformat()[:10] if isinstance(cell.value, date) else str(cell.value)
+            if cell.data_type == "n" and isinstance(cell.value, (int, float)):
+                number = Decimal(str(cell.value))
+                if cell.number_format == "0":
+                    text = format(number, ".0f")
+                elif cell.number_format.startswith("0."):
+                    places = cell.number_format[2:]
+                    if places and set(places) == {"0"}:
+                        text = format(number, f".{len(places)}f")
+                    elif cell.number_format == "0.##############E+00":
+                        mantissa, exponent = format(number, ".14E").split("E")
+                        text = mantissa.rstrip("0").rstrip(".") + f"E{int(exponent):+03d}"
+            item = QTableWidgetItem("" if cell.value is None else text)
+            flagged = any(entry["Status"] == "flagged" for entry in cell.evidence)
+            if flagged:
+                highlighted = True
+                item.setBackground(QColor(EXTRACTION_FLAG_COLOR))
+            self._grid.setItem(row, col, item)
+            for entry in cell.evidence:
+                if entry["Status"] == "coverage":
+                    coverage.add(describe_coverage(entry["File"], entry["Anchor"], entry["Issue"]))
+        self._grid.setHorizontalHeaderLabels(labels)
+        self._grid.resizeColumnsToContents()
+        field_codes = {"flagged_field", "excel_precision", "sectioned_source"}
+        reading = bool(coverage) or any(issue.code not in field_codes for issue in candidate.issues)
+        labels_by_source = {doc.source_id: doc.label for doc in self._documents}
+        for issue in candidate.issues:
+            if issue.code not in field_codes:
+                coverage.add(describe_coverage(labels_by_source.get(issue.source_id, "Source file"),
+                                              issue.anchor, issue.code))
+        self._set_coverage("\n".join(sorted(coverage)))
+        self._review_note.setVisible(highlighted)
+        self._ack_checkbox.setText(
+            "I have checked the highlighted values and reading problems" if highlighted and reading
+            else "I have checked the highlighted values" if highlighted
+            else "I have checked the reading problems")
+        self._ack_checkbox.setChecked(False)
+        self._ack_checkbox.setVisible(bool(candidate.issues))
+        self._pages.setCurrentWidget(self._review_page)
+        self._steps.set_current(2)
+        self._caption.setText("Check the values and their source text.")
+        if cells:
+            self._grid.setCurrentCell(0, 1)
+            self._show_evidence(0, 1)
+        self._refresh_actions()
+
+    def _show_evidence(self, row: int, col: int, *_args) -> None:
+        cell = self._cells.get((row, col))
+        if not cell:
+            self._evidence.clear()
+            return
+        blocks = []
+        for entry in cell.evidence:
+            where = describe_anchor(entry.get("Anchor") or "")
+            value = entry.get("Value")
+            lines = [f"Value: {value if value is not None and value != '' else 'Not found'}",
+                     f"Source text: {entry.get('Quote') or ''}",
+                     f"Found in: {entry.get('File') or ''}" + (f", {where}" if where else "")]
+            check = describe_issues(entry.get("Issue") or "")
+            if not check:
+                check = ("The source text did not contain a value for this column."
+                         if value is None or value == "" else
+                         "The value was found in the source text."
+                         if entry.get("Status") == "verified" else "Check this value.")
+            lines.append(f"Check: {check}")
+            blocks.append("\n".join(lines))
+        self._evidence.setPlainText("\n\n".join(blocks))
 
     def _primary_clicked(self) -> None:
         if self._paths:
@@ -521,3 +812,100 @@ class CreateScreen(QWidget):
         else:
             self.generate_requested.emit(self.file_type(), self._save_dir,
                                          self._prompt_edit.toPlainText().strip())
+
+    def _append_column(self, spec: ColumnSpec) -> None:
+            self._next_column += 1
+            spec = ColumnSpec(f"column_{self._next_column}", spec.label, spec.description,
+                              spec.kind if spec.kind in ("text", "integer", "decimal", "date") else "text",
+                              spec.thousands_separator, spec.decimal_separator, spec.date_order)
+            self._column_settings[spec.id] = spec
+            row = self._columns_table.rowCount()
+            self._columns_table.insertRow(row)
+            label = QTableWidgetItem(spec.label)
+            label.setData(Qt.ItemDataRole.UserRole, spec.id)
+            self._columns_table.setItem(row, 0, label)
+            self._columns_table.setItem(row, 1, QTableWidgetItem(spec.description))
+            kinds = QComboBox()
+            for kind, label in TYPE_NAMES.items():
+                kinds.addItem(label, kind)
+            kinds.setCurrentIndex(kinds.findData(spec.kind))
+            kinds.currentTextChanged.connect(self._setup_edited)
+            kinds.currentTextChanged.connect(self._update_details)
+            self._columns_table.setCellWidget(row, 2, kinds)
+
+    def _add_column(self) -> None:
+            self._loading = True
+            self._append_column(ColumnSpec("", f"Column {self._next_column + 1}", ""))
+            self._loading = False
+            self._columns_table.selectRow(self._columns_table.rowCount() - 1)
+            self._setup_edited()
+
+    def _remove_column(self) -> None:
+            row = self._columns_table.currentRow()
+            if row >= 0:
+                self._columns_table.removeRow(row)
+                self._setup_edited()
+                self._update_details()
+
+    def current_columns(self) -> tuple[ColumnSpec, ...]:
+            """Return validated editor values with confirmed English conversion settings."""
+            columns = []
+            for row in range(self._columns_table.rowCount()):
+                item = self._columns_table.item(row, 0)
+                saved = self._column_settings[item.data(Qt.ItemDataRole.UserRole)]
+                kind = self._columns_table.cellWidget(row, 2).currentData()
+                column = ColumnSpec(saved.id, item.text().strip(),
+                                    self._columns_table.item(row, 1).text(), kind,
+                                    saved.thousands_separator, saved.decimal_separator, saved.date_order)
+                if not column.label:
+                    raise ValueError("Give every column a name.")
+                if kind in ("integer", "decimal"):
+                    if column.thousands_separator not in ("", ",", ".", " ", "'"):
+                        raise ValueError("Thousands separator must be comma, full stop, space, "
+                                         "apostrophe or empty.")
+                    if column.decimal_separator not in (".", ","):
+                        raise ValueError("Decimal separator must be a full stop or comma.")
+                if kind in ("integer", "decimal") and (not column.decimal_separator
+                        or column.decimal_separator == column.thousands_separator):
+                    raise ValueError("Use different thousands and decimal separators.")
+                columns.append(column)
+            if len({c.label.casefold() for c in columns}) != len(columns):
+                raise ValueError("Give each column a distinct name.")
+            return tuple(columns)
+
+    def _selected_spec(self) -> ColumnSpec | None:
+            row = self._columns_table.currentRow()
+            if row < 0 or self._columns_table.item(row, 0) is None:
+                return None
+            return self._column_settings.get(self._columns_table.item(row, 0).data(Qt.ItemDataRole.UserRole))
+
+    def _update_details(self, *_args) -> None:
+            if self._loading:
+                return
+            spec = self._selected_spec()
+            row = self._columns_table.currentRow()
+            kind = self._columns_table.cellWidget(row, 2).currentData() if spec else "text"
+            self._loading = True
+            self._thousands_edit.setText(spec.thousands_separator if spec else ",")
+            self._decimal_edit.setText(spec.decimal_separator if spec else ".")
+            self._date_order_combo.setCurrentIndex(
+                self._date_order_combo.findData(spec.date_order if spec else None))
+            self._loading = False
+            self._numeric_details.setVisible(kind in ("integer", "decimal"))
+            ambiguous = bool(self._documents and ambiguous_date_columns(
+                self._documents, (ColumnSpec("date", "Date", "", "date"),)))
+            self._date_details.setVisible(kind == "date" and ambiguous)
+            self._details_hint.setVisible(kind == "text" or (kind == "date" and not ambiguous))
+            self._details_hint.setText("English month-name dates need no order setting."
+                                       if kind == "date" else "Text identifiers preserve their leading zeros.")
+
+    def _details_edited(self, *_args) -> None:
+            if self._loading:
+                return
+            spec = self._selected_spec()
+            if spec:
+                self._column_settings[spec.id] = ColumnSpec(
+                    spec.id, spec.label, spec.description, spec.kind,
+                    self._thousands_edit.text(), self._decimal_edit.text(),
+                    self._date_order_combo.currentData())
+                self._setup_edited()

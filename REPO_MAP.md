@@ -1624,10 +1624,13 @@ requirements.txt
 - def test_cancel_is_outside_the_frozen_setup(qtbot, isolated_profile)
 - def test_saved_prompt_page_and_start_another_preserve_folder(qtbot, isolated_profile, tmp_path)
 - def test_source_route_hides_save_folder_and_saved_reset_clears_sources(qtbot, isolated_profile, tmp_path)
-
-### tests/test_extraction_panel.py
-
-- def panel(qtbot, tmp_path)
+- def _document(path)
+- def test_extract_before_reading_finishes_waits_and_resumes(qtbot, isolated_profile, tmp_path)
+- def test_columns_page_navigation_and_confirmation(qtbot, isolated_profile, tmp_path)
+- def test_review_uses_plain_words_and_resets_acknowledgement(qtbot, isolated_profile, tmp_path)
+- def test_review_acknowledgement_labels_and_export_gate(qtbot, isolated_profile, tmp_path, highlighted, reading, label)
+- def test_failure_lists_plain_coverage(qtbot, isolated_profile)
+- def panel(qtbot, isolated_profile, tmp_path)
 - def saved_candidate(tmp_path, *, flagged=True, coverage=False)
 - def test_review_uses_saved_number_format_and_file_without_record(panel, tmp_path, value, kind, expected)
 - def test_source_picker_preserves_duplicate_attachments_without_copying(panel, monkeypatch)
@@ -1640,6 +1643,13 @@ requirements.txt
 - def test_saved_grid_literal_flags_evidence_acknowledgement_and_rerun_reset(panel, tmp_path)
 - def test_setup_changes_clear_confirmation_and_review(panel, tmp_path, change)
 - def test_busy_setup_is_frozen_and_save_can_finish_without_cancel(panel)
+- def test_source_drop_accepts_only_local_supported_files(panel)
+- def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path)
+- def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
+
+### tests/test_extraction_panel.py
+
+- def panel(qtbot, tmp_path)
 - def window(qtbot, tmp_path, monkeypatch)
 - def test_create_workspace_defaults_to_sources_and_preserves_prompt_host(window)
 - def test_selected_model_warning(window, count, warn)
@@ -1657,7 +1667,7 @@ requirements.txt
 - def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch)
 - def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch)
 - def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
-- def test_source_drop_accepts_only_local_supported_files(panel)
+- def saved_candidate(tmp_path, *, flagged=True, coverage=False)
 
 ### tests/test_extraction_worker.py
 

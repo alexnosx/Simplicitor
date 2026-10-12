@@ -33,206 +33,28 @@ def panel(qtbot, tmp_path):
     return widget
 
 
-def saved_candidate(tmp_path, *, flagged=True, coverage=False):
-    issue = Issue("request_failed", "source-1", "source-1#p:1", "A section failed.")
-    field = FieldResult(FieldProposal("000452", "ID 000452", "source-1#p:0"),
-                        "000452", flagged, ("leading_zero",) if flagged else ())
-    result = ExtractionResult(("source-1",), {("source-1", "id"): field},
-                              {"source-1": tmp_path / "source.docx"},
-                              (issue,) if coverage else (), {})
-    return write_candidate(result, (ColumnSpec("id", "ID", "Identifier"),),
-                           tmp_path / "candidate.xlsx")
 
 
-@pytest.mark.parametrize("value,kind,expected", [
-    ("12500.00", "decimal", "12500.00"),
-    ("12.5000", "decimal", "12.5000"),
-    ("-2.50", "decimal", "-2.50"),
-    ("123.100000000000000", "decimal", "123.100000000000000"),
-    ("9999999999999.9000", "decimal", "9999999999999.9000"),
-    ("0.00000000000000001", "decimal", "1E-17"),
-    ("12500", "integer", "12500"),
-    ("000452", "text", "000452"),
-])
-def test_review_uses_saved_number_format_and_file_without_record(panel, tmp_path,
-                                                                value, kind, expected):
-    from decimal import Decimal
-    typed = Decimal(value) if kind == "decimal" else int(value) if kind == "integer" else value
-    field = FieldResult(FieldProposal(value, value, "source-1#p:0"), typed, False, ())
-    result = ExtractionResult(("source-1",), {("source-1", "value"): field},
-                              {"source-1": tmp_path / "source.docx"}, (), {})
-    candidate = write_candidate(result, (ColumnSpec("value", "Value", "Value", kind),),
-                                tmp_path / "candidate.xlsx")
-    panel.show_candidate(candidate, read_candidate(candidate))
-    assert panel._grid.columnCount() == 2
-    assert panel._grid.horizontalHeaderItem(0).text() == "File"
-    assert panel._grid.item(0, 0).text() == "source.docx"
-    assert panel._grid.item(0, 1).text() == expected
-    panel._grid.setCurrentCell(0, 1)
-    assert "Record: source-1" in panel._evidence.toPlainText()
-    book = load_workbook(candidate.path)
-    assert book["Evidence"]["B1"].value == "Record"
-    book.close()
 
 
-def test_source_picker_preserves_duplicate_attachments_without_copying(panel, monkeypatch):
-    path = panel._paths[0]
-    monkeypatch.setattr(QFileDialog, "getOpenFileNames", lambda *a, **k:
-                        ([str(path), str(path)], ""))
-    panel._add_btn.click()
-    assert panel._paths == (path, path, path)
-    assert panel._source_list.count() == 3
-    assert all(p == path for p in panel._paths)
-    assert not panel._confirmed
 
 
-def test_columns_add_edit_remove_and_freeze_before_extract(panel):
-    panel.set_columns((ColumnSpec("id", "ID", "Identifier", "unknown"),))
-    assert panel.current_columns()[0].kind == "text"
-    assert not panel._extract_btn.isEnabled()
-    panel._add_column_btn.click()
-    assert len(panel.current_columns()) == 2
-    panel._columns_table.selectRow(1)
-    panel._remove_column_btn.click()
-    panel._columns_table.item(0, 0).setText("Customer ID")
-    panel._confirm_btn.click()
-    assert panel._extract_btn.isEnabled()
-    with pytest.raises(Exception):  # dataclass is frozen
-        panel.snapshot().request = "changed"
-    with pytest.raises(ValueError):
-        panel.set_columns((ColumnSpec("id", "", ""),))
-        panel.current_columns()
 
 
-def test_numeric_defaults_overrides_and_conditional_date_order(panel):
-    panel.set_columns((ColumnSpec("amount", "Amount", "Amount", "decimal"),
-                       ColumnSpec("date", "Date", "Date", "date")))
-    panel._columns_table.selectRow(0)
-    assert panel._thousands_edit.text() == "," and panel._decimal_edit.text() == "."
-    panel._thousands_edit.setText(".")
-    panel._decimal_edit.setText(",")
-    assert panel.current_columns()[0].decimal_separator == ","
-    panel._columns_table.selectRow(1)
-    assert panel._date_order_combo.isVisible()
-    panel._confirm_btn.click()
-    assert not panel._confirmed and not panel._extract_btn.isEnabled()
-    panel._date_order_combo.setCurrentIndex(1)
-    panel._confirm_btn.click()
-    assert panel._confirmed and panel.current_columns()[1].date_order == "DMY"
-    documents = tuple(replace(d, units=tuple(replace(u, text="15 March 2026") for u in d.units))
-                      for d in panel._documents)
-    panel.show_inspection(documents)
-    assert not panel._date_order_combo.isVisible()
 
 
-@pytest.mark.parametrize("thousands,decimal", [("1", "."), ("-", "."), ("+", "."),
-                                              ("e", "."), ("$", "."), (",", "1"),
-                                              (",", "+"), (",", " ")])
-def test_invalid_numeric_separators_cannot_confirm_or_start_extraction(panel, thousands, decimal):
-    panel.set_columns((ColumnSpec("amount", "Amount", "Amount", "decimal"),))
-    panel._thousands_edit.setText(thousands)
-    panel._decimal_edit.setText(decimal)
-    panel._confirm_btn.click()
-    assert not panel._confirmed and not panel._extract_btn.isEnabled()
-    with pytest.raises(ValueError, match="separator"):
-        panel.snapshot()
 
 
-@pytest.mark.parametrize("thousands,decimal,value", [(",", ".", "1,234.50"),
-                                                    (".", ",", "1.234,50"),
-                                                    (" ", ",", "1 234,50"),
-                                                    ("'", ".", "1'234.50"),
-                                                    ("", ".", "1234.50")])
-def test_supported_numeric_separator_overrides_preserve_values(panel, thousands, decimal, value):
-    from decimal import Decimal
-    from extraction.grounding import validate_field
-    from extraction.models import SourceUnit
-    panel.set_columns((ColumnSpec("amount", "Amount", "Amount", "decimal"),))
-    panel._thousands_edit.setText(thousands)
-    panel._decimal_edit.setText(decimal)
-    panel._confirm_btn.click()
-    assert panel._confirmed
-    unit = SourceUnit("one#p:0", value, "paragraph", 0)
-    result = validate_field(FieldProposal(value, value, unit.anchor), panel.current_columns()[0],
-                            {unit.anchor: unit})
-    assert not result.flagged and result.typed_value == Decimal("1234.50")
 
 
-def test_many_coverage_issues_stay_scrollable_and_keep_controls_accessible(panel, qtbot):
-    issues = tuple(Issue("low_text", "source-1", f"source-1#page:{page}",
-                         "A PDF page has little readable text.") for page in range(2, 102))
-    documents = (replace(panel._documents[0], issues=issues, page_cost=101),)
-    panel.resize(1000, 650)
-    panel.show_inspection(documents)
-    qtbot.wait(20)
-    assert panel.minimumSizeHint().height() <= 650 and panel.height() <= 650
-    assert panel._coverage_view.height() <= 100
-    assert panel._coverage_view.verticalScrollBar().maximum() > 0
-    assert "source-1#page:2" in panel._coverage_view.toPlainText()
-    assert "source-1#page:101" in panel._coverage_view.toPlainText()
-    panel.show_failure("Some pages were not processed.", issues)
-    assert panel._coverage_view.height() <= 100
-    assert "source-1#page:101" in panel._coverage_view.toPlainText()
 
 
-def test_failure_retains_editable_setup_and_disconnection_gates_model_calls(panel):
-    panel.set_columns((ColumnSpec("id", "ID", "Identifier"),))
-    panel.set_busy(True)
-    panel.show_failure("Could not suggest columns.", ())
-    panel.set_busy(False)
-    assert panel._request_edit.toPlainText() == "Extract the ID"
-    assert panel.current_columns()[0].label == "ID"
-    panel._confirm_btn.click()
-    panel.set_ollama_connected(False)
-    assert not panel._extract_btn.isEnabled() and not panel._suggest_btn.isEnabled()
-    assert panel._add_column_btn.isEnabled()
-    panel.set_ollama_connected(True)
-    assert panel._extract_btn.isEnabled()
 
 
-def test_saved_grid_literal_flags_evidence_acknowledgement_and_rerun_reset(panel, tmp_path):
-    candidate = saved_candidate(tmp_path, coverage=True)
-    panel.set_columns((ColumnSpec("id", "ID", "Identifier"),))
-    panel._confirm_btn.click()
-    panel.show_candidate(candidate, read_candidate(candidate))
-    cell = panel._grid.item(0, 1)
-    assert cell.text() == "000452" and cell.background().color().isValid()
-    assert panel._grid.editTriggers() == QTableWidget.EditTrigger.NoEditTriggers
-    panel._grid.setCurrentCell(0, 1)
-    assert "ID 000452" in panel._evidence.toPlainText()
-    assert "leading_zero" in panel._evidence.toPlainText()
-    assert "A section failed." in panel._coverage_view.toPlainText()
-    assert not panel._save_btn.isEnabled()
-    panel._ack_checkbox.setChecked(True)
-    assert panel._save_btn.isEnabled()
-    panel.clear_review()
-    assert panel._candidate is None and panel._grid.rowCount() == 0
-    assert not panel._ack_checkbox.isChecked()
 
 
-@pytest.mark.parametrize("change", ["request", "column", "sources"])
-def test_setup_changes_clear_confirmation_and_review(panel, tmp_path, change):
-    panel.set_columns((ColumnSpec("id", "ID", "Identifier"),))
-    panel._confirm_btn.click()
-    candidate = saved_candidate(tmp_path)
-    panel.show_candidate(candidate, read_candidate(candidate))
-    if change == "request":
-        panel._request_edit.setPlainText("Another request")
-    elif change == "column":
-        panel._columns_table.item(0, 0).setText("New ID")
-    else:
-        panel.set_paths(panel._paths + panel._paths)
-    assert not panel._confirmed and panel._candidate is None
 
 
-def test_busy_setup_is_frozen_and_save_can_finish_without_cancel(panel):
-    before = panel._paths
-    panel.set_busy(True)
-    panel.set_paths((Path("different.docx"),))
-    assert panel._paths == before and not panel._suggest_btn.isEnabled()
-    assert panel._cancel_btn.isEnabled()
-    panel.set_busy(True, saving=True)
-    assert not panel._cancel_btn.isEnabled()
 
 
 @pytest.fixture
@@ -525,21 +347,14 @@ def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monk
         assert panel._candidate == candidate and window._extraction_thread is None
 
 
-def test_source_drop_accepts_only_local_supported_files(panel):
-    from PySide6.QtCore import QMimeData, QPoint, QPointF, QUrl
-    from PySide6.QtGui import QDragEnterEvent, QDropEvent
-    mime = QMimeData()
-    mime.setUrls([QUrl.fromLocalFile(str(panel._paths[0]))])
-    enter = QDragEnterEvent(QPoint(5, 5), Qt.DropAction.CopyAction, mime,
-                            Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
-    panel.dragEnterEvent(enter)
-    assert enter.isAccepted()
-    drop = QDropEvent(QPointF(5, 5), Qt.DropAction.CopyAction, mime,
-                      Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
-    panel.dropEvent(drop)
-    assert panel._source_list.count() == 2
-    mime.setUrls([QUrl("https://example.com/private.pdf")])
-    enter = QDragEnterEvent(QPoint(5, 5), Qt.DropAction.CopyAction, mime,
-                            Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
-    panel.dragEnterEvent(enter)
-    assert not enter.isAccepted()
+
+
+def saved_candidate(tmp_path, *, flagged=True, coverage=False):
+    issue = Issue("request_failed", "source-1", "source-1#p:1", "A section failed.")
+    field = FieldResult(FieldProposal("000452", "ID 000452", "source-1#p:0"),
+                        "000452", flagged, ("leading_zero",) if flagged else ())
+    result = ExtractionResult(("source-1",), {("source-1", "id"): field},
+                              {"source-1": tmp_path / "source.docx"},
+                              (issue,) if coverage else (), {})
+    return write_candidate(result, (ColumnSpec("id", "ID", "Identifier"),),
+                           tmp_path / "candidate.xlsx")
