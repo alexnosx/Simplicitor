@@ -16,14 +16,15 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
 sys.path.insert(0, str(ROOT / "simplicitor"))
 
-from PySide6.QtCore import QThread  # noqa: E402
+from PySide6.QtCore import QPoint, QThread  # noqa: E402
 from PySide6.QtGui import QFont  # noqa: E402
-from PySide6.QtWidgets import QApplication  # noqa: E402
+from PySide6.QtWidgets import QApplication, QFrame, QLabel  # noqa: E402
 
 from app.config.settings import Settings  # noqa: E402
 from app.config.defaults import (  # noqa: E402
     APP_FONT_FAMILY, FONT_SIZE_BODY_PT, BORDER_COLOR, PRIMARY_ACCENT_COLOR,
     BODY_TEXT_COLOR, DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
+    BACKGROUND_COLOR,
 )
 import app.main_window as main_window  # noqa: E402
 from app.main_window import MainWindow  # noqa: E402
@@ -97,12 +98,27 @@ def main(out: Path) -> None:
             break
         QThread.msleep(10)
     assert screen._connected
+    checks = []
 
     def shot(name: str) -> None:
         app.processEvents()
         image = window.grab()
         assert image.width() == 1280 and image.height() == 800
+        pixels = image.toImage()
+        checked = 0
+        for card in screen.findChildren(QFrame):
+            if card.objectName() != "documentCard" or not card.isVisible():
+                continue
+            for label in card.findChildren(QLabel):
+                if not label.isVisible() or not label.text():
+                    continue
+                corner = label.mapTo(window, QPoint(label.width() - 2, label.height() - 2))
+                assert pixels.pixelColor(corner).name().lower() != BACKGROUND_COLOR.lower(), (
+                    "Grey card label background: " + label.text())
+                checked += 1
         assert image.save(str(out / name))
+        checks.append({"image": name, "card_labels_checked": checked,
+                       "grey_label_backgrounds": 0})
 
     shot("1-create-describe.png")
     fixtures = ROOT / "tests" / "extraction" / "fixtures"
@@ -156,6 +172,9 @@ def main(out: Path) -> None:
         window.close()
         QThread.msleep(50)
     assert all(getattr(window, name, None) is None for name in _THREADS), "Worker did not stop"
+    import json
+    (out / "label-background-checks.json").write_text(
+        json.dumps(checks, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

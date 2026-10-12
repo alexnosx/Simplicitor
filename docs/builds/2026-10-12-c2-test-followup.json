@@ -101,5 +101,11 @@
   "local_log": ".venv/c2-followup1-green.log",
   "historic_cause_status": "The regressions prove the defects above, but do not prove which defect blocked the old CI test or caused the earlier abort. Keep both incidents linked and unresolved as historical attribution; do not treat a successful retry as evidence of cause.",
   "local_profile_correction": "The initial bounded94-test diagnostic missed profile redirection and created an empty C:/Users/nos/AppData/Roaming/Simplicitor/extraction-jobs directory. Its synthetic jobs were removed by tests; zero entries verified. The directory was left in place, without further outside-workspace cleanup. All later diagnostics and suites used .venv/test-home.",
-  "milestone": "No new full build dispatched; PartD not started."
+  "milestone": "No new full build dispatched; PartD not started.",
+  "automatic_source_push_check": {
+    "url": "https://github.com/alexnosx/Simplicitor/actions/runs/38214081876",
+    "commit": "ea82690fc984c3ac819d44d34d406fbb6e496685",
+    "tests": "success",
+    "build": "skipped"
+  }
 }

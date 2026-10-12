@@ -389,6 +389,16 @@ def test_source_picker_preserves_duplicate_attachments_without_copying(panel, mo
     assert not panel._confirmed
 
 
+def test_source_filename_is_drawn_once_and_remains_accessible(panel):
+    from PySide6.QtWidgets import QLabel
+
+    item = panel._source_list.item(0)
+    row = panel._source_list.itemWidget(item)
+    texts = [item.text()] + [label.text() for label in row.findChildren(QLabel)]
+    assert texts.count(panel._paths[0].name) == 1
+    assert item.data(Qt.ItemDataRole.AccessibleTextRole) == panel._paths[0].name
+
+
 def test_columns_add_edit_remove_and_freeze_before_extract(panel):
     panel.set_columns((ColumnSpec("id", "ID", "Identifier", "unknown"),))
     assert panel.current_columns()[0].kind == "text"

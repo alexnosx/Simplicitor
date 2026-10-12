@@ -82,6 +82,7 @@ docs/
         2026-10-09-task6-ci.json
         2026-10-11-task0-baseline.json
         2026-10-12-c2-test-followup.json
+        2026-10-12-c2-ui-followup.json
     design/
         document-workspace.html
     evaluation/
@@ -1629,6 +1630,7 @@ requirements.txt
 - def saved_candidate(tmp_path, *, flagged=True, coverage=False)
 - def test_review_uses_saved_number_format_and_file_without_record(panel, tmp_path, value, kind, expected)
 - def test_source_picker_preserves_duplicate_attachments_without_copying(panel, monkeypatch)
+- def test_source_filename_is_drawn_once_and_remains_accessible(panel)
 - def test_columns_add_edit_remove_and_freeze_before_extract(panel)
 - def test_numeric_defaults_overrides_and_conditional_date_order(panel)
 - def test_invalid_numeric_separators_cannot_confirm_or_start_extraction(panel, thousands, decimal)
@@ -1797,6 +1799,7 @@ requirements.txt
 - def test_step_labels_fit_at_screenshot_size(window, qapp, tmp_path, monkeypatch)
 - def test_idle_cancel_is_a_compact_button(window)
 - def test_mode_text_has_room_for_button_padding(window, qapp, mode)
+- def test_card_label_background_is_not_the_central_grey(window, qapp, page_name)
 - def test_settings_changes_model_only_on_save(window, monkeypatch, accepted)
 - def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, cancel)
 
@@ -2102,7 +2105,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 59 lines
+- docs/PROJECT_STATUS.md: md, 61 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2115,7 +2118,8 @@ requirements.txt
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
-- docs/builds/2026-10-12-c2-test-followup.json: json, 105 lines
+- docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
+- docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/document-workspace.html: html, 153 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines

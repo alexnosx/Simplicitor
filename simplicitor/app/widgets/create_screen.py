@@ -282,7 +282,8 @@ class CreateScreen(QWidget):
         self._paths = tuple(Path(path) for path in paths if Path(path).suffix.lower() in SOURCE_SUFFIXES)
         self._source_list.clear()
         for index, path in enumerate(self._paths):
-            item = QListWidgetItem(path.name)
+            item = QListWidgetItem()
+            item.setData(Qt.ItemDataRole.AccessibleTextRole, path.name)
             self._source_list.addItem(item)
             holder = QWidget()
             row = QHBoxLayout(holder)

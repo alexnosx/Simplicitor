@@ -82,7 +82,9 @@ class MainWindow(QMainWindow):
             self.setWindowIcon(QIcon(str(icon_path)))
 
         central = QWidget()
-        central.setStyleSheet(f"background-color: {BACKGROUND_COLOR};")
+        central.setObjectName("simplicitorCentral")
+        central.setStyleSheet(
+            f"QWidget#simplicitorCentral {{ background-color: {BACKGROUND_COLOR}; }}")
         self.setCentralWidget(central)
 
         root_layout = QVBoxLayout(central)

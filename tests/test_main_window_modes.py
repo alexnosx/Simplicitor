@@ -98,6 +98,34 @@ def test_mode_text_has_room_for_button_padding(window, qapp, mode):
     assert button.width() >= button.fontMetrics().horizontalAdvance(button.text()) + 24
 
 
+@pytest.mark.parametrize("page_name", [
+    "_describe_page", "_columns_page", "_review_page", "_saved_page"])
+def test_card_label_background_is_not_the_central_grey(window, qapp, page_name):
+    from PySide6.QtCore import QPoint
+    from PySide6.QtWidgets import QFrame, QLabel
+    from app.config.defaults import BACKGROUND_COLOR
+
+    screen = window._create_screen
+    screen._pages.setCurrentWidget(getattr(screen, page_name))
+    if page_name == "_saved_page":
+        screen.show_open_file_btn("synthetic.xlsx")
+    window.resize(1280, 800)
+    qapp.processEvents()
+    image = window.grab().toImage()
+    count = 0
+    for card in screen.findChildren(QFrame):
+        if card.objectName() != "documentCard" or not card.isVisible():
+            continue
+        for label in card.findChildren(QLabel):
+            if not label.isVisible() or not label.text():
+                continue
+            corner = label.mapTo(window, QPoint(label.width() - 2, label.height() - 2))
+            assert image.pixelColor(corner).name().lower() != BACKGROUND_COLOR.lower(), (
+                label.text())
+            count += 1
+    assert count > 0
+
+
 @pytest.mark.parametrize("accepted", [True, False])
 def test_settings_changes_model_only_on_save(window, monkeypatch, accepted):
     from PySide6.QtWidgets import QDialog

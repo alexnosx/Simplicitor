@@ -1,0 +1,60 @@
+{
+  "local_source_tests": 1077,
+  "local_log": ".venv/c2-followup2-final-green.log",
+  "screenshots_directory": ".venv/screens-c2-followup",
+  "screenshots": [
+    {
+      "image": "1-create-describe.png",
+      "card_labels_checked": 6,
+      "grey_label_backgrounds": 0,
+      "sha256": "8e890f290e230a7f3c73d8f08ae700a85a58571f87cf6aa5859abbb6825d0693",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "image": "2-create-with-files.png",
+      "card_labels_checked": 7,
+      "grey_label_backgrounds": 0,
+      "sha256": "fed2cb986dac1fc2ae773dc022e01c60d230a3b44f24bc625fde84b4d7facca7",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "image": "3-choose-columns.png",
+      "card_labels_checked": 2,
+      "grey_label_backgrounds": 0,
+      "sha256": "99781ad4cf791d8b8eb8363749532fa0a8a5db85de7612a82c0916fed17914ac",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "image": "4-review-and-save.png",
+      "card_labels_checked": 3,
+      "grey_label_backgrounds": 0,
+      "sha256": "569316f7b2dce6f6c69685285c29bb1944e9b52ea08d3f15f8ce3ff776b4fd3e",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "image": "5-edit-document.png",
+      "card_labels_checked": 0,
+      "grey_label_backgrounds": 0,
+      "sha256": "22e6b38544f5cb17d956264d7bca7222daf27bc048c12233bbfb8329f1daa330",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "image": "6-saved-file.png",
+      "card_labels_checked": 1,
+      "grey_label_backgrounds": 0,
+      "sha256": "997a96430b740d3f2b8b75384a0611f9ab72f7874f8180c172c617a07addd93b",
+      "width": 1280,
+      "height": 800
+    }
+  ],
+  "visible_card_labels_checked": 19,
+  "grey_label_backgrounds": 0,
+  "change": "Central-widget-only background selector; intentional coloured notices preserved. Source filenames paint once through their row labels, retaining accessible item names.",
+  "comparison": "Rendered corner pixels for every visible nonempty card label, four page regressions and visual inspection. Original C2.7 images retained in .venv/screens.",
+  "scope": "No new milestone, PartD, installer/uninstaller/build tools/dependency installation, tag/release/publication or LICENSE change."
+}
