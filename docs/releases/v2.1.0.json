@@ -1,0 +1,107 @@
+{
+  "tag": "v2.1.0",
+  "release_url": "https://github.com/alexnosx/Simplicitor/releases/tag/v2.1.0",
+  "release_id": 410485401,
+  "published_at": "2026-10-12T10:30:10Z",
+  "verified_at": "2026-10-12T10:31:51.104594+00:00",
+  "latest_verified": true,
+  "latest_verification": "GitHub releases/latest returned this release ID and v2.1.0.",
+  "source_commit": "2202cce6c1679f334b697c7ca26b87c3d84a87cd",
+  "workflow_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38233039100",
+  "workflow_conclusion": "success",
+  "workflow_steps": {
+    "Set up job": "success",
+    "Run actions/checkout@v4": "success",
+    "Check release notes": "success",
+    "Set up Python": "success",
+    "Set up .NET": "success",
+    "Install dependencies": "success",
+    "Generate icon": "success",
+    "Build standalone, installer, and portable ZIP": "success",
+    "Qualify installer on hosted Windows runner": "success",
+    "Upload MSI logs on failure": "skipped",
+    "Upload artifact": "success",
+    "Publish to GitHub Release": "success",
+    "Post Set up .NET": "success",
+    "Post Set up Python": "success",
+    "Post Run actions/checkout@v4": "success",
+    "Complete job": "success"
+  },
+  "release_notes": {
+    "path": "docs/releases/v2.1.0-notes.md",
+    "matches_published_body": true,
+    "comparison": "Exact tagged text after normalizing CRLF and final newlines.",
+    "normalized_sha256": "cc849819f752193c6c938cb7c2a9037815a270f2f4896f26bd81a517165fd232"
+  },
+  "assets": [
+    {
+      "id": 633451473,
+      "name": "SHA256SUMS.json",
+      "url": "https://github.com/alexnosx/Simplicitor/releases/download/v2.1.0/SHA256SUMS.json",
+      "bytes": 66326,
+      "sha256": "094beea6e79124b42589674741af49fe872ea3204070ff4165472bfe1845182b",
+      "github_digest": "sha256:094beea6e79124b42589674741af49fe872ea3204070ff4165472bfe1845182b",
+      "downloaded_hash_matches_github": true,
+      "checksum_manifest_match": null
+    },
+    {
+      "id": 633451468,
+      "name": "Simplicitor-2.1.0.msi",
+      "url": "https://github.com/alexnosx/Simplicitor/releases/download/v2.1.0/Simplicitor-2.1.0.msi",
+      "bytes": 61187961,
+      "sha256": "5cc69ac646e8e90e14810ca7551b65852658d9a4ef9a24432973729f3dd2dba8",
+      "github_digest": "sha256:5cc69ac646e8e90e14810ca7551b65852658d9a4ef9a24432973729f3dd2dba8",
+      "downloaded_hash_matches_github": true,
+      "checksum_manifest_match": true
+    },
+    {
+      "id": 633451469,
+      "name": "Simplicitor-portable.zip",
+      "url": "https://github.com/alexnosx/Simplicitor/releases/download/v2.1.0/Simplicitor-portable.zip",
+      "bytes": 75613155,
+      "sha256": "7c2e880fcf39325572f5f07c4e2660eb93fabeda55b43c32cae30390547c0446",
+      "github_digest": "sha256:7c2e880fcf39325572f5f07c4e2660eb93fabeda55b43c32cae30390547c0446",
+      "downloaded_hash_matches_github": true,
+      "checksum_manifest_match": true
+    }
+  ],
+  "verification": {
+    "downloaded_file_hashes_match_github": true,
+    "installer_and_zip_hashes_match_manifest": true,
+    "checksum_manifest_self_hash": "SHA256SUMS.json cannot list its own hash; its downloaded hash is checked against the GitHub asset digest.",
+    "portable_payload_files": 535,
+    "portable_payload_hashes_match": true,
+    "packaged_mit_license_matches_tag": true,
+    "license_comparison": "Text matches tagged LICENSE after normalizing line endings.",
+    "third_party_notices_present": true,
+    "local_execution": "Downloads read and hashed only; no installer, uninstaller, msiexec, Windows Sandbox, WiX, build.py or qualification script run locally.",
+    "hosted_qualification": "MSI lifecycle qualification passed on the GitHub Actions Windows runner.",
+    "hosted_qualification_check_count": 57,
+    "windows_reputation": "Not verified.",
+    "source_tests": {
+      "passed": 1077,
+      "location": "GitHub Actions Windows runner"
+    },
+    "local_source_tests": {
+      "passed": 1077,
+      "log": ".venv/v210-pretag-tests.log",
+      "profile": ".venv/test-home"
+    },
+    "pretag_push_run": {
+      "url": "https://github.com/alexnosx/Simplicitor/actions/runs/38232604557",
+      "conclusion": "success",
+      "tests": "success",
+      "build": "skipped"
+    },
+    "user_source_acceptance": {
+      "reported_by": "Alex",
+      "date": "2026-10-12",
+      "result": "passed",
+      "checks": [
+        "PDF from a prompt",
+        "Click-through of the new screens"
+      ],
+      "scope": "Source application; user-reported acceptance, not a packaged walkthrough."
+    }
+  }
+}

@@ -1,6 +1,8 @@
 # Changelog
 
-## v2.1.0 (unreleased)
+## v2.1.0, 2026-10-12
+
+Published as [v2.1.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.1.0) and verified as Latest with MSI, portable ZIP, checksums and the release notes as its body. Verification: [docs/releases/v2.1.0.json](docs/releases/v2.1.0.json).
 
 - Add PDF output from a prompt through the existing Word response structure and Qt writer, with validation before replacing the destination. No Office or external converter is needed.
 - Replace Create tabs with one screen: Describe, optional source files, Choose columns, Review and save, and Saved. Keep prompt generation and PowerPoint templates. Edit document explains deferred selective editing; legacy Edit stays disabled.
@@ -9,7 +11,7 @@
 - Use executable version 2.1.0.0 and MSI version 2.1.0. Run source tests on each push; full hosted builds only at approved milestones and tags. Add a 15-minute tests-job limit, verbose test names and stack diagnostics.
 - Remove prompt-derived filenames, output paths, slide content and exception text from the specified generation logs. Keep template-dialog ownership until thread completion and avoid blocking GUI teardown joins.
 - Scope the central background so labels inside cards stay white; render source filenames once with their accessible names retained.
-- Update the PRD, architecture/UI specs, source-launch guide, repository map and release notes. Extraction settings, fixtures, labels, gates and LICENSE are unchanged. Tagging and publication still need explicit approval.
+- Update the PRD, architecture/UI specs, source-launch guide, repository map and release notes. Extraction settings, fixtures, labels, gates and LICENSE are unchanged.
 
 ## v1.2.1 safety patch, 2026-10-08
 
