@@ -104,6 +104,7 @@ class CreateScreen(QWidget):
         self._cancel_btn.clicked.connect(self.cancel_requested)
         footer = QHBoxLayout()
         footer.addWidget(self._status, stretch=1)
+        footer.addStretch()
         footer.addWidget(self._cancel_btn)
         layout.addLayout(heading)
         layout.addWidget(self._steps)
@@ -320,14 +321,16 @@ class CreateScreen(QWidget):
     def dragEnterEvent(self, event) -> None:
         """Accept supported local-file drops only while the setup is editable."""
         urls = event.mimeData().urls()
-        if (not self._busy and urls and all(url.isLocalFile()
+        if (self._pages.currentWidget() is self._describe_page
+                and not self._busy and urls and all(url.isLocalFile()
                 and Path(url.toLocalFile()).suffix.lower() in SOURCE_SUFFIXES for url in urls)):
             event.acceptProposedAction()
 
     def dropEvent(self, event) -> None:
         """Append a supported drop without deduplicating attachment names."""
         urls = event.mimeData().urls()
-        if (not self._busy and urls and all(url.isLocalFile()
+        if (self._pages.currentWidget() is self._describe_page
+                and not self._busy and urls and all(url.isLocalFile()
                 and Path(url.toLocalFile()).suffix.lower() in SOURCE_SUFFIXES for url in urls)):
             self.set_paths(self._paths + tuple(Path(url.toLocalFile()) for url in urls))
             event.acceptProposedAction()

@@ -67,3 +67,6 @@ class StepIndicator(QWidget):
                 control.setProperty("current", position == index)
                 control.style().unpolish(control)
                 control.style().polish(control)
+            # Leave room for glyph bearings at the active semibold weight.
+            label.setMinimumWidth(label.fontMetrics().horizontalAdvance(label.text()) + 4)
+            label.updateGeometry()

@@ -109,10 +109,11 @@ class TopBar(QWidget):
             f"QComboBox {{ color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
             f"border-radius: 4px; padding: 2px 8px; background: {WHITE}; }}"
             f"QComboBox:disabled {{ color: #9CA3AF; }}"
-            f"QPushButton {{ border: none; background: transparent; color: {BODY_TEXT_COLOR}; }}"
+            f"QPushButton {{ border: none; background: transparent; color: {BODY_TEXT_COLOR}; "
+            "padding: 4px 12px; }"
             f"QPushButton:hover {{ background-color: {BORDER_COLOR}; border-radius: 4px; }}"
             f"QPushButton:checked {{ background-color: #EFF6FF; color: {PRIMARY_ACCENT_COLOR}; "
-            f"border-radius: 6px; padding: 4px 12px; }}"
+            f"border-radius: 6px; }}"
         )
 
     # ── Public API ────────────────────────────────────────────────────────────

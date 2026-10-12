@@ -61,6 +61,38 @@ def test_busy_blocks_mode_switch(window):
     assert window._top_bar._settings_btn.isEnabled()
 
 
+def test_step_labels_fit_at_screenshot_size(window, qapp):
+    from PySide6.QtGui import QFont
+    from app.config.defaults import APP_FONT_FAMILY, FONT_SIZE_BODY_PT
+
+    original_font = qapp.font()
+    try:
+        qapp.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
+        window.resize(1280, 800)
+        steps = window._create_screen._steps
+        steps.set_steps(["Describe", "Choose columns", "Review and save"])
+        for index in range(3):
+            steps.set_current(index)
+            qapp.processEvents()
+            label = steps._labels[index]
+            assert label.width() >= label.fontMetrics().horizontalAdvance(label.text()) + 4
+    finally:
+        qapp.setFont(original_font)
+
+
+def test_idle_cancel_is_a_compact_button(window):
+    assert window._create_screen._cancel_btn.width() < 200
+
+
+@pytest.mark.parametrize("mode", ["create", "edit"])
+def test_mode_text_has_room_for_button_padding(window, qapp, mode):
+    window._show_mode(mode)
+    qapp.processEvents()
+    button = (window._top_bar._edit_mode_btn if mode == "edit"
+              else window._top_bar._create_mode_btn)
+    assert button.width() >= button.fontMetrics().horizontalAdvance(button.text()) + 24
+
+
 @pytest.mark.parametrize("accepted", [True, False])
 def test_settings_changes_model_only_on_save(window, monkeypatch, accepted):
     from PySide6.QtWidgets import QDialog

@@ -558,6 +558,27 @@ def test_source_drop_accepts_only_local_supported_files(panel):
     assert not enter.isAccepted()
 
 
+@pytest.mark.parametrize("page_name", ["_saved_page", "_columns_page", "_review_page"])
+def test_source_drop_is_rejected_outside_describe(panel, page_name):
+    from PySide6.QtCore import QMimeData, QPoint, QPointF, QUrl
+    from PySide6.QtGui import QDragEnterEvent, QDropEvent
+
+    original = panel.snapshot(False).paths
+    panel._pages.setCurrentWidget(getattr(panel, page_name))
+    requests = []
+    panel.inspect_requested.connect(requests.append)
+    mime = QMimeData()
+    mime.setUrls([QUrl.fromLocalFile(str(original[0]))])
+    enter = QDragEnterEvent(QPoint(5, 5), Qt.DropAction.CopyAction, mime,
+                           Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+    panel.dragEnterEvent(enter)
+    drop = QDropEvent(QPointF(5, 5), Qt.DropAction.CopyAction, mime,
+                      Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+    panel.dropEvent(drop)
+    assert not enter.isAccepted() and not drop.isAccepted()
+    assert panel.snapshot(False).paths == original and requests == []
+
+
 
 def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)

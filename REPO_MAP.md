@@ -425,6 +425,7 @@ scripts/
     build_extraction_fixtures.py
     build_sectioned_fixtures.py
     build_third_party_notices.py
+    capture_screens.py
     evaluate_extraction.py
     gen_repo_map.py
     inspect_template.py
@@ -713,6 +714,11 @@ requirements.txt
 - def _copy_licenses(dist, destination: Path) -> list[str]
 - def build_notices(root: Path, output: Path) -> None: Copy original license bytes for this build without deleting existing files.
 - def validate_notices(bundle: Path) -> None: Fail packaging when license notices are absent, empty, or changed in transit.
+
+### scripts/capture_screens.py
+
+- def _offline_client(*args, **kwargs)
+- def main(out: Path) -> None
 
 ### scripts/evaluate_extraction.py
 
@@ -1630,6 +1636,7 @@ requirements.txt
 - def test_setup_changes_clear_confirmation_and_review(panel, tmp_path, change)
 - def test_busy_setup_is_frozen_and_save_can_finish_without_cancel(panel)
 - def test_source_drop_accepts_only_local_supported_files(panel)
+- def test_source_drop_is_rejected_outside_describe(panel, page_name)
 - def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path)
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 
@@ -1782,6 +1789,9 @@ requirements.txt
 - def test_generation_starts_exactly_one_request(window, monkeypatch)
 - def test_proposal_waits_for_inspection(window, tmp_path, monkeypatch)
 - def test_busy_blocks_mode_switch(window)
+- def test_step_labels_fit_at_screenshot_size(window, qapp)
+- def test_idle_cancel_is_a_compact_button(window)
+- def test_mode_text_has_room_for_button_padding(window, qapp, mode)
 - def test_settings_changes_model_only_on_save(window, monkeypatch, accepted)
 - def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, cancel)
 
