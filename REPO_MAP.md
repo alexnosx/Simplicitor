@@ -465,9 +465,11 @@ simplicitor/
             extraction_panel.py
             file_list.py
             hard_stop_dialog.py
+            plain_labels.py
             settings_dialog.py
             status_banner.py
             status_bar.py
+            step_indicator.py
             template_dialog.py
         workers/
             __init__.py
@@ -892,6 +894,12 @@ requirements.txt
 
 - class HardStopDialog(QDialog): Modal shown when import_template returns a hard stop.
 
+### simplicitor/app/widgets/plain_labels.py
+
+- def describe_anchor(anchor: str) -> str: Describe an anchored source location without internal identifiers.
+- def describe_issues(issues: str) -> str: Describe saved review issues with a safe fallback for unknown codes.
+- def describe_coverage(file_label: str, anchor: str, code: str) -> str: Describe an incomplete source using its visible file and location.
+
 ### simplicitor/app/widgets/settings_dialog.py
 
 - class SettingsDialog(QDialog): Modal settings dialog.
@@ -903,6 +911,10 @@ requirements.txt
 ### simplicitor/app/widgets/status_bar.py
 
 - class TopBar(QWidget): Top navigation bar.
+
+### simplicitor/app/widgets/step_indicator.py
+
+- class StepIndicator(QWidget): Show a numbered route and highlight its current step.
 
 ### simplicitor/app/widgets/template_dialog.py
 
@@ -1592,6 +1604,8 @@ requirements.txt
 ### tests/test_create_screen.py
 
 - def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile)
+- def test_step_indicator_keeps_state_and_layout(qtbot, isolated_profile)
+- def test_anchor_issue_and_coverage_text_are_plain()
 
 ### tests/test_extraction_panel.py
 
