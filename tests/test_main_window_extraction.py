@@ -352,3 +352,27 @@ def test_thread_cleanup_keeps_gui_responsive_until_native_thread_exits(
         release.set()
         thread.wait(2000) if getattr(window, attribute) is not None else None
     assert heartbeat == [True]
+
+
+def test_finished_steps_clear_their_progress_line(window, tmp_path, qtbot):
+    panel, _ = configure_window(window, tmp_path, qtbot)
+    assert panel._status.isHidden()  # "Reading sources..." is gone once reading ends
+    window._ollama_client = ExtractionClient()
+    panel._primary_btn.click()
+    qtbot.waitUntil(lambda: window._extraction_thread is None)
+    assert panel._pages.currentWidget() is panel._columns_page
+    assert panel._status.isHidden()  # so is "Suggesting columns..."
+
+
+def test_failure_message_outlives_its_finished_step(window, tmp_path, qtbot):
+    panel, _ = configure_window(window, tmp_path, qtbot)
+
+    class Failing(ExtractionClient):
+        def generate(self, *args, **kwargs):
+            raise RuntimeError("model crashed")
+
+    window._ollama_client = Failing()
+    panel._primary_btn.click()
+    qtbot.waitUntil(lambda: window._extraction_thread is None)
+    assert not panel._status.isHidden()
+    assert panel._status.text().startswith("Could not complete the request")

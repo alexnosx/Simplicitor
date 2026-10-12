@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self._ollama_stop_pending = False
         self._extraction_thread = self._extraction_worker = None
         self._extraction_job: Path | None = None
+        self._progress_shown = False  # a worker progress line is on screen
         self._app_data = get_app_data_dir()
         self._cleanup_error = False
         try:
@@ -292,7 +293,7 @@ class MainWindow(QMainWindow):
         self._extraction_worker, self._extraction_thread = worker, thread
         worker.moveToThread(thread)
         thread.started.connect(worker.run)
-        worker.progress.connect(panel.show_status)
+        worker.progress.connect(self._on_extraction_progress)
         worker.inspection_ready.connect(self._on_inspection_ready)
         worker.columns_ready.connect(self._on_columns_ready)
         worker.candidate_ready.connect(self._on_candidate_ready)
@@ -305,6 +306,11 @@ class MainWindow(QMainWindow):
         panel.set_busy(True, saving=action == "save")
         self._top_bar._model_combo.setEnabled(False)
         thread.start()
+
+    @Slot(str)
+    def _on_extraction_progress(self, message: str) -> None:
+        self._progress_shown = True
+        self._create_screen.show_status(message)
 
     @Slot(object)
     def _on_inspection_ready(self, documents: tuple) -> None:
@@ -324,16 +330,19 @@ class MainWindow(QMainWindow):
     @Slot(str, object)
     def _on_extraction_failed(self, message: str, issues: tuple) -> None:
         if not self._closing:
+            self._progress_shown = False
             self._create_screen.show_failure(message, issues)
 
     @Slot()
     def _on_extraction_cancelled(self) -> None:
         if not self._closing:
+            self._progress_shown = False
             self._create_screen.show_status("Cancelled. Your setup is retained.")
 
     @Slot(str)
     def _on_extraction_saved(self, path: str) -> None:
         if not self._closing:
+            self._progress_shown = False
             self._create_screen.show_status("Workbook saved successfully.")
             self._create_screen.show_open_file_btn(path)
 
@@ -360,6 +369,9 @@ class MainWindow(QMainWindow):
             self._discard_review_job()
         self._create_screen.set_busy(False)
         self._top_bar._model_combo.setEnabled(bool(self._top_bar.current_model()))
+        if self._progress_shown:  # the step finished; its progress line is now stale
+            self._progress_shown = False
+            self._create_screen.clear_status()
         if action == "inspect":
             self._create_screen.inspection_finished()
             if not self._cancel_pending and not self._closing:

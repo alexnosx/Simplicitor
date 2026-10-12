@@ -111,6 +111,7 @@ docs/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
         2026-10-12-release-2.2.0-codex-revision-2.md
+        2026-10-12-release-2.2.0-codex-revision-3.md
         2026-10-12-release-2.2.0-codex.md
     superpowers/
         plans/
@@ -1793,6 +1794,8 @@ requirements.txt
 - def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
 - def saved_candidate(tmp_path, *, flagged=True, coverage=False)
 - def test_thread_cleanup_keeps_gui_responsive_until_native_thread_exits(window, qtbot, kind)
+- def test_finished_steps_clear_their_progress_line(window, tmp_path, qtbot)
+- def test_failure_message_outlives_its_finished_step(window, tmp_path, qtbot)
 
 ### tests/test_main_window_modes.py
 
@@ -2150,6 +2153,7 @@ requirements.txt
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
+- docs/reviews/2026-10-12-release-2.2.0-codex-revision-3.md: md, 54 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex.md: md, 150 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
