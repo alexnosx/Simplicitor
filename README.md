@@ -58,7 +58,7 @@ Start Ollama, then launch the application:
 .\.venv\Scripts\python.exe .\simplicitor\main.py
 ```
 
-Select an installed local model in the top bar.
+Open Settings and select an installed local model.
 
 Try one synthetic extraction:
 
