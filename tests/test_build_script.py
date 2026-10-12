@@ -67,14 +67,29 @@ def test_build_flags_have_no_nsis_installer():
 
 
 
-def test_product_version_is_210():
-    assert build.PRODUCT_VERSION == "2.1.0"
-    assert "--windows-product-version=2.1.0.0" in build.NUITKA_FLAGS
+def test_build_uses_the_app_version():
+    import re
+    from app.version import __version__
+    assert re.fullmatch(r"\d+\.\d+\.\d+", __version__)
+    assert build.PRODUCT_VERSION == __version__
+    assert f"--windows-product-version={__version__}.0" in build.NUITKA_FLAGS
+
+
+@pytest.mark.parametrize("version", [build.PRODUCT_VERSION, "2.2.0", "2.9.9"])
+def test_upgrade_probe_is_always_newer_than_the_release(version):
+    probe = build.upgrade_probe_version(version)
+    assert tuple(map(int, probe.split("."))) > tuple(map(int, version.split(".")))
+
+
+def test_qualification_takes_its_upgrade_probe_from_the_build():
+    script = (build.ROOT / "scripts" / "qualify_windows_installer.ps1").read_text(encoding="utf-8")
+    assert "build.upgrade_probe_version()" in script
+    assert "$probeVersion = '" not in script  # no fixed probe version
 
 
 def test_build_produces_matching_portable_payload_and_msi(payload, monkeypatch):
     captured = []
-    msi = build.DIST_DIR / "Simplicitor-2.1.0.msi"
+    msi = build.DIST_DIR / f"Simplicitor-{build.PRODUCT_VERSION}.msi"
 
     def run(command, *, cwd):
         captured.append((command, cwd))
@@ -93,14 +108,15 @@ def test_build_produces_matching_portable_payload_and_msi(payload, monkeypatch):
     wix = captured[2][0]
     assert wix[:3] == ["dotnet", "wix", "build"]
     assert str(build.WIX_SOURCE) in wix and str(build.FRAGMENT) in wix
-    assert "ProductVersion=2.1.0" in wix and f"payload={payload}" in wix
+    assert f"ProductVersion={build.PRODUCT_VERSION}" in wix and f"payload={payload}" in wix
     assert "-sice" not in wix
     assert captured[3][0] == [
         "dotnet", "wix", "msi", "validate", str(msi), "-sice", "ICE91",
     ]
     assert build.FRAGMENT.read_text(encoding="utf-8") == build.payload_fragment(payload)
     manifest = json.loads((build.DIST_DIR / "SHA256SUMS.json").read_text())
-    assert set(manifest["artifacts"]) == {"Simplicitor-2.1.0.msi", "Simplicitor-portable.zip"}
+    assert set(manifest["artifacts"]) == {
+        f"Simplicitor-{build.PRODUCT_VERSION}.msi", "Simplicitor-portable.zip"}
     for name in manifest["artifacts"]:
         assert manifest["artifacts"][name] == hashlib.sha256((build.DIST_DIR / name).read_bytes()).hexdigest()
     assert not (build.DIST_DIR / "Simplicitor-setup.exe").exists()
@@ -132,7 +148,7 @@ def test_local_build_without_dotnet_skips_msi_only(payload, monkeypatch):
 
 
 def test_failed_msi_validation_prevents_archive(payload, monkeypatch):
-    msi = build.DIST_DIR / "Simplicitor-2.1.0.msi"
+    msi = build.DIST_DIR / f"Simplicitor-{build.PRODUCT_VERSION}.msi"
 
     def run(command, *, cwd):
         if command[:3] == ["dotnet", "wix", "build"]:
@@ -159,7 +175,7 @@ def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch,
     def incomplete(command, *, cwd):
         if command[:3] == ["dotnet", "wix", "build"]:
             if missing != "msi":
-                (build.DIST_DIR / "Simplicitor-2.1.0.msi").write_bytes(b"msi")
+                (build.DIST_DIR / f"Simplicitor-{build.PRODUCT_VERSION}.msi").write_bytes(b"msi")
         elif command[0] != "dotnet":
             make_payload(payload)
             if missing != "msi":

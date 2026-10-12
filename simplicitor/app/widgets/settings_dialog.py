@@ -12,6 +12,7 @@ from app.config.defaults import (
     BORDER_COLOR, WHITE, BORDER_RADIUS_PX, BODY_TEXT_COLOR, BACKGROUND_COLOR,
 )
 from app.config.settings import Settings
+from app.version import __version__
 
 
 class SettingsDialog(QDialog):
@@ -46,6 +47,9 @@ class SettingsDialog(QDialog):
         heading = QLabel("Settings")
         heading.setFont(heading_font)
         layout.addWidget(heading)
+        self._version_label = QLabel(f"Simplicitor {__version__}")
+        self._version_label.setFont(body_font)
+        layout.addWidget(self._version_label)
 
         form = QFormLayout()
         form.setSpacing(10)

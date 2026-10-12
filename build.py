@@ -12,6 +12,7 @@ Run from the repository root (the directory containing this file).
 import hashlib
 import json
 import os
+import runpy
 import shutil
 import subprocess
 import sys
@@ -28,9 +29,16 @@ ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
 ICON = ASSETS_DIR / "icons" / "simplicitor.ico"
 
-PRODUCT_VERSION = "2.1.0"
+PRODUCT_VERSION = runpy.run_path(str(SIMPLICITOR_DIR / "app" / "version.py"))["__version__"]
 WIX_SOURCE = ROOT / "packaging" / "simplicitor.wxs"
 FRAGMENT = ROOT / ".nuitka" / "msi" / "payload.wxs"
+
+
+def upgrade_probe_version(version: str = PRODUCT_VERSION) -> str:
+    """A throwaway version just above *version*, for the hosted major-upgrade check."""
+    major, minor, patch = (int(part) for part in version.split("."))
+    return f"{major}.{minor}.{patch + 1}"
+
 
 # ---------------------------------------------------------------------------
 # Nuitka flags

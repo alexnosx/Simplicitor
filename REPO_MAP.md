@@ -489,6 +489,7 @@ simplicitor/
             template_worker.py
         __init__.py
         main_window.py
+        version.py
     extraction/
         __init__.py
         grounding.py
@@ -689,6 +690,7 @@ requirements.txt
 
 ### build.py
 
+- def upgrade_probe_version(version: str=PRODUCT_VERSION) -> str: A throwaway version just above *version*, for the hosted major-upgrade check.
 - def _sha256(path: Path) -> str
 - def _wix_id(prefix: str, relative: str) -> str
 - def payload_fragment(payload: Path) -> str: WiX fragment: one per-user component per payload folder (HKCU key path,
@@ -867,6 +869,10 @@ requirements.txt
 ### simplicitor/app/utils/logging_setup.py
 
 - def setup_logging(log_dir: str) -> None: Configure application-wide logging with daily file rotation.
+
+### simplicitor/app/version.py
+
+(no top-level definitions)
 
 ### simplicitor/app/widgets/__init__.py
 
@@ -1588,7 +1594,9 @@ requirements.txt
 - def payload(tmp_path, monkeypatch)
 - def make_payload(payload, *, notices=True, include_license=True)
 - def test_build_flags_have_no_nsis_installer()
-- def test_product_version_is_210()
+- def test_build_uses_the_app_version()
+- def test_upgrade_probe_is_always_newer_than_the_release(version)
+- def test_qualification_takes_its_upgrade_probe_from_the_build()
 - def test_build_produces_matching_portable_payload_and_msi(payload, monkeypatch)
 - def _payload_only(payload)
 - def test_ci_build_fails_without_dotnet(payload, monkeypatch)
@@ -2022,7 +2030,7 @@ requirements.txt
 - def test_edit_panel_connected_hides_message(qtbot, tmp_path) -> None
 - def test_main_window_has_capability_banner(qtbot, tmp_path) -> None
 - def test_main_window_instantiates(qtbot, tmp_path) -> None
-- def test_main_window_title_is_simplicitor(qtbot, tmp_path) -> None
+- def test_version_shows_in_title_top_bar_and_settings(qtbot, tmp_path) -> None
 - def test_main_window_minimum_size(qtbot, tmp_path) -> None
 - def test_main_window_opens_settings_dialog(qtbot, tmp_path) -> None
 - def test_main_window_creates_ollama_thread(qtbot, tmp_path) -> None
@@ -2372,7 +2380,7 @@ requirements.txt
 - resources/third_party/qt/qtwebengine/LICENSES/MIT.txt: txt, 11 lines
 - resources/third_party/qt/qtwebengine/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
 - resources/third_party/qt/sources.json: json, 930 lines
-- scripts/qualify_windows_installer.ps1: ps1, 201 lines
+- scripts/qualify_windows_installer.ps1: ps1, 203 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
 - simplicitor/prompts/system_manipulate.txt: txt, 13 lines
 - simplicitor/prompts/system_pptx.txt: txt, 30 lines

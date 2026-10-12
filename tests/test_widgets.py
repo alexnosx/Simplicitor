@@ -297,11 +297,17 @@ def test_main_window_instantiates(qtbot, tmp_path) -> None:
     qtbot.addWidget(window)
 
 
-def test_main_window_title_is_simplicitor(qtbot, tmp_path) -> None:
+def test_version_shows_in_title_top_bar_and_settings(qtbot, tmp_path) -> None:
+    from app.version import __version__
+    from app.widgets.settings_dialog import SettingsDialog
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    assert window.windowTitle() == "Simplicitor"
+    assert window.windowTitle() == f"Simplicitor {__version__}"
+    assert window._top_bar._version_label.text() == __version__
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+    assert dialog._version_label.text() == f"Simplicitor {__version__}"
 
 
 def test_main_window_minimum_size(qtbot, tmp_path) -> None:

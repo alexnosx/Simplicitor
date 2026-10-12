@@ -8,6 +8,7 @@ from app.config.defaults import (
     BORDER_COLOR, BODY_TEXT_COLOR, WHITE, SUCCESS_COLOR, ERROR_COLOR, PRIMARY_ACCENT_COLOR,
 )
 from app.utils.file_utils import resource_path
+from app.version import __version__
 
 
 class TopBar(QWidget):
@@ -56,6 +57,9 @@ class TopBar(QWidget):
 
         self._title_label = QLabel(APP_NAME)
         self._title_label.setFont(title_font)
+        self._version_label = QLabel(__version__)
+        self._version_label.setFont(body_font)
+        self._version_label.setStyleSheet("color: #6B7280;")
 
         # Connection indicator dot
         self._status_dot = QLabel("●")
@@ -82,6 +86,7 @@ class TopBar(QWidget):
         self._settings_btn.clicked.connect(self.settings_requested)
 
         layout.addWidget(self._title_label)
+        layout.addWidget(self._version_label)
         self._create_mode_btn = QPushButton("Create new")
         self._edit_mode_btn = QPushButton("Edit document")
         self._mode_group = QButtonGroup(self)

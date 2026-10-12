@@ -17,6 +17,7 @@ from app.config.defaults import (
     EXTRACTION_SAVE_FILTER,
 )
 from app.utils.file_utils import resource_path, truncate_path
+from app.version import __version__
 from app.config.settings import Settings
 from app.services.ollama_client import OllamaClient
 from app.widgets.capability_banner import CapabilityBanner
@@ -75,7 +76,7 @@ class MainWindow(QMainWindow):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        self.setWindowTitle(APP_NAME)
+        self.setWindowTitle(f"{APP_NAME} {__version__}")
         self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         self.resize(WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT)
         icon_path = resource_path("assets/icons/simplicitor.ico")

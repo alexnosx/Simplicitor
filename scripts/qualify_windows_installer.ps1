@@ -162,7 +162,9 @@ $null = Assert-Installed $version 'Repair:'
 Assert-Check ((Get-FileHash -LiteralPath $settingsPath -Algorithm SHA256).Hash -eq $settingsHash) 'Settings survive repair'
 
 # Major upgrade to a throwaway probe version built from the same payload; never published.
-$probeVersion = '2.1.99'
+$probeVersion = (& python -c "import build; print(build.upgrade_probe_version())").Trim()
+Assert-Check ([version]$probeVersion -gt [version]$version) `
+    "Upgrade probe $probeVersion is newer than $version"
 $probe = Join-Path $env:RUNNER_TEMP "Simplicitor-$probeVersion-probe.msi"
 & dotnet wix build (Join-Path $repoRoot 'packaging/simplicitor.wxs') (Join-Path $repoRoot '.nuitka/msi/payload.wxs') `
     -arch x64 -d "ProductVersion=$probeVersion" -bindpath "payload=$payloadDir" -o $probe
