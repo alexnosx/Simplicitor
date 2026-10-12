@@ -1675,6 +1675,7 @@ requirements.txt
 - def _title_color(prs) -> str
 - def _build(tmp_path, style)
 - def test_free_form_style_becomes_a_wide_fillable_template(tmp_path)
+- def test_captured_logo_keeps_master_shape_ids_below_signed_integer_limit(tmp_path)
 - def test_title_slide_keeps_light_text_on_its_dark_cover(tmp_path)
 - def test_unreadable_text_color_switches_to_black_or_white(tmp_path)
 - def test_unreadable_background_picture_is_skipped_not_fatal(tmp_path)
@@ -2262,7 +2263,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 74 lines
+- docs/PROJECT_STATUS.md: md, 76 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)

@@ -178,7 +178,9 @@ def _add_logo(prs, logo: Logo) -> None:
     master = prs.slide_master
     _, rid = master.part.get_or_add_image_part(io.BytesIO(logo.image))
     width, height = prs.slide_width, prs.slide_height
-    picture = CT_Picture.new_pic(master.shapes._next_shape_id, "Logo", "", rid,
+    # On a master, _next_shape_id also counts the large slide-layout IDs.
+    shape_id = max(int(value) for value in master.shapes._spTree.xpath(".//p:cNvPr/@id")) + 1
+    picture = CT_Picture.new_pic(shape_id, "Logo", "", rid,
                                  round(logo.left * width), round(logo.top * height),
                                  round(logo.width * width), round(logo.height * height))
     master.shapes._spTree.append(picture)

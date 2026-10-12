@@ -56,6 +56,15 @@ def test_free_form_style_becomes_a_wide_fillable_template(tmp_path):
     assert len(prs.slides) == 0
 
 
+def test_captured_logo_keeps_master_shape_ids_below_signed_integer_limit(tmp_path):
+    style = capture_style(free_form(tmp_path / "logo.pptx"))
+    assert style.logo is not None
+    prs, skipped, _ = _build(tmp_path, style)
+    assert skipped == []
+    assert any(shape.name == "Logo" for shape in prs.slide_master.shapes)
+    assert all(shape.shape_id < 2**31 for shape in prs.slide_master.shapes)
+
+
 def test_title_slide_keeps_light_text_on_its_dark_cover(tmp_path):
     style = capture_style(free_form(tmp_path / "canva.pptx"))
     prs, _, _ = _build(tmp_path, style)
