@@ -528,6 +528,7 @@ simplicitor/
         pipeline.py
         prompt_builder.py
         render_pptx.py
+        styled_template.py
         validation.py
     __init__.py
     cli.py
@@ -636,6 +637,7 @@ tests/
         test_pipeline.py
         test_prompt_builder.py
         test_render_pptx.py
+        test_styled_template.py
         test_validation.py
     __init__.py
     conftest.py
@@ -1167,6 +1169,24 @@ requirements.txt
 - def _render_slide(slide, slide_def: SlideTypeDef, fields: dict, slide_idx: int) -> list[str]: Populate slide placeholders from fields. Returns degrade warning strings.
 - def render(manifest: Manifest, content: dict, out_path: str | Path, template_dir: str | Path) -> dict: Render validated content into a PPTX deck using the named template.
 
+### simplicitor/templates_engine/styled_template.py
+
+- def _field(name: str, idx: int, kind: str, required: bool, **limit) -> dict
+- def styled_manifest(name: str, deck_name: str) -> dict: The manifest for a template built by build_styled_template().
+- def _luminance(color: str) -> float
+- def _contrast(first: str, second: str) -> float
+- def _average(fill: Fill | None) -> str: The background's color, or a picture's average color; white when unknown.
+- def readable(color: str | None, background: str) -> str: Keep the deck's text color when it reads at 3:1 or better; else black or white.
+- def _set_color(rpr, color: str) -> None
+- def _resize(prs, width: int, height: int) -> None: Change the slide size and scale every master and layout shape that has its own position.
+- def _apply_theme(prs, style: DeckStyle) -> None
+- def _apply_text(master, style_name: str, text: TextStyle, color: str, size_range: tuple) -> None
+- def _title_slide_colors(prs, title: str, body: str) -> None: Override title-slide text colors where its background differs from the others.
+- def _set_background(owner, fill: Fill) -> None
+- def _add_logo(prs, logo: Logo) -> None
+- def _apply_pictures(prs, style: DeckStyle) -> list[str]: Set backgrounds and the logo; return the parts whose images could not be read.
+- def build_styled_template(style: DeckStyle, out_path: str | Path) -> list[str]: Write a fillable template with *style*; return parts of the look that were skipped.
+
 ### simplicitor/templates_engine/validation.py
 
 - def _field_annotation_and_default(field: FieldDef) -> tuple[Any, Any]: Return (annotation, default) for use in create_model.
@@ -1624,6 +1644,18 @@ requirements.txt
 - def test_render_template_missing_pptx_fails_cleanly(tmp_path, tmp_template): Template .pptx deleted before render — ValueError raised, no output file written.
 - def test_render_save_failure_leaves_no_partial_file(tmp_path, tmp_template): prs.save() raises OSError — ManipulationError raised, no out_path or .pptx.tmp file left.
 - def test_render_rename_failure_leaves_no_temp_file(tmp_path, tmp_template): Atomic replace raises OSError — ManipulationError raised, no out_path or .pptx.tmp left.
+
+### tests/templates_engine/test_styled_template.py
+
+- def _theme(prs)
+- def _title_color(prs) -> str
+- def _build(tmp_path, style)
+- def test_free_form_style_becomes_a_wide_fillable_template(tmp_path)
+- def test_title_slide_keeps_light_text_on_its_dark_cover(tmp_path)
+- def test_unreadable_text_color_switches_to_black_or_white(tmp_path)
+- def test_unreadable_background_picture_is_skipped_not_fatal(tmp_path)
+- def test_styled_template_renders_every_slide_type(tmp_path)
+- def test_portrait_deck_keeps_every_layout_inside_the_slide(tmp_path)
 
 ### tests/templates_engine/test_validation.py
 
