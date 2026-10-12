@@ -76,6 +76,7 @@ docs/
         PRD_v1.2.md
     builds/
         2.1.0-msi-ci.json
+        2.1.0-ui-ci.json
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
         2026-10-09-task6-ci.json
@@ -1790,7 +1791,7 @@ requirements.txt
 - def test_generation_starts_exactly_one_request(window, monkeypatch)
 - def test_proposal_waits_for_inspection(window, tmp_path, monkeypatch)
 - def test_busy_blocks_mode_switch(window)
-- def test_step_labels_fit_at_screenshot_size(window, qapp)
+- def test_step_labels_fit_at_screenshot_size(window, qapp, tmp_path, monkeypatch)
 - def test_idle_cancel_is_a_compact_button(window)
 - def test_mode_text_has_room_for_button_padding(window, qapp, mode)
 - def test_settings_changes_model_only_on_save(window, monkeypatch, accepted)
@@ -2104,6 +2105,7 @@ requirements.txt
 - docs/Simplicitor_UI_Polish_and_Icon.md: md, 389 lines
 - docs/archive/PRD_v1.2.md: md, 252 lines
 - docs/builds/2.1.0-msi-ci.json: json, 149 lines
+- docs/builds/2.1.0-ui-ci.json: json, 220 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines

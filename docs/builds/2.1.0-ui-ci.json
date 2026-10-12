@@ -1,0 +1,220 @@
+{
+  "verified_at": "2026-10-12T06:13:03.498884+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38209361523",
+  "commit": "e0053ae7e7646a31466e7872c0aa3f376ba1ebee",
+  "conclusion": "success",
+  "workflow_event": "workflow_dispatch",
+  "publication": "skipped",
+  "artifact_bundle": {
+    "name": "Simplicitor-windows",
+    "id": 11729099645,
+    "bytes": 136382981,
+    "sha256": "e0d1fac913222e1d81796a67ef4ca036f6b6420f8365e1ad9a8d9b1ad00aea49"
+  },
+  "artifacts": [
+    {
+      "name": "SHA256SUMS.json",
+      "bytes": 66326,
+      "sha256": "a9f18dab5107adc3b844a9587dc7b9be568977f98e2f443c37fcefe92a3fba14"
+    },
+    {
+      "name": "Simplicitor-2.1.0.msi",
+      "bytes": 61187961,
+      "sha256": "51309d590e318826f42a79b13199f0973db18cbf6f0d18cfa8d47855f49e4087"
+    },
+    {
+      "name": "Simplicitor-portable.zip",
+      "bytes": 75610896,
+      "sha256": "0e6289935ac113d669a8c383726aaeaa93e169da47ab51588e564e955c806b4b"
+    },
+    {
+      "name": "installer-qualification.json",
+      "bytes": 3112,
+      "sha256": "929975baa0590d53f8a2fabda44ec43f06b19724600fff9202c6062cb23d411a"
+    }
+  ],
+  "qualification": {
+    "status": "passed",
+    "source_commit": "e0053ae7e7646a31466e7872c0aa3f376ba1ebee",
+    "run_id": "38209361523",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38209361523",
+    "runner_os": "10.0.26100.0",
+    "runner_image": "20260925.250.1",
+    "msi_version": "2.1.0",
+    "executable_version": "2.1.0.0",
+    "upgrade_probe_msi_version": "2.1.99",
+    "checks": [
+      "No Simplicitor product before qualification",
+      "Intended MSI exists: Simplicitor-2.1.0.msi",
+      "Artifact hash matches: Simplicitor-2.1.0.msi",
+      "Artifact hash matches: Simplicitor-portable.zip",
+      "Ollama endpoint is unavailable",
+      "MSI refuses to install over Simplicitor 2.0.0",
+      "Refused install left no files",
+      "Refused install registered nothing",
+      "Silent MSI install succeeded",
+      "Install: exactly one Simplicitor product",
+      "Install: product version 2.1.0",
+      "Install: install location",
+      "Install: executable present",
+      "Install: executable version 2.1.0.0",
+      "Install: executable matches built payload",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: app stays running for 20 seconds without Ollama",
+      "Repair target is inside the verified test installation",
+      "Same-version repair succeeded",
+      "Repair restored the removed file",
+      "Repair: exactly one Simplicitor product",
+      "Repair: product version 2.1.0",
+      "Repair: install location",
+      "Repair: executable present",
+      "Repair: executable version 2.1.0.0",
+      "Repair: executable matches built payload",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Settings survive repair",
+      "Upgrade probe package built",
+      "Upgrade probe package validated",
+      "Major upgrade to 2.1.99 succeeded",
+      "Upgrade: exactly one Simplicitor product",
+      "Upgrade: product version 2.1.99",
+      "Upgrade: install location",
+      "Upgrade: executable present",
+      "Upgrade: executable version 2.1.0.0",
+      "Upgrade: executable matches built payload",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade replaced the previous ProductCode",
+      "Previous product no longer registered",
+      "Upgrade: app stays running for 20 seconds without Ollama",
+      "Settings survive upgrade",
+      "Silent uninstall succeeded",
+      "No Simplicitor product after uninstall",
+      "Install folder removed, including subfolders",
+      "Desktop shortcut removed",
+      "Start Menu shortcut removed",
+      "Settings survive uninstall"
+    ],
+    "artifacts": {
+      "Simplicitor-2.1.0.msi": "51309d590e318826f42a79b13199f0973db18cbf6f0d18cfa8d47855f49e4087",
+      "Simplicitor-portable.zip": "0e6289935ac113d669a8c383726aaeaa93e169da47ab51588e564e955c806b4b"
+    },
+    "limitations": [
+      "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
+    ]
+  },
+  "checks": {
+    "downloaded_bundle_digest_matches_github": true,
+    "msi_and_portable_hashes_match_manifest_and_qualification": true
+  },
+  "local_tests": {
+    "C2.1": 1025,
+    "C2.2": 1026,
+    "C2.3": 1028,
+    "C2.4": 1040,
+    "C2.5": 1050,
+    "C2.6": 1058,
+    "C2.7": 1066
+  },
+  "local_source_check": {
+    "model": "qwen3:8b-q4_K_M",
+    "inputs": [
+      "invoice-01.docx",
+      "narrative-invoice-02.pdf"
+    ],
+    "profile": ".venv/c2-live-profile",
+    "save_dialog": "Native chooser boundary supplied a workspace destination; real Save As worker used.",
+    "network": "Existing loopback Ollama only",
+    "columns": [
+      {
+        "label": "Invoice ID",
+        "kind": "text"
+      },
+      {
+        "label": "Customer",
+        "kind": "text"
+      },
+      {
+        "label": "Total",
+        "kind": "decimal"
+      },
+      {
+        "label": "Due date",
+        "kind": "date"
+      }
+    ],
+    "review": {
+      "rows": 2,
+      "visible_columns": 5,
+      "issues": 4,
+      "evidence_visible": true
+    },
+    "saved": {
+      "path": ".venv\\c2-live-profile\\extracted-information.xlsx",
+      "sha256": "7a3453b5bff50c9ca9d3bebb0f0fcecb55e56e613b9b356a9e402fa2f7ceb213",
+      "rows": 2,
+      "evidence_rows": 8
+    },
+    "reset_and_job_cleanup": true,
+    "inputs_unchanged": true,
+    "result": "passed",
+    "owned_threads_stopped": true,
+    "source_commit": "630b3b988272cea34162e059fe7d7b4afadb884f",
+    "subsequent_source_change": "Source-list row padding and Remove-button sizing only; covered by the final suite."
+  },
+  "local_source_check_limit": "UI integration check, not an accuracy evaluation. Four proposals were flagged value_not_verbatim because the model normalized numbers or dates. Native Save As chooser boundary returned an isolated workspace destination; production save worker copied the real XLSX.",
+  "screenshots": [
+    {
+      "name": "1-create-describe.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "ab1c0ddad79fe3200f4fa3ab01d341fc2f7a5860c0d8f2bfad0901afebbd62b5"
+    },
+    {
+      "name": "2-create-with-files.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "9cc8ac17482b0f4ea72562651a36153abda98658a156837c6aeedbb359f55cb0"
+    },
+    {
+      "name": "3-choose-columns.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "616138c54891c60f1ff6fd5890d0b4745cd1c3156d467b2cbd9e9b9453de7796"
+    },
+    {
+      "name": "4-review-and-save.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "7d14706e9b83263e7826c8d2b93d589da241c2243badacd65d515bfa65d5c108"
+    },
+    {
+      "name": "5-edit-document.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "028409bc21b2a7dc03586f09426b95675b06bbb71f4cd44018672854d6786e33"
+    },
+    {
+      "name": "6-saved-file.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "fe6ff131e5b43e81bcde3851e82004c6e5a121c028a139c8843a05715581970d"
+    }
+  ],
+  "superseded_milestone": {
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38208860533",
+    "result": "cancelled",
+    "reason": "Styled capture reproduced 9px Remove buttons; corrected row padding/height with a failing and passing source regression before restarting the milestone."
+  },
+  "source_review": "Fresh reviewer found no Critical or Important defects; one Minor drop-on-Saved issue corrected with three rejecting-page regressions. Screenshot clipping/padding/Cancel corrections covered by tests; final source suite passed.",
+  "local_execution": "Isolated source suite, source-app screenshots, synthetic live loopback-Ollama UI extraction and read-only artifact hashing. No local build, installer, uninstaller, msiexec, Sandbox, WiX, qualification script, or tool/dependency installation. Payloads not extracted or executed.",
+  "verification_note": "C2.3 initial local full run aborted once in the existing template dialog import test. Focused check and full rerun passed; all later full suites passed. Cause unreproduced; legacy dialog was not modified.",
+  "release_scope": "Part C2 only; Part D not started. No tag, release, publication, dependency, LICENSE, core extraction, fixtures/labels, or model settings change."
+}
