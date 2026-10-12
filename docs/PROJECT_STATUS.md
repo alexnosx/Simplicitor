@@ -40,7 +40,7 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-Release verification is complete; the [v2.0.0 record](releases/v2.0.0.json) contains the verified release state and file hashes. The C1 mockup is approved; await authorization to execute Part C2. Native UI beyond the recorded sample, a machine without developer Python/Office, and downloaded-file SmartScreen behavior remain unverified. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests ran on Alex's PC. Releases through v1.2.1 and their historical license files are unchanged.
+Release verification is complete; the [v2.0.0 record](releases/v2.0.0.json) contains the verified release state and file hashes. The C1 mockup is approved and Part C2 execution is authorized. Align the plan to the mockup before application code, then execute C2.1 through C2.7; Part D stays deferred. Native UI beyond the recorded sample, a machine without developer Python/Office, and downloaded-file SmartScreen behavior remain unverified. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests ran on Alex's PC. Releases through v1.2.1 and their historical license files are unchanged.
 
 ## 2.1.0 progress
 
