@@ -1,10 +1,10 @@
 # How to add a template to Simplicitor
 
-A template is a folder containing two files: a stripped `.pptx` (design only, no slides) and a `manifest.yaml` that describes the slide types and their fillable fields. This guide walks through both the automated path (upload through the app or CLI) and the manual path (hand-crafting a built-in template).
+A template is a folder containing two files: a stripped `.pptx` (design only, no slides) and a `manifest.yaml` that describes the slide types and their fillable fields. This guide walks through both the automated path (import through the CLI) and the manual path (hand-crafting a built-in template).
 
 ---
 
-## Option A: Upload through the app or CLI (user templates)
+## Option A: Import through the CLI (developer templates)
 
 This is the normal path for templates you or a client have built. Simplicitor imports the deck and generates a draft manifest automatically.
 
@@ -21,7 +21,7 @@ Each layout you want to use as a slide type needs at least one content placehold
 python simplicitor/cli.py import path/to/your_deck.pptx
 ```
 
-**Via app:** Click "From template..." in the Create panel, then "Upload a .pptx...". Select your deck.
+The app offers built-in templates only (since 2.2.0). An imported template is for development and is not listed in the app's picker.
 
 Simplicitor will inspect the deck, score the layouts, and -- if at least one layout is usable -- strip the content and write the template folder. The output folder is created under `%APPDATA%\Simplicitor\templates\<name>\` on Windows.
 

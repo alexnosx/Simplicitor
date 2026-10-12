@@ -195,51 +195,6 @@ def ensure_default_templates(templates_root: str | Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# prepare_template
-# ---------------------------------------------------------------------------
-
-def prepare_template(pptx_path: str | Path, template_dir: Path, name: str) -> dict[str, Any]:
-    """Write template.pptx and manifest.yaml for a deck into an existing folder.
-
-    The deck's own layouts are kept when they can be filled and its slides do not
-    override them (deck_style.look_is_on_slides). Otherwise its captured look is
-    applied to the bundled default template. The deck test run and import_template
-    share this choice, so the test run judges what the app ships.
-
-    Returns:
-        {"captured": bool, "report": str, "skipped": tuple[str, ...]}
-
-    Raises:
-        ValueError: If the deck is not a readable .pptx.
-        ManipulationError: If the deck is missing or its layouts cannot be written.
-        OSError: If a captured template or the manifest cannot be written.
-    """
-    from templates_engine.breakdown import (
-        detection_report, generate_draft_manifest, inspect_pptx, score_layouts,
-        strip_to_template)
-    from templates_engine.deck_style import capture_style, describe_capture, look_is_on_slides
-    from templates_engine.styled_template import build_styled_template, styled_manifest
-
-    pptx_path, template_dir = Path(pptx_path), Path(template_dir)
-    inspection = inspect_pptx(pptx_path)
-    scoring = score_layouts(inspection)
-    captured = not scoring["is_usable"] or look_is_on_slides(pptx_path)
-    skipped: tuple[str, ...] = ()
-    if captured:
-        style = capture_style(pptx_path)
-        skipped = tuple(build_styled_template(style, template_dir / TEMPLATE_PPTX_NAME))
-        manifest = styled_manifest(name, pptx_path.name)
-        report = describe_capture(style, skipped)
-    else:
-        strip_to_template(pptx_path, template_dir / TEMPLATE_PPTX_NAME)
-        manifest = generate_draft_manifest(inspection, scoring, TEMPLATE_PPTX_NAME)
-        report = detection_report(inspection, scoring)
-    (template_dir / MANIFEST_NAME).write_text(yaml.dump(manifest, allow_unicode=True),
-                                              encoding="utf-8")
-    return {"captured": captured, "report": report, "skipped": skipped}
-
-
-# ---------------------------------------------------------------------------
 # import_template
 # ---------------------------------------------------------------------------
 

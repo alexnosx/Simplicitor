@@ -1,14 +1,13 @@
 # tests/test_template_dialog.py
-# TemplateDialog is a picker: SELECTION + CONFIRM, emits template_selected on "Next".
+# TemplateDialog is a picker of built-in templates: SELECTION + CONFIRM, emits
+# template_selected on "Next".
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QPushButton
 from pptx import Presentation
 
-from app.services.file_manipulator import ManipulationError
-from app.widgets.hard_stop_dialog import CHOICE_BUILTIN, CHOICE_CANCEL
 from app.widgets.template_dialog import TemplateDialog
 from templates_engine import config
 
@@ -17,13 +16,19 @@ FIXTURE_MANIFEST = (
 )
 
 
-@pytest.fixture
-def template_root(tmp_path, monkeypatch):
-    root = tmp_path / "user"
-    tdir = root / "deck"
+def _write_template(root: Path, name: str) -> None:
+    tdir = root / name
     tdir.mkdir(parents=True)
     Presentation().save(str(tdir / "template.pptx"))
     (tdir / "manifest.yaml").write_bytes(FIXTURE_MANIFEST.read_bytes())
+
+
+@pytest.fixture
+def template_root(tmp_path, monkeypatch):
+    """One built-in template and one template a user imported before 2.2.0."""
+    root = tmp_path / "library"
+    _write_template(root, "business_pitch")
+    _write_template(root, "my_upload")
     empty_builtin = tmp_path / "builtin_empty"
     empty_builtin.mkdir()
     monkeypatch.setattr(config, "get_builtin_root", lambda: empty_builtin)
@@ -43,21 +48,39 @@ def _select_deck(dlg):
     dlg._on_select_next()
 
 
-def _do_import_and_wait(qtbot, dlg, path):
-    """Run the async import and pump the event loop until the worker thread is
-    torn down (the result dispatch on the GUI thread has run by then)."""
-    dlg._do_import(path)
-    qtbot.waitUntil(lambda: dlg._import_thread is None, timeout=5000)
-
-
 # --- selection + confirm ---------------------------------------------------
 
-def test_selection_lists_user_template(dialog):
+def test_selection_lists_only_built_in_templates(dialog, template_root):
     names = [
         dialog._template_list.item(i).data(Qt.ItemDataRole.UserRole)
         for i in range(dialog._template_list.count())
     ]
-    assert names == ["deck"]
+    assert names == ["business_pitch"]
+    assert dialog._template_list.item(0).text() == "business_pitch"
+    assert (template_root / "my_upload" / "template.pptx").exists()  # left on disk
+
+
+def test_selection_offers_no_upload(dialog):
+    labels = [button.text() for button in dialog.findChildren(QPushButton)]
+    assert not any("upload" in label.lower() for label in labels)
+    assert not hasattr(dialog, "_on_upload")
+
+
+def test_empty_picker_names_the_missing_built_ins(qtbot, tmp_path):
+    _write_template(tmp_path / "library", "my_upload")
+    dlg = TemplateDialog(templates_dir=str(tmp_path / "library"))
+    qtbot.addWidget(dlg)
+    assert dlg._template_list.count() == 0
+    assert not dlg._sel_empty.isHidden()
+    assert dlg._sel_empty.text() == "No built-in templates found."
+
+
+def test_next_without_a_selection_asks_for_one(dialog):
+    dialog._template_list.setCurrentRow(-1)
+    dialog._on_select_next()
+    assert dialog._stack.currentWidget() is dialog._selection_page
+    assert not dialog._sel_error.isHidden()
+    assert dialog._sel_error.text() == "Select a template."
 
 
 def test_select_advances_to_confirm_and_loads_manifest(dialog):
@@ -89,7 +112,7 @@ def test_confirm_next_emits_template_selected_and_accepts(qtbot, dialog):
         dialog._confirm_next_btn.click()
     assert blocker.args[0] is dialog._manifest
     assert blocker.args[1] == dialog._template_dir
-    assert blocker.args[2] == "deck"
+    assert blocker.args[2] == "business_pitch"
     assert accepted == [True]
 
 
@@ -98,282 +121,6 @@ def test_confirm_next_noop_without_selection(qtbot, dialog):
     dialog.template_selected.connect(lambda *a: emitted.append(a))
     dialog._on_confirm_next()  # no template selected yet
     assert emitted == []
-
-
-# --- upload + import + hard-stop routing -----------------------------------
-
-def test_on_upload_calls_do_import_with_chosen_path(dialog, monkeypatch):
-    monkeypatch.setattr(
-        "app.widgets.template_dialog.QFileDialog.getOpenFileName",
-        lambda *a, **k: ("/picked/file.pptx", "PowerPoint files (*.pptx)"),
-    )
-    called = {}
-    monkeypatch.setattr(dialog, "_do_import", lambda p: called.setdefault("path", p))
-    dialog._on_upload()
-    assert called["path"] == "/picked/file.pptx"
-
-
-def test_on_upload_cancelled_does_nothing(dialog, monkeypatch):
-    monkeypatch.setattr(
-        "app.widgets.template_dialog.QFileDialog.getOpenFileName",
-        lambda *a, **k: ("", ""),
-    )
-    called = {}
-    monkeypatch.setattr(dialog, "_do_import", lambda p: called.setdefault("path", p))
-    dialog._on_upload()
-    assert called == {}
-
-
-def test_import_bad_file_stays_selection_with_message(qtbot, dialog, monkeypatch):
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(side_effect=ValueError("corrupt zip internal /secret/path")),
-    )
-    _do_import_and_wait(qtbot, dialog, "bad.pptx")
-    assert dialog._stack.currentWidget() is dialog._selection_page
-    assert dialog._sel_error.isVisible()
-    assert "not a usable PowerPoint" in dialog._sel_error.text()
-    assert "secret" not in dialog._sel_error.text()
-
-
-def test_import_manipulation_error_stays_selection(qtbot, dialog, monkeypatch):
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(side_effect=ManipulationError("disk full /secret/path")),
-    )
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert dialog._stack.currentWidget() is dialog._selection_page
-    assert "Could not save" in dialog._sel_error.text()
-    assert "secret" not in dialog._sel_error.text()
-
-
-def test_import_exists_shows_message_stays_selection(qtbot, dialog, monkeypatch):
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(return_value={"status": "exists", "name": "deck"}),
-    )
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert dialog._stack.currentWidget() is dialog._selection_page
-    assert "already exists" in dialog._sel_error.text()
-    assert "deck" in dialog._sel_error.text()
-
-
-def test_import_ok_advances_to_confirm_with_report(qtbot, dialog, template_root, monkeypatch):
-    # Second valid template on disk so refresh/select find it after the mocked import.
-    second = template_root / "newdeck"
-    second.mkdir()
-    Presentation().save(str(second / "template.pptx"))
-    (second / "manifest.yaml").write_bytes(FIXTURE_MANIFEST.read_bytes())
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(return_value={
-            "status": "ok", "name": "newdeck",
-            "report": "DETECTION-REPORT", "lint_warnings": [],
-        }),
-    )
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert dialog._stack.currentWidget() is dialog._confirm_page
-    assert dialog._confirm_report.isVisible()
-    assert dialog._confirm_report.text() == "DETECTION-REPORT"
-    names = [
-        dialog._template_list.item(i).data(Qt.ItemDataRole.UserRole)
-        for i in range(dialog._template_list.count())
-    ]
-    assert "newdeck" in names
-
-
-def test_import_hard_stop_invokes_prompt_and_routes(qtbot, dialog, monkeypatch):
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(return_value={"status": "hard_stop", "message": "NOPE-DECK"}),
-    )
-    seen = {}
-    monkeypatch.setattr(dialog, "_prompt_hard_stop",
-                        lambda msg: seen.update({"msg": msg}) or CHOICE_CANCEL)
-    monkeypatch.setattr(dialog, "_apply_hard_stop_choice",
-                        lambda c: seen.setdefault("choice", c))
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert seen["msg"] == "NOPE-DECK"
-    assert seen["choice"] == CHOICE_CANCEL
-
-
-def test_apply_hard_stop_cancel_rejects(dialog, monkeypatch):
-    rejected = []
-    monkeypatch.setattr(dialog, "reject", lambda: rejected.append(True))
-    dialog._apply_hard_stop_choice(CHOICE_CANCEL)
-    assert rejected == [True]
-
-
-def test_apply_hard_stop_builtin_returns_to_selection_with_focus(dialog):
-    from PySide6.QtWidgets import QListWidgetItem
-    dialog._templates = dialog._templates + [
-        {"name": "corp", "source": "default", "path": "x",
-         "manifest_path": "x", "template_pptx": "x"}
-    ]
-    item = QListWidgetItem("corp  (builtin)")
-    item.setData(Qt.ItemDataRole.UserRole, "corp")
-    dialog._template_list.addItem(item)
-    dialog._stack.setCurrentWidget(dialog._confirm_page)
-    dialog._apply_hard_stop_choice(CHOICE_BUILTIN)
-    assert dialog._stack.currentWidget() is dialog._selection_page
-    cur = dialog._template_list.currentItem()
-    assert cur is not None and cur.data(Qt.ItemDataRole.UserRole) == "corp"
-
-
-def test_prompt_hard_stop_builtin_available_reflects_templates(dialog, monkeypatch):
-    captured = {}
-
-    class FakeHS:
-        def __init__(self, message, builtin_available, parent=None):
-            captured["ba"] = builtin_available
-
-        def exec(self):
-            return 0
-
-        def choice(self):
-            return CHOICE_CANCEL
-
-    monkeypatch.setattr("app.widgets.template_dialog.HardStopDialog", FakeHS)
-    dialog._refresh_templates()  # only a user template => no defaults present
-    dialog._prompt_hard_stop("m")
-    assert captured["ba"] is False
-    dialog._templates = dialog._templates + [{"name": "corp", "source": "default"}]
-    dialog._prompt_hard_stop("m")
-    assert captured["ba"] is True
-
-
-def test_import_unexpected_status_shows_error_stays_selection(qtbot, dialog, monkeypatch):
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(return_value={"status": "wat"}),
-    )
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert dialog._stack.currentWidget() is dialog._selection_page
-    assert "Unexpected error" in dialog._sel_error.text()
-
-
-def test_do_import_uses_templates_dir(qtbot, dialog, template_root, monkeypatch):
-    captured = {}
-
-    def fake_import(path, user_root=None):
-        captured["user_root"] = user_root
-        return {"status": "exists", "name": "deck"}
-
-    monkeypatch.setattr(config, "import_template", fake_import)
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert captured["user_root"] == Path(str(template_root))
-
-
-def test_do_import_hard_stop_cancel_end_to_end(qtbot, dialog, monkeypatch):
-    # Exercises the real _prompt_hard_stop -> _apply_hard_stop_choice chain;
-    # only HardStopDialog (modal) and reject are stubbed.
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(return_value={"status": "hard_stop", "message": "NOPE"}),
-    )
-
-    class FakeHS:
-        def __init__(self, message, builtin_available, parent=None):
-            self._message = message
-
-        def exec(self):
-            return 0
-
-        def choice(self):
-            return CHOICE_CANCEL
-
-    monkeypatch.setattr("app.widgets.template_dialog.HardStopDialog", FakeHS)
-    rejected = []
-    monkeypatch.setattr(dialog, "reject", lambda: rejected.append(True))
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert rejected == [True]
-
-
-# --- async import mechanics (NOTES taxonomy unchanged; UI must not freeze) ----
-
-def test_import_runs_off_the_gui_thread(qtbot, dialog, monkeypatch):
-    import threading
-    seen = {}
-
-    def capture_thread(path, user_root=None):
-        seen["ident"] = threading.get_ident()
-        return {"status": "exists", "name": "deck"}
-
-    monkeypatch.setattr(config, "import_template", capture_thread)
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert seen["ident"] != threading.get_ident()
-
-
-def test_import_unexpected_exception_shows_generic_error(qtbot, dialog, monkeypatch):
-    monkeypatch.setattr(
-        config, "import_template",
-        MagicMock(side_effect=RuntimeError("boom /secret/path")),
-    )
-    _do_import_and_wait(qtbot, dialog, "x.pptx")
-    assert dialog._stack.currentWidget() is dialog._selection_page
-    assert "Something went wrong" in dialog._sel_error.text()
-    assert "secret" not in dialog._sel_error.text()
-
-
-def test_dismissal_blocked_while_importing_then_allowed(qtbot, dialog, monkeypatch):
-    import threading
-    gate = threading.Event()
-
-    def slow_import(path, user_root=None):
-        gate.wait(timeout=5)
-        return {"status": "exists", "name": "deck"}
-
-    monkeypatch.setattr(config, "import_template", slow_import)
-    rejected = []
-    dialog.rejected.connect(lambda: rejected.append(True))
-    dialog._do_import("x.pptx")
-    assert not dialog._sel_upload_btn.isEnabled()   # busy state on
-    assert not dialog._sel_next_btn.isEnabled()
-    dialog.reject()                                  # Esc mid-import: blocked
-    assert rejected == []
-    gate.set()
-    qtbot.waitUntil(lambda: dialog._import_thread is None, timeout=5000)
-    assert dialog._sel_upload_btn.isEnabled()        # busy state cleared
-    dialog.reject()                                  # allowed after completion
-    assert rejected == [True]
-
-
-@pytest.mark.parametrize("failed", [False, True])
-def test_import_result_does_not_allow_dismissal_before_thread_cleanup(
-        qtbot, dialog, monkeypatch, qapp, failed):
-    from threading import Event
-
-    entered, return_result, emitting, release = (Event() for _ in range(4))
-
-    def import_result(*args, **kwargs):
-        entered.set()
-        assert return_result.wait(2)
-        if failed:
-            raise ValueError("synthetic invalid deck")
-        return {"status": "wat"}
-
-    def pause_after_result(*args):
-        emitting.set()
-        release.wait(2)
-
-    monkeypatch.setattr(config, "import_template", import_result)
-    dialog._do_import("synthetic.pptx")
-    assert entered.wait(2)
-    signal = dialog._import_worker.failed if failed else dialog._import_worker.completed
-    signal.connect(pause_after_result, Qt.ConnectionType.DirectConnection)
-    return_result.set()
-    try:
-        assert emitting.wait(2)
-        qapp.processEvents()  # Deliver the result while its worker is still unwinding.
-        assert dialog._importing
-        assert not dialog._sel_upload_btn.isEnabled()
-        assert not dialog.close()
-        assert dialog.isVisible()
-    finally:
-        release.set()
-        qtbot.waitUntil(lambda: dialog._import_thread is None, timeout=5000)
-    assert not dialog._importing
-    assert dialog._sel_error.isVisible()
 
 
 def test_headless_dialog_without_an_explicit_answer_fails(qtbot):

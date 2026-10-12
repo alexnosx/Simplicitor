@@ -562,9 +562,8 @@ class MainWindow(QMainWindow):
             )
             return
         # Startup seeds the defaults once; re-seed here so a Templates folder changed
-        # in Settings after launch is never empty (keeps the picker populated and the
-        # hard-stop dialog's use-a-built-in recovery branch available). Idempotent:
-        # existing defaults, even edited ones, are left untouched.
+        # in Settings after launch is never empty (the picker offers built-in templates
+        # only). Idempotent: existing defaults, even edited ones, are left untouched.
         ensure_default_templates(Path(self._settings.templates_dir))
         dialog = TemplateDialog(self._settings.templates_dir, parent=self)
         dialog.template_selected.connect(self._on_template_selected)

@@ -1,15 +1,15 @@
 # simplicitor/app/widgets/template_dialog.py
-# Template picker: select (or upload) a template, confirm its structure, and load it
+# Template picker: select a built-in template, confirm its structure, and load it
 # back onto the main Create screen. Generation and rendering happen on the main screen
 # (template-aware Generate), not in this dialog.
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
-from PySide6.QtGui import QCloseEvent, QFont
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QFileDialog, QHBoxLayout, QLabel, QListWidget,
-    QListWidgetItem, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
+    QDialog, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton,
+    QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from app.config.defaults import (
@@ -17,8 +17,6 @@ from app.config.defaults import (
     FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
 )
 from app.services.file_manipulator import ManipulationError
-from app.widgets.hard_stop_dialog import CHOICE_BUILTIN, HardStopDialog
-from app.workers.template_import_worker import TemplateImportWorker
 from templates_engine import config
 from templates_engine.manifest import Manifest, load_manifest
 
@@ -28,9 +26,9 @@ logger = logging.getLogger(__name__)
 class TemplateDialog(QDialog):
     """Modal template picker.
 
-    A QStackedWidget over SELECTION -> CONFIRM, with a hard-stop sub-dialog branching off
-    the upload path. SELECTION lists and uploads templates; CONFIRM shows the manifest
-    summary (and the detection report for uploads) and, on "Next", emits
+    A QStackedWidget over SELECTION -> CONFIRM. SELECTION lists the built-in templates
+    only (uploads were removed in 2.2.0; imported templates stay on disk but are not
+    offered); CONFIRM shows the manifest summary and, on "Next", emits
     template_selected(manifest, template_dir, name) and closes. The picker performs no
     generation or rendering; the main Create screen drives that with the loaded template.
     """
@@ -44,11 +42,6 @@ class TemplateDialog(QDialog):
         self._manifest: Manifest | None = None
         self._selected: dict | None = None
         self._template_dir: Path | None = None
-        self._import_thread: QThread | None = None
-        self._import_worker: TemplateImportWorker | None = None
-        self._importing: bool = False
-        self._import_result: dict | None = None
-        self._import_error: str | None = None
         self.setWindowTitle("Create from a template")
         self.setMinimumSize(640, 520)
         self._build_ui()
@@ -86,7 +79,7 @@ class TemplateDialog(QDialog):
         self._template_list = QListWidget()
         self._template_list.setFont(self._body_font())
         v.addWidget(self._template_list, stretch=1)
-        self._sel_empty = QLabel("No templates yet. Upload a .pptx to begin.")
+        self._sel_empty = QLabel("No built-in templates found.")
         self._sel_empty.setFont(self._body_font())
         self._sel_empty.setVisible(False)
         v.addWidget(self._sel_empty)
@@ -97,10 +90,6 @@ class TemplateDialog(QDialog):
         self._sel_error.setVisible(False)
         v.addWidget(self._sel_error)
         row = QHBoxLayout()
-        self._sel_upload_btn = QPushButton("Upload a .pptx…")
-        self._sel_upload_btn.setFont(self._body_font())
-        self._sel_upload_btn.clicked.connect(self._on_upload)
-        row.addWidget(self._sel_upload_btn)
         row.addStretch()
         self._sel_next_btn = QPushButton("Next")
         self._sel_next_btn.setFont(self._body_font())
@@ -121,11 +110,6 @@ class TemplateDialog(QDialog):
         self._confirm_summary.setFont(self._body_font())
         self._confirm_summary.setWordWrap(True)
         v.addWidget(self._confirm_summary)
-        self._confirm_report = QLabel()
-        self._confirm_report.setFont(QFont(APP_FONT_FAMILY, 8))
-        self._confirm_report.setWordWrap(True)
-        self._confirm_report.setVisible(False)
-        v.addWidget(self._confirm_report)
         v.addStretch()
         row = QHBoxLayout()
         self._confirm_back_btn = QPushButton("Back")
@@ -143,33 +127,29 @@ class TemplateDialog(QDialog):
         return page
 
     # -- selection / confirm --
-    def _refresh_templates(self, select_name: str | None = None) -> None:
+    def _refresh_templates(self) -> None:
         self._sel_error.setVisible(False)
         try:
-            self._templates = config.list_library(Path(self._templates_dir))
+            self._templates = [t for t in config.list_library(Path(self._templates_dir))
+                               if t["source"] == "default"]
         except (ValueError, ManipulationError, OSError) as exc:
             logger.error("Could not list templates: %s", exc)
             self._templates = []
             self._show_selection_error("Could not read your templates folder.")
         self._template_list.clear()
         for t in self._templates:
-            item = QListWidgetItem(f"{t['name']}  ({t['source']})")
+            item = QListWidgetItem(t["name"])
             item.setData(Qt.ItemDataRole.UserRole, t["name"])
             self._template_list.addItem(item)
         self._sel_empty.setVisible(not self._templates)
-        if select_name:
-            for i in range(self._template_list.count()):
-                if self._template_list.item(i).data(Qt.ItemDataRole.UserRole) == select_name:
-                    self._template_list.setCurrentRow(i)
-                    break
 
     def _on_select_next(self) -> None:
         if self._template_list.currentItem() is None:
-            self._show_selection_error("Select a template, or upload a .pptx.")
+            self._show_selection_error("Select a template.")
             return
         self._select_current()
 
-    def _select_current(self, report: str = "") -> None:
+    def _select_current(self) -> None:
         item = self._template_list.currentItem()
         if item is None:
             return
@@ -188,137 +168,7 @@ class TemplateDialog(QDialog):
         self._selected = t
         self._template_dir = Path(t["path"])
         self._confirm_summary.setText(self._manifest_summary(manifest))
-        if report:
-            self._confirm_report.setText(report)
-            self._confirm_report.setVisible(True)
-        else:
-            self._confirm_report.setVisible(False)
         self._stack.setCurrentWidget(self._confirm_page)
-
-    def _on_upload(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Select a .pptx", "", "PowerPoint files (*.pptx)"
-        )
-        if path:
-            self._do_import(path)
-
-    def _do_import(self, path: str) -> None:
-        """Import an uploaded deck on a background QThread. The inspect + strip +
-        re-save of a large .pptx would freeze the UI if run in this slot; the
-        import_template status-dict / exception contract is dispatched on the GUI
-        thread in _on_import_completed / _on_import_failed."""
-        if self._import_thread is not None:
-            return
-        self._import_result = self._import_error = None
-        self._clear_selection_error()
-        self._set_importing(True)
-        self._import_worker = TemplateImportWorker(path, str(self._templates_dir))
-        self._import_thread = QThread(self)
-        self._import_worker.moveToThread(self._import_thread)
-
-        self._import_thread.started.connect(self._import_worker.run)
-        self._import_worker.completed.connect(self._on_import_completed)
-        self._import_worker.failed.connect(self._on_import_failed)
-        self._import_worker.finished.connect(
-            self._import_thread.quit, Qt.ConnectionType.DirectConnection)
-        self._import_thread.finished.connect(self._import_worker.deleteLater)
-        self._import_thread.finished.connect(self._on_import_thread_finished)
-
-        self._import_thread.start()
-
-    def _set_importing(self, importing: bool) -> None:
-        """Toggle the import-in-progress UI state: upload/next disabled, wait
-        cursor shown, dismissal blocked (see reject/closeEvent)."""
-        self._importing = importing
-        self._sel_upload_btn.setEnabled(not importing)
-        self._sel_next_btn.setEnabled(not importing)
-        if importing:
-            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        else:
-            QApplication.restoreOverrideCursor()
-
-    @Slot(object)
-    def _on_import_completed(self, result: dict) -> None:
-        """Retain the result until the dialog's worker has fully stopped."""
-        self._import_result = result
-
-    def _apply_import_result(self, result: dict) -> None:
-        """Dispatch the joined worker's status dict on the GUI thread."""
-        status = result["status"]
-        if status == "exists":
-            self._show_selection_error(
-                f"A template named '{result['name']}' already exists. "
-                "Delete or rename it, then upload again."
-            )
-            return
-        if status == "hard_stop":
-            self._apply_hard_stop_choice(self._prompt_hard_stop(result["message"]))
-            return
-        if status != "ok":
-            logger.error("Unexpected import status: %r", status)
-            self._show_selection_error("Unexpected error during import. Please try again.")
-            return
-        self._refresh_templates(select_name=result["name"])
-        self._select_current(report=result.get("report", ""))
-
-    @Slot(str)
-    def _on_import_failed(self, msg: str) -> None:
-        """Retain the failure until the dialog's worker has fully stopped."""
-        self._import_error = msg
-
-    @Slot()
-    def _on_import_thread_finished(self) -> None:
-        """Join without blocking the GUI before releasing ownership or prompting."""
-        if self._import_thread is None:
-            return
-        if not self._import_thread.wait(0):
-            QTimer.singleShot(10, self._on_import_thread_finished)
-            return
-        self._import_thread.deleteLater()
-        self._import_thread = None
-        self._import_worker = None
-        result, error = self._import_result, self._import_error
-        self._import_result = self._import_error = None
-        self._set_importing(False)
-        if error is not None:
-            self._show_selection_error(error)
-        elif result is not None:
-            self._apply_import_result(result)
-
-    def reject(self) -> None:
-        """Block dismissal while an import is running: the worker would be orphaned
-        mid-write. Esc lands here; the title-bar X lands in closeEvent."""
-        if self._import_thread is not None:
-            return
-        super().reject()
-
-    def closeEvent(self, event: QCloseEvent) -> None:
-        """Block the title-bar X while an import is running (mirrors reject)."""
-        if self._import_thread is not None:
-            event.ignore()
-            return
-        super().closeEvent(event)
-
-    def _prompt_hard_stop(self, message: str) -> str:
-        default_available = any(t["source"] == "default" for t in self._templates)
-        dlg = HardStopDialog(message, default_available, parent=self)
-        dlg.exec()
-        return dlg.choice()
-
-    def _apply_hard_stop_choice(self, choice: str) -> None:
-        if choice == CHOICE_BUILTIN:
-            self._stack.setCurrentWidget(self._selection_page)
-            self._focus_first_default()
-        else:
-            self.reject()  # cancel and rebuild: abandon the flow
-
-    def _focus_first_default(self) -> None:
-        for i in range(self._template_list.count()):
-            name = self._template_list.item(i).data(Qt.ItemDataRole.UserRole)
-            t = next((x for x in self._templates if x["name"] == name), None)
-            if t and t["source"] == "default":
-                self._template_list.setCurrentRow(i)
-                return
 
     def _manifest_summary(self, manifest: Manifest) -> str:
         lines = [f"Template: {manifest.name}", "", "Slide types:"]
@@ -340,6 +190,3 @@ class TemplateDialog(QDialog):
     def _show_selection_error(self, msg: str) -> None:
         self._sel_error.setText(msg)
         self._sel_error.setVisible(True)
-
-    def _clear_selection_error(self) -> None:
-        self._sel_error.setVisible(False)

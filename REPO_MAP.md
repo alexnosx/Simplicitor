@@ -440,7 +440,6 @@ scripts/
     gen_repo_map.py
     inspect_template.py
     qualify_windows_installer.ps1
-    sample_deck_styles.py
 simplicitor/
     app/
         config/
@@ -474,7 +473,6 @@ simplicitor/
             edit_panel.py
             edit_placeholder.py
             file_list.py
-            hard_stop_dialog.py
             plain_labels.py
             settings_dialog.py
             status_banner.py
@@ -487,7 +485,6 @@ simplicitor/
             generate_worker.py
             manipulate_worker.py
             ollama_worker.py
-            template_import_worker.py
             template_worker.py
         __init__.py
         main_window.py
@@ -524,13 +521,11 @@ simplicitor/
         __init__.py
         breakdown.py
         config.py
-        deck_style.py
         llm.py
         manifest.py
         pipeline.py
         prompt_builder.py
         render_pptx.py
-        styled_template.py
         validation.py
     __init__.py
     cli.py
@@ -629,19 +624,14 @@ tests/
             valid_manifest.yaml
         __init__.py
         conftest.py
-        decks.py
         test_breakdown.py
         test_builtin_templates.py
         test_config.py
-        test_deck_style.py
         test_llm.py
         test_manifest.py
         test_pipeline.py
-        test_prepare_template.py
         test_prompt_builder.py
         test_render_pptx.py
-        test_sample_deck_styles.py
-        test_styled_template.py
         test_validation.py
     __init__.py
     conftest.py
@@ -657,7 +647,6 @@ tests/
     test_generate_worker.py
     test_generator_logging.py
     test_generators.py
-    test_hard_stop_dialog.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
     test_main_window_extraction.py
@@ -775,13 +764,6 @@ requirements.txt
 - def _type_label(ph_type) -> str
 - def inspect(pptx_path: Path) -> None
 - def main() -> None
-
-### scripts/sample_deck_styles.py
-
-- def _text(limit: int | None) -> str: Representative text: about 90% of the field limit, or one long sentence.
-- def sample_content(manifest: Manifest, picture: Path) -> dict: One slide per slide type, every field filled near its limits.
-- def sample(deck: Path, out: Path, picture: Path) -> str: Prepare one deck as the app would, render its sample, and return its report line.
-- def main(decks: Path, out: Path) -> list[str]
 
 ### simplicitor/__init__.py
 
@@ -918,10 +900,6 @@ requirements.txt
 
 - class FileList(QListWidget): Displays uploaded files ordered most-recent-first.
 
-### simplicitor/app/widgets/hard_stop_dialog.py
-
-- class HardStopDialog(QDialog): Modal shown when import_template returns a hard stop.
-
 ### simplicitor/app/widgets/plain_labels.py
 
 - def describe_anchor(anchor: str) -> str: Describe an anchored source location without internal identifiers.
@@ -968,10 +946,6 @@ requirements.txt
 ### simplicitor/app/workers/ollama_worker.py
 
 - class OllamaWorker(QObject): Polls Ollama connectivity on a background QThread (Phase 2).
-
-### simplicitor/app/workers/template_import_worker.py
-
-- class TemplateImportWorker(QObject): Runs config.import_template on a background QThread.
 
 ### simplicitor/app/workers/template_worker.py
 
@@ -1102,48 +1076,7 @@ requirements.txt
 - def list_templates(user_root: Path | None=None, builtin_root: Path | None=None) -> list[dict[str, Any]]: Return templates from the given roots, tagged with their source.
 - def list_library(templates_root: str | Path) -> list[dict[str, Any]]: List templates in a single library folder, tagging defaults vs user uploads.
 - def ensure_default_templates(templates_root: str | Path) -> None: Ensure the curated default templates exist in *templates_root*.
-- def prepare_template(pptx_path: str | Path, template_dir: Path, name: str) -> dict[str, Any]: Write template.pptx and manifest.yaml for a deck into an existing folder.
 - def import_template(pptx_path: str | Path, user_root: Path) -> dict[str, Any]: Import a .pptx file as a user template.
-
-### simplicitor/templates_engine/deck_style.py
-
-- class TextStyle
-- class Fill
-- class Logo
-- class DeckStyle
-- class _Theme
-- class _Run
-- class _Deck
-- def _open(path: str | Path)
-- def _theme(master) -> _Theme: A master's theme: colors by slot name, the raw color scheme, the two fonts.
-- def _color_map(*owners): The color map in force: the first override among *owners*, else the last one's map.
-- def _colors(theme: _Theme, mapping) -> dict[str, str]: The theme's slots plus bg1, tx1, bg2, tx2 and any other name the color map gives.
-- def _fraction(color, tag: str) -> float | None
-- def _variant(value: str, color) -> str: Apply PowerPoint's lighter and darker variants (lumMod, lumOff) to "RRGGBB".
-- def _color(element, colors: dict[str, str]) -> str | None
-- def _first(*styles: TextStyle) -> TextStyle: Each property from the first style that sets it.
-- def _props(element, colors: dict[str, str], major: str | None, minor: str | None) -> TextStyle: What one a:rPr or a:defRPr element sets; unset properties are None.
-- def _level(styles, level: int, colors, major, minor) -> TextStyle: One paragraph level of a list or text style, over that style's default paragraph.
-- def _list_style(shape)
-- def _inherited_styles(shape, master, presentation) -> list: Style elements the shape's text inherits, nearest first, excluding the shape itself.
-- def _runs(shape, master, presentation, colors, major, minor) -> list[_Run]: The effective style of every non-empty run, and whether the slide overrides it.
-- def _iter_shapes(shapes)
-- def _title_shape(shapes: list, height: int): The title placeholder, else the shape near the top with the largest text.
-- def _weighted_median(values: list[tuple[float, int]]) -> float | None
-- def _dominant(runs: list[_Run], font: str | None, color: str | None) -> TextStyle: The most used font, color and boldness, and the median size, weighted by characters.
-- def _readable(blob: bytes) -> bool: True when the whole image decodes; opening an image reads only its header.
-- def _picture(shape): (blob, extension, SHA-1) of a picture's embedded image, or None when unusable.
-- def _fill(parent, part, colors: dict[str, str]) -> Fill | None: Read a solid, gradient (first stop) or picture fill under *parent*.
-- def _covers(shape, width: int, height: int) -> bool
-- def _own_fill(owner, colors: dict[str, str], width: int, height: int) -> Fill | None: The background a slide, layout or master sets itself, or None when it sets none.
-- def _key(fill: Fill | None)
-- def _common_background(fills: list[Fill | None]) -> Fill | None: The most common background; the plain default (None) counts too.
-- def _logo(slides, width: int, height: int) -> Logo | None: A small picture repeated in the same place on at least half the slides.
-- def _read_deck(path: str | Path) -> _Deck
-- def _mostly_on_slide(runs: list[_Run]) -> bool
-- def look_is_on_slides(path: str | Path) -> bool: True when the slides override their layouts.
-- def capture_style(path: str | Path) -> DeckStyle: Read size, theme colors, text styles, backgrounds and a repeated logo.
-- def describe_capture(style: DeckStyle, skipped: tuple[str, ...]=()) -> str: One plain sentence naming what the new template took from the deck.
 
 ### simplicitor/templates_engine/llm.py
 
@@ -1180,24 +1113,6 @@ requirements.txt
 - def _get_placeholder(slide, idx: int, field_name: str, slide_idx: int): Return the slide placeholder at *idx*, raising ManipulationError if absent.
 - def _render_slide(slide, slide_def: SlideTypeDef, fields: dict, slide_idx: int) -> list[str]: Populate slide placeholders from fields. Returns degrade warning strings.
 - def render(manifest: Manifest, content: dict, out_path: str | Path, template_dir: str | Path) -> dict: Render validated content into a PPTX deck using the named template.
-
-### simplicitor/templates_engine/styled_template.py
-
-- def _field(name: str, idx: int, kind: str, required: bool, **limit) -> dict
-- def styled_manifest(name: str, deck_name: str) -> dict: The manifest for a template built by build_styled_template().
-- def _luminance(color: str) -> float
-- def _contrast(first: str, second: str) -> float
-- def _average(fill: Fill | None) -> str: The background's color, or a picture's average color; white when unknown.
-- def readable(color: str | None, background: str) -> str: Keep the deck's text color when it reads at 3:1 or better; else black or white.
-- def _set_color(rpr, color: str) -> None
-- def _resize(prs, width: int, height: int) -> None: Change the slide size and scale every master and layout shape that has its own position.
-- def _apply_theme(prs, style: DeckStyle) -> None
-- def _apply_text(master, style_name: str, text: TextStyle, color: str, size_range: tuple) -> None
-- def _title_slide_colors(prs, title: str, body: str) -> None: Override title-slide text colors where its background differs from the others.
-- def _set_background(owner, fill: Fill) -> None
-- def _add_logo(prs, logo: Logo) -> None
-- def _apply_pictures(prs, style: DeckStyle) -> list[str]: Set backgrounds and the logo; return the parts whose images could not be read.
-- def build_styled_template(style: DeckStyle, out_path: str | Path) -> list[str]: Write a fillable template with *style*; return parts of the look that were skipped.
 
 ### simplicitor/templates_engine/validation.py
 
@@ -1387,24 +1302,6 @@ requirements.txt
 - def tmp_template(tmp_path): Temp dir with a default Presentation saved as template.pptx and render_manifest.yaml.
 - def tiny_png(tmp_path): A file at tmp_path/test_image.png. Content is not a valid PNG image.
 
-### tests/templates_engine/decks.py
-
-- def png(color: tuple[int, int, int], size: tuple[int, int]=(64, 36)) -> io.BytesIO
-- def _text(slide, text: str, top: float, font: str, size: int, color: str, bold: bool=False)
-- def free_form(path: Path, slides: int=4, logo: bool=True) -> Path: Like a Canva export: blank layouts, a full-slide picture, free text boxes, a logo.
-- def hand_built(path: Path) -> Path: Built in PowerPoint slide by slide: standard layouts, own solid backgrounds.
-- def company_template(path: Path) -> Path: A real template: the look lives in the master, slides follow it.
-- def white_manual(path: Path) -> Path: Built by hand on the plain white theme: own fonts and a logo on every slide.
-- def paragraph_styled(path: Path) -> Path: Titles and body text styled on the paragraph instead of on each run.
-- def master_branded(path: Path) -> Path: A company template: the title font, size and color are set once, on the master.
-- def layout_defaults(path: Path, slide_fonts: tuple[str, str] | None=None) -> Path: A template whose layout sets fonts in its placeholders' default paragraph style.
-- def layout_background(path: Path, fill: str=DARK_GREEN, own_fonts: bool=True) -> Path: Slides inheriting their layout's background; with *own_fonts*, white text set on each.
-- def dark_theme(path: Path, on_layout: bool=False) -> Path: Built by hand on a dark theme variant: the color map swaps background and text.
-- def two_masters(path: Path, repeat_fonts: bool=False) -> Path: Slides pasted from another deck: a second master whose theme uses Georgia and Verdana.
-- def corrupt_png() -> bytes: A PNG whose header and checksums are valid but whose pixel data cannot be decoded.
-- def webp() -> bytes: A real picture in a format python-pptx does not support.
-- def damage_pictures(path: Path, data: bytes) -> Path: Replace the bytes of every embedded picture; the deck itself stays readable.
-
 ### tests/templates_engine/test_breakdown.py
 
 - def _make_minimal_pptx(path: Path) -> Path: Save a default-layout Presentation to path and return it.
@@ -1533,25 +1430,6 @@ requirements.txt
 - def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path)
 - def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch)
 
-### tests/templates_engine/test_deck_style.py
-
-- def test_free_form_deck_gives_fonts_colors_backgrounds_and_logo(tmp_path)
-- def test_hand_built_deck_reads_slide_backgrounds_and_placeholder_titles(tmp_path)
-- def test_paragraph_and_master_formatting_are_inherited(tmp_path)
-- def test_default_paragraph_styles_are_inherited(tmp_path)
-- def test_each_slide_is_read_against_its_own_master(tmp_path)
-- def test_inherited_layout_background_is_captured(tmp_path)
-- def test_dark_color_map_keeps_a_dark_background_and_light_text(tmp_path, on_layout)
-- def test_lighter_and_darker_theme_colors_are_applied(tmp_path)
-- def test_unstyled_text_follows_the_master_and_theme(tmp_path)
-- def test_deck_without_slides_gives_theme_only(tmp_path)
-- def test_look_is_on_slides_when_slides_override_their_layouts(tmp_path, factory, expected)
-- def test_inherited_formatting_is_not_an_override(tmp_path, factory, expected)
-- def test_summary_names_only_what_was_found(tmp_path)
-- def test_cover_only_picture_stays_on_the_title_slide(tmp_path)
-- def test_broken_picture_links_are_ignored(tmp_path)
-- def test_unreadable_pictures_are_skipped_and_the_rest_is_kept(tmp_path, data)
-
 ### tests/templates_engine/test_llm.py
 
 - def _mock_client(models=None, chat_return=None, raises=None): Build a minimal OllamaClient mock for injection.
@@ -1619,12 +1497,6 @@ requirements.txt
 - def test_generate_content_post_repair_parse_raises_parseerror(manifest)
 - def test_generate_content_emits_progress_phases(manifest)
 
-### tests/templates_engine/test_prepare_template.py
-
-- def test_layouts_are_kept_only_when_the_slides_follow_them(tmp_path, factory, captured)
-- def test_damaged_pictures_are_skipped_and_the_rest_is_captured(tmp_path, data)
-- def test_inherited_layout_background_reaches_the_template(tmp_path)
-
 ### tests/templates_engine/test_prompt_builder.py
 
 - def manifest()
@@ -1663,25 +1535,6 @@ requirements.txt
 - def test_render_template_missing_pptx_fails_cleanly(tmp_path, tmp_template): Template .pptx deleted before render — ValueError raised, no output file written.
 - def test_render_save_failure_leaves_no_partial_file(tmp_path, tmp_template): prs.save() raises OSError — ManipulationError raised, no out_path or .pptx.tmp file left.
 - def test_render_rename_failure_leaves_no_temp_file(tmp_path, tmp_template): Atomic replace raises OSError — ManipulationError raised, no out_path or .pptx.tmp left.
-
-### tests/templates_engine/test_sample_deck_styles.py
-
-- def test_every_deck_is_sampled_on_the_route_the_app_takes(tmp_path)
-- def test_sample_text_stays_within_every_field_limit(tmp_path)
-- def test_output_folder_overlapping_the_decks_is_refused(tmp_path, inside)
-
-### tests/templates_engine/test_styled_template.py
-
-- def _theme(prs)
-- def _title_color(prs) -> str
-- def _build(tmp_path, style)
-- def test_free_form_style_becomes_a_wide_fillable_template(tmp_path)
-- def test_captured_logo_keeps_master_shape_ids_below_signed_integer_limit(tmp_path)
-- def test_title_slide_keeps_light_text_on_its_dark_cover(tmp_path)
-- def test_unreadable_text_color_switches_to_black_or_white(tmp_path)
-- def test_unreadable_background_picture_is_skipped_not_fatal(tmp_path)
-- def test_styled_template_renders_every_slide_type(tmp_path)
-- def test_portrait_deck_keeps_every_layout_inside_the_slide(tmp_path)
 
 ### tests/templates_engine/test_validation.py
 
@@ -1898,14 +1751,6 @@ requirements.txt
 - class TestExcelGenerator: Tests for ExcelGenerator.generate().
 - class TestPptxGenerator: Tests for PptxGenerator.generate().
 
-### tests/test_hard_stop_dialog.py
-
-- def test_hard_stop_renders_verbatim_message(qtbot)
-- def test_hard_stop_gates_builtin_button_on_builtin_list(qtbot, builtin_list, expect_builtin_btn)
-- def test_hard_stop_builtin_button_returns_builtin_choice(qtbot)
-- def test_hard_stop_cancel_button_returns_cancel_choice(qtbot)
-- def test_hard_stop_cancel_only_when_no_builtin(qtbot)
-
 ### tests/test_legacy_edit_disabled.py
 
 - def test_worker_rejects_legacy_edit_without_io(tmp_path, model_output)
@@ -2088,33 +1933,19 @@ requirements.txt
 
 ### tests/test_template_dialog.py
 
-- def template_root(tmp_path, monkeypatch)
+- def _write_template(root: Path, name: str) -> None
+- def template_root(tmp_path, monkeypatch): One built-in template and one template a user imported before 2.2.0.
 - def dialog(qtbot, template_root)
 - def _select_deck(dlg)
-- def _do_import_and_wait(qtbot, dlg, path): Run the async import and pump the event loop until the worker thread is
-- def test_selection_lists_user_template(dialog)
+- def test_selection_lists_only_built_in_templates(dialog, template_root)
+- def test_selection_offers_no_upload(dialog)
+- def test_empty_picker_names_the_missing_built_ins(qtbot, tmp_path)
+- def test_next_without_a_selection_asks_for_one(dialog)
 - def test_select_advances_to_confirm_and_loads_manifest(dialog)
 - def test_confirm_shows_manifest_summary(dialog)
 - def test_confirm_page_has_no_prompt_box(dialog): The second prompt was removed; the main Create prompt is the only one.
 - def test_confirm_next_emits_template_selected_and_accepts(qtbot, dialog)
 - def test_confirm_next_noop_without_selection(qtbot, dialog)
-- def test_on_upload_calls_do_import_with_chosen_path(dialog, monkeypatch)
-- def test_on_upload_cancelled_does_nothing(dialog, monkeypatch)
-- def test_import_bad_file_stays_selection_with_message(qtbot, dialog, monkeypatch)
-- def test_import_manipulation_error_stays_selection(qtbot, dialog, monkeypatch)
-- def test_import_exists_shows_message_stays_selection(qtbot, dialog, monkeypatch)
-- def test_import_ok_advances_to_confirm_with_report(qtbot, dialog, template_root, monkeypatch)
-- def test_import_hard_stop_invokes_prompt_and_routes(qtbot, dialog, monkeypatch)
-- def test_apply_hard_stop_cancel_rejects(dialog, monkeypatch)
-- def test_apply_hard_stop_builtin_returns_to_selection_with_focus(dialog)
-- def test_prompt_hard_stop_builtin_available_reflects_templates(dialog, monkeypatch)
-- def test_import_unexpected_status_shows_error_stays_selection(qtbot, dialog, monkeypatch)
-- def test_do_import_uses_templates_dir(qtbot, dialog, template_root, monkeypatch)
-- def test_do_import_hard_stop_cancel_end_to_end(qtbot, dialog, monkeypatch)
-- def test_import_runs_off_the_gui_thread(qtbot, dialog, monkeypatch)
-- def test_import_unexpected_exception_shows_generic_error(qtbot, dialog, monkeypatch)
-- def test_dismissal_blocked_while_importing_then_allowed(qtbot, dialog, monkeypatch)
-- def test_import_result_does_not_allow_dismissal_before_thread_cleanup(qtbot, dialog, monkeypatch, qapp, failed)
 - def test_headless_dialog_without_an_explicit_answer_fails(qtbot)
 
 ### tests/test_template_worker.py
@@ -2264,7 +2095,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 76 lines
+- docs/PROJECT_STATUS.md: md, 89 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
