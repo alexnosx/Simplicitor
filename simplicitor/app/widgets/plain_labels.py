@@ -30,6 +30,7 @@ _COVERAGE = {
     "skipped_text_box": "text in text boxes was not read.",
     "skipped_tracked_changes": "text in tracked changes was not read. Accept or reject the "
                                "changes in Word, then add the file again.",
+    "tracked_change_properties": "tracked formatting or row changes need review in Word.",
     "skipped_content_control": "text in form fields was not read.",
     "skipped_field": "text in fields, such as dates Word fills in, was not read.",
     "skipped_embedded_document": "an embedded document was not read.",

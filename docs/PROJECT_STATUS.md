@@ -23,6 +23,8 @@ Updated 2026-10-12 after 2.2.0 Part A implementation. [PRD.md](../PRD.md) owns r
 
 The planned test-first checks reproduced their expected failures before each change. Isolated full local source suites passed after A1 (1,079), A2 (1,081), A3 (1,085) and A4 (1,089). Targeted suites passed 23, 70, 137 and 315 tests respectively. The qualification script has zero parse errors and was not executed; packaging tools stay mocked in source tests. Existing prompts, model settings and evaluation fixtures/labels were preserved; no live-model evaluation was run.
 
+The final block review found two bounded edge cases in the plan: cleanup errors could be hidden by progress clearing, and property-only revision markers could claim readable text was omitted. Regressions reproduced both; fixes keep cleanup errors visible and retain a truthful review warning for tracked formatting/row changes without changing extracted text. The final full suite passed 1,095 tests; one pytest cache-permission warning remains.
+
 ## 2.1.0 verification
 
 | Part | Verification |

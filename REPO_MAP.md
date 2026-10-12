@@ -1278,6 +1278,7 @@ requirements.txt
 - def test_docx_reads_header_footer_paragraphs_and_cells_once(tmp_path)
 - def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path)
 - def test_skipped_word_parts_are_named_and_their_text_is_not_read(tmp_path, code)
+- def test_property_revision_keeps_text_and_a_truthful_review_warning(tmp_path, location, tag)
 
 ### tests/extraction/test_xlsx_writer.py
 
@@ -1801,7 +1802,7 @@ requirements.txt
 - def test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it(window, tmp_path, qtbot, cancel)
 - def test_close_waits_for_cancelled_worker_before_removing_job(window, tmp_path, qtbot)
 - def test_close_waits_for_queued_finished_handler_even_after_thread_stops(window, tmp_path, qtbot)
-- def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch)
+- def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch, cleanup_fails)
 - def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch)
 - def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
 - def saved_candidate(tmp_path, *, flagged=True, coverage=False)
@@ -2125,7 +2126,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 65 lines
+- docs/PROJECT_STATUS.md: md, 67 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)

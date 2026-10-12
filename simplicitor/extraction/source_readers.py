@@ -18,6 +18,8 @@ from app.config.defaults import (
 from extraction.models import Issue, SourceDocument, SourceUnit
 
 _W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+# These revision markers describe properties, not text excluded by block reading.
+_REVISION_PROPERTY_PARENTS = {_W + tag for tag in ("trPr", "numPr", "rPr")}
 # Word content this version does not read: (XML tag, issue code, Evidence message).
 _SKIPPED_PARTS = (
     ("txbxContent", "skipped_text_box", "Text in text boxes was not read."),
@@ -94,8 +96,12 @@ def _read_docx(path: Path, source_id: str) -> SourceDocument:
         _read_blocks(container.iter_inner_content(), prefix, source_id, units, issues)
         found = {}
         for tag, code, message in _SKIPPED_PARTS:
-            if next(element.iter(_W + tag), None) is not None:
-                found.setdefault(code, message)
+            for node in element.iter(_W + tag):
+                if tag in ("ins", "del") and node.getparent().tag in _REVISION_PROPERTY_PARENTS:
+                    found.setdefault("tracked_change_properties",
+                                     "Tracked formatting or row changes need review in Word.")
+                else:
+                    found.setdefault(code, message)
         issues.extend(Issue(code, source_id, prefix, message) for code, message in found.items())
     for part in doc.part.package.parts:
         if any(token in str(part.partname) for token in ("/footnotes", "/endnotes")):

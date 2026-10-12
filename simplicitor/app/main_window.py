@@ -365,14 +365,14 @@ class MainWindow(QMainWindow):
         self._extraction_thread.deleteLater()
         action = self._extraction_worker.action
         self._extraction_thread = self._extraction_worker = None
+        if self._progress_shown:  # clear stale progress before cleanup can report a failure
+            self._progress_shown = False
+            self._create_screen.clear_status()
         if action == "extract" and (self._cancel_pending or self._closing
                                     or self._create_screen.candidate() is None):
             self._discard_review_job()
         self._create_screen.set_busy(False)
         self._top_bar._model_combo.setEnabled(bool(self._top_bar.current_model()))
-        if self._progress_shown:  # the step finished; its progress line is now stale
-            self._progress_shown = False
-            self._create_screen.clear_status()
         if action == "inspect":
             self._create_screen.inspection_finished()
             if not self._cancel_pending and not self._closing:

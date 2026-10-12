@@ -197,3 +197,37 @@ def test_skipped_word_parts_are_named_and_their_text_is_not_read(tmp_path, code)
     result = read_source(source, "one")
     assert [issue.code for issue in result.issues] == [code]
     assert not any("90" in unit.text for unit in result.units)
+
+
+@pytest.mark.parametrize("location,tag", [
+    ("row", "ins"), ("row", "del"), ("numbering", "ins"),
+    ("paragraph_mark", "ins"), ("paragraph_mark", "del"),
+])
+def test_property_revision_keeps_text_and_a_truthful_review_warning(tmp_path, location, tag):
+    from docx.oxml import parse_xml
+    from app.widgets.plain_labels import describe_coverage
+    from extraction.source_readers import read_source
+
+    doc = Document()
+    marker = f'<w:{tag} w:id="1" w:author="Reviewer"/>'
+    if location == "row":
+        row = doc.add_table(rows=1, cols=1).rows[0]
+        row.cells[0].text = "Kept 904"
+        row._tr.insert(0, parse_xml(f'<w:trPr {_WNS}>{marker}</w:trPr>'))
+    else:
+        paragraph = doc.add_paragraph("Kept 904")
+        properties = (f'<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/>{marker}'
+                      '</w:numPr>' if location == "numbering"
+                      else f'<w:rPr>{marker}</w:rPr>')
+        paragraph._p.insert(0, parse_xml(f'<w:pPr {_WNS}>{properties}</w:pPr>'))
+    source = tmp_path / "revision.docx"
+    doc.save(source)
+    before = source.read_bytes()
+
+    result = read_source(source, "one")
+    assert [unit.text for unit in result.units] == ["Kept 904"]
+    assert [issue.code for issue in result.issues] == ["tracked_change_properties"]
+    assert result.issues[0].safe_message == "Tracked formatting or row changes need review in Word."
+    assert describe_coverage("revision.docx", "one#", result.issues[0].code) == (
+        "revision.docx: tracked formatting or row changes need review in Word.")
+    assert source.read_bytes() == before

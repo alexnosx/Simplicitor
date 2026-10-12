@@ -250,7 +250,9 @@ def test_close_waits_for_queued_finished_handler_even_after_thread_stops(window,
     assert not job.exists()
 
 
-def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch):
+@pytest.mark.parametrize("cleanup_fails", [False, True])
+def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(
+        window, tmp_path, qtbot, monkeypatch, cleanup_fails):
     from app.workers.extraction_worker import ExtractionWorker
     entered, release = Event(), Event()
     def paused_worker(*args, **kwargs):
@@ -265,12 +267,22 @@ def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(wind
     panel, _ = configure_window(window, tmp_path, qtbot)
     window._ollama_client = ExtractionClient()
     panel._extract_btn.click()
-    try:
-        qtbot.waitUntil(lambda: panel._candidate is not None and entered.is_set())
-        panel._cancel_btn.click()
-    finally:
-        release.set()
-    qtbot.waitUntil(lambda: window._extraction_thread is None)
+    with monkeypatch.context() as cleanup_patch:
+        if cleanup_fails:
+            def fail_cleanup(job):
+                raise OSError("temporary workbook is open")
+            cleanup_patch.setattr("app.main_window.discard_job", fail_cleanup)
+        try:
+            qtbot.waitUntil(lambda: panel._candidate is not None and entered.is_set())
+            job = window._extraction_job
+            panel._cancel_btn.click()
+        finally:
+            release.set()
+        qtbot.waitUntil(lambda: window._extraction_thread is None)
+        if cleanup_fails:
+            assert window._extraction_job == job and job.exists()
+            assert not panel._status.isHidden()
+            assert panel._status.text().startswith("Could not clear the temporary job")
     assert panel._candidate is None and panel._grid.rowCount() == 0
     assert not panel._save_btn.isEnabled()
 
