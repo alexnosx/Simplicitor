@@ -14,15 +14,13 @@ The review set is the [document architecture](docs/superpowers/specs/2026-10-08-
 
 ## Screenshot
 
-Historical pre-2.1.0 screenshot; the [approved workspace mockup](docs/design/document-workspace.html) shows the new layout.
-
-![Earlier Simplicitor screenshot](docs/screenshot.png)
+![Simplicitor Create workspace](docs/screenshot.png)
 
 ## Install and run
 
 ### Download the binary
 
-Published downloads are on the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. Version 2.1.0 is prepared but has not been tagged or published. Its [release notes](docs/releases/v2.1.0-notes.md) describe these planned downloads:
+Download the current release from the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. See the [release notes](docs/releases/v2.1.0-notes.md) for details. The release downloads are:
 
 - `Simplicitor-2.1.0.msi`: installs for the current Windows user.
 - `Simplicitor-portable.zip`: unpack and run `Simplicitor.exe` without installing.
@@ -30,11 +28,20 @@ Published downloads are on the [Releases](https://github.com/alexnosx/Simplicito
 
 For the MSI, uninstall an existing 2.0.0 setup.exe installation from Settings > Apps first. Settings and documents are preserved. The MSI is unsigned and Windows may show an unknown-publisher or security warning. Packaging does not remove that warning.
 
-### Hosted build
+### Build from source
 
-The [Build workflow](.github/workflows/build.yml) compiles the standalone payload with Nuitka 4.2.2, creates the per-user MSI with pinned WiX 5.0.2, and archives that same payload. MSI version is 2.1.0; the executable version is 2.1.0.0. The hosted Windows runner qualifies refusal of an old NSIS installation, install, repair, major upgrade, startup without Ollama and settings-preserving uninstall before uploading artifacts.
+On your Windows development machine, you need Python 3.11+, Git and the .NET 8 SDK. From PowerShell:
 
-Pushes run source tests only. Full builds run at approved milestones by manual dispatch and on authorized tags. See the [testing policy](docs/superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy-alex-2026-10-09) and [packaging procedures](docs/code-signing.md). Do not run build.py, WiX, installer/uninstaller or qualification tools on Alex's PC. Publication requires explicit approval.
+```powershell
+git clone https://github.com/alexnosx/Simplicitor.git
+cd Simplicitor
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-build.txt
+dotnet tool restore
+.\.venv\Scripts\python.exe build.py
+```
+
+Outputs in `dist`: `Simplicitor-2.1.0.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
 
 ### Run from source without building
 
@@ -51,7 +58,7 @@ Start Ollama, then launch the application:
 .\.venv\Scripts\python.exe .\simplicitor\main.py
 ```
 
-For the existing checkout at `C:\Codex\Simplicitor`, the environment is already installed; only the launch command is needed. Select an installed local model in the top bar. The native walkthrough used `qwen3:8b-q4_K_M`, the installed Q4_K_M tag of the selected Qwen candidate.
+Select an installed local model in the top bar.
 
 Try one synthetic extraction:
 
@@ -62,7 +69,7 @@ Try one synthetic extraction:
 5. Select grid values to inspect their saved quotes, anchors, and issues. This fixture should retain invoice ID `00123` as text, gross total `12500.00` as a number, and due date `2026-04-14` as a date.
 6. If output is flagged or incomplete, review it and check the acknowledgement. Click **Save to Excel** to choose a new `.xlsx` file. Windows asks before replacing an existing output; source files cannot be replaced.
 
-To create from a prompt, leave Source files empty, select Word, Excel, PowerPoint or PDF and click **Create file**. For PowerPoint, **Use a template** opens the existing template flow. **Edit document** explains the deferred editing feature. Source-run checks do not qualify the installer or replace the full-pipeline accuracy evaluation.
+To create from a prompt, leave Source files empty, select Word, Excel, PowerPoint or PDF and click **Create file**. For PowerPoint, **Use a template** opens the existing template flow. **Edit document** explains the deferred editing feature.
 
 ## Requirements
 
