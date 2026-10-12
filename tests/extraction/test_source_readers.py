@@ -199,6 +199,25 @@ def test_skipped_word_parts_are_named_and_their_text_is_not_read(tmp_path, code)
     assert not any("90" in unit.text for unit in result.units)
 
 
+@pytest.mark.parametrize("tag", ["moveFrom", "moveTo"])
+def test_tracked_moves_are_named_and_their_text_is_not_read(tmp_path, tag):
+    from docx.oxml import parse_xml
+    from extraction.source_readers import read_source
+
+    doc = Document()
+    moved_text = (f'<w:{tag} {_WNS} w:id="1" w:author="Reviewer">'
+                  f'<w:r><w:t>Total 90</w:t></w:r></w:{tag}>')
+    doc.add_paragraph("Invoice 100 ")._p.append(parse_xml(moved_text))
+    source = tmp_path / "tracked-move.docx"
+    doc.save(source)
+    result = read_source(source, "one")
+
+    assert [issue.code for issue in result.issues] == ["skipped_tracked_changes"]
+    assert result.issues[0].safe_message == "Text in tracked changes was not read."
+    assert [unit.text for unit in result.units] == ["Invoice 100 "]
+    assert not any("90" in unit.text for unit in result.units)
+
+
 @pytest.mark.parametrize("location,tag", [
     ("row", "ins"), ("row", "del"), ("numbering", "ins"),
     ("paragraph_mark", "ins"), ("paragraph_mark", "del"),

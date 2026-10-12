@@ -1352,6 +1352,7 @@ requirements.txt
 - def test_docx_reads_header_footer_paragraphs_and_cells_once(tmp_path)
 - def test_docx_header_only_text_is_readable_and_counts_toward_page_cost(tmp_path)
 - def test_skipped_word_parts_are_named_and_their_text_is_not_read(tmp_path, code)
+- def test_tracked_moves_are_named_and_their_text_is_not_read(tmp_path, tag)
 - def test_property_revision_keeps_text_and_a_truthful_review_warning(tmp_path, location, tag)
 
 ### tests/extraction/test_xlsx_writer.py

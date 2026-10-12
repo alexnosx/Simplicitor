@@ -25,6 +25,8 @@ _SKIPPED_PARTS = (
     ("txbxContent", "skipped_text_box", "Text in text boxes was not read."),
     ("ins", "skipped_tracked_changes", "Text in tracked changes was not read."),
     ("del", "skipped_tracked_changes", "Text in tracked changes was not read."),
+    ("moveFrom", "skipped_tracked_changes", "Text in tracked changes was not read."),
+    ("moveTo", "skipped_tracked_changes", "Text in tracked changes was not read."),
     ("sdt", "skipped_content_control", "Text in form fields was not read."),
     ("fldSimple", "skipped_field", "Text in fields was not read."),
     ("altChunk", "skipped_embedded_document", "An embedded document was not read."),
