@@ -103,3 +103,11 @@ def test_worker_runs_on_qthread_and_finishes(setup, qtbot):
     with qtbot.waitSignal(thread.finished, timeout=5000):
         thread.start()
     assert not thread.isRunning()
+
+
+def test_missing_model_message_points_to_settings(setup, qtbot):
+    from dataclasses import replace
+    worker = ExtractionWorker("propose", replace(setup, profile=ExtractionProfile("")), Client())
+    with qtbot.waitSignal(worker.failed) as failed:
+        worker.run()
+    assert failed.args[0] == "Open Settings and select an installed local model."

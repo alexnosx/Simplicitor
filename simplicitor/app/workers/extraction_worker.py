@@ -70,7 +70,7 @@ class ExtractionWorker(QObject):
             if self.action == "inspect":
                 return
             if not self.setup.profile.model:
-                raise ExtractionError("Select an installed local model in the top bar.")
+                raise ExtractionError("Open Settings and select an installed local model.")
             if self.action == "propose":
                 self.progress.emit("Suggesting columns from the first source...")
                 columns = propose_columns(self.setup.request, documents[0], self.setup.profile,

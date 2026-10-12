@@ -1651,6 +1651,7 @@ requirements.txt
 - def test_source_remove_buttons_fit_with_application_list_padding(panel, qapp)
 - def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path)
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
+- def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
 
 ### tests/test_extraction_worker.py
 
@@ -1661,6 +1662,7 @@ requirements.txt
 - def test_cancel_before_or_after_response_never_emits_candidate(setup, tmp_path, qtbot, late)
 - def test_failed_request_is_sanitized_and_setup_retained(setup, tmp_path, qtbot, caplog)
 - def test_worker_runs_on_qthread_and_finishes(setup, qtbot)
+- def test_missing_model_message_points_to_settings(setup, qtbot)
 
 ### tests/test_file_generator.py
 

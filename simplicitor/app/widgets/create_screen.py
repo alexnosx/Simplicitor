@@ -15,7 +15,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor
 
 from app.config.defaults import (
-    BORDER_COLOR, GENERATE_FILE_TYPES, MAX_PROMPT_CHARS, PRIMARY_ACCENT_COLOR,
+    BORDER_COLOR, EXTRACTION_PROMPT_PLACEHOLDER, GENERATE_FILE_TYPES, MAX_PROMPT_CHARS,
+    PRIMARY_ACCENT_COLOR,
     PROMPT_COMPLEXITY_THRESHOLD_CHARS, PROMPT_PLACEHOLDERS, STYLING_KEYWORDS,
     EXTRACTION_SOURCE_FILTER, TEMPLATE_FILE_TYPE, EXTRACTION_FLAG_COLOR,
 )
@@ -112,7 +113,7 @@ class CreateScreen(QWidget):
         layout.addLayout(footer)
         self._prompt_edit.textChanged.connect(self._setup_edited)
         self._type_combo.currentTextChanged.connect(self._type_changed)
-        self._prompt_edit.setPlaceholderText(PROMPT_PLACEHOLDERS[self.file_type()])
+        self._update_placeholder()
         self._refresh()
         self._update_details()
 
@@ -303,6 +304,7 @@ class CreateScreen(QWidget):
         self._documents = ()
         self._inspecting = bool(self._paths)
         self._force_excel_if_sources()
+        self._update_placeholder()
         self._setup_edited()
         if self._paths:
             self.inspect_requested.emit(self.snapshot(False))
@@ -312,7 +314,6 @@ class CreateScreen(QWidget):
             self._type_combo.blockSignals(True)
             self.set_file_type(EXCEL)
             self._type_combo.blockSignals(False)
-            self._prompt_edit.setPlaceholderText(PROMPT_PLACEHOLDERS[EXCEL])
             self.set_template_loaded(False)
             self.file_type_changed.emit(EXCEL)
 
@@ -379,9 +380,15 @@ class CreateScreen(QWidget):
 
     def _type_changed(self, _display_name: str) -> None:
         label = self.file_type()
-        self._prompt_edit.setPlaceholderText(PROMPT_PLACEHOLDERS.get(label, ""))
+        self._update_placeholder()
         self.file_type_changed.emit(label)
         self._setup_edited()
+
+    def _update_placeholder(self) -> None:
+        """Hint at extraction while sources are attached, else at the chosen file type."""
+        self._prompt_edit.setPlaceholderText(
+            EXTRACTION_PROMPT_PLACEHOLDER if self._paths
+            else PROMPT_PLACEHOLDERS.get(self.file_type(), ""))
 
     def file_type(self) -> str:
         """Return the existing backend type label, independently of display text."""

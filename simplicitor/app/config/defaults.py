@@ -138,6 +138,12 @@ PROMPT_PLACEHOLDERS = {
     ),
 }
 
+# Shown instead of the file-type hint while source files are attached.
+EXTRACTION_PROMPT_PLACEHOLDER = (
+    "Describe the information to pull from your files, e.g.: invoice number, "
+    "customer name, total and due date"
+)
+
 EDIT_PROMPT_PLACEHOLDERS = {
     ".docx": "What would you like to change? e.g.: Rewrite the executive summary to be more concise",
     ".xlsx": "What would you like to change? e.g.: Add a totals row and highlight cells where values exceed the budget",

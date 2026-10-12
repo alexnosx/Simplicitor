@@ -633,3 +633,16 @@ def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tm
     assert "The source text did not contain a value for this column." in screen._evidence.toPlainText()
     assert "The value was found" not in screen._evidence.toPlainText()
     assert screen._grid.item(0, 1).text() == ""
+
+
+def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path):
+    from app.config.defaults import EXTRACTION_PROMPT_PLACEHOLDER, PROMPT_PLACEHOLDERS
+    screen = _screen(qtbot, isolated_profile)
+    screen.set_file_type("Excel (.xlsx)")
+    assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Excel (.xlsx)"]
+    screen.set_paths((tmp_path / "invoice.docx",))
+    assert screen._prompt_edit.placeholderText() == EXTRACTION_PROMPT_PLACEHOLDER
+    screen.set_paths(())
+    assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Excel (.xlsx)"]
+    screen.set_file_type("Word (.docx)")
+    assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Word (.docx)"]
