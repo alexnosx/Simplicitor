@@ -1,6 +1,6 @@
 # Simplicitor product requirements
 
-Updated 2026-10-09 after Alex's 2.0.0 sectioned-source review decision. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [single implementation plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
+Updated 2026-10-12 for 2.1.0 release preparation. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.1.0 plan](docs/superpowers/plans/2026-10-09-release-2.1.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
 
 ## Purpose
 
@@ -12,23 +12,27 @@ This is the single workflow table. Other documents link here.
 
 | Workflow | Release scope |
 |---|---|
-| Existing prompt-only Create | Preserve existing behavior. |
+| Prompt-only Create | Preserve Word, Excel and PowerPoint generation; add PDF output in 2.1.0. |
 | Existing PowerPoint template creation | Preserve existing behavior. |
-| Create new from DOCX and text-layer PDF sources into XLSX | The only new workflow in the first release; one record per file. |
+| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.1.0, with one record per file. |
 | Invoice line items / one record per table row | Next extraction increment, with its own design. |
 | Selective editing of DOCX, XLSX, PPTX | Post-first-release milestone; preservation contract below. |
 | XLSX-to-DOCX reporting | Post-first-release; blocked on the closed operation set below. |
 | Local OCR/vision for scanned PDFs | Separate post-first-release milestone. |
 
-First-release prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; the new output is XLSX only. Existing Create does not acquire a new approval pipeline.
+The 2.1.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create also supports PDF in 2.1.0 and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
 
 English is the target language. Other languages may work but are not tested or claimed.
 
-A separate v1.2.1 safety release must disable legacy Edit before extraction ships. The plan selects disabling its UI and worker entry points, preserving existing Create/templates. Prepare and qualify this patch independently, then obtain Alex's explicit go before publication. Its release does not wait for extraction evaluation or the new installer.
+The published v1.2.1 safety release disabled legacy Edit at its UI and worker entry points, preserving Create/templates. The 2.1.0 Edit document mode is explanatory only and must not re-enable legacy editing.
 
-## First-release UI
+## 2.1.0 UI
 
-Create new is the default mode. Edit document is not shown. The extraction route collects sources and a request, proposes columns, then lets the user edit, add, remove, and confirm them.
+Offer two modes: Create new (default) and Edit document. Edit document explains that selective editing is coming later, with a return to Create new and no editing action.
+
+Create new starts at Describe with a request, file type, save folder and optional source files. Without sources, it uses the existing prompt/template generation route, including PDF output. Adding sources fixes the output to Excel and advances through Choose columns, then Review and save. The user can edit, add, remove and confirm columns before extraction. Reports from source files remain unavailable. Switching modes or Settings is disabled while work is active. Source names, paths and evidence are plain text.
+
+Show review acknowledgement whenever the candidate has issues, whether highlighted values, reading problems, or both. The UI spec owns the three acknowledgement labels. Successful generation or extraction export opens a Saved page; source extraction still uses the native XLSX Save As dialog.
 
 Read the selected model's parameter size from Ollama metadata (/api/show). Below 8B or unknown, show this non-blocking warning: **Simplicitor works best with models of 8B parameters or more.** This is the product's only model check. Do not infer size from a name, check hardware, or disable actions because of the warning. Thinking is off for all extraction calls, including column suggestions.
 
@@ -62,7 +66,7 @@ Grounding checks evidence consistency, not semantic correctness. A correctly quo
 
 ## Workbook and save
 
-Write a dedicated Data/Evidence workbook. Data contains one row per file and all confirmed columns. Write grounded values under the confirmed types. Write validation-failed proposed values as literal text, highlighted, with their issues in Evidence. For 2.0.0, every extracted Data cell from a file requiring sectioning must be highlighted and flagged with sectioned_source, including otherwise verified values and blank fields. This review flag preserves verified values, Excel types, and number/date formats; existing validation failures retain their literal proposals and original issues. The whole-file path retains its existing validation behavior. Fields with no proposal remain blank and flagged. Exporting flagged or incomplete output requires acknowledgement.
+Write a dedicated Data/Evidence workbook. Data contains one row per file and all confirmed columns. Write grounded values under the confirmed types. Write validation-failed proposed values as literal text, highlighted, with their issues in Evidence. From 2.0.0 onward, every extracted Data cell from a file requiring sectioning must be highlighted and flagged with sectioned_source, including otherwise verified values and blank fields. This review flag preserves verified values, Excel types, and number/date formats; existing validation failures retain their literal proposals and original issues. The whole-file path retains its existing validation behavior. Fields with no proposal remain blank and flagged. Exporting flagged or incomplete output requires acknowledgement.
 
 Evidence contains record, field, verbatim model value, quote, source anchor, status, and issue; each Data cell resolves its entry. Include file labels and stable row references without absolute paths. Distinguish coverage issues from model fields.
 
@@ -80,7 +84,7 @@ Delete job folders on normal close after handles/workers finish. At startup, del
 | Labelled fixtures | At least 20 synthetic English DOCX/text-PDF contracts and invoices and 200 scored field slots. Include eight prose-based documents with parties in preambles, ordinal dates, sentence-contained amounts, and supplier/invoice identifiers in Word headers. One record per file, including table-contained fields, competing dates, missing fields, literal strings, and fields spread across pages. |
 | Field accuracy | Whole-file path: at least 95% correct Data values against independent labels under confirmed column types. Missing records/fields count as incorrect except labelled absent values. Flagging alone does not make a wrong value correct. Sectioned accuracy is reported without gating it. |
 | Unflagged wrong values | Whole-file path: at most 1% of its scored slots, including semantic errors that pass grounding. At 200 slots, at most two; fail at three. Sectioned path: zero unflagged values, whether correct or incorrect. Every sectioned Data cell requires review with sectioned_source. Flags come from extraction/validation, never labels. |
-| Review burden | Report flag rates on correct values and expected missing values separately. Whole-file indiscriminate flagging is not a usability pass; sectioned sources intentionally require review of every value in 2.0.0. |
+| Review burden | Report flag rates on correct values and expected missing values separately. Whole-file indiscriminate flagging is not a usability pass; sectioned sources intentionally require review of every value, including in 2.1.0. |
 | Evaluation candidates | qwen3:8b and llama3.1:8b at Q4_K_M, with reported parameter size of 8B or more. Larger models are optional reference results and cannot be selected. |
 
 Run evaluation on [B1](docs/PROJECT_STATUS.md#benchmark-environment) using the actual English fixture files, anchored readers, and shared grounding/scorer. The Task 1 fixtures fit one request; the full-pipeline corpus also includes larger sectioned files. Record the candidate, quantization, and fixed settings described in [architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md#model-requests).
@@ -95,9 +99,11 @@ Retain instructions after failure, prevent duplicate jobs, and support cooperati
 
 ## Packaging
 
-Use the existing Nuitka/PySide6 foundation, a standalone payload, NSIS installer, and portable ZIP. Distribute through GitHub Releases and simplicitor.com. No Microsoft Store or paid signing. Customers need no Python, Office, OCR runtime, or agent configuration for the new workflow.
+Use the existing Nuitka/PySide6 foundation and one standalone payload. In 2.1.0, a per-user MSI replaces the 2.0.0 NSIS setup.exe; keep a portable ZIP of that same payload and SHA256SUMS.json. Install into the fixed per-user Programs/Simplicitor folder, with Desktop and Start Menu shortcuts and current-user registration. The MSI refuses an existing 2.0.0 NSIS installation; users uninstall it first, preserving settings and documents. Distribute through GitHub Releases and simplicitor.com. No Microsoft Store or paid signing. Customers need no Python, Office, OCR runtime, or agent configuration for the new workflow.
 
-Preserve settings, templates, and user documents during upgrades/uninstall. Investigate unsigned Windows blocks with default protection enabled. [Packaging procedures](docs/code-signing.md) may progress alongside extraction, subject to its model stop gate; the independent safety release follows its own checks.
+Preserve settings, templates, and user documents during repair, upgrades and uninstall. Investigate unsigned Windows blocks with default protection enabled; MSI packaging does not establish publisher trust. [Packaging procedures](docs/code-signing.md) retain historical release evidence; the [2.1.0 plan](docs/superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy-alex-2026-10-09) owns the current testing policy.
+
+Run the isolated full local source suite after each task; synthetic temporary-file creation/deletion and mocked build tests are allowed. Never run installers, uninstallers, msiexec, Windows Sandbox, WiX, build.py or qualification on Alex's PC, or install tools/dependencies locally. Pushes run hosted source tests only. Full hosted builds run by manual dispatch at Task 0, B5, C2.7 and D1 and on explicitly authorized version tags. A passing D1 build prepares the release; tagging/publication still require Alex's explicit go.
 
 ## Post-first-release requirements
 

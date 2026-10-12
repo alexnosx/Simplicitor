@@ -1,18 +1,18 @@
-# Simplicitor first-release architecture
+# Simplicitor document architecture, 2.1.0
 
-[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [single plan](../plans/2026-10-08-first-release-extraction.md) owns signatures and checks. This revision follows Alex's review of a1cd16f.
+[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md) and [2.1.0 plan](../plans/2026-10-09-release-2.1.0.md) own signatures and checks. Updated 2026-10-12 to describe the implemented 2.1.0 release candidate.
 
 ## Structure
 
-Keep Python/PySide6 and existing Create/template workers. Add a small plain-Python extraction package and one Qt adapter for source inspection, column suggestions, and extraction.
+Keep Python/PySide6, existing generation/template workers, the plain-Python extraction package and its Qt worker adapter. MainWindow mounts one CreateScreen and an explanatory EditPlaceholder; TopBar selects the mode and Settings. CreateScreen emits requests with frozen setup, while MainWindow owns worker wiring, cancellation and teardown.
 
 ~~~mermaid
 flowchart TD
-    UI[Create workspace] --> OLD[Existing Create and template workers]
+    UI[CreateScreen] --> OLD[Existing Create and template workers]
     UI --> WORKER[Extraction QObject worker]
     WORKER --> READERS[Anchored DOCX and PDF readers]
     READERS --> COLUMNS[Suggest and confirm columns]
-    COLUMNS --> PIPE[Sectioned extraction and grounding]
+    COLUMNS --> PIPE[Whole-file or sectioned extraction and grounding]
     PIPE --> OLLAMA[Existing OllamaClient]
     PIPE --> XLSX[Data and Evidence workbook]
     XLSX --> GRID[Saved workbook grid]
@@ -23,7 +23,7 @@ The core has no Qt dependency. Readers open sources read-only, close handles, an
 
 ## Module responsibilities
 
-| Proposed path | Responsibility |
+| Path | Responsibility |
 |---|---|
 | simplicitor/extraction/models.py | Small shared source, column, field, issue, result, and candidate contracts; response schema. |
 | simplicitor/extraction/source_readers.py | DOCX/PDF reading adapted from legacy primitives, with stable anchors and coverage. |
@@ -35,8 +35,11 @@ The core has no Qt dependency. Readers open sources read-only, close handles, an
 | simplicitor/extraction/xlsx_writer.py | Dedicated typed/literal workbook writing and saved-grid data reading. |
 | simplicitor/extraction/jobs.py | Candidate folder, Save As copying, source-path refusal, and age-based cleanup. |
 | simplicitor/app/workers/extraction_worker.py | QObject adapter for core actions. |
-| simplicitor/app/widgets/extraction_panel.py | Sources, request, column editor, saved grid/evidence, and Save As. |
-| simplicitor/app/widgets/create_workspace.py | Host extraction and the existing CreatePanel. |
+| simplicitor/app/widgets/create_screen.py | Describe, Choose columns, saved grid/evidence, native export request and Saved page; prompt/template route on the same screen. |
+| simplicitor/app/widgets/step_indicator.py | Preserve the active step across prompt and source routes. |
+| simplicitor/app/widgets/plain_labels.py | Present source anchors, issues and coverage in plain language without interpreting rich text. |
+| simplicitor/app/widgets/edit_placeholder.py | Explain deferred selective editing and return to Create new. |
+| simplicitor/app/generators/pdf_generator.py | Render the parsed Word structure to a validated, staged PDF. |
 
 Reuse declared document libraries. Configuration stays in defaults.py. The legacy manipulator remains for its tests and template exception imports; new readers are independent.
 
@@ -80,7 +83,7 @@ After every local extraction or column-suggestion response, the shared client ch
 
 Check the anchor against the file's extracted units and match the quote after whitespace normalization. Then require the model value to be a literal, case-sensitive token-bounded span of its quote under the PRD grounding rule. Do not normalize the model value before this check. Code converts the verified span using confirmed English numeric/date settings, including ordinal/legal dates; conversion failure retains the proposal as flagged text.
 
-FieldProposal normalizes blank strings to None once, so parsing and Data projection agree about absence. Numeric conversion strips an allowed currency marker after grounding. Shared response parsing lives alongside grounding and retains identifiable requested proposals when extra records/properties invalidate the response schema.
+FieldProposal normalizes blank strings and trimmed case-insensitive "null" to None once, so parsing and Data projection agree about absence. Numeric conversion strips an allowed currency marker after grounding. Shared response parsing lives alongside grounding and retains identifiable requested proposals when extra records/properties invalidate the response schema.
 
 Test quotes with currency symbols, codes, and labels around the value, including the PRD amount example. A correctly quoted value assigned to the wrong column still counts as a semantic error in scoring.
 
@@ -100,18 +103,34 @@ Native Save As handles overwrite confirmation. Refuse a normalized source path, 
 
 Use existing QObject/QThread patterns and cooperative cancellation. The source readers never write back to supplied files.
 
-The Qt adapter freezes source paths, request, columns, and model profile for each operation. GUI receivers use Qt slots, and thread-finished handlers wait for completion and release ownership before close can stop the GUI event loop. Cancellation invalidates review immediately, including a candidate emitted just before cancellation. An accepted Save As copy finishes without a Cancel action; close waits for it. See Qt's [signal/slot thread guidance](https://doc.qt.io/qtforpython-6/tutorials/basictutorial/signals_and_slots.html) and [QThread completion semantics](https://doc.qt.io/qt-6/qthread.html#isFinished).
+The Qt adapter freezes source paths, request, columns, and model profile for each operation. GUI receivers use Qt slots, and thread-finished handlers poll non-blocking wait(0), retaining ownership until native completion before close can stop the GUI event loop. Template import retains its result and disables dismissal until its thread has exited. Cancellation invalidates review immediately, including a candidate emitted just before cancellation. An accepted Save As copy finishes without a Cancel action; close waits for it. See Qt's [signal/slot thread guidance](https://doc.qt.io/qtforpython-6/tutorials/basictutorial/signals_and_slots.html) and [QThread completion semantics](https://doc.qt.io/qt-6/qthread.html#isFinished).
 
 
-For 2.0.0, extraction records one source-level Issue(sectioned_source, source_id, "", safe_message) when context planning requires sectioning. The writer applies it to every extracted Data cell for that source: highlight and flagged Evidence status with sectioned_source, retaining prior issues. This is a review policy, not a coverage failure or failed conversion. Verified values keep their saved types and numeric/date formats; invalid proposals remain literal. The saved grid and Save As acknowledgement consume these saved flags as before. Multiple whole files do not trigger the policy merely because the job has several requests.
+From 2.0.0 onward, extraction records one source-level Issue(sectioned_source, source_id, "", safe_message) when context planning requires sectioning. The writer applies it to every extracted Data cell for that source: highlight and flagged Evidence status with sectioned_source, retaining prior issues. This is a review policy, not a coverage failure or failed conversion. Verified values keep their saved types and numeric/date formats; invalid proposals remain literal. The saved grid and Save As acknowledgement consume these saved flags as before. Multiple whole files do not trigger the policy merely because the job has several requests.
 
 ## Evaluation and release order
+
+The sequence below records the completed 2.0.0 extraction plan; its criteria remain unchanged in 2.1.0. D1 qualifies the final 2.1.0 documentation commit with the hosted build, without a new model run.
 
 Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.
 
 After it passes, implement the production pipeline and UI. Task 2 has unit checks only. Task 6 adds the CLI's --full-pipeline option and labelled files exceeding one request context to score both whole-file and sectioned production paths as the final release check. Both paths use the same saved-cell scorer and their PRD criteria separately. The sectioned path requires zero unflagged values and reports accuracy without gating it; whole-file criteria are unchanged. Failed saving or incomplete coverage still fails the path. Full-pipeline exit status requires every evaluated non-reference candidate path to pass, regardless of aggregate fractions. Optional timings decide nothing.
 
-The v1.2.1 safety release uses the existing build route and its own checks, independently of extraction. Publication requires Alex's explicit go. New installer preparation may run alongside extraction and stops if the early gate fails.
+The published v1.2.1 safety release used its independent historical build/check route. The 2.0.0 installer preparation ran alongside extraction subject to the early stop gate. The 2.1.0 MSI route is described below; tagging and publication still require Alex's explicit go.
+
+## Prompt generation and PDF output
+
+CreateScreen routes prompt-only Word, Excel and PowerPoint generation through the existing FileGenerator and workers; PowerPoint template generation retains its separate pipeline. PDF uses the Word system prompt and the same parsed title/section structure. PdfGenerator escapes text into QTextDocument HTML, renders with Qt's bundled QPdfWriter on A4 pages with 20 mm margins, then validates the staged file with pypdf before replacing the destination. Failed writes leave the prior destination intact and remove their own temporary file. No Office or external PDF converter is required.
+
+Generation diagnostics retain file type, response length where applicable and exception class, never output paths, prompt-derived names, slide content or exception text. This describes the updated generation route; legacy manipulation remains disabled.
+
+## MSI packaging and hosted CI
+
+Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.1.0.0. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths.
+
+LICENSE and validated third_party notices are in the payload; the MSI and portable ZIP use that same payload. SHA256SUMS.json records payload and artifact hashes. The runner-only qualification checks NSIS refusal, install/registration/shortcuts, 20-second offscreen startup without Ollama, same-version repair, a synthetic major upgrade and settings-preserving uninstall. It does not establish native UI acceptance, SmartScreen reputation or a clean machine without developer runtimes.
+
+The workflow runs source tests on pushes and pull requests. Only manual milestone dispatches and authorized version tags run the full build and qualification. Tests have a 15-minute job limit, verbose node logging and a 60-second stack dump. Artifact upload follows successful qualification. Publication is restricted to version tags and uses the versioned release-notes file as its body; a missing file fails that route. Local tests mock external build tools. See the [testing policy](../plans/2026-10-09-release-2.1.0.md#testing-policy-alex-2026-10-09) and [packaging procedures](../../code-signing.md) for scope and historical checks.
 
 ## Later architecture and references
 

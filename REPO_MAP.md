@@ -12,26 +12,26 @@ docs/ owns implementation state and open decisions. Root AGENTS.md owns agent po
 CLAUDE.md imports it. Do not treat historical PRDs or phase plans as current scope.
 
 The active design files are docs/superpowers/specs/2026-10-08-document-architecture-design.md
-and 2026-10-08-document-workspace-ui-design.md. The one first-release execution plan is
-docs/superpowers/plans/2026-10-08-first-release-extraction.md. They link to requirements
-rather than maintaining competing scope or metric tables.
+and 2026-10-08-document-workspace-ui-design.md. The current release execution plan is
+docs/superpowers/plans/2026-10-09-release-2.1.0.md; the earlier extraction plan retains
+its 2.0.0 checks. They link to requirements rather than competing scope/metric tables.
 
-The module map below describes existing source. Readers, grounding, the evaluation
-CLI, Task 2 production requests/column proposals/conditional sectioning, and Task 3
-typed/literal XLSX output, saved-cell review data, jobs, and Save As copying are
-implemented. Task 4 adds the source-first Create workspace, editable/confirmed
-columns, extraction worker, saved-grid/Evidence review, selected-model guidance,
-native XLSX Save As, and worker-aware close cleanup. Prompt/templates remain in
-From prompt; Edit is hidden.
+The 2.1.0 source uses one CreateScreen for prompt generation and source extraction,
+with an explanatory Edit document mode. Source readers, proposals, grounding,
+whole-file/conditional sectioning, saved Data/Evidence review and native XLSX export
+remain the 2.0.0 core. Prompt generation adds PDF through the Word structure and Qt
+writer. Packaging uses a standalone payload, generated WiX per-user MSI components,
+portable ZIP and checksums; source pushes and full hosted milestone builds are split.
 
 | Module under simplicitor/ | Current responsibility |
 |---|---|
 | app/main_window.py | UI wiring, worker/thread lifecycle, generation/template routing; legacy Edit disabled before I/O. |
-| app/widgets/create_workspace.py, extraction_panel.py | Source-first Create shell, source/column setup, saved review/Evidence, and export acknowledgement. |
+| app/widgets/create_screen.py, step_indicator.py, plain_labels.py | Unified Describe/columns/review/Saved UI, retained step state, readable evidence/coverage and export acknowledgement. |
+| app/widgets/edit_placeholder.py, status_bar.py | Explanatory Edit mode and top-bar mode/model/settings controls. |
 | app/workers/extraction_worker.py | Frozen operation settings and background source/proposal/extraction/save adapter. |
 | app/services/ollama_client.py | Ollama HTTP client; generate supports output_format but existing generation callers omit it. |
 | app/parsers/llm_response_parser.py | Freeform generation parsing. |
-| app/generators/ | Existing Word/Excel/PowerPoint generation. |
+| app/generators/ | Word/Excel/PowerPoint generation and staged, validated Qt PDF output. |
 | app/services/file_manipulator.py | Legacy text extraction and whole-file reconstruction; new readers must be independent. |
 | app/services/backup_service.py | Legacy filename-based backups. |
 | templates_engine/ | Manifest/import/prompt/validation/repair/rendering pipeline. |
@@ -105,6 +105,7 @@ docs/
         v1.2.1.json
         v2.0.0-notes.md
         v2.0.0.json
+        v2.1.0-notes.md
     reviews/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
@@ -2088,12 +2089,12 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 74 lines
+- CHANGELOG.md: md, 87 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
-- PRD.md: md, 116 lines
-- README.md: md, 117 lines
+- PRD.md: md, 122 lines
+- README.md: md, 116 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
@@ -2105,7 +2106,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 61 lines
+- docs/PROJECT_STATUS.md: md, 58 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2140,6 +2141,7 @@ requirements.txt
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/releases/v2.0.0-notes.md: md, 26 lines
 - docs/releases/v2.0.0.json: json, 81 lines
+- docs/releases/v2.1.0-notes.md: md, 28 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/screenshot.png: png (binary)
@@ -2161,8 +2163,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 123 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 48 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 142 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 55 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines

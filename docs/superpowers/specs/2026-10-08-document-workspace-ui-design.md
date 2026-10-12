@@ -1,48 +1,55 @@
-# Simplicitor first-release UI design
+# Simplicitor document workspace UI, 2.1.0
 
-[PRD.md](../../../PRD.md) owns scope, hardware recommendations, language, warning copy, record semantics, review/save rules, and acceptance values. [Architecture](2026-10-08-document-architecture-design.md) owns technical detail; [project status](../../PROJECT_STATUS.md) records current implementation.
+[PRD.md](../../../PRD.md) owns scope, hardware recommendations, language, warning copy, record semantics, review/save rules and acceptance values. [Architecture](2026-10-08-document-architecture-design.md) owns technical detail; [project status](../../PROJECT_STATUS.md) records verification. The [approved mockup](../../design/document-workspace.html) and [2.1.0 plan](../plans/2026-10-09-release-2.1.0.md) define this implemented screen.
 
-## Create workspace
+## Modes and layout
 
-Mount CreateWorkspace in MainWindow; do not mount EditPanel. Keep the top-bar model state, Settings, Segoe UI, light theme, restrained borders, and shared styling from defaults.py.
+TopBar offers **Create new** (default), **Edit document**, local model selection and Settings. Edit document is an explanatory page for deferred selective editing, with a return to Create new. It cannot invoke the legacy manipulator. Disable mode switching and Settings while work is active.
 
-Within Create, offer From source files and From prompt. Source extraction is the initial view. From prompt hosts the existing CreatePanel, including current output choices and PowerPoint template picker, routing to its existing workers.
+MainWindow mounts one CreateScreen. Keep Segoe UI, the light theme, white cards, restrained borders and shared values from defaults.py. Scope the central grey background to the central widget, so card labels retain their card background. Intentional blue, yellow and green notices keep their colours. The Describe cards and Review/Evidence panes use roughly 65/35 space; bounded source and coverage lists keep controls accessible.
 
-Use one /api/show parameter-size lookup for the selected model to show the PRD's dismissible, non-blocking warning when appropriate. Update on selection and ignore stale results. Metadata lookup must not freeze the UI or disable generation; no hardware checks or controls are added.
+The step indicator retains the current step. Without sources it shows Describe and Save; with sources it shows Describe, Choose columns, Review and save. Success opens the Saved page. A mode change retains the Create setup when idle.
 
-## Sources and proposed columns
+Use one /api/show parameter-size lookup for the selected model to show the PRD's dismissible, non-blocking warning when appropriate. Ignore stale results. Lookup must not freeze the UI or disable generation; no hardware checks are added. A missing local engine shows an explanation and Retry.
 
-1. Add DOCX/PDF files through a multi-file picker or drop area. List each separately, including same-named files, without legacy upload copying.
-2. Enter the extraction request. Explain that each file will produce one spreadsheet row; do not show a record-mode picker or table/header mapping controls.
-3. Inspect sources off the UI thread, show page/coverage issues, and ask the model to propose columns from the request and first source. Label this action **Suggest columns**.
-4. Show proposed names, descriptions, and types in an editable list with add/remove actions. Apply the proposal's recognized type, otherwise text. English number settings are prefilled; per-column overrides stay in a compact details control. Confirm only supported separators: comma, full stop, space, apostrophe or empty for thousands; comma or full stop for decimals, different from thousands.
-5. Ask for day/month order only when source inspection finds ambiguous numeric dates for a date column. English month-name dates need no order question.
-6. Require column confirmation before **Extract**. If proposals fail, retain sources/request and allow manual columns or a retry. No failed suggestion starts extraction.
+## Describe
 
-A revised request/source list clears column confirmation and any prior review. Column edits clear review and acknowledgement. Each rerun discards the previous owned job before creating its replacement candidate, without a version picker.
+The left card contains the request, File type and Save to folder. File-type choices are Word, Excel, PowerPoint and PDF; display simple names while retaining the existing generator identifiers internally. Without sources, **Create file** uses the existing generation worker and saves to the selected folder. PowerPoint offers **Use a template**, preserving its picker/import/generation route. PDF follows the Word response structure.
 
-## Extract and review
+The right card contains optional DOCX/text-layer PDF sources, browse/drop, one removable row per attachment, reading status and coverage. Same-named or identical files remain separate attachments without legacy upload copying. Display each filename once and keep its accessible name. Accept drops only on Describe while idle.
 
-Disable duplicate submission and setup changes while busy. Show file/section progress, retain instructions after failure, and show cooperative cancellation state. Invalidate the previous review when a rerun starts; a late or failed run cannot revive it.
+Adding sources forces Excel and disables the file-type choice, hides prompt-generation folder/template controls, and shows the explanation that files become an Excel table and reports from files come later. The primary action becomes **Next: choose columns**. Removing the last source restores the prompt route. Inspect sources off the UI thread; show readable problems and provide Read files again after reading failure.
 
-Build the read-only grid from the saved workbook. The grid starts with File and omits Record; Record remains in the workbook Evidence sheet and Evidence panel. Valid fields use their saved typed values and saved number formats, including decimal trailing zeros. Validation-failed cells show saved proposed values, highlighted; absent proposals remain highlighted blanks. Selecting any Data cell opens its saved verbatim model value, quote, anchor, and issue in the Evidence panel. Coverage issues appear above the grid in a bounded, scrollable view, retaining source and page/unit anchors so long issue lists keep the controls accessible.
+Request, source or model changes invalidate column confirmation and prior review. Editing columns clears review and acknowledgement. Each extraction rerun discards the previous owned job before replacing its candidate.
 
-There is no PDF rendering pane, cell editor, approval token, or candidate-version selection.
+## Choose columns
 
-## Save As and close
+Suggest columns uses the request and first source. Show a compact editable table with names, descriptions and human-readable types: Text, Whole number, Decimal number and Date. Keep add/remove controls and per-column details. Apply recognized proposal types, otherwise text. Prefill English number settings; validate supported separators and show day/month order only for ambiguous numeric dates in date columns.
 
-Use **Save As** for the current reviewed candidate. If fields or coverage are flagged, require acknowledgement before opening the standard Windows dialog. Keep normal overwrite confirmation enabled. Refuse a source path and show an actionable message.
+**Extract to Excel** confirms the current columns and starts extraction in one action. Require at least one column, descriptions, valid separators and any needed date order. If inspection is still pending, resume confirmation only after successful inspection. Failed suggestions retain the setup and allow manual columns or retry; they cannot start extraction. Back to Describe keeps the editable setup.
 
-Dialog cancellation keeps review. Copy/write/rename failure keeps review and never reports success; the user can choose another destination. Successful save reports the chosen output. Re-running clears the acknowledgement.
+## Review and save
 
-Normal close cancels/waits for work as needed and deletes the job folder. Startup cleanup is automatic under the PRD retention rule, without a crash-recovery screen.
+Freeze setup and prevent duplicate submission while busy. Show file/section progress and cooperative cancellation state. Retain instructions after failure; invalidate old review on rerun, cancellation or failed replacement. A late result cannot revive cancelled review.
 
-## Historical mockup and checks
+Build the read-only grid from saved Data cells. It starts with File and omits Record; Record stays in the workbook and Evidence. Display saved types and number/date formats, including decimal trailing zeros. Highlight flagged proposed values and absent blanks. Selecting a Data cell opens **Where this value came from**, with its saved verbatim value/proposal, source text, location and reason to check. Use plain text for all model/source text, filenames and paths, never rich-text interpretation.
 
-[document-workspace.html](../../design/document-workspace.html) remains an earlier concept for later editing, not this screen specification.
+Translate internal anchors and issue codes into readable labels. Display coverage separately in a bounded, scrollable view with file and page/unit locations. There is no cell editor or PDF preview pane.
 
-The [plan](../plans/2026-10-08-first-release-extraction.md) defines tests for default mode, selected-model warnings, column suggestions/confirmation, preserved Create/template routing, saved proposed values/evidence, flagged-export acknowledgement, cancellation, native overwrite confirmation, source-path refusal, and cleanup.
+Show the acknowledgement checkbox whenever candidate.issues is not empty. Choose its label by the issues present:
 
-## 2.0.0 sectioned-source review
+- **I have checked the highlighted values**
+- **I have checked the reading problems**
+- **I have checked the highlighted values and reading problems**
 
-Every extracted cell from a sectioned source is highlighted and has a flagged saved Evidence entry with sectioned_source, including otherwise verified values and blanks. Verified numeric/date values keep their formats. This uses the existing Evidence panel and review acknowledgement before Save As; it adds no controls or incomplete-coverage warning by itself. Whole-file validation/highlighting is unchanged.
+**Save to Excel** remains disabled until required acknowledgement. Back to columns resets acknowledgement and allows changes and a rerun. Every extracted cell from a sectioned source is highlighted, including valid typed values and blanks. This review policy alone is not a reading problem; whole-file validation stays unchanged.
+
+## Native export, Saved and close
+
+Save to Excel opens the standard Windows Save As dialog limited to .xlsx, retaining normal overwrite confirmation and source-path refusal. Cancellation and copy/write/rename failure keep review and cannot show success. Successful prompt generation or Excel export shows the filename, Open file and Create another file on Saved. Prompt generation also reports the chosen location; Excel export reports that the workbook was saved. Create another file returns to Describe and clears the previous result.
+
+Normal close cooperatively cancels work or waits for an accepted save, retaining worker ownership until native thread completion. Cleanup then deletes the owned job. Startup cleanup follows the PRD retention rule without a recovery screen. No UI wait may prevent the event loop from handling worker completion.
+
+## Checks
+
+The [2.1.0 plan](../plans/2026-10-09-release-2.1.0.md) defines route/state, plain-label, column, saved evidence, acknowledgement, cancellation, overwrite, source-refusal and cleanup checks. [C2.7 evidence](../../builds/2.1.0-ui-ci.json) records the synthetic source walkthrough and hosted MSI qualification. The [C2 UI follow-up](../../builds/2026-10-12-c2-ui-followup.json) records six refreshed 1280x800 screenshots, rendered label-background checks and local tests. These samples do not claim every native layout or a clean-machine walkthrough.

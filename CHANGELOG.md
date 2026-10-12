@@ -1,11 +1,24 @@
 # Changelog
 
+## v2.1.0 (unreleased)
+
+- Add PDF output from a prompt through the existing Word response structure and Qt writer, with validation before replacing the destination. No Office or external converter is needed.
+- Replace Create tabs with one screen: Describe, optional source files, Choose columns, Review and save, and Saved. Keep prompt generation and PowerPoint templates. Edit document explains deferred selective editing; legacy Edit stays disabled.
+- Present source anchors, reading problems and evidence in plain language. Require acknowledgement for highlighted values, reading problems, or both. Keep saved Excel number formats and the sectioned-source review policy.
+- Replace setup.exe with the fixed-folder per-user `Simplicitor-2.1.0.msi`, retaining the matching portable ZIP, checksum inventory and license notices. Refuse an existing 2.0.0 NSIS installation until it is uninstalled. Qualify install, repair, major upgrade and settings-preserving uninstall only on the hosted Windows runner.
+- Use executable version 2.1.0.0 and MSI version 2.1.0. Run source tests on each push; full hosted builds only at approved milestones and tags. Add a 15-minute tests-job limit, verbose test names and stack diagnostics.
+- Remove prompt-derived filenames, output paths, slide content and exception text from the specified generation logs. Keep template-dialog ownership until thread completion and avoid blocking GUI teardown joins.
+- Scope the central background so labels inside cards stay white; render source filenames once with their accessible names retained.
+- Update the PRD, architecture/UI specs, source-launch guide, repository map and release notes. Extraction settings, fixtures, labels, gates and LICENSE are unchanged. Tagging and publication still need explicit approval.
+
 ## v1.2.1 safety patch, 2026-10-08
 
 - Disable legacy Edit and reject direct save/worker calls before reading, backing up, inferring, or writing. Preserve existing Create and PowerPoint template routes.
 - Publish the existing unsigned executable as version 1.2.1.0 through the tag workflow. Latest status, public asset version, and SHA-256 are verified in docs/releases/v1.2.1.json. Local startup was smoke checked; Alex waived the clean-machine walkthrough for this patch.
 
-## v2.0.0 (unreleased)
+## v2.0.0, 2026-10-09
+
+Published release: [v2.0.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.0.0). The implementation entries below preserve their historical checks; final release evidence is in docs/releases/v2.0.0.json.
 
 - License Simplicitor 2.0.0 onward under MIT, copyright (c) 2026 Alexandru Pop. Releases through v1.2.1 remain under PolyForm Noncommercial 1.0.0. Bundle the application LICENSE beside third-party notices and reject missing, empty, or stale copies during packaging.
 
