@@ -1,6 +1,6 @@
 # Simplicitor project status
 
-Updated 2026-10-12 after 2.2.0 Part A implementation. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
+Updated 2026-10-12 after 2.2.0 B1-B3 implementation; the real-deck gate remains pending. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
 
 ## Current status
 
@@ -8,7 +8,8 @@ Updated 2026-10-12 after 2.2.0 Part A implementation. [PRD.md](../PRD.md) owns r
 |---|---|
 | Published releases | [v2.1.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.1.0) is published and verified as Latest with Simplicitor-2.1.0.msi, portable ZIP, checksums and the tagged notes as its body. The tag points to 2202cce; [release evidence](releases/v2.1.0.json). Earlier [v2.0.0](releases/v2.0.0.json) and [v1.2.1](releases/v1.2.1.json) releases and licenses remain unchanged. |
 | 2.1.0 release | Task 0, Parts A/B/C1/C2, both C2 follow-ups, D1 and the final README corrections are accepted. Published from the tested README commit 2202cce; MSI version 2.1.0 and executable version 2.1.0.0. The [tag workflow](https://github.com/alexnosx/Simplicitor/actions/runs/38233039100) passed source tests, build, MSI qualification and publication. Downloaded hashes and the release body are verified in the release record. |
-| 2.2.0 Part A | A1-A4 complete in source: finished extraction progress clears while final messages stay; source-aware prompt hints and Settings guidance; one shared version for UI/build/upgrade qualification; named Word reading problems and a general review heading. The product version remains 2.1.0 until E1. Part B and later implementation have not started; no 2.2.0 build or release. |
+| 2.2.0 Part A | A1-A4 complete in source: finished extraction progress clears while final messages stay; source-aware prompt hints and Settings guidance; one shared version for UI/build/upgrade qualification; named Word reading problems and a general review heading. The product version remains 2.1.0 until E1; no 2.2.0 build or release. |
+| 2.2.0 B1-B3 | Effective style capture and routing, the restyled bundled-template builder, shared prepare_template and the sample-deck script are implemented and source-tested. Claude's review and Alex's real-deck B3 gate are pending. The app import route is unchanged until B4; B4/B5 and later implementation have not started. |
 | Prompt creation and templates | Word, Excel and PowerPoint generation remain available. PDF uses the existing Word response structure and Qt writer with staged validation. PowerPoint's template picker/import/generation remains available. Alex reports that PDF generation from a prompt and click-through of the new screens passed from source. |
 | Create and Edit modes | Create new uses Describe, optional sources, Choose columns, Review and save, then Saved. Edit document is explanatory only; legacy editing remains disabled. Settings/mode switching freeze during work. |
 | Extraction and review | DOCX and text-layer PDF reading coverage, column proposals, grounding, cancellation and XLSX Data/Evidence behavior remain unchanged. Word coverage issues now name the skipped structures. The saved grid displays number formats and hides Record; Record stays in workbook/Evidence. Every sectioned-source Data cell requires review while preserving valid values/types/formats. Save to Excel requires acknowledgement for highlighted values, reading problems or both, then uses native XLSX Save As. |
@@ -18,6 +19,12 @@ Updated 2026-10-12 after 2.2.0 Part A implementation. [PRD.md](../PRD.md) owns r
 | Licensing | MIT for 2.0.0 onward, copyright (c) 2026 Alexandru Pop. Versions through v1.2.1 retain PolyForm Noncommercial 1.0.0. Application LICENSE and separately validated third-party notices remain packaged. No licensing change in 2.1.0. |
 | Windows trust | Installer is unsigned. Exact warning/detection and downloaded-artifact reputation remain unverified; MSI does not establish publisher trust. |
 | Later work | Selective editing, source-based Word/PDF reports, table-row extraction and scanned-PDF recognition remain deferred under PRD scope. |
+
+## 2.2.0 B1-B3 verification
+
+The new tests failed on the expected missing modules/functions before implementation. Targeted suites passed after B1 (28), B2 (6) and B3 (11); full isolated source suites passed 1,123, 1,129 and 1,140 tests respectively. Counts include the six accepted Part A follow-up cases. The code follows the reviewed revision-3 blocks without implementation deviations. REPO_MAP was regenerated after each task.
+
+Tests use synthetic decks only and cover inherited styles/backgrounds, multiple masters, corrupt image pixels, both preparation routes, rendering each captured slide type, saved-package checks and refusal of overlapping source/output folders. No real decks or PowerPoint visual checks were run; no gate score is recorded. No AI model, installer, packaging tools or qualification script was run. The existing pytest cache-permission warning remains.
 
 ## 2.2.0 Part A verification
 
@@ -64,4 +71,4 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-The next implementation block is 2.2.0 B1-B3, followed by Alex's eight-deck gate, when separately authorized. Claude and Alex own the C1 mockup. Part D follows mockup approval; E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.
+Claude reviews the completed implementation, then Alex judges the samples for the [B3 real-deck gate](superpowers/plans/2026-10-12-release-2.2.0.md#task-b3-one-preparation-step-and-the-test-run-with-alexs-decks-gate). Generate samples from the repository with `.venv/Scripts/python.exe scripts/sample_deck_styles.py "<decks folder>" "<separate output folder>"`; results stay local, and tracked gate results use anonymized deck labels. Stop before B4/B5 until the gate decision and next scope. Claude and Alex own the C1 mockup. Part D follows mockup approval; E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.

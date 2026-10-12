@@ -439,6 +439,7 @@ scripts/
     gen_repo_map.py
     inspect_template.py
     qualify_windows_installer.ps1
+    sample_deck_styles.py
 simplicitor/
     app/
         config/
@@ -635,8 +636,10 @@ tests/
         test_llm.py
         test_manifest.py
         test_pipeline.py
+        test_prepare_template.py
         test_prompt_builder.py
         test_render_pptx.py
+        test_sample_deck_styles.py
         test_styled_template.py
         test_validation.py
     __init__.py
@@ -771,6 +774,13 @@ requirements.txt
 - def _type_label(ph_type) -> str
 - def inspect(pptx_path: Path) -> None
 - def main() -> None
+
+### scripts/sample_deck_styles.py
+
+- def _text(limit: int | None) -> str: Representative text: about 90% of the field limit, or one long sentence.
+- def sample_content(manifest: Manifest, picture: Path) -> dict: One slide per slide type, every field filled near its limits.
+- def sample(deck: Path, out: Path, picture: Path) -> str: Prepare one deck as the app would, render its sample, and return its report line.
+- def main(decks: Path, out: Path) -> list[str]
 
 ### simplicitor/__init__.py
 
@@ -1091,6 +1101,7 @@ requirements.txt
 - def list_templates(user_root: Path | None=None, builtin_root: Path | None=None) -> list[dict[str, Any]]: Return templates from the given roots, tagged with their source.
 - def list_library(templates_root: str | Path) -> list[dict[str, Any]]: List templates in a single library folder, tagging defaults vs user uploads.
 - def ensure_default_templates(templates_root: str | Path) -> None: Ensure the curated default templates exist in *templates_root*.
+- def prepare_template(pptx_path: str | Path, template_dir: Path, name: str) -> dict[str, Any]: Write template.pptx and manifest.yaml for a deck into an existing folder.
 - def import_template(pptx_path: str | Path, user_root: Path) -> dict[str, Any]: Import a .pptx file as a user template.
 
 ### simplicitor/templates_engine/deck_style.py
@@ -1606,6 +1617,12 @@ requirements.txt
 - def test_generate_content_post_repair_parse_raises_parseerror(manifest)
 - def test_generate_content_emits_progress_phases(manifest)
 
+### tests/templates_engine/test_prepare_template.py
+
+- def test_layouts_are_kept_only_when_the_slides_follow_them(tmp_path, factory, captured)
+- def test_damaged_pictures_are_skipped_and_the_rest_is_captured(tmp_path, data)
+- def test_inherited_layout_background_reaches_the_template(tmp_path)
+
 ### tests/templates_engine/test_prompt_builder.py
 
 - def manifest()
@@ -1644,6 +1661,12 @@ requirements.txt
 - def test_render_template_missing_pptx_fails_cleanly(tmp_path, tmp_template): Template .pptx deleted before render — ValueError raised, no output file written.
 - def test_render_save_failure_leaves_no_partial_file(tmp_path, tmp_template): prs.save() raises OSError — ManipulationError raised, no out_path or .pptx.tmp file left.
 - def test_render_rename_failure_leaves_no_temp_file(tmp_path, tmp_template): Atomic replace raises OSError — ManipulationError raised, no out_path or .pptx.tmp left.
+
+### tests/templates_engine/test_sample_deck_styles.py
+
+- def test_every_deck_is_sampled_on_the_route_the_app_takes(tmp_path)
+- def test_sample_text_stays_within_every_field_limit(tmp_path)
+- def test_output_folder_overlapping_the_decks_is_refused(tmp_path, inside)
 
 ### tests/templates_engine/test_styled_template.py
 
@@ -2238,7 +2261,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 67 lines
+- docs/PROJECT_STATUS.md: md, 74 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
