@@ -461,6 +461,7 @@ simplicitor/
             create_workspace.py
             drop_zone.py
             edit_panel.py
+            edit_placeholder.py
             extraction_panel.py
             file_list.py
             hard_stop_dialog.py
@@ -627,6 +628,7 @@ tests/
     test_backup_service.py
     test_build_script.py
     test_cli.py
+    test_create_screen.py
     test_extraction_panel.py
     test_extraction_worker.py
     test_file_generator.py
@@ -873,6 +875,10 @@ requirements.txt
 ### simplicitor/app/widgets/edit_panel.py
 
 - class EditPanel(QFrame): Right panel: upload a file, describe changes, save the result (Phase 4).
+
+### simplicitor/app/widgets/edit_placeholder.py
+
+- class EditPlaceholder(QWidget): Explain the deferred editing mode and offer the supported create route.
 
 ### simplicitor/app/widgets/extraction_panel.py
 
@@ -1582,6 +1588,10 @@ requirements.txt
 - def _make_stub_template(folder: Path) -> None
 - def test_legacy_root_notice_names_both_paths(tmp_path, monkeypatch, capsys): Templates left in the retired APPDATA root produce a notice naming both paths.
 - def test_no_legacy_notice_when_root_absent(tmp_path, monkeypatch, capsys): No legacy folder: no notice.
+
+### tests/test_create_screen.py
+
+- def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile)
 
 ### tests/test_extraction_panel.py
 
