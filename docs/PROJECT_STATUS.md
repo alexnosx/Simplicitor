@@ -40,7 +40,7 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-Release verification is complete; the [v2.0.0 record](releases/v2.0.0.json) contains the verified release state and file hashes. Await Alex's C1 mockup review and approval before any C2 Qt redesign. Native UI beyond the recorded sample, a machine without developer Python/Office, and downloaded-file SmartScreen behavior remain unverified. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests ran on Alex's PC. Releases through v1.2.1 and their historical license files are unchanged.
+Release verification is complete; the [v2.0.0 record](releases/v2.0.0.json) contains the verified release state and file hashes. The C1 mockup is approved; await authorization to execute Part C2. Native UI beyond the recorded sample, a machine without developer Python/Office, and downloaded-file SmartScreen behavior remain unverified. No installer, uninstaller, Windows Sandbox, or install/uninstall/delete tests ran on Alex's PC. Releases through v1.2.1 and their historical license files are unchanged.
 
 ## 2.1.0 progress
 
@@ -50,4 +50,4 @@ Local full source suites passed: logging follow-up and B1 1,017; B2 1,020; B3, B
 
 PDF is available in From prompt, through the Word response structure and Qt writer, with staged validation before replacement. Generation/window logs and Word, Excel and PowerPoint generators omit the specified output paths, slide content and exception text; parsing logs retain file type, response length and exception class. Alex owns the manual PDF check. Hosted startup checks do not establish a complete PDF-generation walkthrough.
 
-The [C1 HTML mockup](design/document-workspace.html) is pushed, including compact desktop columns and acknowledgement for highlighted values or reading problems. Alex accepted responsibility for its Edge click-through, 1280x800/360px layout and console checks because browser automation cannot control Edge or access local-file URLs. These browser checks and mockup approval are pending. Part C2 and Part D have not started; no tag or release was created.
+The [C1 HTML mockup](design/document-workspace.html) is pushed, including compact desktop columns and acknowledgement for highlighted values or reading problems. Alex checked and approved the mockup on 2026-10-12. Specific 1280x800/360px layout and console results were not reported. Part C2 and Part D have not started; no tag or release was created.
