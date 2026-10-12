@@ -1,11 +1,11 @@
 # simplicitor/app/widgets/status_bar.py
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox, QPushButton
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox, QPushButton, QButtonGroup
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QFont, QPixmap
 
 from app.config.defaults import (
     APP_NAME, APP_FONT_FAMILY, FONT_SIZE_HEADING_PT, FONT_SIZE_BODY_PT,
-    BORDER_COLOR, BODY_TEXT_COLOR, WHITE, SUCCESS_COLOR, ERROR_COLOR,
+    BORDER_COLOR, BODY_TEXT_COLOR, WHITE, SUCCESS_COLOR, ERROR_COLOR, PRIMARY_ACCENT_COLOR,
 )
 from app.utils.file_utils import resource_path
 
@@ -24,6 +24,7 @@ class TopBar(QWidget):
 
     settings_requested = Signal()
     model_changed = Signal(str)
+    mode_changed = Signal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -71,20 +72,34 @@ class TopBar(QWidget):
         self._model_combo.setFont(body_font)
         self._model_combo.setEnabled(False)
         self._model_combo.currentTextChanged.connect(self.model_changed)
+        self._model_combo.hide()  # Selection is presented in Settings.
 
         # Settings gear
-        self._settings_btn = QPushButton("⚙")
-        self._settings_btn.setFixedSize(32, 32)
-        self._settings_btn.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_HEADING_PT))
+        self._settings_btn = QPushButton("Settings")
+        self._settings_btn.setMinimumSize(82, 36)
+        self._settings_btn.setFont(body_font)
         self._settings_btn.setToolTip("Settings")
         self._settings_btn.clicked.connect(self.settings_requested)
 
         layout.addWidget(self._title_label)
-        layout.addSpacing(8)
+        self._create_mode_btn = QPushButton("Create new")
+        self._edit_mode_btn = QPushButton("Edit document")
+        self._mode_group = QButtonGroup(self)
+        self._mode_group.setExclusive(True)
+        for button in (self._create_mode_btn, self._edit_mode_btn):
+            button.setCheckable(True)
+            button.setFont(body_font)
+            button.setMinimumHeight(36)
+            self._mode_group.addButton(button)
+        self._create_mode_btn.setChecked(True)
+        self._create_mode_btn.clicked.connect(lambda: self.mode_changed.emit("create"))
+        self._edit_mode_btn.clicked.connect(lambda: self.mode_changed.emit("edit"))
+        layout.addSpacing(16)
+        layout.addWidget(self._create_mode_btn)
+        layout.addWidget(self._edit_mode_btn)
+        layout.addStretch()
         layout.addWidget(self._status_dot)
         layout.addWidget(self._status_text)
-        layout.addStretch()
-        layout.addWidget(self._model_combo)
         layout.addSpacing(4)
         layout.addWidget(self._settings_btn)
 
@@ -96,6 +111,8 @@ class TopBar(QWidget):
             f"QComboBox:disabled {{ color: #9CA3AF; }}"
             f"QPushButton {{ border: none; background: transparent; color: {BODY_TEXT_COLOR}; }}"
             f"QPushButton:hover {{ background-color: {BORDER_COLOR}; border-radius: 4px; }}"
+            f"QPushButton:checked {{ background-color: #EFF6FF; color: {PRIMARY_ACCENT_COLOR}; "
+            f"border-radius: 6px; padding: 4px 12px; }}"
         )
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -112,7 +129,7 @@ class TopBar(QWidget):
             current_model: The model currently loaded in Ollama, or "" if none.
         """
         self._status_dot.setStyleSheet(f"color: {SUCCESS_COLOR};")
-        self._status_text.setText("Connected")
+        self._status_text.setText("Local AI ready")
         # Capture what was selected before rebuilding so we can detect a real change.
         previous_selection = self._model_combo.currentText()
         self._model_combo.blockSignals(True)
@@ -145,3 +162,11 @@ class TopBar(QWidget):
     def current_model(self) -> str:
         """Return the currently selected model name, or empty string."""
         return self._model_combo.currentText()
+
+    def mode(self) -> str:
+        """Return the selected workspace mode."""
+        return "edit" if self._edit_mode_btn.isChecked() else "create"
+
+    def set_mode(self, mode: str) -> None:
+        """Select a mode without emitting a user-switch signal."""
+        (self._edit_mode_btn if mode == "edit" else self._create_mode_btn).setChecked(True)

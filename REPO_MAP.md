@@ -2011,6 +2011,7 @@ requirements.txt
 - def test_create_panel_template_button_reacts_to_file_type_change(qtbot, tmp_path) -> None: Switching file type while connected toggles the template button live.
 - def test_create_panel_set_template_loaded_toggles_label(qtbot, tmp_path) -> None
 - def test_create_panel_emits_file_type_changed(qtbot, tmp_path) -> None
+- def test_top_bar_switches_between_two_modes(qtbot, isolated_profile)
 
 ## Other files
 

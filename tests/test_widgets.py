@@ -231,7 +231,7 @@ def test_create_panel_shows_disconnected_message(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = CreatePanel(settings)
     qtbot.addWidget(panel)
-    # Starts disconnected — message should be visible
+    # Starts disconnected â€” message should be visible
     assert panel._disconnected_widget.isVisible()
 
 
@@ -312,7 +312,7 @@ def test_main_window_opens_settings_dialog(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._workspace._tabs.setCurrentIndex(1)
-    # Verify the signal is connected (settings_requested → _open_settings)
+    # Verify the signal is connected (settings_requested â†’ _open_settings)
     assert window._top_bar.settings_requested is not None
 
 
@@ -331,7 +331,7 @@ def test_main_window_banner_shows_for_small_model(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._workspace._tabs.setCurrentIndex(1)
-    # 3B params < 7B threshold → banner should show
+    # 3B params < 7B threshold â†’ banner should show
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert window._capability_banner.isVisible()
@@ -342,7 +342,7 @@ def test_main_window_banner_hidden_for_large_model(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._workspace._tabs.setCurrentIndex(1)
-    # 13B params > 7B threshold → banner should stay hidden
+    # 13B params > 7B threshold â†’ banner should stay hidden
     window._current_model = "large-model:13b"
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
     assert not window._capability_banner.isVisible()
@@ -359,7 +359,7 @@ def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None:
     assert window._capability_banner.isVisible()
     # User dismisses
     window._capability_banner._dismiss_btn.click()
-    # Same model signals again — banner should stay hidden
+    # Same model signals again â€” banner should stay hidden
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert not window._capability_banner.isVisible()
@@ -526,17 +526,17 @@ def test_main_window_model_small_passed_to_panel(qtbot, tmp_path) -> None:
     window = MainWindow(settings)
     qtbot.addWidget(window)
     window._workspace._tabs.setCurrentIndex(1)
-    # 3B params < 7B threshold → model is small
+    # 3B params < 7B threshold â†’ model is small
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
     assert window._create_panel._model_is_small is True
-    # 13B params > 7B threshold → model is not small
+    # 13B params > 7B threshold â†’ model is not small
     window._current_model = "large-model:13b"
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
     assert window._create_panel._model_is_small is False
 
 
-# ── DropZone tests ────────────────────────────────────────────────────────────
+# â”€â”€ DropZone tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from app.widgets.drop_zone import DropZone
 
 
@@ -563,7 +563,7 @@ def test_drop_zone_shows_text(qtbot) -> None:
     assert dz.text()  # non-empty label text
 
 
-# ── FileList tests ────────────────────────────────────────────────────────────
+# â”€â”€ FileList tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from app.widgets.file_list import FileList
 
 
@@ -620,7 +620,7 @@ def test_file_list_shows_filename_in_label(qtbot) -> None:
     assert "myreport.docx" in item.text()
 
 
-# ── EditPanel Phase 4 tests ───────────────────────────────────────────────────
+# â”€â”€ EditPanel Phase 4 tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def test_edit_panel_has_drop_zone(qtbot, tmp_path) -> None:
@@ -645,9 +645,9 @@ def test_edit_panel_save_requires_ollama_file_and_prompt(qtbot, tmp_path) -> Non
     settings = Settings(tmp_path)
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
-    # Nothing set → disabled
+    # Nothing set â†’ disabled
     assert not panel._save_btn.isEnabled()
-    # Ollama connected, but no file or prompt → still disabled
+    # Ollama connected, but no file or prompt â†’ still disabled
     panel.set_ollama_connected(True)
     assert not panel._save_btn.isEnabled()
 
@@ -659,7 +659,7 @@ def test_edit_panel_save_enabled_with_all_conditions(qtbot, tmp_path) -> None:
     panel.set_ollama_connected(True)
     panel._selected_file = "/some/file.docx"
     panel._prompt_edit.setPlainText("Make it shorter")
-    # _on_prompt_changed is fired by setPlainText → _update_save_btn_state called automatically
+    # _on_prompt_changed is fired by setPlainText â†’ _update_save_btn_state called automatically
     assert panel._save_btn.isEnabled()
 
 
@@ -782,7 +782,7 @@ def test_edit_panel_prompt_typing_enables_save_btn(qtbot, tmp_path) -> None:
     assert not panel._save_btn.isEnabled()  # disabled again when cleared
 
 
-# ── MainWindow Phase 4 tests ──────────────────────────────────────────────────
+# â”€â”€ MainWindow Phase 4 tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def test_main_window_on_save_completed_shows_status(qtbot, tmp_path) -> None:
@@ -964,3 +964,16 @@ def test_create_panel_emits_file_type_changed(qtbot, tmp_path) -> None:
     panel.file_type_changed.connect(received.append)
     panel._type_combo.setCurrentText("Excel (.xlsx)")
     assert received == ["Excel (.xlsx)"]
+
+
+def test_top_bar_switches_between_two_modes(qtbot, isolated_profile):
+    from app.widgets.status_bar import TopBar
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    seen = []
+    bar.mode_changed.connect(seen.append)
+    assert bar.mode() == "create"
+    bar._edit_mode_btn.click()
+    assert bar.mode() == "edit" and seen == ["edit"]
+    bar.set_mode("create")
+    assert bar.mode() == "create" and seen == ["edit"]
