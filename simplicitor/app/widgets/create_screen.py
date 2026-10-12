@@ -415,6 +415,8 @@ class CreateScreen(QWidget):
     def set_generating(self, in_progress: bool) -> None:
         """Display generation progress without allowing a duplicate request."""
         self._generating = in_progress
+        if in_progress and self._pages.currentWidget() is self._saved_page:
+            self._pages.setCurrentWidget(self._describe_page)
         self._cancel_btn.setEnabled(self._busy and not self._saving and not in_progress)
         self._refresh()
 
@@ -536,7 +538,9 @@ class CreateScreen(QWidget):
         self._primary_btn.setEnabled(ready and (not has_sources or not self._inspecting))
         is_ppt = self.file_type() == TEMPLATE_FILE_TYPE
         self._template_btn.setVisible(is_ppt)
-        self._template_btn.setEnabled(is_ppt and not has_sources and ready)
+        self._template_btn.setEnabled(is_ppt and not has_sources and not self._busy
+                                      and not self._generating and self._connected
+                                      and bool(self._model))
         self._template_name.setVisible(is_ppt and self._template_loaded)
         text = self._prompt_edit.toPlainText()
         self._tip_label.setVisible(self._model_is_small and (

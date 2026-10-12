@@ -3,7 +3,7 @@ import subprocess
 import sys
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QLineEdit, QPushButton, QDialogButtonBox, QFileDialog,
+    QLabel, QLineEdit, QComboBox, QPushButton, QDialogButtonBox, QFileDialog,
 )
 from PySide6.QtGui import QFont
 
@@ -21,9 +21,12 @@ class SettingsDialog(QDialog):
     persisted when the user clicks Save. Cancel discards changes.
     """
 
-    def __init__(self, settings: Settings, parent=None) -> None:
+    def __init__(self, settings: Settings, parent=None, models: list[str] | None = None,
+                 current_model: str = "") -> None:
         super().__init__(parent)
         self._settings = settings
+        self._models = models or []
+        self._current_model = current_model
         self.setWindowTitle("Settings")
         self.setMinimumWidth(520)
         self._build_ui()
@@ -46,6 +49,12 @@ class SettingsDialog(QDialog):
 
         form = QFormLayout()
         form.setSpacing(10)
+        self._model_combo = QComboBox()
+        self._model_combo.addItems(self._models)
+        if self._current_model in self._models:
+            self._model_combo.setCurrentText(self._current_model)
+        self._model_combo.setEnabled(bool(self._models))
+        form.addRow("Local AI model:", self._model_combo)
 
         self._generated_edit = self._make_path_edit(
             self._settings.generated_dir, "Select Generated Files Location"
@@ -122,6 +131,10 @@ class SettingsDialog(QDialog):
             f"QLineEdit {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
             f"border-radius: {BORDER_RADIUS_PX}px; padding: 4px 8px; color: {BODY_TEXT_COLOR}; }}"
         )
+
+    def selected_model(self) -> str:
+        """Return the dialog selection; the caller applies it only after Save."""
+        return self._model_combo.currentText()
 
     # ── Private handlers ──────────────────────────────────────────────────────
 

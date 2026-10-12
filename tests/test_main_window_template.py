@@ -28,7 +28,6 @@ def window(qtbot, tmp_path, monkeypatch):
     settings.set("templates_dir", str(tmp_path / "templates"))
     win = MainWindow(settings)
     qtbot.addWidget(win)
-    win._workspace._tabs.setCurrentIndex(1)
     yield win
     win.close()
 
@@ -41,7 +40,7 @@ def test_template_requested_without_model_does_not_open(window, monkeypatch):
     window._current_model = ""
     shown = []
     monkeypatch.setattr(
-        window._create_panel, "show_status",
+        window._create_screen, "show_status",
         lambda message, is_error=False, **k: shown.append((message, is_error)),
     )
     window._on_template_requested()
@@ -103,16 +102,16 @@ def test_template_selected_stores_and_relabels(window):
     window._on_template_selected(manifest, "C:/tmpl/deck", "deck")
     assert window._loaded_template["name"] == "deck"
     assert window._loaded_template["manifest"] is manifest
-    assert window._create_panel._from_template_btn.text() == "From Template: selected"
+    assert window._create_screen._template_name.text() == "Template: deck"
 
 
 def test_file_type_off_pptx_clears_loaded_template(window):
     window._loaded_template = {"manifest": object(), "dir": "d", "name": "deck"}
-    window._create_panel.set_template_loaded(True)
+    window._create_screen.set_template_loaded(True)
     window._on_file_type_changed(WORD)
     assert window._loaded_template is None
-    assert "From template" in window._create_panel._from_template_btn.text()
-    assert window._create_panel._from_template_btn.text() != "From Template: selected"
+    assert window._create_screen._template_name.text() == ""
+    assert window._create_screen._template_name.text() == ""
 
 
 def test_file_type_pptx_keeps_loaded_template(window):
@@ -168,22 +167,24 @@ def test_generate_routes_to_freeform_when_not_loaded(window, tmp_path, monkeypat
 
 def test_template_completed_shows_file_and_clears_loaded(window):
     window._loaded_template = {"manifest": object(), "dir": "d", "name": "deck"}
-    window._create_panel.set_template_loaded(True)
+    window._create_screen.set_template_loaded(True)
     window._generating = True
     window._on_template_completed("C:/out/deck.pptx", [])
     assert window._loaded_template is None
+    assert window._generating is True  # still busy until its thread finishes
+    window._on_template_thread_finished()
     assert window._generating is False
-    assert window._create_panel._status_banner.isVisible()
-    assert "File created successfully" in window._create_panel._status_banner.text()
-    assert window._create_panel._open_file_btn.isVisible()
-    assert window._create_panel._from_template_btn.text() != "From Template: selected"
+    assert window._create_screen._status.isVisible()
+    assert "File created successfully" in window._create_screen._status.text()
+    assert window._create_screen._open_file_btn.isVisible()
+    assert window._create_screen._template_name.text() == ""
 
 
 def test_template_completed_notes_formatting_issues(window):
     window._loaded_template = {"manifest": object(), "dir": "d", "name": "deck"}
     window._generating = True
     window._on_template_completed("C:/out/deck.pptx", ["a", "b"])
-    assert "2 formatting note" in window._create_panel._status_banner.text()
+    assert "2 formatting note" in window._create_screen._status.text()
 
 
 def test_template_failed_keeps_loaded(window):
@@ -192,9 +193,11 @@ def test_template_failed_keeps_loaded(window):
     window._generating = True
     window._on_template_failed("The AI engine stopped responding. Please check Ollama is running.")
     assert window._loaded_template is sentinel   # kept for retry
+    assert window._generating is True  # still busy until its thread finishes
+    window._on_template_thread_finished()
     assert window._generating is False
-    assert window._create_panel._status_banner.isVisible()
-    assert "Ollama" in window._create_panel._status_banner.text()
+    assert window._create_screen._status.isVisible()
+    assert "Ollama" in window._create_screen._status.text()
 
 
 # --- end-to-end through the real worker + thread (pipeline mocked) ----------
@@ -208,11 +211,11 @@ def test_template_generate_end_to_end_clears_loaded(window, qtbot, tmp_path, mon
     )
     window._current_model = "llama3"
     window._loaded_template = {"manifest": manifest, "dir": str(tmp_path), "name": "deck"}
-    window._create_panel.set_template_loaded(True)
+    window._create_screen.set_template_loaded(True)
     window._on_generate_requested(PPTX, str(tmp_path), "make a deck")
     qtbot.waitUntil(lambda: window._loaded_template is None, timeout=5000)
-    assert window._create_panel._open_file_btn.isVisible()
-    assert "From template" in window._create_panel._from_template_btn.text()
+    assert window._create_screen._open_file_btn.isVisible()
+    assert window._create_screen._template_name.text() == ""
 
 
 def test_generation_logs_have_no_file_name(qtbot, isolated_profile, caplog):

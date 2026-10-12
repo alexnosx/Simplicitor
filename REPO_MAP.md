@@ -457,13 +457,10 @@ simplicitor/
         widgets/
             __init__.py
             capability_banner.py
-            create_panel.py
             create_screen.py
-            create_workspace.py
             drop_zone.py
             edit_panel.py
             edit_placeholder.py
-            extraction_panel.py
             file_list.py
             hard_stop_dialog.py
             plain_labels.py
@@ -632,7 +629,6 @@ tests/
     test_build_script.py
     test_cli.py
     test_create_screen.py
-    test_extraction_panel.py
     test_extraction_worker.py
     test_file_generator.py
     test_file_manipulator.py
@@ -644,6 +640,8 @@ tests/
     test_hard_stop_dialog.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
+    test_main_window_extraction.py
+    test_main_window_modes.py
     test_main_window_teardown.py
     test_main_window_template.py
     test_manipulate_worker.py
@@ -863,17 +861,9 @@ requirements.txt
 
 - class CapabilityBanner(QWidget): Dismissible recommendation for a selected model below 8B or of unknown size.
 
-### simplicitor/app/widgets/create_panel.py
-
-- class CreatePanel(QFrame): Left panel: generate a new Office document from a prompt.
-
 ### simplicitor/app/widgets/create_screen.py
 
 - class CreateScreen(QWidget): Emit frozen work requests and display results supplied by GUI-thread slots.
-
-### simplicitor/app/widgets/create_workspace.py
-
-- class CreateWorkspace(QWidget): Host the new source route and the existing prompt/template panel unchanged.
 
 ### simplicitor/app/widgets/drop_zone.py
 
@@ -886,10 +876,6 @@ requirements.txt
 ### simplicitor/app/widgets/edit_placeholder.py
 
 - class EditPlaceholder(QWidget): Explain the deferred editing mode and offer the supported create route.
-
-### simplicitor/app/widgets/extraction_panel.py
-
-- class ExtractionPanel(QWidget): Emit frozen setups; workers do I/O and supply saved cells for review.
 
 ### simplicitor/app/widgets/file_list.py
 
@@ -1647,28 +1633,6 @@ requirements.txt
 - def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path)
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 
-### tests/test_extraction_panel.py
-
-- def panel(qtbot, tmp_path)
-- def window(qtbot, tmp_path, monkeypatch)
-- def test_create_workspace_defaults_to_sources_and_preserves_prompt_host(window)
-- def test_selected_model_warning(window, count, warn)
-- def test_banner_dismissal_is_per_selection_and_metadata_lookup_is_queued(window, qtbot)
-- def test_empty_model_discovery_clears_the_selection_and_warning(window)
-- def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_path, monkeypatch, cancel)
-- def test_save_acknowledgement_blocks_native_dialog(window, tmp_path, monkeypatch)
-- def configure_window(window, tmp_path)
-- class ExtractionClient
-- def test_complete_column_review_extract_save_and_confirmed_overwrite(window, tmp_path, qtbot, monkeypatch)
-- def test_save_failure_retains_review_and_previous_destination(window, tmp_path, qtbot, monkeypatch)
-- def test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it(window, tmp_path, qtbot, cancel)
-- def test_close_waits_for_cancelled_worker_before_removing_job(window, tmp_path, qtbot)
-- def test_close_waits_for_queued_finished_handler_even_after_thread_stops(window, tmp_path, qtbot)
-- def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch)
-- def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch)
-- def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
-- def saved_candidate(tmp_path, *, flagged=True, coverage=False)
-
 ### tests/test_extraction_worker.py
 
 - def setup(tmp_path)
@@ -1789,6 +1753,37 @@ requirements.txt
 - class TestParsePptxResponse
 - class TestConvenienceFunctions
 - class TestThinkingModelOutput: Regression tests for Qwen3/DeepSeek-R1 thinking model output.
+
+### tests/test_main_window_extraction.py
+
+- def window(qtbot, tmp_path, monkeypatch)
+- def test_create_defaults_to_describe_with_optional_sources(window)
+- def test_selected_model_warning(window, count, warn)
+- def test_banner_dismissal_is_per_selection_and_metadata_lookup_is_queued(window, qtbot)
+- def test_empty_model_discovery_clears_the_selection_and_warning(window)
+- def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_path, monkeypatch, cancel)
+- def test_save_acknowledgement_blocks_native_dialog(window, tmp_path, monkeypatch)
+- def configure_window(window, tmp_path, qtbot)
+- class ExtractionClient
+- def test_complete_column_review_extract_save_and_confirmed_overwrite(window, tmp_path, qtbot, monkeypatch)
+- def test_save_failure_retains_review_and_previous_destination(window, tmp_path, qtbot, monkeypatch)
+- def test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it(window, tmp_path, qtbot, cancel)
+- def test_close_waits_for_cancelled_worker_before_removing_job(window, tmp_path, qtbot)
+- def test_close_waits_for_queued_finished_handler_even_after_thread_stops(window, tmp_path, qtbot)
+- def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(window, tmp_path, qtbot, monkeypatch)
+- def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch)
+- def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch)
+- def saved_candidate(tmp_path, *, flagged=True, coverage=False)
+
+### tests/test_main_window_modes.py
+
+- def window(qtbot, isolated_profile)
+- def test_two_modes_switch_and_return(window)
+- def test_generation_starts_exactly_one_request(window, monkeypatch)
+- def test_proposal_waits_for_inspection(window, tmp_path, monkeypatch)
+- def test_busy_blocks_mode_switch(window)
+- def test_settings_changes_model_only_on_save(window, monkeypatch, accepted)
+- def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, cancel)
 
 ### tests/test_main_window_teardown.py
 
@@ -1970,11 +1965,11 @@ requirements.txt
 - def test_top_bar_model_changed_emitted_with_first_model_when_no_running_model(qtbot) -> None
 - def test_top_bar_set_disconnected_clears_models(qtbot) -> None
 - def test_top_bar_settings_signal_emits(qtbot) -> None
-- def test_create_panel_instantiates(qtbot, tmp_path) -> None
-- def test_create_panel_generate_button_disabled_by_default(qtbot, tmp_path) -> None
-- def test_create_panel_has_four_file_types(qtbot, tmp_path) -> None
-- def test_create_panel_prompt_empty_by_default(qtbot, tmp_path) -> None
-- def test_create_panel_emits_generate_requested(qtbot, tmp_path) -> None
+- def test_create_screen_instantiates(qtbot, tmp_path) -> None
+- def test_create_screen_generate_button_disabled_by_default(qtbot, tmp_path) -> None
+- def test_create_screen_has_four_file_types(qtbot, tmp_path) -> None
+- def test_create_screen_prompt_empty_by_default(qtbot, tmp_path) -> None
+- def test_create_screen_emits_generate_requested(qtbot, tmp_path) -> None
 - def test_edit_panel_instantiates(qtbot, tmp_path) -> None
 - def test_edit_panel_save_button_disabled_by_default(qtbot, tmp_path) -> None
 - def test_edit_panel_prompt_empty_by_default(qtbot, tmp_path) -> None
@@ -1989,9 +1984,9 @@ requirements.txt
 - def test_capability_banner_show_banner(qtbot) -> None
 - def test_capability_banner_dismiss_hides(qtbot) -> None
 - def test_capability_banner_show_resets_dismissed(qtbot) -> None
-- def test_create_panel_shows_disconnected_message(qtbot, tmp_path) -> None
-- def test_create_panel_retry_signal(qtbot, tmp_path) -> None
-- def test_create_panel_connected_hides_message(qtbot, tmp_path) -> None
+- def test_create_screen_shows_disconnected_message(qtbot, tmp_path) -> None
+- def test_create_screen_retry_signal(qtbot, tmp_path) -> None
+- def test_create_screen_connected_hides_message(qtbot, tmp_path) -> None
 - def test_edit_panel_shows_disconnected_message(qtbot, tmp_path) -> None
 - def test_edit_panel_retry_signal(qtbot, tmp_path) -> None
 - def test_edit_panel_connected_hides_message(qtbot, tmp_path) -> None
@@ -2004,17 +1999,17 @@ requirements.txt
 - def test_main_window_banner_shows_for_small_model(qtbot, tmp_path) -> None
 - def test_main_window_banner_hidden_for_large_model(qtbot, tmp_path) -> None
 - def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None
-- def test_create_panel_generate_btn_requires_prompt(qtbot, tmp_path) -> None: Button stays disabled when Ollama is connected but prompt is empty.
-- def test_create_panel_generate_btn_enabled_with_prompt_and_ollama(qtbot, tmp_path) -> None: Button enables when both Ollama is connected and prompt is non-empty.
-- def test_create_panel_generate_btn_disabled_when_prompt_cleared(qtbot, tmp_path) -> None: Button disables again when prompt is cleared after being enabled.
-- def test_create_panel_tip_hidden_by_default(qtbot, tmp_path) -> None
-- def test_create_panel_tip_hidden_for_large_model(qtbot, tmp_path) -> None
-- def test_create_panel_tip_visible_for_small_model_with_long_prompt(qtbot, tmp_path) -> None
-- def test_create_panel_tip_visible_for_small_model_with_styling_keyword(qtbot, tmp_path) -> None
-- def test_create_panel_tip_hidden_for_small_model_with_simple_prompt(qtbot, tmp_path) -> None
-- def test_create_panel_open_file_btn_hidden_by_default(qtbot, tmp_path) -> None
-- def test_create_panel_show_open_file_btn(qtbot, tmp_path) -> None
-- def test_create_panel_set_generating_hides_open_file_btn(qtbot, tmp_path) -> None
+- def test_create_screen_primary_btn_requires_prompt(qtbot, tmp_path) -> None: Button stays disabled when Ollama is connected but prompt is empty.
+- def test_create_screen_primary_btn_enabled_with_prompt_and_ollama(qtbot, tmp_path) -> None: Button enables when both Ollama is connected and prompt is non-empty.
+- def test_create_screen_primary_btn_disabled_when_prompt_cleared(qtbot, tmp_path) -> None: Button disables again when prompt is cleared after being enabled.
+- def test_create_screen_tip_hidden_by_default(qtbot, tmp_path) -> None
+- def test_create_screen_tip_hidden_for_large_model(qtbot, tmp_path) -> None
+- def test_create_screen_tip_visible_for_small_model_with_long_prompt(qtbot, tmp_path) -> None
+- def test_create_screen_tip_visible_for_small_model_with_styling_keyword(qtbot, tmp_path) -> None
+- def test_create_screen_tip_hidden_for_small_model_with_simple_prompt(qtbot, tmp_path) -> None
+- def test_create_screen_open_file_btn_hidden_by_default(qtbot, tmp_path) -> None
+- def test_create_screen_show_open_file_btn(qtbot, tmp_path) -> None
+- def test_create_screen_set_generating_hides_open_file_btn(qtbot, tmp_path) -> None
 - def test_main_window_on_generate_completed_shows_status(qtbot, tmp_path) -> None
 - def test_main_window_on_generate_failed_shows_error(qtbot, tmp_path) -> None
 - def test_main_window_on_generate_started_sets_generating(qtbot, tmp_path) -> None
@@ -2054,15 +2049,15 @@ requirements.txt
 - def test_main_window_on_ollama_connected_updates_current_model(qtbot, tmp_path) -> None: _on_ollama_connected must update _current_model from the signal.
 - def test_main_window_on_ollama_connected_no_model_does_not_clear(qtbot, tmp_path) -> None: _on_ollama_connected with empty current_model must not overwrite an existing model.
 - def test_main_window_generate_auto_creates_output_dir(qtbot, tmp_path) -> None: _on_generate_requested must create the output directory if it doesn't exist yet.
-- def test_create_panel_template_button_disabled_by_default(qtbot, tmp_path) -> None
-- def test_create_panel_emits_template_requested(qtbot, tmp_path) -> None
-- def test_create_panel_template_button_disabled_for_word_when_connected(qtbot, tmp_path) -> None: The template flow is PowerPoint-only: the button stays disabled for Word.
-- def test_create_panel_template_button_disabled_for_excel_when_connected(qtbot, tmp_path) -> None: The template flow is PowerPoint-only: the button stays disabled for Excel.
-- def test_create_panel_template_button_enabled_for_pptx_when_connected(qtbot, tmp_path) -> None
-- def test_create_panel_template_button_disabled_for_pptx_when_disconnected(qtbot, tmp_path) -> None: PowerPoint selected but no Ollama: still disabled (connection is also required).
-- def test_create_panel_template_button_reacts_to_file_type_change(qtbot, tmp_path) -> None: Switching file type while connected toggles the template button live.
-- def test_create_panel_set_template_loaded_toggles_label(qtbot, tmp_path) -> None
-- def test_create_panel_emits_file_type_changed(qtbot, tmp_path) -> None
+- def test_create_screen_template_button_disabled_by_default(qtbot, tmp_path) -> None
+- def test_create_screen_emits_template_requested(qtbot, tmp_path) -> None
+- def test_create_screen_template_button_disabled_for_word_when_connected(qtbot, tmp_path) -> None: The template flow is PowerPoint-only: the button stays disabled for Word.
+- def test_create_screen_template_button_disabled_for_excel_when_connected(qtbot, tmp_path) -> None: The template flow is PowerPoint-only: the button stays disabled for Excel.
+- def test_create_screen_template_button_enabled_for_pptx_when_connected(qtbot, tmp_path) -> None
+- def test_create_screen_template_button_disabled_for_pptx_when_disconnected(qtbot, tmp_path) -> None: PowerPoint selected but no Ollama: still disabled (connection is also required).
+- def test_create_screen_template_button_reacts_to_file_type_change(qtbot, tmp_path) -> None: Switching file type while connected toggles the template button live.
+- def test_create_screen_set_template_loaded_toggles_label(qtbot, tmp_path) -> None
+- def test_create_screen_emits_file_type_changed(qtbot, tmp_path) -> None
 - def test_top_bar_switches_between_two_modes(qtbot, isolated_profile)
 
 ## Other files

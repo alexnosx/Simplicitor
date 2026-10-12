@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, QTimer, Qt, Signal, Slot
 from PySide6.QtGui import QCloseEvent, QIcon
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
 
 from app.config.defaults import (
     APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
@@ -20,8 +20,8 @@ from app.utils.file_utils import resource_path, truncate_path
 from app.config.settings import Settings
 from app.services.ollama_client import OllamaClient
 from app.widgets.capability_banner import CapabilityBanner
-from app.widgets.create_panel import CreatePanel
-from app.widgets.create_workspace import CreateWorkspace
+from app.widgets.create_screen import CreateScreen
+from app.widgets.edit_placeholder import EditPlaceholder
 from app.widgets.edit_panel import EditPanel
 from app.widgets.settings_dialog import SettingsDialog
 from app.widgets.status_bar import TopBar
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 class MainWindow(QMainWindow):
     """Root application window.
 
-    Hosts source extraction and the existing prompt/template panel in Create.
+    Hosts one Create screen and a placeholder for selective document editing.
     Ollama discovery, extraction, and generation run on worker threads.
     """
 
@@ -98,35 +98,66 @@ class MainWindow(QMainWindow):
         self._capability_banner = CapabilityBanner()
         root_layout.addWidget(self._capability_banner)
 
-        self._workspace = CreateWorkspace(self._settings)
-        self._create_panel = self._workspace.prompt_panel
-        self._extraction_panel = self._workspace.extraction_panel
         # Retain disabled legacy handlers/imports, without mounting Edit in the workspace.
         self._edit_panel = EditPanel(self._settings, self)
         self._edit_panel.setEnabled(False)
         self._edit_panel.show_status(LEGACY_EDIT_DISABLED_MESSAGE, is_error=True)
         self._edit_panel.hide()
-        root_layout.addWidget(self._workspace, stretch=1)
+        self._create_screen = CreateScreen(self._settings)
+        self._edit_page = EditPlaceholder()
+        self._modes = QStackedWidget()
+        self._modes.addWidget(self._create_screen)
+        self._modes.addWidget(self._edit_page)
+        root_layout.addWidget(self._modes, stretch=1)
+        footer = QLabel("Your documents and the AI processing stay on your computer.")
+        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        footer.setContentsMargins(0, 8, 0, 8)
+        root_layout.addWidget(footer)
         if self._cleanup_error:
-            self._extraction_panel.show_status("Some old temporary jobs could not be removed. "
+            self._create_screen.show_status("Some old temporary jobs could not be removed. "
                                                "Check application-data write access.", True)
 
     def _connect_signals(self) -> None:
         self._top_bar.settings_requested.connect(self._open_settings)
-        self._start_ollama_worker()
-        self._create_panel.generate_requested.connect(self._on_generate_requested)
-        self._create_panel.template_requested.connect(self._on_template_requested)
-        self._create_panel.file_type_changed.connect(self._on_file_type_changed)
-        self._edit_panel.save_requested.connect(self._on_save_requested)
         self._top_bar.model_changed.connect(self._on_model_changed)
+        self._top_bar.mode_changed.connect(self._show_mode)
+        self._edit_page.create_requested.connect(lambda: self._show_mode("create"))
         self._capability_banner.dismissed.connect(self._on_banner_dismissed)
-        panel = self._extraction_panel
-        panel.inspect_requested.connect(lambda setup: self._start_extraction("inspect", setup))
-        panel.propose_requested.connect(lambda setup: self._start_extraction("propose", setup))
-        panel.extract_requested.connect(lambda setup: self._start_extraction("extract", setup))
-        panel.cancel_requested.connect(self._cancel_extraction)
-        panel.save_requested.connect(self._on_extraction_save_requested)
-        panel.setup_changed.connect(self._discard_review_job)
+        self._edit_panel.save_requested.connect(self._on_save_requested)
+        self._connect_create_screen()
+        self._start_ollama_worker()
+
+    def _connect_create_screen(self) -> None:
+        """Connect each screen signal once, replacing only our previous connections."""
+        for signal, handler in getattr(self, "_screen_connections", ()):
+            signal.disconnect(handler)
+        screen = self._create_screen
+        self._screen_connections = (
+            (screen.generate_requested, self._on_generate_requested),
+            (screen.template_requested, self._on_template_requested),
+            (screen.file_type_changed, self._on_file_type_changed),
+            (screen.retry_requested, self._recheck_connection.emit),
+            (screen.inspect_requested, lambda setup: self._start_extraction("inspect", setup)),
+            (screen.propose_requested, lambda setup: self._start_extraction("propose", setup)),
+            (screen.extract_requested, lambda setup: self._start_extraction("extract", setup)),
+            (screen.cancel_requested, self._cancel_extraction),
+            (screen.save_requested, self._on_extraction_save_requested),
+            (screen.setup_changed, self._discard_review_job),
+            (screen.busy_changed, self._set_modes_enabled),
+        )
+        for signal, handler in self._screen_connections:
+            signal.connect(handler)
+
+    def _show_mode(self, mode: str) -> None:
+        if self._operation_busy() or self._create_screen._busy or self._closing:
+            return
+        self._modes.setCurrentWidget(self._edit_page if mode == "edit" else self._create_screen)
+        self._top_bar.set_mode(mode)
+
+    def _set_modes_enabled(self, busy: bool) -> None:
+        for button in (self._top_bar._create_mode_btn, self._top_bar._edit_mode_btn,
+                       self._top_bar._settings_btn):
+            button.setEnabled(not busy)
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(f"QMainWindow {{ background-color: {BACKGROUND_COLOR}; }}")
@@ -158,9 +189,7 @@ class MainWindow(QMainWindow):
         self._ollama_worker.model_params_ready.connect(self._on_model_params_ready)
 
         # Retry buttons + internal recheck → immediate poll
-        self._create_panel.retry_requested.connect(self._ollama_worker.retry_now)
         self._edit_panel.retry_requested.connect(self._ollama_worker.retry_now)
-        self._extraction_panel.retry_requested.connect(self._ollama_worker.retry_now)
         self._recheck_connection.connect(self._ollama_worker.retry_now)
 
         self._ollama_thread.start()
@@ -176,7 +205,7 @@ class MainWindow(QMainWindow):
         self._current_model = model
         self._banner_dismissed_for = ""
         self._capability_banner.hide_banner()
-        self._extraction_panel.set_model(model)
+        self._create_screen.set_model(model)
         if model and not self._closing:
             self._model_params_requested.emit(model)
 
@@ -195,7 +224,7 @@ class MainWindow(QMainWindow):
                 self._capability_banner.show_banner()
         else:
             self._capability_banner.hide_banner()
-        self._create_panel.set_model_small(0 < param_count < EXTRACTION_MODEL_PARAM_THRESHOLD)
+        self._create_screen.set_model_small(0 < param_count < EXTRACTION_MODEL_PARAM_THRESHOLD)
 
     def _on_banner_dismissed(self) -> None:
         """Record which model the user dismissed the banner for."""
@@ -213,16 +242,14 @@ class MainWindow(QMainWindow):
         if self._closing:
             return
         self._top_bar.set_connected(models, current_model)
-        self._create_panel.set_ollama_connected(True)
-        self._extraction_panel.set_ollama_connected(True)
+        self._create_screen.set_ollama_connected(True)
         self._top_bar._model_combo.setEnabled(not self._operation_busy() and bool(models or current_model))
 
     @Slot()
     def _on_ollama_disconnected(self) -> None:
         self._top_bar.set_disconnected()
-        self._create_panel.set_ollama_connected(False)
-        self._extraction_panel.set_ollama_connected(False)
-        self._extraction_panel.set_model("")
+        self._create_screen.set_ollama_connected(False)
+        self._create_screen.set_model("")
         self._current_model = ""
         self._capability_banner.hide_banner()
 
@@ -235,20 +262,20 @@ class MainWindow(QMainWindow):
                 discard_job(self._extraction_job)
                 self._extraction_job = None
             except OSError:
-                self._extraction_panel.show_status("Could not clear the temporary job. "
+                self._create_screen.show_status("Could not clear the temporary job. "
                                                    "Close any open temporary workbook and retry.", True)
 
     def _start_extraction(self, action: str, setup: ExtractionSetup, **kwargs) -> None:
         if self._operation_busy() or self._closing:
             return
-        panel = self._extraction_panel
+        panel = self._create_screen
         if action != "save":
             panel.clear_review()
             self._discard_review_job()
             if self._extraction_job is not None:
                 return
         if action == "extract":
-            if not panel._confirmed:
+            if not panel.columns_confirmed():
                 panel.show_status("Confirm the columns before extracting.", True)
                 return
             try:
@@ -274,47 +301,47 @@ class MainWindow(QMainWindow):
         thread.finished.connect(worker.deleteLater)
         thread.finished.connect(self._on_extraction_thread_finished)
         panel.set_busy(True, saving=action == "save")
-        self._workspace.set_busy(True)
         self._top_bar._model_combo.setEnabled(False)
         thread.start()
 
     @Slot(object)
     def _on_inspection_ready(self, documents: tuple) -> None:
         if not self._cancel_pending and not self._closing:
-            self._extraction_panel.show_inspection(documents)
+            self._create_screen.show_inspection(documents)
 
     @Slot(object)
     def _on_columns_ready(self, columns: tuple) -> None:
         if not self._cancel_pending and not self._closing:
-            self._extraction_panel.set_columns(columns)
+            self._create_screen.set_columns(columns)
 
     @Slot(object, object)
     def _on_candidate_ready(self, candidate: Candidate, cells: tuple) -> None:
         if not self._cancel_pending and not self._closing:
-            self._extraction_panel.show_candidate(candidate, cells)
+            self._create_screen.show_candidate(candidate, cells)
 
     @Slot(str, object)
     def _on_extraction_failed(self, message: str, issues: tuple) -> None:
         if not self._closing:
-            self._extraction_panel.show_failure(message, issues)
+            self._create_screen.show_failure(message, issues)
 
     @Slot()
     def _on_extraction_cancelled(self) -> None:
         if not self._closing:
-            self._extraction_panel.show_status("Cancelled. Your setup is retained.")
+            self._create_screen.show_status("Cancelled. Your setup is retained.")
 
     @Slot(str)
     def _on_extraction_saved(self, path: str) -> None:
         if not self._closing:
-            self._extraction_panel.show_status(f"Workbook saved successfully: {path}")
+            self._create_screen.show_status("Workbook saved successfully.")
+            self._create_screen.show_open_file_btn(path)
 
     def _cancel_extraction(self) -> None:
         if self._extraction_worker is not None and self._extraction_worker.action != "save":
             self._cancel_pending = True
             self._extraction_worker.cancel()
-            self._extraction_panel.clear_review()
-            self._extraction_panel.show_status("Cancelling after the current local operation...")
-            self._extraction_panel._cancel_btn.setEnabled(False)
+            self._create_screen.clear_review()
+            self._create_screen.show_status("Cancelling after the current local operation...")
+            self._create_screen.disable_cancel()
 
     @Slot()
     def _on_extraction_thread_finished(self) -> None:
@@ -323,17 +350,20 @@ class MainWindow(QMainWindow):
         action = self._extraction_worker.action
         self._extraction_thread = self._extraction_worker = None
         if action == "extract" and (self._cancel_pending or self._closing
-                                    or self._extraction_panel._candidate is None):
+                                    or self._create_screen.candidate() is None):
             self._discard_review_job()
-        self._extraction_panel.set_busy(False)
-        self._workspace.set_busy(False)
+        self._create_screen.set_busy(False)
         self._top_bar._model_combo.setEnabled(bool(self._top_bar.current_model()))
+        if action == "inspect":
+            self._create_screen.inspection_finished()
+            if not self._cancel_pending and not self._closing:
+                self._create_screen.resume_pending_confirmation()
         self._close_when_idle()
 
     def _on_extraction_save_requested(self, candidate: Candidate, acknowledge: bool) -> None:
-        panel = self._extraction_panel
+        panel = self._create_screen
         if (self._operation_busy() or self._closing or candidate is None
-                or candidate != panel._candidate or (candidate.issues and not acknowledge)):
+                or candidate != panel.candidate() or (candidate.issues and not acknowledge)):
             return
         destination, _ = QFileDialog.getSaveFileName(
             self, "Save extracted workbook", str(Path(self._settings.generated_dir) / "extraction.xlsx"),
@@ -392,7 +422,7 @@ class MainWindow(QMainWindow):
         """
         if not self._current_model:
             logger.warning("Generate requested but no model selected")
-            self._create_panel.show_status(
+            self._create_screen.show_status(
                 "No model is currently running. Please start a model in Ollama.",
                 is_error=True,
             )
@@ -407,7 +437,7 @@ class MainWindow(QMainWindow):
             Path(effective_save_dir).mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             logger.error("Cannot create output directory %s: %s", effective_save_dir, exc)
-            self._create_panel.show_status(
+            self._create_screen.show_status(
                 "Cannot create the output folder. Check the path is valid and you have write permission.",
                 is_error=True,
             )
@@ -441,14 +471,15 @@ class MainWindow(QMainWindow):
         self._generate_thread.finished.connect(self._on_generate_thread_finished)
 
         self._generating = True
+        self._create_screen.set_generating(True)
+        self._create_screen.set_busy(True)
         self._generate_thread.start()
         logger.info("Generation started: file_type=%s, model=%s", file_type, self._current_model)
 
     def _on_generate_started(self) -> None:
         """Called when GenerateWorker begins execution."""
-        self._create_panel.set_generating(True)
-        self._create_panel.clear_status()
-        self._workspace.set_busy(True)
+        self._create_screen.set_generating(True)
+        self._create_screen.clear_status()
 
     def _on_generate_progress(self, msg: str) -> None:
         """Called as GenerateWorker reports progress.
@@ -456,7 +487,7 @@ class MainWindow(QMainWindow):
         Args:
             msg: Human-readable progress message.
         """
-        self._create_panel.show_status(msg, is_error=False)
+        self._create_screen.show_status(msg, is_error=False)
 
     def _on_generate_completed(self, path: str) -> None:
         """Called when GenerateWorker successfully writes the output file.
@@ -464,17 +495,14 @@ class MainWindow(QMainWindow):
         Args:
             path: Absolute path to the generated file.
         """
-        self._generating = False
-        self._create_panel.set_generating(False)
-        self._workspace.set_busy(False)
-        self._create_panel.clear_prompt()
-        self._create_panel.show_status(
+        self._create_screen.clear_prompt()
+        self._create_screen.show_status(
             "File created successfully",
             is_error=False,
             secondary=truncate_path(path),
             tooltip=path,
         )
-        self._create_panel.show_open_file_btn(path)
+        self._create_screen.show_open_file_btn(path)
         logger.info("Generation completed")
 
     def _on_generate_failed(self, msg: str) -> None:
@@ -483,10 +511,7 @@ class MainWindow(QMainWindow):
         Args:
             msg: User-friendly error message.
         """
-        self._generating = False
-        self._create_panel.set_generating(False)
-        self._workspace.set_busy(False)
-        self._create_panel.show_status(msg, is_error=True)
+        self._create_screen.show_status(msg, is_error=True)
         logger.error("Generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
@@ -495,6 +520,9 @@ class MainWindow(QMainWindow):
         are deleteLater'd; null the Python refs so nothing touches a freed object)."""
         self._generate_thread = None
         self._generate_worker = None
+        self._generating = False
+        self._create_screen.set_generating(False)
+        self._create_screen.set_busy(False)
         self._close_when_idle()
 
     # ── Template flow ────────────────────────────────────────────────────────
@@ -505,7 +533,7 @@ class MainWindow(QMainWindow):
         generation then runs from the main Generate button."""
         if not self._current_model:
             logger.warning("Template flow requested but no model selected")
-            self._create_panel.show_status(
+            self._create_screen.show_status(
                 "No model is currently running. Please start a model in Ollama.",
                 is_error=True,
             )
@@ -522,14 +550,14 @@ class MainWindow(QMainWindow):
     def _on_template_selected(self, manifest, template_dir, name: str) -> None:
         """Store the picked template and relabel the Create panel button."""
         self._loaded_template = {"manifest": manifest, "dir": template_dir, "name": name}
-        self._create_panel.set_template_loaded(True)
+        self._create_screen.set_template_loaded(True, name)
         logger.info("Template loaded: %s", name)
 
     def _on_file_type_changed(self, file_type: str) -> None:
         """Clear the loaded template when the file type leaves PowerPoint."""
         if file_type != TEMPLATE_FILE_TYPE and self._loaded_template is not None:
             self._loaded_template = None
-            self._create_panel.set_template_loaded(False)
+            self._create_screen.set_template_loaded(False)
             logger.debug("Loaded template cleared (file type now %s)", file_type)
 
     def _start_template_generation(self, output_path: str, prompt: str) -> None:
@@ -553,39 +581,34 @@ class MainWindow(QMainWindow):
         self._template_thread.finished.connect(self._on_template_thread_finished)
 
         self._generating = True
+        self._create_screen.set_generating(True)
+        self._create_screen.set_busy(True)
         self._template_thread.start()
         logger.info("Template generation started: model=%s", self._current_model)
 
     def _on_template_started(self) -> None:
         """Called when TemplateGenerateWorker begins execution."""
-        self._create_panel.set_generating(True)
-        self._create_panel.clear_status()
-        self._workspace.set_busy(True)
+        self._create_screen.set_generating(True)
+        self._create_screen.clear_status()
 
     def _on_template_completed(self, path: str, issues: object) -> None:
         """Called when the template pipeline writes the deck. Clears the loaded template
         (reset-after-generate) and surfaces the result like the freeform flow."""
-        self._generating = False
-        self._create_panel.set_generating(False)
-        self._workspace.set_busy(False)
-        self._create_panel.clear_prompt()
+        self._create_screen.clear_prompt()
         primary = "File created successfully"
         if issues:
             primary += f" ({len(issues)} formatting note(s))"
-        self._create_panel.show_status(
+        self._create_screen.show_status(
             primary, is_error=False, secondary=truncate_path(path), tooltip=path
         )
-        self._create_panel.show_open_file_btn(path)
+        self._create_screen.show_open_file_btn(path)
         self._loaded_template = None
-        self._create_panel.set_template_loaded(False)
+        self._create_screen.set_template_loaded(False)
         logger.info("Template generation completed")
 
     def _on_template_failed(self, msg: str) -> None:
         """Called when the template pipeline fails. Keeps the loaded template for retry."""
-        self._generating = False
-        self._create_panel.set_generating(False)
-        self._workspace.set_busy(False)
-        self._create_panel.show_status(msg, is_error=True)
+        self._create_screen.show_status(msg, is_error=True)
         logger.error("Template generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
 
@@ -594,6 +617,9 @@ class MainWindow(QMainWindow):
         are deleteLater'd; null the Python refs so nothing touches a freed object)."""
         self._template_thread = None
         self._template_worker = None
+        self._generating = False
+        self._create_screen.set_generating(False)
+        self._create_screen.set_busy(False)
         self._close_when_idle()
 
     def _on_save_requested(self, file_path: str, prompt: str) -> None:
@@ -699,8 +725,16 @@ class MainWindow(QMainWindow):
 
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
-        dialog = SettingsDialog(self._settings, parent=self)
-        dialog.exec()
+        if self._operation_busy() or self._create_screen._busy or self._closing:
+            return
+        combo = self._top_bar._model_combo
+        models = [combo.itemText(index) for index in range(combo.count())]
+        dialog = SettingsDialog(self._settings, parent=self, models=models,
+                                current_model=self._current_model)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            selected = dialog.selected_model()
+            if selected in models:
+                combo.setCurrentText(selected)
         logger.info("Settings dialog closed")
 
     # ── Window lifecycle ──────────────────────────────────────────────────────
@@ -727,7 +761,7 @@ class MainWindow(QMainWindow):
                 waiting = True
         if waiting:
             event.ignore()
-            self._extraction_panel.show_status("Waiting for local processing to stop before closing...")
+            self._create_screen.show_status("Waiting for local processing to stop before closing...")
             return
         self._discard_review_job()
         super().closeEvent(event)

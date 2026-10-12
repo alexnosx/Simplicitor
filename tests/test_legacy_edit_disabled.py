@@ -45,7 +45,7 @@ def test_main_window_blocks_programmatic_save(qtbot, tmp_path, monkeypatch):
     window._on_save_requested(str(source), "Revise")
 
     assert not window._edit_panel.isEnabled()
-    assert window._create_panel.isEnabled()
+    assert window._create_screen.isEnabled()
     assert "disabled" in window._edit_panel._status_banner._primary_label.text().lower()
     assert source.read_bytes() == b"source sentinel"
     constructed.assert_not_called()

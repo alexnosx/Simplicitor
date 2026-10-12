@@ -11,50 +11,9 @@ from PySide6.QtWidgets import QFileDialog, QTableWidget
 import pytest
 
 from app.config.settings import Settings
-from app.widgets.extraction_panel import ExtractionPanel
 from extraction.models import ColumnSpec, ExtractionResult, FieldProposal, FieldResult, Issue
 from extraction.source_readers import read_sources
 from extraction.xlsx_writer import read_candidate, write_candidate
-
-
-@pytest.fixture
-def panel(qtbot, tmp_path):
-    widget = ExtractionPanel()
-    qtbot.addWidget(widget)
-    widget.set_ollama_connected(True)
-    widget.set_model("qwen3:8b")
-    path = tmp_path / "source.docx"
-    document = Document()
-    document.add_paragraph("ID 00123; date 01/02/2026")
-    document.save(path)
-    widget.set_paths((path,))
-    widget._request_edit.setPlainText("Extract the ID")
-    widget.show_inspection(read_sources((path,)))
-    return widget
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @pytest.fixture
@@ -72,18 +31,13 @@ def window(qtbot, tmp_path, monkeypatch):
     widget.close()
 
 
-def test_create_workspace_defaults_to_sources_and_preserves_prompt_host(window):
-    from app.widgets.create_panel import CreatePanel
-    assert window._workspace._tabs.tabText(0) == "From source files"
-    assert window._workspace._tabs.tabText(1) == "From prompt"
-    assert window._workspace._tabs.currentIndex() == 0
-    assert window._extraction_panel.isVisible()
-    assert isinstance(window._create_panel, CreatePanel)
+def test_create_defaults_to_describe_with_optional_sources(window):
+    from app.widgets.create_screen import CreateScreen
+    assert isinstance(window._modes.currentWidget(), CreateScreen)
+    assert window._create_screen._pages.currentWidget() is window._create_screen._describe_page
     assert not window._edit_panel.isVisible()
-    assert not window._extraction_panel._cancel_btn.isEnabled()
+    assert not window._create_screen._cancel_btn.isEnabled()
     assert window.width() >= 1200 and window.height() >= 800
-    window._workspace._tabs.setCurrentIndex(1)
-    assert window._create_panel.isVisible()
 
 
 @pytest.mark.parametrize("count,warn", [(0, True), (7_999_999_999, True),
@@ -95,8 +49,8 @@ def test_selected_model_warning(window, count, warn):
     assert window._capability_banner.isVisible() is warn
     assert window._capability_banner._info_label.text() == (
         "Simplicitor works best with models of 8B parameters or more.")
-    window._create_panel._prompt_edit.setPlainText("Write a report")
-    assert window._create_panel._generate_btn.isEnabled()
+    window._create_screen._prompt_edit.setPlainText("Write a report")
+    assert window._create_screen._primary_btn.isEnabled()
     window._on_model_params_ready("loaded", 1)
     window._on_ollama_connected(["selected", "loaded"], "loaded")
     assert window._current_model == "selected"
@@ -123,14 +77,14 @@ def test_empty_model_discovery_clears_the_selection_and_warning(window):
     assert window._capability_banner.isVisible()
     window._on_ollama_connected([], "")
     assert window._top_bar.current_model() == ""
-    assert window._current_model == "" and window._extraction_panel._model == ""
+    assert window._current_model == "" and window._create_screen._model == ""
     assert not window._capability_banner.isVisible()
 
 
 @pytest.mark.parametrize("cancel", [False, True])
 def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_path, monkeypatch, cancel):
     candidate = saved_candidate(tmp_path, flagged=False)
-    panel = window._extraction_panel
+    panel = window._create_screen
     panel.show_candidate(candidate, read_candidate(candidate))
     destination = tmp_path / "chosen.xlsx"
     requests = []
@@ -151,25 +105,25 @@ def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_pa
 
 def test_save_acknowledgement_blocks_native_dialog(window, tmp_path, monkeypatch):
     candidate = saved_candidate(tmp_path, flagged=True)
-    panel = window._extraction_panel
+    panel = window._create_screen
     panel.show_candidate(candidate, read_candidate(candidate))
     monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *a, **k: pytest.fail("unacknowledged"))
     window._on_extraction_save_requested(candidate, False)
     assert panel._candidate == candidate
 
 
-def configure_window(window, tmp_path):
+def configure_window(window, tmp_path, qtbot):
     path = tmp_path / "source.docx"
     doc = Document()
     doc.add_paragraph("ID 00123")
     doc.save(path)
     window._on_ollama_connected(["qwen3:8b"], "")
-    panel = window._extraction_panel
+    panel = window._create_screen
     panel.set_paths((path,))
-    panel._request_edit.setPlainText("Extract the ID")
+    qtbot.waitUntil(lambda: window._extraction_thread is None)
+    panel._prompt_edit.setPlainText("Extract the ID")
     panel.show_inspection(read_sources((path,)))
     panel.set_columns((ColumnSpec("id", "ID", "Identifier"),))
-    panel._confirm_btn.click()
     return panel, path
 
 
@@ -195,14 +149,13 @@ class ExtractionClient:
 
 
 def test_complete_column_review_extract_save_and_confirmed_overwrite(window, tmp_path, qtbot, monkeypatch):
-    panel, source = configure_window(window, tmp_path)
+    panel, source = configure_window(window, tmp_path, qtbot)
     original = source.read_bytes()
     client = ExtractionClient()
     window._ollama_client = client
-    panel._suggest_btn.click()
+    panel._primary_btn.click()
     qtbot.waitUntil(lambda: window._extraction_thread is None)
     assert panel.current_columns()[0].label == "ID" and not panel._confirmed
-    panel._confirm_btn.click()
     panel._extract_btn.click()
     window._start_extraction("extract", panel.snapshot())  # duplicate ignored
     qtbot.waitUntil(lambda: window._extraction_thread is None)
@@ -215,17 +168,19 @@ def test_complete_column_review_extract_save_and_confirmed_overwrite(window, tmp
     for existing in (False, True):
         if existing:
             destination.write_bytes(b"previous output")
+        panel._pages.setCurrentWidget(panel._review_page)
         panel._save_btn.click()
         qtbot.waitUntil(lambda: window._extraction_thread is None)
         assert destination.read_bytes() == candidate.path.read_bytes()
-        assert "saved successfully" in panel._status.text()
+        assert panel._pages.currentWidget() is panel._saved_page
+    assert panel._saved_label.text() == "Saved: output.xlsx"
     assert source.read_bytes() == original
     assert panel._candidate == candidate
 
 
 def test_save_failure_retains_review_and_previous_destination(window, tmp_path, qtbot, monkeypatch):
     from extraction import jobs
-    panel, _ = configure_window(window, tmp_path)
+    panel, _ = configure_window(window, tmp_path, qtbot)
     window._ollama_client = ExtractionClient()
     panel._extract_btn.click()
     qtbot.waitUntil(lambda: window._extraction_thread is None)
@@ -245,7 +200,7 @@ def test_save_failure_retains_review_and_previous_destination(window, tmp_path, 
 
 @pytest.mark.parametrize("cancel", [False, True])
 def test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it(window, tmp_path, qtbot, cancel):
-    panel, _ = configure_window(window, tmp_path)
+    panel, _ = configure_window(window, tmp_path, qtbot)
     window._ollama_client = ExtractionClient()
     panel._extract_btn.click()
     qtbot.waitUntil(lambda: window._extraction_thread is None)
@@ -263,11 +218,11 @@ def test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it(windo
         assert panel._candidate is None and window._extraction_job is None
     else:
         assert panel._candidate.path != old.path
-    assert panel._request_edit.toPlainText() == "Extract the ID"
+    assert panel._prompt_edit.toPlainText() == "Extract the ID"
 
 
 def test_close_waits_for_cancelled_worker_before_removing_job(window, tmp_path, qtbot):
-    panel, _ = configure_window(window, tmp_path)
+    panel, _ = configure_window(window, tmp_path, qtbot)
     client = ExtractionClient(pause=True)
     window._ollama_client = client
     panel._extract_btn.click()
@@ -282,7 +237,7 @@ def test_close_waits_for_cancelled_worker_before_removing_job(window, tmp_path, 
 
 def test_close_waits_for_queued_finished_handler_even_after_thread_stops(window, tmp_path, qtbot):
     from PySide6.QtGui import QCloseEvent
-    panel, _ = configure_window(window, tmp_path)
+    panel, _ = configure_window(window, tmp_path, qtbot)
     client = ExtractionClient()
     window._ollama_client = client
     panel._extract_btn.click()
@@ -303,10 +258,11 @@ def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(wind
         def pause_finish():
             entered.set()
             assert release.wait(5)
-        worker.finished.connect(pause_finish, Qt.ConnectionType.DirectConnection)
+        if worker.action == "extract":
+            worker.finished.connect(pause_finish, Qt.ConnectionType.DirectConnection)
         return worker
     monkeypatch.setattr("app.main_window.ExtractionWorker", paused_worker)
-    panel, _ = configure_window(window, tmp_path)
+    panel, _ = configure_window(window, tmp_path, qtbot)
     window._ollama_client = ExtractionClient()
     panel._extract_btn.click()
     try:
@@ -320,7 +276,7 @@ def test_cancel_after_candidate_signal_clears_review_before_thread_finishes(wind
 
 
 def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot, monkeypatch):
-    panel, _ = configure_window(window, tmp_path)
+    panel, _ = configure_window(window, tmp_path, qtbot)
     client = ExtractionClient(pause=True)
     window._ollama_client = client
     panel._extract_btn.click()
@@ -337,7 +293,7 @@ def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot,
 
 def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch):
     candidate = saved_candidate(tmp_path, flagged=False)
-    panel = window._extraction_panel
+    panel = window._create_screen
     panel.show_candidate(candidate, read_candidate(candidate))
     for destination, message in ((candidate.source_paths[0], "source file"),
                                   (tmp_path / "output.csv", ".xlsx")):

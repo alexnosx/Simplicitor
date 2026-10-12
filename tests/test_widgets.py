@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 from app.widgets.status_bar import TopBar
-from app.widgets.create_panel import CreatePanel
+from app.widgets.create_screen import CreateScreen
 from app.widgets.edit_panel import EditPanel
 from app.widgets.settings_dialog import SettingsDialog
 from app.widgets.capability_banner import CapabilityBanner
@@ -77,43 +77,49 @@ def test_top_bar_settings_signal_emits(qtbot) -> None:
         bar._settings_btn.click()
 
 
-def test_create_panel_instantiates(qtbot, tmp_path) -> None:
+def test_create_screen_instantiates(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
 
 
-def test_create_panel_generate_button_disabled_by_default(qtbot, tmp_path) -> None:
+def test_create_screen_generate_button_disabled_by_default(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
-    assert not panel._generate_btn.isEnabled()
+    assert not panel._primary_btn.isEnabled()
 
 
-def test_create_panel_has_four_file_types(qtbot, tmp_path) -> None:
+def test_create_screen_has_four_file_types(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     assert panel._type_combo.count() == 4
-    assert panel._type_combo.itemText(1) == "PDF (.pdf)"
+    assert panel._type_combo.itemText(1) == "PDF"
+    assert panel._type_combo.itemData(1) == "PDF (.pdf)"
 
 
-def test_create_panel_prompt_empty_by_default(qtbot, tmp_path) -> None:
+def test_create_screen_prompt_empty_by_default(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     assert panel._prompt_edit.toPlainText() == ""
 
 
-def test_create_panel_emits_generate_requested(qtbot, tmp_path) -> None:
+def test_create_screen_emits_generate_requested(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     # Enable button by setting Ollama connected and providing a non-empty prompt
     panel._prompt_edit.setPlainText("test prompt")
-    panel._generate_btn.setEnabled(True)
+    panel._primary_btn.setEnabled(True)
     with qtbot.waitSignal(panel.generate_requested, timeout=1000) as blocker:
-        panel._generate_btn.click()
+        panel._primary_btn.click()
     assert blocker.args[2] == "test prompt"  # (file_type, save_path, prompt)
 
 
@@ -227,35 +233,38 @@ def test_capability_banner_show_resets_dismissed(qtbot) -> None:
     assert not banner.is_dismissed()
 
 
-def test_create_panel_shows_disconnected_message(qtbot, tmp_path) -> None:
+def test_create_screen_shows_disconnected_message(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     # Starts disconnected â€” message should be visible
-    assert panel._disconnected_widget.isVisible()
+    assert panel._disconnected_label.isVisible()
 
 
-def test_create_panel_retry_signal(qtbot, tmp_path) -> None:
+def test_create_screen_retry_signal(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     with qtbot.waitSignal(panel.retry_requested, timeout=1000):
         panel._retry_btn.click()
 
 
-def test_create_panel_connected_hides_message(qtbot, tmp_path) -> None:
+def test_create_screen_connected_hides_message(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    assert not panel._disconnected_widget.isVisible()
+    assert not panel._disconnected_label.isVisible()
 
 
 def test_edit_panel_shows_disconnected_message(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
-    assert panel._disconnected_widget.isVisible()
+    assert panel._disconnected_label.isVisible()
 
 
 def test_edit_panel_retry_signal(qtbot, tmp_path) -> None:
@@ -271,14 +280,13 @@ def test_edit_panel_connected_hides_message(qtbot, tmp_path) -> None:
     panel = EditPanel(settings)
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    assert not panel._disconnected_widget.isVisible()
+    assert not panel._disconnected_label.isVisible()
 
 
 def test_main_window_has_capability_banner(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     assert hasattr(window, "_capability_banner")
     assert not window._capability_banner.isVisible()
 
@@ -287,14 +295,12 @@ def test_main_window_instantiates(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
 
 
 def test_main_window_title_is_simplicitor(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     assert window.windowTitle() == "Simplicitor"
 
 
@@ -302,7 +308,6 @@ def test_main_window_minimum_size(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     assert window.minimumWidth() >= 1024
     assert window.minimumHeight() >= 640
 
@@ -311,7 +316,6 @@ def test_main_window_opens_settings_dialog(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     # Verify the signal is connected (settings_requested â†’ _open_settings)
     assert window._top_bar.settings_requested is not None
 
@@ -320,7 +324,6 @@ def test_main_window_creates_ollama_thread(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     assert hasattr(window, "_ollama_thread")
     assert hasattr(window, "_ollama_worker")
     assert window._ollama_worker.thread() is window._ollama_thread
@@ -330,7 +333,6 @@ def test_main_window_banner_shows_for_small_model(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     # 3B params < 7B threshold â†’ banner should show
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
@@ -341,7 +343,6 @@ def test_main_window_banner_hidden_for_large_model(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     # 13B params > 7B threshold â†’ banner should stay hidden
     window._current_model = "large-model:13b"
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
@@ -352,7 +353,6 @@ def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._current_model = "small-model:3b"
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
@@ -365,99 +365,110 @@ def test_main_window_banner_not_reshown_after_dismiss(qtbot, tmp_path) -> None:
     assert not window._capability_banner.isVisible()
 
 
-def test_create_panel_generate_btn_requires_prompt(qtbot, tmp_path) -> None:
+def test_create_screen_primary_btn_requires_prompt(qtbot, tmp_path) -> None:
     """Button stays disabled when Ollama is connected but prompt is empty."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    assert not panel._generate_btn.isEnabled()
+    assert not panel._primary_btn.isEnabled()
 
 
-def test_create_panel_generate_btn_enabled_with_prompt_and_ollama(qtbot, tmp_path) -> None:
+def test_create_screen_primary_btn_enabled_with_prompt_and_ollama(qtbot, tmp_path) -> None:
     """Button enables when both Ollama is connected and prompt is non-empty."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
     panel._prompt_edit.setPlainText("Write a report")
-    assert panel._generate_btn.isEnabled()
+    assert panel._primary_btn.isEnabled()
 
 
-def test_create_panel_generate_btn_disabled_when_prompt_cleared(qtbot, tmp_path) -> None:
+def test_create_screen_primary_btn_disabled_when_prompt_cleared(qtbot, tmp_path) -> None:
     """Button disables again when prompt is cleared after being enabled."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
     panel._prompt_edit.setPlainText("Write a report")
-    assert panel._generate_btn.isEnabled()
+    assert panel._primary_btn.isEnabled()
     panel._prompt_edit.setPlainText("")
-    assert not panel._generate_btn.isEnabled()
+    assert not panel._primary_btn.isEnabled()
 
 
-def test_create_panel_tip_hidden_by_default(qtbot, tmp_path) -> None:
+def test_create_screen_tip_hidden_by_default(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     assert not panel._tip_label.isVisible()
 
 
-def test_create_panel_tip_hidden_for_large_model(qtbot, tmp_path) -> None:
+def test_create_screen_tip_hidden_for_large_model(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_model_small(False)
     panel._prompt_edit.setPlainText("x" * 600)  # long prompt
     assert not panel._tip_label.isVisible()
 
 
-def test_create_panel_tip_visible_for_small_model_with_long_prompt(qtbot, tmp_path) -> None:
+def test_create_screen_tip_visible_for_small_model_with_long_prompt(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_model_small(True)
     panel._prompt_edit.setPlainText("x" * 600)  # exceeds PROMPT_COMPLEXITY_THRESHOLD_CHARS
     assert panel._tip_label.isVisible()
 
 
-def test_create_panel_tip_visible_for_small_model_with_styling_keyword(qtbot, tmp_path) -> None:
+def test_create_screen_tip_visible_for_small_model_with_styling_keyword(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_model_small(True)
     panel._prompt_edit.setPlainText("Make it bold and color the header blue")
     assert panel._tip_label.isVisible()
 
 
-def test_create_panel_tip_hidden_for_small_model_with_simple_prompt(qtbot, tmp_path) -> None:
+def test_create_screen_tip_hidden_for_small_model_with_simple_prompt(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_model_small(True)
     panel._prompt_edit.setPlainText("Write a report")
     assert not panel._tip_label.isVisible()
 
 
-def test_create_panel_open_file_btn_hidden_by_default(qtbot, tmp_path) -> None:
+def test_create_screen_open_file_btn_hidden_by_default(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     assert not panel._open_file_btn.isVisible()
 
 
-def test_create_panel_show_open_file_btn(qtbot, tmp_path) -> None:
+def test_create_screen_show_open_file_btn(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.show_open_file_btn("/some/path/file.docx")
     assert panel._open_file_btn.isVisible()
     assert panel._last_generated_path == "/some/path/file.docx"
 
 
-def test_create_panel_set_generating_hides_open_file_btn(qtbot, tmp_path) -> None:
+def test_create_screen_set_generating_hides_open_file_btn(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.show_open_file_btn("/some/file.docx")
     assert panel._open_file_btn.isVisible()
@@ -469,38 +480,34 @@ def test_main_window_on_generate_completed_shows_status(qtbot, tmp_path) -> None
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_generate_completed("/some/path/report.docx")
-    assert window._create_panel._status_banner.isVisible()
-    assert "File created successfully" in window._create_panel._status_banner.text()
-    assert window._create_panel._open_file_btn.isVisible()
+    assert window._create_screen._status.isVisible()
+    assert "File created successfully" in window._create_screen._status.text()
+    assert window._create_screen._open_file_btn.isVisible()
 
 
 def test_main_window_on_generate_failed_shows_error(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_generate_failed("AI generation failed: connection refused")
-    assert window._create_panel._status_banner.isVisible()
-    assert "AI generation failed" in window._create_panel._status_banner.text()
+    assert window._create_screen._status.isVisible()
+    assert "AI generation failed" in window._create_screen._status.text()
 
 
 def test_main_window_on_generate_started_sets_generating(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_generate_started()
-    assert window._create_panel._generate_btn.text() == "Generating\u2026"
-    assert not window._create_panel._generate_btn.isEnabled()
+    assert window._create_screen._primary_btn.text() == "Creating..."
+    assert not window._create_screen._primary_btn.isEnabled()
 
 
 def test_main_window_build_output_path_contains_words_and_timestamp(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     path = window._build_output_path(
         "Word (.docx)", str(tmp_path), "Write a quarterly report now please"
     )
@@ -514,7 +521,6 @@ def test_main_window_build_output_path_extension_matches_type(qtbot, tmp_path) -
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     xlsx_path = window._build_output_path("Excel (.xlsx)", str(tmp_path), "Budget report")
     pptx_path = window._build_output_path("PowerPoint (.pptx)", str(tmp_path), "Sales deck")
     assert Path(xlsx_path).suffix == ".xlsx"
@@ -525,15 +531,14 @@ def test_main_window_model_small_passed_to_panel(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     # 3B params < 7B threshold â†’ model is small
     window._current_model = "small-model:3b"
     window._on_model_params_ready("small-model:3b", 3_000_000_000)
-    assert window._create_panel._model_is_small is True
+    assert window._create_screen._model_is_small is True
     # 13B params > 7B threshold â†’ model is not small
     window._current_model = "large-model:13b"
     window._on_model_params_ready("large-model:13b", 13_000_000_000)
-    assert window._create_panel._model_is_small is False
+    assert window._create_screen._model_is_small is False
 
 
 # â”€â”€ DropZone tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -789,7 +794,6 @@ def test_main_window_on_save_completed_shows_status(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_manipulate_completed("/path/result.docx", "/path/backups/result_backup.docx")
     assert not window._edit_panel._status_banner.isHidden()
     assert "File saved. Backup created." in window._edit_panel._status_banner.text()
@@ -800,7 +804,6 @@ def test_main_window_on_save_failed_shows_error(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_manipulate_failed("Could not read file: bad bytes")
     assert not window._edit_panel._status_banner.isHidden()
     assert "Could not read" in window._edit_panel._status_banner.text()
@@ -810,7 +813,6 @@ def test_main_window_on_save_started_sets_saving(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_manipulate_started()
     assert window._edit_panel._save_btn.text() == "Saving\u2026"
 
@@ -819,7 +821,6 @@ def test_main_window_has_manipulate_slots(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     assert hasattr(window, "_on_save_requested")
     assert hasattr(window, "_on_manipulate_started")
     assert hasattr(window, "_on_manipulate_progress")
@@ -832,7 +833,6 @@ def test_main_window_on_ollama_connected_updates_current_model(qtbot, tmp_path) 
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._on_ollama_connected(["gemma3"], "gemma3")
     assert window._current_model == "gemma3"
 
@@ -842,7 +842,6 @@ def test_main_window_on_ollama_connected_no_model_does_not_clear(qtbot, tmp_path
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._current_model = "llama3"
     window._on_ollama_connected(["llama3"], "")
     assert window._current_model == "llama3"  # unchanged
@@ -854,7 +853,6 @@ def test_main_window_generate_auto_creates_output_dir(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
     window = MainWindow(settings)
     qtbot.addWidget(window)
-    window._workspace._tabs.setCurrentIndex(1)
     window._current_model = "llama3"
 
     new_dir = tmp_path / "nonexistent" / "subdir"
@@ -875,94 +873,103 @@ def test_main_window_generate_auto_creates_output_dir(qtbot, tmp_path) -> None:
     assert new_dir.exists()
 
 
-def test_create_panel_template_button_disabled_by_default(qtbot, tmp_path) -> None:
+def test_create_screen_template_button_disabled_by_default(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
-    assert not panel._from_template_btn.isEnabled()
+    assert not panel._template_btn.isEnabled()
 
 
-def test_create_panel_emits_template_requested(qtbot, tmp_path) -> None:
+def test_create_screen_emits_template_requested(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    panel._type_combo.setCurrentText("PowerPoint (.pptx)")  # template flow is pptx-only
-    assert panel._from_template_btn.isEnabled()
+    panel.set_file_type("PowerPoint (.pptx)")  # template flow is pptx-only
+    assert panel._template_btn.isEnabled()
     with qtbot.waitSignal(panel.template_requested, timeout=1000):
-        panel._from_template_btn.click()
+        panel._template_btn.click()
 
 
-def test_create_panel_template_button_disabled_for_word_when_connected(qtbot, tmp_path) -> None:
+def test_create_screen_template_button_disabled_for_word_when_connected(qtbot, tmp_path) -> None:
     """The template flow is PowerPoint-only: the button stays disabled for Word."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    panel._type_combo.setCurrentText("Word (.docx)")
-    assert not panel._from_template_btn.isEnabled()
+    panel.set_file_type("Word (.docx)")
+    assert not panel._template_btn.isEnabled()
 
 
-def test_create_panel_template_button_disabled_for_excel_when_connected(qtbot, tmp_path) -> None:
+def test_create_screen_template_button_disabled_for_excel_when_connected(qtbot, tmp_path) -> None:
     """The template flow is PowerPoint-only: the button stays disabled for Excel."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    panel._type_combo.setCurrentText("Excel (.xlsx)")
-    assert not panel._from_template_btn.isEnabled()
+    panel.set_file_type("Excel (.xlsx)")
+    assert not panel._template_btn.isEnabled()
 
 
-def test_create_panel_template_button_enabled_for_pptx_when_connected(qtbot, tmp_path) -> None:
+def test_create_screen_template_button_enabled_for_pptx_when_connected(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    panel._type_combo.setCurrentText("PowerPoint (.pptx)")
-    assert panel._from_template_btn.isEnabled()
+    panel.set_file_type("PowerPoint (.pptx)")
+    assert panel._template_btn.isEnabled()
 
 
-def test_create_panel_template_button_disabled_for_pptx_when_disconnected(qtbot, tmp_path) -> None:
+def test_create_screen_template_button_disabled_for_pptx_when_disconnected(qtbot, tmp_path) -> None:
     """PowerPoint selected but no Ollama: still disabled (connection is also required)."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
-    panel._type_combo.setCurrentText("PowerPoint (.pptx)")
-    assert not panel._from_template_btn.isEnabled()
+    panel.set_file_type("PowerPoint (.pptx)")
+    assert not panel._template_btn.isEnabled()
 
 
-def test_create_panel_template_button_reacts_to_file_type_change(qtbot, tmp_path) -> None:
+def test_create_screen_template_button_reacts_to_file_type_change(qtbot, tmp_path) -> None:
     """Switching file type while connected toggles the template button live."""
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     panel.set_ollama_connected(True)
-    assert not panel._from_template_btn.isEnabled()  # default is Word
-    panel._type_combo.setCurrentText("PowerPoint (.pptx)")
-    assert panel._from_template_btn.isEnabled()
-    panel._type_combo.setCurrentText("Word (.docx)")
-    assert not panel._from_template_btn.isEnabled()
+    assert not panel._template_btn.isEnabled()  # default is Word
+    panel.set_file_type("PowerPoint (.pptx)")
+    assert panel._template_btn.isEnabled()
+    panel.set_file_type("Word (.docx)")
+    assert not panel._template_btn.isEnabled()
 
 
-def test_create_panel_set_template_loaded_toggles_label(qtbot, tmp_path) -> None:
+def test_create_screen_set_template_loaded_toggles_label(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
-    assert "From template" in panel._from_template_btn.text()
+    assert panel._template_btn.text() == "Use a template"
     panel.set_template_loaded(True)
-    assert panel._from_template_btn.text() == "From Template: selected"
+    assert panel._template_name.text() == "Template: selected"
     panel.set_template_loaded(False)
-    assert "From template" in panel._from_template_btn.text()
-    assert panel._from_template_btn.text() != "From Template: selected"
+    assert panel._template_btn.text() == "Use a template"
+    assert panel._template_name.text() == ""
 
 
-def test_create_panel_emits_file_type_changed(qtbot, tmp_path) -> None:
+def test_create_screen_emits_file_type_changed(qtbot, tmp_path) -> None:
     settings = Settings(tmp_path)
-    panel = CreatePanel(settings)
+    panel = CreateScreen(settings)
+    panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
     received = []
     panel.file_type_changed.connect(received.append)
-    panel._type_combo.setCurrentText("Excel (.xlsx)")
+    panel.set_file_type("Excel (.xlsx)")
     assert received == ["Excel (.xlsx)"]
 
 
