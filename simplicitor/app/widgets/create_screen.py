@@ -196,6 +196,8 @@ class CreateScreen(QWidget):
         drop.addWidget(self._browse_btn)
         sources.addLayout(drop)
         self._source_list = QListWidget()
+        # Row widgets own their spacing; the entry-point item padding would clip them.
+        self._source_list.setStyleSheet("QListWidget::item { padding: 0; }")
         self._source_list.setMaximumHeight(150)
         sources.addWidget(self._source_list)
         self._reading_label = QLabel("Reading your files...")
@@ -291,6 +293,7 @@ class CreateScreen(QWidget):
             label.setMinimumWidth(0)
             item.setToolTip(str(path))
             remove = QPushButton("Remove")
+            remove.setMinimumHeight(28)
             remove.clicked.connect(lambda _checked=False, i=index: self._remove_index(i))
             row.addWidget(label, 1)
             row.addWidget(remove)

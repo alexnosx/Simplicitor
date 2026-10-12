@@ -579,6 +579,23 @@ def test_source_drop_is_rejected_outside_describe(panel, page_name):
     assert panel.snapshot(False).paths == original and requests == []
 
 
+def test_source_remove_buttons_fit_with_application_list_padding(panel, qapp):
+    from PySide6.QtWidgets import QPushButton
+
+    original_style = qapp.styleSheet()
+    try:
+        qapp.setStyleSheet("QListWidget::item { padding: 6px 8px; }")
+        panel.set_paths(panel.snapshot(False).paths)
+        qapp.processEvents()
+        row = panel._source_list.itemWidget(panel._source_list.item(0))
+        button = row.findChild(QPushButton)
+        assert button.height() >= 28
+        button.click()
+        assert not panel.snapshot(False).paths
+    finally:
+        qapp.setStyleSheet(original_style)
+
+
 
 def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)

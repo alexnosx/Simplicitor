@@ -1637,6 +1637,7 @@ requirements.txt
 - def test_busy_setup_is_frozen_and_save_can_finish_without_cancel(panel)
 - def test_source_drop_accepts_only_local_supported_files(panel)
 - def test_source_drop_is_rejected_outside_describe(panel, page_name)
+- def test_source_remove_buttons_fit_with_application_list_padding(panel, qapp)
 - def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path)
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 

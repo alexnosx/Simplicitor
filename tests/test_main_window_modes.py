@@ -61,7 +61,8 @@ def test_busy_blocks_mode_switch(window):
     assert window._top_bar._settings_btn.isEnabled()
 
 
-def test_step_labels_fit_at_screenshot_size(window, qapp):
+def test_step_labels_fit_at_screenshot_size(window, qapp, tmp_path, monkeypatch):
+    from docx import Document
     from PySide6.QtGui import QFont
     from app.config.defaults import APP_FONT_FAMILY, FONT_SIZE_BODY_PT
 
@@ -69,6 +70,10 @@ def test_step_labels_fit_at_screenshot_size(window, qapp):
     try:
         qapp.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
         window.resize(1280, 800)
+        source = tmp_path / "source.docx"
+        Document().save(source)
+        monkeypatch.setattr(window, "_start_extraction", lambda *a, **kw: None)
+        window._create_screen.set_paths((source,))
         steps = window._create_screen._steps
         steps.set_steps(["Describe", "Choose columns", "Review and save"])
         for index in range(3):
