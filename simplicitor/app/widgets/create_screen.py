@@ -16,11 +16,13 @@ from PySide6.QtGui import QColor
 
 from app.config.defaults import (
     BORDER_COLOR, EXTRACTION_PROMPT_PLACEHOLDER, GENERATE_FILE_TYPES, MAX_PROMPT_CHARS,
-    PRIMARY_ACCENT_COLOR,
+    PRIMARY_ACCENT_COLOR, FONT_SIZE_BODY_PT, CHOICE_SELECTED_COLOR,
+    SECONDARY_PRESSED_COLOR, INFO_BANNER_BG_COLOR, BODY_TEXT_COLOR,
     PROMPT_COMPLEXITY_THRESHOLD_CHARS, PROMPT_PLACEHOLDERS, STYLING_KEYWORDS,
     EXTRACTION_SOURCE_FILTER, TEMPLATE_FILE_TYPE, EXTRACTION_FLAG_COLOR,
 )
 from app.config.settings import Settings
+from app.config.styles import input_styles
 from app.widgets.plain_labels import describe_anchor, describe_coverage, describe_issues
 from app.widgets.status_banner import StatusBanner
 from app.widgets.step_indicator import StepIndicator
@@ -31,8 +33,6 @@ from extraction.pipeline import ambiguous_date_columns
 logger = logging.getLogger(__name__)
 EXCEL = "Excel (.xlsx)"
 SOURCE_SUFFIXES = {".docx", ".pdf"}
-SOURCES_NOTE = ("Files you add are turned into an Excel table. "
-                "Reports from files come in a later version.")
 COVERAGE_HEADER = ("Some information may be missing from the table. "
                    "Check these problems before you use it:")
 ROUTE_PROMPT = ["Describe", "Save"]
@@ -46,6 +46,7 @@ class CreateScreen(QWidget):
 
     generate_requested = Signal(str, str, str)
     template_requested = Signal()
+    template_cleared = Signal()
     file_type_changed = Signal(str)
     retry_requested = Signal()
     inspect_requested = Signal(object)
@@ -74,19 +75,36 @@ class CreateScreen(QWidget):
         self._column_settings: dict[str, ColumnSpec] = {}
         self._next_column = 0
         self.setAcceptDrops(True)
+        self.setObjectName("createWorkspace")
         self.setStyleSheet(
+            input_styles()
+            + f"QWidget#createWorkspace {{ font-size: {FONT_SIZE_BODY_PT}pt; "
+            f"color: {BODY_TEXT_COLOR}; }}"
             f"QFrame#documentCard {{ background: white; border: 1px solid {BORDER_COLOR}; "
             "border-radius: 4px; }"
             f"QPushButton[primary='true'] {{ background: {PRIMARY_ACCENT_COLOR}; color: white; "
             "border: none; border-radius: 4px; padding: 8px 14px; font-weight: 600; }"
             "QPushButton[primary='true']:disabled { background: #E5E7EB; color: #747B87; }"
             f"QPushButton[link='true'] {{ color: {PRIMARY_ACCENT_COLOR}; border: none; "
-            "background: transparent; text-align: left; padding: 3px 0; }")
+            "background: transparent; text-align: left; padding: 3px 0; }"
+            f"QPushButton[secondary='true'] {{ background: {INFO_BANNER_BG_COLOR}; "
+            f"color: {PRIMARY_ACCENT_COLOR}; border: 1px solid {PRIMARY_ACCENT_COLOR}; "
+            "border-radius: 4px; padding: 8px 14px; font-weight: 600; }"
+            f"QPushButton[secondary='true']:hover {{ background: {CHOICE_SELECTED_COLOR}; }}"
+            f"QPushButton[secondary='true']:pressed {{ background: {SECONDARY_PRESSED_COLOR}; }}"
+            f"QPushButton[secondary='true'][chosen='true'] {{ "
+            f"background: {CHOICE_SELECTED_COLOR}; border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
+            "QPushButton[secondary='true']:disabled { color: #747B87; }"
+            f"QPushButton[route='true'] {{ background: white; border: 1px solid {BORDER_COLOR}; "
+            "border-radius: 4px; padding: 12px 16px; text-align: left; }"
+            f"QPushButton[route='true']:hover {{ background: {INFO_BANNER_BG_COLOR}; }}"
+            f"QPushButton[route='true']:checked {{ background: {INFO_BANNER_BG_COLOR}; "
+            f"border: 2px solid {PRIMARY_ACCENT_COLOR}; }}")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 14, 20, 20)
         layout.setSpacing(12)
         heading = QHBoxLayout()
-        title = QLabel("Create a new file")
+        title = QLabel("Create a new document")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
         self._caption = QLabel("Describe what you need.")
         self._caption.setStyleSheet("color: #626B78;")
@@ -99,6 +117,7 @@ class CreateScreen(QWidget):
         self._pull_option = QPushButton("Pull information from documents into Excel\n"
                                        "Read your Word files or PDFs and make an Excel table.")
         for route, button in (("write", self._write_option), ("pull", self._pull_option)):
+            button.setProperty("route", True)
             button.setCheckable(True)
             button.clicked.connect(lambda _checked=False, value=route: self.set_route(value))
             options.addWidget(button, 1)
@@ -174,29 +193,56 @@ class CreateScreen(QWidget):
         row = QHBoxLayout(page)
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(20)
-        describe, column = self._card()
-        column.addWidget(QLabel("What do you want to create?"))
+        self._description_card, column = self._card()
+        self._describe_title = QLabel("1. Describe the document you need")
+        self._describe_title.setStyleSheet("font-weight: 600;")
+        column.addWidget(self._describe_title)
         self._prompt_edit = QPlainTextEdit()
         self._prompt_edit.setMinimumHeight(116)
         self._prompt_edit.setMaximumHeight(180)
         column.addWidget(self._prompt_edit)
-        self._output_fields = QWidget()
-        fields = QHBoxLayout(self._output_fields)
-        fields.setContentsMargins(0, 0, 0, 0)
-        types = QVBoxLayout()
-        types.addWidget(QLabel("File type"))
+        self._tip_label = QLabel(
+            "Tip: Your model works best with short, clear prompts. "
+            "Consider simplifying your request for better results.")
+        self._tip_label.setWordWrap(True)
+        column.addWidget(self._tip_label)
+        self._sources_note = QLabel("One record per file. You can edit the suggested columns next.")
+        self._sources_note.setWordWrap(True)
+        self._sources_note.setStyleSheet("background: #EFF6FF; padding: 10px;")
+        column.addWidget(self._sources_note)
+        self._disconnected_label = QLabel(
+            "Simplicitor cannot find your AI engine.\nPlease start Ollama and click Retry.")
+        self._disconnected_label.setWordWrap(True)
+        self._retry_btn = QPushButton("Retry")
+        self._retry_btn.clicked.connect(self.retry_requested)
+        column.addWidget(self._disconnected_label)
+        column.addWidget(self._retry_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._pull_actions = QHBoxLayout()
+        column.addLayout(self._pull_actions)
+        column.addStretch()
+
+        self._output_card, output = self._card()
+        output.addWidget(QLabel("2. Choose the output"))
+        output.addWidget(QLabel("File type"))
         self._type_combo = QComboBox()
         for label in GENERATE_FILE_TYPES:
             self._type_combo.addItem(label.split(" (", 1)[0], label)
-        types.addWidget(self._type_combo)
+        output.addWidget(self._type_combo)
         self._template_btn = QPushButton("Use a template")
-        self._template_btn.setProperty("link", True)
+        self._template_btn.setProperty("secondary", True)
+        self._template_btn.setProperty("chosen", False)
         self._template_btn.clicked.connect(self.template_requested)
+        output.addWidget(self._template_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._template_name = QLabel()
+        self._template_name.setWordWrap(True)
         self._template_name.setTextFormat(Qt.TextFormat.PlainText)
-        types.addWidget(self._template_btn)
-        types.addWidget(self._template_name)
-        types.addStretch()
+        self._clear_template_btn = QPushButton("Clear")
+        self._clear_template_btn.setProperty("link", True)
+        self._clear_template_btn.clicked.connect(self._clear_template)
+        selected = QHBoxLayout()
+        selected.addWidget(self._template_name, 1)
+        selected.addWidget(self._clear_template_btn)
+        output.addLayout(selected)
         self._save_folder = QWidget()
         save = QVBoxLayout(self._save_folder)
         save.setContentsMargins(0, 0, 0, 0)
@@ -208,31 +254,19 @@ class CreateScreen(QWidget):
         self._change_folder_btn.setProperty("link", True)
         self._change_folder_btn.clicked.connect(self._browse_save_dir)
         save.addWidget(self._folder_label)
-        save.addWidget(self._change_folder_btn)
-        save.addStretch()
-        fields.addLayout(types, 1)
-        fields.addWidget(self._save_folder, 1)
-        column.addWidget(self._output_fields)
-        self._tip_label = QLabel(
-            "Tip: Your model works best with short, clear prompts. "
-            "Consider simplifying your request for better results.")
-        self._tip_label.setWordWrap(True)
-        column.addWidget(self._tip_label)
-        self._disconnected_label = QLabel(
-            "Simplicitor cannot find your AI engine.\nPlease start Ollama and click Retry.")
-        self._disconnected_label.setWordWrap(True)
-        self._retry_btn = QPushButton("Retry")
-        self._retry_btn.clicked.connect(self.retry_requested)
-        column.addWidget(self._disconnected_label)
-        column.addWidget(self._retry_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        save.addWidget(self._change_folder_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        output.addWidget(self._save_folder)
+        self._write_actions = QHBoxLayout()
+        output.addLayout(self._write_actions)
+        output.addStretch()
         self._primary_btn = QPushButton("Create file")
         self._primary_btn.setProperty("primary", True)
         self._primary_btn.clicked.connect(self._primary_clicked)
-        column.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
-        column.addStretch()
-        source, sources = self._card()
-        self._source_card = source
-        sources.addWidget(QLabel("Source files (optional)"))
+        self._write_actions.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._write_actions.addStretch()
+
+        self._source_card, sources = self._card()
+        sources.addWidget(QLabel("2. Add your source files"))
         drop = QHBoxLayout()
         hint = QLabel("Drop Word files or PDFs with selectable text here, or")
         hint.setWordWrap(True)
@@ -245,26 +279,23 @@ class CreateScreen(QWidget):
         self._source_list = QListWidget()
         # Row widgets own their spacing; the entry-point item padding would clip them.
         self._source_list.setStyleSheet("QListWidget::item { padding: 0; }")
-        self._source_list.setMaximumHeight(150)
+        self._source_list.setMaximumHeight(180)
         sources.addWidget(self._source_list)
         self._reading_label = QLabel("Reading your files...")
         self._read_again_btn = QPushButton("Read files again")
         self._read_again_btn.clicked.connect(self._read_again)
         sources.addWidget(self._reading_label)
-        sources.addWidget(self._read_again_btn)
-        self._sources_note = QLabel(SOURCES_NOTE)
-        self._sources_note.setWordWrap(True)
-        self._sources_note.setStyleSheet("background: #EFF6FF; padding: 10px;")
-        sources.addWidget(self._sources_note)
+        sources.addWidget(self._read_again_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._source_coverage = QPlainTextEdit()
         self._source_coverage.setReadOnly(True)
-        self._source_coverage.setMaximumHeight(100)
+        self._source_coverage.setMaximumHeight(160)
         self._source_coverage.hide()
         self._coverage_view = self._source_coverage
         sources.addWidget(self._source_coverage)
         sources.addStretch()
-        row.addWidget(describe, 65)
-        row.addWidget(source, 35)
+        row.addWidget(self._description_card, 65)
+        row.addWidget(self._output_card, 35)
+        row.addWidget(self._source_card, 35)
         return page
 
     def _build_saved_page(self) -> QWidget:
@@ -462,7 +493,8 @@ class CreateScreen(QWidget):
     def _setup_controls(self) -> tuple:
         return (self._write_option, self._pull_option,
                 self._prompt_edit, self._type_combo, self._source_list, self._browse_btn,
-                self._change_folder_btn, self._template_btn, self._retry_btn, self._read_again_btn,
+                self._change_folder_btn, self._template_btn, self._clear_template_btn,
+                self._retry_btn, self._read_again_btn,
                 self._primary_btn, self._open_file_btn, self._another_btn,
                 self._columns_table, self._add_column_btn, self._remove_column_btn,
                 self._thousands_edit, self._decimal_edit, self._date_order_combo,
@@ -521,8 +553,16 @@ class CreateScreen(QWidget):
     def set_template_loaded(self, loaded: bool, name: str = "") -> None:
         """Reflect the selected PowerPoint template without changing its engine."""
         self._template_loaded = loaded
-        self._template_name.setText("Template: " + (name or "selected") if loaded else "")
+        self._template_name.setText((name or "selected") if loaded else "")
+        self._template_btn.setProperty("chosen", loaded)
+        self._template_btn.style().unpolish(self._template_btn)
+        self._template_btn.style().polish(self._template_btn)
         self._refresh()
+
+    def _clear_template(self) -> None:
+        if not self._busy and not self._generating:
+            self.set_template_loaded(False)
+            self.template_cleared.emit()
 
     def show_open_file_btn(self, path: str) -> None:
         """Show the saved-file page and retain its path for the explicit Open action."""
@@ -585,7 +625,13 @@ class CreateScreen(QWidget):
             button.setChecked(route == self._route)
             button.setEnabled(not (self._busy or self._generating or self._inspecting))
         self._source_card.setVisible(pulling)
-        self._output_fields.setVisible(not pulling)
+        self._output_card.setVisible(not pulling)
+        self._describe_title.setText("1. Describe the information you need" if pulling
+                                     else "1. Describe the document you need")
+        host = self._description_card if pulling else self._output_card
+        if self._primary_btn.parentWidget() is not host:
+            (self._pull_actions if pulling else self._write_actions).addWidget(
+                self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._sources_note.setVisible(pulling)
         self._save_folder.setVisible(not pulling)
         self._reading_label.setVisible(self._inspecting)
@@ -605,6 +651,7 @@ class CreateScreen(QWidget):
                                       and not self._generating and self._connected
                                       and bool(self._model))
         self._template_name.setVisible(is_ppt and self._template_loaded)
+        self._clear_template_btn.setVisible(is_ppt and self._template_loaded)
         text = self._prompt_edit.toPlainText()
         self._tip_label.setVisible(self._model_is_small and (
             len(text) > PROMPT_COMPLEXITY_THRESHOLD_CHARS
@@ -613,7 +660,7 @@ class CreateScreen(QWidget):
 
     def _build_columns_page(self) -> QWidget:
         page, layout = self._card()
-        layout.addWidget(QLabel("Choose columns"))
+        layout.addWidget(QLabel("3. Choose columns"))
         self._columns_table = QTableWidget(0, 3)
         self._columns_table.setHorizontalHeaderLabels(["Name", "Description", "Type"])
         self._columns_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -678,7 +725,7 @@ class CreateScreen(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         splitter = QSplitter(Qt.Orientation.Horizontal)
         review, left = self._card()
-        left.addWidget(QLabel("Review your table"))
+        left.addWidget(QLabel("4. Review your table"))
         self._review_note = QLabel("Highlighted values need a check before you save.")
         self._review_note.setWordWrap(True)
         self._review_note.setStyleSheet("background: #FFF8E9; padding: 10px;")
@@ -707,7 +754,7 @@ class CreateScreen(QWidget):
         bottom.addStretch()
         left.addLayout(bottom)
         evidence, right = self._card()
-        right.addWidget(QLabel("Where this value came from"))
+        right.addWidget(QLabel("5. Where this value came from"))
         self._evidence = QPlainTextEdit()
         self._evidence.setReadOnly(True)
         right.addWidget(self._evidence, 1)

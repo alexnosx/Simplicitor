@@ -16,10 +16,9 @@ class EditPlaceholder(QWidget):
         title = QLabel("Edit a document")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
         self._body = QLabel(
-            "Editing documents is coming in a later version of Simplicitor. The earlier "
-            "editing feature was removed because it could damage files. For now, use Create "
-            "new to make a new Word, PDF, Excel or PowerPoint file, or to pull information "
-            "from your documents into Excel.")
+            "Edit for Word arrives in Simplicitor 2.3.0. Editing was turned off while a safer "
+            "editor is built. In 2.2.0, use Create new to make a new Word, PDF, Excel or "
+            "PowerPoint file, or to pull information from your documents into Excel.")
         self._body.setWordWrap(True)
         self._create_btn = QPushButton("Go to Create new")
         self._create_btn.clicked.connect(self.create_requested)

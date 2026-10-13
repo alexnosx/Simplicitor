@@ -139,6 +139,7 @@ class MainWindow(QMainWindow):
         self._screen_connections = (
             (screen.generate_requested, self._on_generate_requested),
             (screen.template_requested, self._on_template_requested),
+            (screen.template_cleared, self._on_template_cleared),
             (screen.file_type_changed, self._on_file_type_changed),
             (screen.retry_requested, self._recheck_connection.emit),
             (screen.inspect_requested, lambda setup: self._start_extraction("inspect", setup)),
@@ -588,6 +589,10 @@ class MainWindow(QMainWindow):
             self._loaded_template = None
             self._create_screen.set_template_loaded(False)
             logger.debug("Loaded template cleared (file type now %s)", file_type)
+
+    def _on_template_cleared(self) -> None:
+        """Clear a picked built-in template without changing the generation route."""
+        self._loaded_template = None
 
     def _start_template_generation(self, output_path: str, prompt: str) -> None:
         """Run the loaded template through the generate + render pipeline off-thread."""

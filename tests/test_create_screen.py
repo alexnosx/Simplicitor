@@ -12,7 +12,8 @@ def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile):
     from app.widgets.edit_placeholder import EditPlaceholder
     page = EditPlaceholder()
     qtbot.addWidget(page)
-    assert "later version" in page._body.text()
+    assert "Edit for Word arrives in Simplicitor 2.3.0." in page._body.text()
+    assert "Editing was turned off while a safer editor is built." in page._body.text()
     with qtbot.waitSignal(page.create_requested):
         page._create_btn.click()
 
