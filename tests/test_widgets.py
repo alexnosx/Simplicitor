@@ -962,7 +962,7 @@ def test_create_screen_set_template_loaded_toggles_label(qtbot, tmp_path) -> Non
     qtbot.addWidget(panel)
     assert panel._template_btn.text() == "Use a template"
     panel.set_template_loaded(True)
-    assert panel._template_name.text() == "Template: selected"
+    assert panel._template_name.text() == "selected"
     panel.set_template_loaded(False)
     assert panel._template_btn.text() == "Use a template"
     assert panel._template_name.text() == ""

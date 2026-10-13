@@ -154,7 +154,7 @@ def test_settings_changes_model_only_on_save(window, monkeypatch, accepted):
 
 
 @pytest.mark.parametrize("cancel", [False, True])
-def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, cancel):
+def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, qtbot, cancel):
     from PySide6.QtCore import QObject, Signal, Slot
     from extraction.models import ColumnSpec, SourceDocument, SourceUnit
     import app.main_window as main_window
@@ -207,10 +207,8 @@ def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp
     if cancel:
         screen._cancel_btn.click()
         assert not screen._cancel_btn.isEnabled()
-    from PySide6.QtTest import QTest
-    for _ in range(100):
-        if window._extraction_thread is None:
-            break
-        QTest.qWait(50)
+    # Use pytest-qt's timed event loop. A native qWait blocked inside Qt on the
+    # full-suite handoff, so an iteration count did not bound the old wait.
+    qtbot.waitUntil(lambda: window._extraction_thread is None, timeout=5000)
     assert actions[0] == "inspect" and actions.count("extract") == (0 if cancel else 1)
 
