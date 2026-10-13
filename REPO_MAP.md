@@ -142,6 +142,7 @@ docs/
             2026-06-07-business-pitch-watercolor-design.md
             2026-10-08-document-architecture-design.md
             2026-10-08-document-workspace-ui-design.md
+            2026-10-13-edit-for-word-design.md
     PROJECT_STATUS.md
     Simplicitor_BugFixes_and_Features.md
     Simplicitor_Implementation_Guide.md
@@ -2207,6 +2208,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 154 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 71 lines
+- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 235 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
