@@ -1,6 +1,8 @@
 # Changelog
 
-## v2.3.0 (unreleased)
+## v2.3.0, 2026-10-13
+
+Published as [v2.3.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.3.0) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.3.0.json](docs/releases/v2.3.0.json).
 
 - Add selective Word editing: open a standard .docx, select continuous whole body paragraphs, describe a change, review Before/After with light green highlights, and save one change as a new file. Preserve all bytes outside the selection and all other package parts. The original is never overwritten.
 - Show paragraphs, headings, bold/italic, lists, tables and picture placeholders in a virtualized plain-text reading view. Keep tables, headers, footers and paragraphs with unsupported constructs read-only with reasons. Enforce the 50 MiB/300-page-equivalent input, 6,000-character selection and 2,000-character description limits; refuse protected, signed and unsupported documents.
@@ -8,7 +10,7 @@
 - Keep the independent editing engine's byte-map/splice verification, formatting and bookmark rules, worker-side destination fingerprinting, staged read-back and commit-point checks. Track Changes documents are allowed, with a notice that new revision marks are not written. Legacy manipulation stays disabled.
 - Pass the one-shot model gate: both Q4_K_M candidates scored 11/12 with zero verification failures; [report](docs/evaluation/2.3.0-edit-model-check.json). All six patched samples opened read-only in Word 16.0 build 16.0.20326; [Word check](docs/builds/2.3.0-word-check.json).
 - Correct the Edit test fixture's queued first discovery poll and collect cyclic garbage only on the main thread between source tests. The 2.3.0 version-change isolated suite passed 1,290 tests. Update requirements, architecture/UI specs, the implemented design status, README, map and release notes.
-- Set product/MSI version 2.3.0, executable 2.3.0.0 and the derived hosted upgrade probe 2.3.1. Keep the existing MSI/portable route, extraction and generation behavior, dependencies and LICENSE. Milestone qualification and a separate explicit release go are required before publication.
+- Set product/MSI version 2.3.0, executable 2.3.0.0 and the derived hosted upgrade probe 2.3.1. Keep the existing MSI/portable route, extraction and generation behavior, dependencies and LICENSE. D1 qualified the prepared source on GitHub; D2 rebuilt, qualified and published Alex's approved tagged commit.
 
 ## v2.2.0, 2026-10-13
 
