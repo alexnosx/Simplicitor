@@ -1,16 +1,16 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Draft 1, 2026-10-13, by Claude for Codex review. Not approved; no implementation starts before Alex approves this design and its implementation plan.
+**Status:** Draft 1, 2026-10-13, by Claude for Codex review; Alex decided D1 to D3 the same day. Not approved; no implementation starts before Alex approves this design and its implementation plan.
 
 **Inputs:** [PRD.md](../../../PRD.md#post-first-release-requirements) (selective editing and the preservation contract), the [approved mockup](../../design/edit-document.html) (1dd4949, approved 2026-10-13), and the "After 2.2.0: Edit for Word" section of the [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#after-220-edit-for-word-230-roadmap), which lists the decisions this design must make. PRD.md keeps ownership of requirements and acceptance values; the implementation plan copies the values below into PRD.md.
 
-## Decisions for Alex
+## Decisions (Alex, 2026-10-13)
 
-These three points change what the user sees and are not in the approved mockup. Each has a recommendation; the rest of this design assumes it.
+These three points change what the user sees beyond the approved mockup. Alex decided them on 2026-10-13; the rest of this design follows the decisions.
 
-| # | Question | Recommendation | Why |
+| # | Question | Decision | Why |
 |---|---|---|---|
-| D1 | After saving, can the user keep editing? | One change per saved file, plus a **Keep editing the new file** button on the Saved page that opens the new file. | Several unsaved changes in one session need a stacked patch and a combined review. One change per file keeps every check simple; the button removes most of the cost of that limit. |
+| D1 | Can the user make several changes before saving? | No. One change per saved file; the Saved page stays as in the mockup. To change more, the user opens the new file. | Several unsaved changes in one session need a stacked patch and a combined review. One change per file keeps every check simple. |
 | D2 | Should "After" highlight the changed words? | Yes, light green on changed or added words; "Before" unchanged. | A four-paragraph change is hard to check by reading. The highlight comes from the same word comparison the patch already uses for formatting (see Patch). |
 | D3 | The document has Track Changes turned on. | Allow the edit and say so in Review: "Track Changes is on in this document. This change is saved without revision marks." | Writing real revision marks is a separate feature. Refusing would block common documents. |
 
@@ -184,7 +184,7 @@ Save As uses the native dialog (it asks before replacing an existing file), star
 2. Hash the original on disk. If it differs from the hash at open: "The original changed after you opened it. Open it again before editing." The candidate is discarded.
 3. Write the candidate bytes to a temporary file in the destination folder, close it, read it back and compare SHA-256, then `os.replace` it onto the destination. Any failure removes the temporary file and leaves an existing destination unchanged.
 
-The Saved page shows the path, "The original is unchanged.", Open another document and (D1) Keep editing the new file.
+The Saved page shows the path, "The original is unchanged." and Open another document (mockup; D1).
 
 A file picked while work exists follows the mockup's discard confirmation, with one change from Claude's mockup review: the file is picked first and the confirmation comes after it, so cancelling the file picker keeps the current work. Switching to Create new asks before discarding, as in the mockup.
 
