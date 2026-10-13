@@ -78,6 +78,7 @@ docs/
         2.1.0-msi-ci.json
         2.1.0-ui-ci.json
         2.2.0-ci.json
+        2.3.0-ci.json
         2.3.0-word-check.json
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
@@ -2484,6 +2485,7 @@ requirements.txt
 - docs/builds/2.1.0-msi-ci.json: json, 149 lines
 - docs/builds/2.1.0-ui-ci.json: json, 220 lines
 - docs/builds/2.2.0-ci.json: json, 137 lines
+- docs/builds/2.3.0-ci.json: json, 144 lines
 - docs/builds/2.3.0-word-check.json: json, 68 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
