@@ -505,6 +505,7 @@ simplicitor/
         models.py
         package.py
         patch.py
+        reading_view.py
     extraction/
         __init__.py
         grounding.py
@@ -557,6 +558,7 @@ tests/
         test_body_map.py
         test_package.py
         test_patch.py
+        test_reading_view.py
     extraction/
         fixtures/
             labels/
@@ -1049,6 +1051,22 @@ requirements.txt
 - def _verify(opened: OpenedDocument, assembled: bytes, new_data: bytes, start: int, end: int, first: int, selected: int, proposal: Proposal) -> None: The six checks on the packaged candidate; each failure logs only its name.
 - def build_candidate(opened: OpenedDocument, first: int, last: int, proposal: Proposal) -> EditCandidate: Return a verified in-memory candidate or raise EditError; never writes a file.
 
+### simplicitor/editing/reading_view.py
+
+- class Span
+- class DisplayBlock: kind: paragraph, table, other, header or footer. index is the body paragraph index.
+- def _on_off(rpr, tag: str) -> bool | None: Direct on/off value of w:<tag> in an rPr element, or None when it is not set.
+- def _chain(style, tag: str) -> bool | None: Nearest value in a style's basedOn chain (ordinary inheritance), or None.
+- def _effective(run, paragraph, defaults, tag: str) -> bool: Direct value wins; else paragraph-style XOR character-style value; else defaults.
+- def _list_item(paragraph) -> bool: First present numId in direct properties, then the style chain; 0 cancels.
+- def _heading(style_name: str) -> int
+- def _paragraph(paragraph, index: int, defaults, reason: str | None=None) -> DisplayBlock
+- def _defaults(document)
+- def _cells(table) -> tuple[tuple[str, ...], ...]: Each physical cell's text, with nested tables flattened into it, read-only.
+- def _container_text(container) -> str: Paragraphs and tables of a header or footer, tables one row per line.
+- def build(opened: OpenedDocument) -> tuple[DisplayBlock, ...]: Headers, then body blocks in document order, then footers.
+- def paragraphs(data: bytes, first: int, count: int) -> tuple[DisplayBlock, ...]: Display blocks for body paragraphs first..first+count-1 of a package (review).
+
 ### simplicitor/extraction/__init__.py
 
 (no top-level definitions)
@@ -1282,6 +1300,16 @@ requirements.txt
 - def test_verification_rejects_corrupted_candidates(monkeypatch, corrupt)
 - def test_verification_rejects_a_changed_other_part_and_a_moved_bookmark(monkeypatch)
 - def test_verification_reads_the_packaged_main_part(monkeypatch)
+
+### tests/editing/test_reading_view.py
+
+- def _blocks(make_docx, body, styles=STYLES)
+- def test_effective_bold_follows_word(make_docx)
+- def test_italic_from_paragraph_style_and_direct_override(make_docx)
+- def test_list_marker_resolves_num_id_per_component(make_docx, numpr, listed)
+- def test_word_fixture_view_has_headings_lists_table_and_read_only_reasons()
+- def test_review_blocks_come_from_candidate_bytes()
+- def test_nested_and_header_tables_are_shown_read_only(tmp_path)
 
 ### tests/extraction/test_evaluation.py
 
