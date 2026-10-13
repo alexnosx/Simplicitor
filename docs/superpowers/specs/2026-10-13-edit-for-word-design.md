@@ -1,6 +1,6 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Draft 2, 2026-10-13, by Claude. Draft 2 corrects all nine findings of the [Codex review of draft 1](../../reviews/2026-10-13-edit-for-word-design-codex.md) (see [Changes from draft 1](#changes-from-draft-1)). Alex decided D1 to D3 on 2026-10-13. Not approved; no implementation starts before Alex approves this design and its implementation plan.
+**Status:** Draft 3, 2026-10-13, by Claude. Draft 2 corrected the nine findings of the [Codex review of draft 1](../../reviews/2026-10-13-edit-for-word-design-codex.md); draft 3 corrects F10 to F13 and the open parts of F5 and F6 from the same file's Draft 2 section (see [Changes from draft 1](#changes-from-draft-1)). Alex decided D1 to D3 on 2026-10-13. Not approved; no implementation starts before Alex approves this design and its implementation plan.
 
 **Inputs:** [PRD.md](../../../PRD.md#post-first-release-requirements) (selective editing and the preservation contract), the [approved mockup](../../design/edit-document.html) (1dd4949, approved 2026-10-13), and the "After 2.2.0: Edit for Word" section of the [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#after-220-edit-for-word-230-roadmap), which lists the decisions this design must make. PRD.md keeps ownership of requirements and acceptance values; the implementation plan copies the values below into PRD.md.
 
@@ -81,7 +81,7 @@ Refuse with a plain message, in this order:
 | `w:documentProtection` in the settings part with enforcement on (see on/off values below) | "This document is protected in Word. Remove the protection in Word first." |
 | Main part not UTF-8, or not well-formed | "This Word file could not be read." |
 | Page-equivalent cost over 300, as the extraction reader computes it | "This document is too long to edit (over 300 pages)." |
-| Unbalanced complex fields or comment ranges in the main story, or the body map and python-docx disagree (see below) | "This document could not be prepared for editing." |
+| Unbalanced complex fields, a comment range whose end precedes its start, a repeated comment marker ID, or the body map and python-docx disagree (see below) | "This document could not be prepared for editing." |
 
 OOXML on/off values are parsed, not detected by presence: an element without `w:val`, or with `true`, `1` or `on`, is on; `false`, `0` or `off` is off. The same applies to `w:enforcement`. `w:trackRevisions` that is on does not refuse; it sets `OpenedDocument.track_changes_on` for the D3 notice.
 
@@ -91,7 +91,9 @@ OOXML on/off values are parsed, not detected by presence: an element without `w:
 
 For a body paragraph the map also records: its start-tag bytes; its namespace prefix as written in the start tag (`w:`, another prefix or none); the `w:pPr` byte range and the tag and byte range of each child of `w:pPr`; for each direct `w:r`, its `w:rPr` bytes and its text, where `w:t` text comes from expat character data (entities decoded), `w:tab` is `\t` and a text-wrapping `w:br` is `\n`; each direct `w:bookmarkStart` and `w:bookmarkEnd` with its bytes, ID, name and place (below); and the editability reason.
 
-The scan also keeps two story-level states over the whole main story in document order, including table cells and body-level elements between paragraphs: the depth of open complex fields (`w:fldChar` begin adds one, end removes one) and the set of open comment range IDs (`w:commentRangeStart` adds, `w:commentRangeEnd` removes). A paragraph that starts, ends or contains any point where a field is open or a comment range is open is read-only. A field end without a begin, a comment range end without a start, or anything still open at the end of the story refuses the document (last row above), rather than guessing.
+The scan also keeps two story-level states over the whole main story in document order, including table cells and body-level elements between paragraphs: the depth of open complex fields (`w:fldChar` begin adds one, end removes one) and the set of open comment ranges. A paragraph that starts, ends or contains any point where a field is open or a comment range is open is read-only. A field end without a begin, or a field still open at the end of the story, refuses the document (last row above), rather than guessing.
+
+Comment ranges are paired by `w:id` in a first pass over the story. An ID with both a `w:commentRangeStart` and a later `w:commentRangeEnd` is a range: it is open between them. A lone start or a lone end is a valid point anchor (OOXML allows either when the comment reference exists); it opens no range, and its own paragraph is read-only by the local comment rule. An ID whose end comes before its start, or that has more than one start or end, refuses the document.
 
 It also records every `w:bookmarkStart` and `w:bookmarkEnd` in the main part, with its byte range and ID, for verification check 6.
 
@@ -121,7 +123,16 @@ Tables, body-level content controls and other body-level blocks are read-only bl
 
 `reading_view.build(opened)` returns one display block per body block in document order, plus header and footer blocks. A paragraph block carries its style name, a heading level when the style is a built-in heading, a list marker, and spans with effective bold and italic. A table block carries its cells' text as a read-only grid; nested tables show as text. A picture shows a placeholder. Headers and footers show the text of each distinct part once, like the extraction reader.
 
-Effective bold and italic for a run: the run's direct `w:b`/`w:i` (on/off value) if present, else its character style's chain (`w:basedOn`), else the paragraph style's chain, else the document defaults (`w:docDefaults`), else off. A paragraph is a list item when its own `w:numPr` or its style chain's `w:numPr` has a non-zero `w:numId`. This covers built-in list and emphasis styles such as List Bullet and Strong; it is not a layout engine, and other properties (size, color, font) are not shown.
+Effective bold and italic for a run, following what Word 16 showed in a third spike (below):
+
+1. If the run has a direct `w:b` (or `w:i`), its on/off value decides.
+2. Otherwise resolve each style's `w:basedOn` chain by ordinary inheritance: the nearest style in the chain that sets the property gives its value, else off. Do this separately for the run's character style and the paragraph's style.
+3. Bold and italic are toggle properties across those two levels: the result is the paragraph-style value XOR the character-style value. Both on gives off.
+4. If neither style chain sets the property, the document defaults (`w:docDefaults`) decide, else off.
+
+The third spike, a synthetic document saved and reopened by Word 16, gave: character style B (bold) based on character style A (bold) is bold; a bold paragraph style with bold character style A is not bold; a bold paragraph style with direct bold off is not bold; character style A with direct bold off is not bold.
+
+Numbering is resolved in order: if the paragraph has a direct `w:numPr`, it decides, and `w:numId` 0 means no list (it cancels a style's list); otherwise the nearest `w:numPr` in the paragraph style's chain decides; a non-zero `w:numId` makes the paragraph a list item. This covers built-in list and emphasis styles such as List Bullet and Strong; it is not a layout engine, and other properties (size, color, font) are not shown.
 
 The Qt view is a virtualized list (QListView with a delegate), so a 300-page document does not create one widget per paragraph. The delegate escapes every span and renders only its own bold, italic, heading and list markup; document text is never interpreted as rich text.
 
@@ -156,7 +167,7 @@ Response schema: an object with `paragraphs`, an array of 1 to `selected + 20` o
 
 Settings: the existing `OllamaClient.generate` with `output_format` set to the schema, `think=False`, `local_only=True`, `num_ctx` 16384, `num_predict` 4096, HTTP timeout 180 seconds, `temperature` 0.3 and `seed` equal to the attempt number (0 for the first request, then 1, 2, ... after Try again). A different seed allows a different proposal for the same description; it does not guarantee one.
 
-**Budget.** The estimate is the existing one: (system + request UTF-8 bytes) / 2.5 + 256 + num_predict, compared with num_ctx. The core request (instruction and selected paragraphs, no context) must fit. With the 6,000 and 2,000 character limits it fits at these settings for text of up to 3 UTF-8 bytes per character, which covers English and all other common scripts; a defensive refusal remains for the rest: "This request is too long. Shorten the description or select a shorter part." Context is optional: candidates are added one whole paragraph at a time, nearest first, alternating before and after (before 1, after 1, before 2, after 2), and a paragraph that would exceed the budget is skipped along with all farther ones on its side. Context text is never shortened.
+**Budget.** The estimate is the existing one: (system + request UTF-8 bytes) / 2.5 + 256 + num_predict, compared with num_ctx. The core request (instruction and selected paragraphs, no context) must fit. Ordinary selections fit easily at these settings, but the character limits do not guarantee it, because the per-paragraph index and style metadata are not bounded by them (for example, a selection of hundreds of short paragraphs). Every core request is therefore estimated after serialization, metadata included, and refused when it does not fit: "This request is too long. Shorten the description or select a shorter part." Context is optional: candidates are added one whole paragraph at a time, nearest first, alternating before and after (before 1, after 1, before 2, after 2), and a paragraph that would exceed the budget is skipped along with all farther ones on its side. Context text is never shortened.
 
 An output-limit or context-limit error from the client discards the reply: "The change was too long for one request. Select a shorter part." The client's exception payloads are never logged.
 
@@ -206,11 +217,11 @@ The candidate holds the new package bytes, its SHA-256, the before and after dis
 
 Review shows the selected paragraphs before and the output paragraphs after (mockup), each rendered with the reading view's limited display (style, bold, italic, list marker). Before comes from the original; After is built by the reading view from the verified candidate bytes, so it shows the formatting actually saved, with the D2 highlight on top. When relevant it shows the D3 notice. Use this change, Try again and Cancel follow the mockup. Try again keeps the description and increments the attempt number.
 
-Save As uses the native dialog (it asks before replacing an existing file), starting in the original's folder with `<name> (edited).docx`. When the dialog is accepted, the worker records the destination's state: absent, or present with its size and modification time. `save.save_candidate(candidate, destination, destination_state)`:
+Save As uses the native dialog (it asks before replacing an existing file), starting in the original's folder with `<name> (edited).docx`. When the dialog is accepted, the worker records the destination's state: absent, or present with its SHA-256. `save.save_candidate(candidate, destination, destination_state)`:
 
 1. Refuse when the destination is the original (`extraction.jobs.same_path`): "Your original cannot be overwritten. Choose a different name or folder." Refuse a suffix other than `.docx`.
 2. Write the candidate bytes to a temporary file in the destination folder, close it, read it back and compare SHA-256.
-3. Commit point, immediately before replacing: read and hash the original at its recorded path, check again that the destination is not the original, and check that the destination's state still matches the recorded state.
+3. Commit point, immediately before replacing: read and hash the original at its recorded path, check again that the destination is not the original, and check that the destination's state still matches the recorded state (still absent, or present with the same SHA-256).
 4. Then `os.replace` the temporary file onto the destination.
 
 Outcomes when step 3 fails; in every case the temporary file is removed and an existing destination is left unchanged:
@@ -254,13 +265,13 @@ Fixtures are synthetic. Word-authored fixtures are made once with Word through a
 | Area | Cases |
 |---|---|
 | Opening | Each refusal row, including a Strict-namespace package, protection with enforcement on and explicitly off, Track Changes absent, on and explicitly off, and unbalanced field and comment ranges. |
-| Body map | Word fixture: paragraph count and texts equal python-docx; each read-only construct gets its reason. A field and a comment range each spanning three paragraphs, with a selection holding only the plain middle paragraph refused. Inline bookmark read-only; collapsed `_GoBack` editable. Hand-written: unprefixed (default namespace) and `x:` prefix, attribute value containing `>`, empty `<w:p/>`, comment and processing instruction inside the body, CDATA, multibyte text, CRLF and a UTF-8 BOM. |
+| Body map | Point comments: a lone `w:commentRangeStart` and a lone `w:commentRangeEnd`, each with its reference; the document opens, the marker paragraph is read-only and the following paragraphs stay editable. Word fixture: paragraph count and texts equal python-docx; each read-only construct gets its reason. A field and a comment range each spanning three paragraphs, with a selection holding only the plain middle paragraph refused. Inline bookmark read-only; collapsed `_GoBack` editable. Hand-written: unprefixed (default namespace) and `x:` prefix, attribute value containing `>`, empty `<w:p/>`, comment and processing instruction inside the body, CDATA, multibyte text, CRLF and a UTF-8 BOM. |
 | Patch | Single paragraph, same count; range with count growth and shrink; bold word replaced and kept bold; insertion at start and end; tab and line break; heading with boundary bookmarks renamed and split; a bookmark covering a paragraph including its mark, split; `_GoBack` paragraph rewritten; two disjoint boundary bookmarks; a bookmark crossing the selection boundary; body-level markers in gaps; list items; split of a `pageBreakBefore` paragraph (new paragraph has no page break); default-prefix, `x:`-prefix and self-closing paragraphs replaced and split; empty original and blank output paragraph. Every case runs all six checks and reopens the result with a new body map. |
 | Verification | Each check fails on a deliberately corrupted candidate (changed prefix bytes, unbalanced tag, changed other part, wrong text, reordered or missing bookmark marker). |
 | Proposal | Schema failures, decreasing or out-of-range source, invalid XML characters, CRLF normalization, no-change result, all-blank output rejected for a selection with text and allowed for a blank selection, dropped bookmarked paragraph rejected, output-limit error, cancellation before and after the request. |
-| Budget | Short selection next to a 40,000-character paragraph (context skipped, request sent); description at the limit; defensive core refusal with smaller test settings. |
-| Reading view | List Bullet style without direct numbering; Strong character style; italic paragraph style; explicit `w:b w:val="0"` overriding a bold style; Review After rendered from candidate bytes. |
-| Save | Original as destination; original changed, deleted and unreadable at the commit point; destination created or changed after the dialog; staged write failure; read-back mismatch. Each leaves an existing destination unchanged and no temporary file. |
+| Budget | Short selection next to a 40,000-character paragraph (context skipped, request sent); description at the limit; a metadata-heavy core refused at the normal settings (hundreds of short or blank paragraphs). |
+| Reading view | List Bullet style without direct numbering; direct `w:numId` 0 cancelling a list style; Strong character style; italic paragraph style; a bold character style based on a bold character style (bold); a bold paragraph style with a bold character style (not bold); explicit `w:b w:val="0"` overriding a bold style; the same cases in Review After rendered from candidate bytes. The bold cases are also opened in the one-off Word check. |
+| Save | Original as destination; original changed, deleted and unreadable at the commit point; destination created after the dialog; destination contents changed with the same size and modification time; staged write failure; read-back mismatch. Each leaves an existing destination unchanged and no temporary file. |
 | UI | Selection rules and messages, buttons per state, busy gates, discard confirmation after the file pick, Saved page, plain-text rendering of document text. |
 
 A one-off Word check, run on Alex's PC through COM and recorded, opens the patched Word fixtures read-only with repair turned off, as in the spikes.
@@ -291,3 +302,12 @@ PRD.md: Edit for Word scope, refusals and the settings above as acceptance value
 | F7 (P2) context budget | Description limit of 2,000 characters; context added only while it fits, nearest first. |
 | F8 (P2) whole-selection deletion | All-blank output rejected when the selection has text. |
 | F9 (P3) Strict and on/off values | Transitional relationship and namespace checks; parsed on/off values for protection and Track Changes. |
+
+Draft 3, after the Draft 2 section of the same review:
+
+| Codex finding | Correction in draft 3 |
+|---|---|
+| F5 (open part) and F11 (P2) formatting resolution | Bold and italic resolved by inheritance within each style chain, toggled (XOR) between the paragraph and character style levels, direct formatting absolute; tested in Word. Codex's example of two bold character styles in one `basedOn` chain composing to off did not match Word, which shows bold. Numbering resolved in order with `w:numId` 0 as cancellation. |
+| F6 (open part) and F12 (P2) destination fingerprint | Destination state is absent or its SHA-256, rechecked at the commit point. |
+| F10 (P2) point comments | Comment markers paired by ID; lone starts and ends are point anchors that open no range; only reversed or repeated IDs refuse the document. |
+| F13 (P3) budget claim | Guaranteed-fit claim removed; every core request is estimated after serialization; a metadata-heavy refusal test at normal settings. |
