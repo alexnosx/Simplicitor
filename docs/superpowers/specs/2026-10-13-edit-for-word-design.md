@@ -1,6 +1,6 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Draft 1, 2026-10-13, by Claude for Codex review; Alex decided D1 to D3 the same day. Not approved; no implementation starts before Alex approves this design and its implementation plan.
+**Status:** Draft 2, 2026-10-13, by Claude. Draft 2 corrects all nine findings of the [Codex review of draft 1](../../reviews/2026-10-13-edit-for-word-design-codex.md) (see [Changes from draft 1](#changes-from-draft-1)). Alex decided D1 to D3 on 2026-10-13. Not approved; no implementation starts before Alex approves this design and its implementation plan.
 
 **Inputs:** [PRD.md](../../../PRD.md#post-first-release-requirements) (selective editing and the preservation contract), the [approved mockup](../../design/edit-document.html) (1dd4949, approved 2026-10-13), and the "After 2.2.0: Edit for Word" section of the [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#after-220-edit-for-word-230-roadmap), which lists the decisions this design must make. PRD.md keeps ownership of requirements and acceptance values; the implementation plan copies the values below into PRD.md.
 
@@ -18,16 +18,24 @@ These three points change what the user sees beyond the approved mockup. Alex de
 
 In 2.3.0 the user opens one .docx, selects a continuous range of whole body paragraphs, describes a change, reviews before and after, and saves a new file. Everything outside the selected paragraphs stays byte-identical.
 
-Out of scope: editing tables, headers, footers, footnotes, text boxes or comments; adding or removing tables or pictures; deleting a whole selection; reordering paragraphs; revision marks; several pending changes in one session (D1); .doc, .docm, .dotx, Strict OOXML, password-protected or signed files; Excel and PowerPoint editing; PDF preview. The legacy manipulator stays disabled and unused.
+Out of scope: editing tables, headers, footers, footnotes, text boxes or comments; editing text inside a field or a comment range; adding or removing tables or pictures; deleting a whole selection; reordering paragraphs; revision marks; several pending changes in one session (D1); .doc, .docm, .dotx, Strict OOXML, password-protected or signed files; Excel and PowerPoint editing; PDF preview. The legacy manipulator stays disabled and unused.
 
 ## Feasibility evidence
 
-Before writing this design Claude ran a scratch spike (not committed) on a synthetic document saved by Word 16 through COM. It contained headings, bold and italic runs, a bookmarked heading, a tab, a line break, a bulleted list, a table, a hyperlink and a PAGE field.
+Claude ran two scratch spikes (not committed) on synthetic documents saved by Word 16 through COM, opening every result read-only in Word with repair turned off.
 
-- An expat parse of `word/document.xml` produced byte ranges for every body-level element. Its paragraph texts matched python-docx for all 12 body paragraphs; the hyperlink and field paragraphs were classified read-only.
-- Edit 1 changed "30 days" (bold) to "45 days" in one paragraph; "45 days" stayed bold. Edit 2 replaced a heading and two paragraphs with four paragraphs (count +1); the heading kept Heading 2 and its bookmark, the tab and line break survived.
-- For both: every other package part was byte-identical after decompression, `document.xml` was byte-identical before and after the patched range, the result parsed, python-docx opened it, the Office schema check passed, and Word opened both read-only without repair. Word showed the bookmark on the new heading text.
-- A first version mislocated the end of empty elements such as `<w:bookmarkEnd/>`. The well-formedness check below caught it before any file was written. That check is therefore mandatory, not a precaution.
+**Spike 1 (draft 1).** The document had headings, bold and italic runs, a bookmarked heading, a tab, a line break, a bulleted list, a table, a hyperlink and a PAGE field.
+
+- An expat parse of `word/document.xml` gave byte ranges for every body-level element. Paragraph texts matched python-docx for all 12 body paragraphs.
+- One edit changed "30 days" (bold) to "45 days"; it stayed bold. Another replaced a heading and two paragraphs with four paragraphs; the heading kept Heading 2 and its bookmark, and the tab and line break survived.
+- In both, every other package part was byte-identical after decompression, `document.xml` was byte-identical outside the patched range, the Office schema check passed, and Word opened the files without repair.
+- A first version mislocated the end of empty elements such as `<w:bookmarkEnd/>`; the well-formedness check caught it. That check is mandatory.
+
+**Spike 2 (draft 2).** The document had a table of contents field whose result spans four paragraphs, a comment range over three paragraphs whose middle paragraph contains only plain text, a bookmark around "30 days" inside a sentence, Word's hidden `_GoBack` bookmark inside a sentence, heading bookmarks (`_Toc...`), a bookmark covering a whole heading including its paragraph mark, and a paragraph with page break before. Hand-written variants used an `x:` prefix, the default namespace and a self-closing `<w:p/>`.
+
+- With the rules below, all four field paragraphs and all three comment paragraphs (including the plain middle one) were read-only, and so was the inline-bookmark paragraph. The `_GoBack` paragraph, the headings and the page-break paragraph were editable.
+- Edits that rewrote the `_GoBack` paragraph, split the page-break paragraph, and renamed two headings while splitting one passed all six checks. In Word the added paragraph had no page break, each `_Toc` bookmark covered only its rewritten heading, and the whole-paragraph bookmark covered the split heading and its added paragraph, as Word does when a user presses Enter inside such a paragraph.
+- Dropping a bookmarked heading and an all-blank proposal were rejected. The three hand-written variants passed all six checks after a replace-and-split edit.
 
 ## Architecture
 
@@ -40,18 +48,18 @@ flowchart TD
     WORKER --> PROPOSE[propose_change: model request and validation]
     PROPOSE --> OLLAMA[Existing OllamaClient, local only]
     PROPOSE --> PATCH[build_candidate: patch and verify in memory]
-    WORKER --> SAVE[save_candidate: staged write, read back, replace]
+    WORKER --> SAVE[save_candidate: staged write, commit-point checks, replace]
 ~~~
 
 | Path | Responsibility |
 |---|---|
 | `simplicitor/editing/models.py` | Frozen contracts: `OpenedDocument`, `Block`, `Proposal`, `ProposedParagraph`, `EditCandidate`, `EditError`. |
 | `simplicitor/editing/package.py` | Read the file once into memory; package checks and refusals; locate the main document part; rebuild the ZIP with one part replaced. |
-| `simplicitor/editing/body_map.py` | Expat scan of the main part: body-level blocks with byte ranges, paragraph runs, formatting bytes, markers and the editability reason. |
-| `simplicitor/editing/reading_view.py` | Build display blocks from python-docx on the same bytes: style label, list marker, bold and italic spans, table cell text, picture placeholders, headers and footers. |
-| `simplicitor/editing/proposal.py` | Request payload, system prompt, response schema, budget check and proposal validation. |
+| `simplicitor/editing/body_map.py` | Expat scan of the main part: body-level blocks with byte ranges, story ranges, paragraph runs, formatting bytes, bookmark markers and the editability reason. |
+| `simplicitor/editing/reading_view.py` | Display blocks from python-docx on the same bytes: style label, effective bold and italic, list marker, table cell text, picture placeholders, headers and footers. |
+| `simplicitor/editing/proposal.py` | Request payload, system prompt, response schema, budget and context fitting, proposal validation. |
 | `simplicitor/editing/patch.py` | Assemble replacement paragraphs, splice them into the original bytes, run every verification check. |
-| `simplicitor/editing/save.py` | Save As rules: refuse the original, detect a changed original, staged write with read-back. |
+| `simplicitor/editing/save.py` | Save As rules: refuse the original, staged write with read-back, commit-point checks. |
 | `simplicitor/app/workers/edit_worker.py` | QObject actions `open`, `propose` and `save`; cooperative cancellation; safe messages. |
 | `simplicitor/app/widgets/edit_screen.py` | The approved mockup in Qt: open, reading view and selection, describe, busy, review, save, saved. |
 | `simplicitor/app/main_window.py` | Mount EditScreen in place of EditPlaceholder; worker wiring, busy gates, close handling. |
@@ -60,7 +68,7 @@ flowchart TD
 
 ## Opening a document
 
-The worker reads the file once into memory (at most 50 MiB, the extraction limit) and records its SHA-256. All later steps use these bytes; the path is opened again only for the changed-original check at save time.
+The worker reads the file once into memory (at most 50 MiB, the extraction limit) and records its SHA-256 and resolved path. All later steps use these bytes; the path is read again only by the save checks.
 
 Refuse with a plain message, in this order:
 
@@ -68,22 +76,26 @@ Refuse with a plain message, in this order:
 |---|---|
 | Not a .docx name, or bytes start with the OLE signature `D0 CF 11 E0` | "Choose a Word document (.docx). Password-protected files cannot be edited." |
 | Not a ZIP, duplicate entry names, encrypted entries | "This Word file could not be read." |
-| Main part content type is not `application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml` (excludes .docm, templates and Strict) | "Simplicitor can edit standard Word documents (.docx) only." |
+| The package relationship to the main part is not the Transitional officeDocument type (`http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument`), its content type is not `application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml`, or its root element is not `document` in the Transitional namespace `http://schemas.openxmlformats.org/wordprocessingml/2006/main` (excludes .docm, templates and Strict) | "Simplicitor can edit standard Word documents (.docx) only." |
 | Any `_xmlsignatures` part or digital-signature origin relationship | "This document is digitally signed. Editing would break the signature." |
-| `w:documentProtection` in the settings part with enforcement on | "This document is protected in Word. Remove the protection in Word first." |
+| `w:documentProtection` in the settings part with enforcement on (see on/off values below) | "This document is protected in Word. Remove the protection in Word first." |
 | Main part not UTF-8, or not well-formed | "This Word file could not be read." |
 | Page-equivalent cost over 300, as the extraction reader computes it | "This document is too long to edit (over 300 pages)." |
-| Body map and python-docx disagree (see below) | "This document could not be prepared for editing." |
+| Unbalanced complex fields or comment ranges in the main story, or the body map and python-docx disagree (see below) | "This document could not be prepared for editing." |
 
-`w:trackRevisions` in the settings part does not refuse; it sets `OpenedDocument.track_changes_on` for the D3 notice.
+OOXML on/off values are parsed, not detected by presence: an element without `w:val`, or with `true`, `1` or `on`, is on; `false`, `0` or `off` is off. The same applies to `w:enforcement`. `w:trackRevisions` that is on does not refuse; it sets `OpenedDocument.track_changes_on` for the D3 notice.
 
 ### Body map
 
-`body_map.scan(xml: bytes)` parses the main part with `xml.parsers.expat` (namespace separator on) and records, for each direct child of `w:body`, its kind (`p`, `tbl`, `sdt`, `sectPr`, other) and byte range `[start, end)`. Start is `CurrentByteIndex` at the start event. For a non-empty element the end is the byte after the `>` of its end tag; for an empty element (`/>`) it is the end of its start tag. Tag ends are found by a quote-aware scan, because attribute values may contain `>`.
+`body_map.scan(xml: bytes)` parses the main part with `xml.parsers.expat` (namespace separator on) and records, for each direct child of `w:body`, its kind (`p`, `tbl`, `sdt`, `sectPr`, other) and byte range `[start, end)`. Start is `CurrentByteIndex` at the start event. For a non-empty element the end is the byte after the `>` of its end tag; for an empty element (`/>`) it is the end of its start tag. Tag ends are found by a quote-aware scan, because attribute values may contain `>`. Byte offsets and decoded-text offsets are kept separate.
 
-For a body paragraph the map also records: its start-tag bytes; the `w:pPr` byte range; for each direct `w:r`, its `w:rPr` bytes and its text, where `w:t` text comes from expat character data (entities decoded), `w:tab` is `\t` and a text-wrapping `w:br` is `\n`; the bytes of each direct `w:bookmarkStart` and `w:bookmarkEnd`; and the editability reason.
+For a body paragraph the map also records: its start-tag bytes; its namespace prefix as written in the start tag (`w:`, another prefix or none); the `w:pPr` byte range and the tag and byte range of each child of `w:pPr`; for each direct `w:r`, its `w:rPr` bytes and its text, where `w:t` text comes from expat character data (entities decoded), `w:tab` is `\t` and a text-wrapping `w:br` is `\n`; each direct `w:bookmarkStart` and `w:bookmarkEnd` with its bytes, ID, name and place (below); and the editability reason.
 
-Paragraph `i` in the map is the i-th direct `w:p` child of `w:body`, the same index as python-docx `Document.paragraphs` and the extraction reader's body anchor `#p:i`. At open, the counts must be equal and every editable paragraph's text must equal python-docx `paragraph.text`; otherwise the document is refused (last table row).
+The scan also keeps two story-level states over the whole main story in document order, including table cells and body-level elements between paragraphs: the depth of open complex fields (`w:fldChar` begin adds one, end removes one) and the set of open comment range IDs (`w:commentRangeStart` adds, `w:commentRangeEnd` removes). A paragraph that starts, ends or contains any point where a field is open or a comment range is open is read-only. A field end without a begin, a comment range end without a start, or anything still open at the end of the story refuses the document (last row above), rather than guessing.
+
+It also records every `w:bookmarkStart` and `w:bookmarkEnd` in the main part, with its byte range and ID, for verification check 6.
+
+Paragraph `i` in the map is the i-th direct `w:p` child of `w:body`, the same index as python-docx `Document.paragraphs` and the extraction reader's body anchor `#p:i`. At open, the counts must be equal and every editable paragraph's text must equal python-docx `paragraph.text`; otherwise the document is refused.
 
 ### Editability
 
@@ -91,19 +103,27 @@ A body paragraph is editable only if it passes every rule below. Otherwise the r
 
 | Rule | Reason shown |
 |---|---|
+| Not inside an open complex field or comment range (story-level state above) | "a field" or "a comment" |
 | Direct children only `w:pPr`, `w:r`, `w:proofErr`, `w:bookmarkStart`, `w:bookmarkEnd` | By construct: `w:hyperlink` "a link"; `w:fldSimple` "a field"; `w:ins`, `w:del`, `w:moveFrom`, `w:moveTo` "tracked changes"; `w:sdt` "a form field"; `w:commentRangeStart`, `w:commentRangeEnd` "a comment"; `m:oMath`, `m:oMathPara` "an equation"; anything else "content this version cannot edit" |
 | Run children only `w:rPr`, `w:t`, `w:tab`, `w:br` without a type or with type `textWrapping`, `w:lastRenderedPageBreak` | `w:fldChar`, `w:instrText` "a field"; `w:drawing`, `w:pict`, `w:object` "a picture"; `w:commentReference` "a comment"; `w:footnoteReference`, `w:endnoteReference` "a footnote"; page or column `w:br` "a page break"; anything else "content this version cannot edit" |
+| Bookmark markers only at the paragraph boundaries (place `lead` or `trail`, below), except one collapsed `_GoBack` pair | "a bookmark inside the text" |
 | No `w:sectPr` in `w:pPr` | "a section break" |
 | No `w:pPrChange` or `w:rPrChange`; no `w:ins`/`w:del` in the paragraph mark's `w:rPr` | "tracked changes" |
 | No namespace declaration on the paragraph or inside it | "content this version cannot edit" |
+
+A bookmark marker's place is `lead` when no `w:r` precedes it in the paragraph, `trail` when no `w:r` follows it, and `inline` otherwise. The only inline markers allowed are one `w:bookmarkStart` named `_GoBack` immediately followed by its `w:bookmarkEnd` (Word's hidden last-edit position, collapsed); they are treated as `lead`, which keeps their order relative to the other markers. Any other inline marker makes the paragraph read-only, because keeping its text extent would need character-level alignment.
+
+The namespace-declaration rule is a conservative choice for the first version, not a claim that such paragraphs are unsafe.
 
 Tables, body-level content controls and other body-level blocks are read-only blocks ("Tables are read-only in the first Word editor.", "a form field", "content this version cannot edit"). Headers and footers are shown read-only. Footnotes, endnotes, comments and text boxes are not shown; their anchors make the paragraph read-only as above.
 
 ## Reading view
 
-`reading_view.build(opened)` returns one display block per body block in document order, plus header and footer blocks. A paragraph block carries its style name (python-docx resolves the style ID), a heading level when the style is a built-in heading, a list marker when `w:numPr` is set, and spans with direct bold and italic. A table block carries its cells' text as a read-only grid; nested tables show as text. A picture shows a placeholder. Headers and footers show the text of each distinct part once, like the extraction reader.
+`reading_view.build(opened)` returns one display block per body block in document order, plus header and footer blocks. A paragraph block carries its style name, a heading level when the style is a built-in heading, a list marker, and spans with effective bold and italic. A table block carries its cells' text as a read-only grid; nested tables show as text. A picture shows a placeholder. Headers and footers show the text of each distinct part once, like the extraction reader.
 
-The Qt view is a virtualized list (QListView with a delegate), so a 300-page document does not create one widget per paragraph. The delegate escapes every span and renders only its own bold, italic and heading markup; document text is never interpreted as rich text.
+Effective bold and italic for a run: the run's direct `w:b`/`w:i` (on/off value) if present, else its character style's chain (`w:basedOn`), else the paragraph style's chain, else the document defaults (`w:docDefaults`), else off. A paragraph is a list item when its own `w:numPr` or its style chain's `w:numPr` has a non-zero `w:numId`. This covers built-in list and emphasis styles such as List Bullet and Strong; it is not a layout engine, and other properties (size, color, font) are not shown.
+
+The Qt view is a virtualized list (QListView with a delegate), so a 300-page document does not create one widget per paragraph. The delegate escapes every span and renders only its own bold, italic, heading and list markup; document text is never interpreted as rich text.
 
 ## Selection
 
@@ -111,6 +131,7 @@ The Qt view is a virtualized list (QListView with a delegate), so a 300-page doc
 - It cannot include a read-only block. A click on a read-only block shows its reason. A Shift-click whose range crosses a table shows "A selection cannot cross a table. Select paragraphs on one side of the table."; crossing another read-only paragraph shows "This range includes a read-only paragraph. Select editable paragraphs on one side of it." The previous selection stays.
 - Body-level markers between selected paragraphs (`w:bookmarkStart`, `w:bookmarkEnd`, `w:proofErr`, `w:permStart`, `w:permEnd`, whitespace) are not blocks and do not break a selection; their bytes are kept verbatim (see Patch). Any other body-level element between paragraphs is a read-only block.
 - The selected text may be at most 6,000 characters. Over that, Edit this part is disabled with "Select a shorter part (up to about 6,000 characters)."
+- The description may be at most 2,000 characters; the box stops accepting text at the limit.
 
 ## Model request
 
@@ -119,13 +140,13 @@ The Qt view is a virtualized list (QListView with a delegate), so a 300-page doc
 ~~~json
 {
   "instruction": "<the user's description>",
-  "context_before": ["<up to 2 preceding body paragraph texts>"],
+  "context_before": ["<preceding body paragraph texts that fit>"],
   "paragraphs": [{"index": 0, "style": "Heading 2", "text": "1. Scope"}],
-  "context_after": ["<up to 2 following body paragraph texts>"]
+  "context_after": ["<following body paragraph texts that fit>"]
 }
 ~~~
 
-Context paragraphs are the nearest body paragraphs outside the selection, editable or not, text only. No file name, path or table content is sent.
+Context paragraphs are the nearest body paragraphs outside the selection, editable or not, text only, at most 2 before and 2 after. No file name, path or table content is sent.
 
 System prompt:
 
@@ -133,9 +154,13 @@ System prompt:
 
 Response schema: an object with `paragraphs`, an array of 1 to `selected + 20` objects with integer `source` (0 to `selected - 1`) and string `text`, no other properties.
 
-Settings: the existing `OllamaClient.generate` with `output_format` set to the schema, `think=False`, `local_only=True`, `num_ctx` 16384, `num_predict` 4096, HTTP timeout 180 seconds, `temperature` 0.3 and `seed` equal to the attempt number (0 for the first request, then 1, 2, ... after Try again), so Try again with the same description gives a different proposal. The request is refused before sending when the existing estimate ((system + request UTF-8 bytes) / 2.5 + 256 + num_predict) exceeds num_ctx. An output-limit or context-limit error from the client discards the reply: "The change was too long for one request. Select a shorter part."
+Settings: the existing `OllamaClient.generate` with `output_format` set to the schema, `think=False`, `local_only=True`, `num_ctx` 16384, `num_predict` 4096, HTTP timeout 180 seconds, `temperature` 0.3 and `seed` equal to the attempt number (0 for the first request, then 1, 2, ... after Try again). A different seed allows a different proposal for the same description; it does not guarantee one.
 
-Validation (`proposal.validate`) rejects the reply, with "The local AI did not return a usable change. Try again or reword the description.", when: the JSON or schema is invalid; `source` is out of range or decreases; any text contains a character not allowed in XML 1.0. It normalizes CRLF and CR to `\n`. If every output text equals its original in order and count, the result is "The local AI proposed no change. Try again or reword the description." Each output paragraph with an empty text is allowed (a blank paragraph); a selection cannot be deleted entirely, since at least one paragraph is required.
+**Budget.** The estimate is the existing one: (system + request UTF-8 bytes) / 2.5 + 256 + num_predict, compared with num_ctx. The core request (instruction and selected paragraphs, no context) must fit. With the 6,000 and 2,000 character limits it fits at these settings for text of up to 3 UTF-8 bytes per character, which covers English and all other common scripts; a defensive refusal remains for the rest: "This request is too long. Shorten the description or select a shorter part." Context is optional: candidates are added one whole paragraph at a time, nearest first, alternating before and after (before 1, after 1, before 2, after 2), and a paragraph that would exceed the budget is skipped along with all farther ones on its side. Context text is never shortened.
+
+An output-limit or context-limit error from the client discards the reply: "The change was too long for one request. Select a shorter part." The client's exception payloads are never logged.
+
+**Validation.** `proposal.validate` rejects the reply, with "The local AI did not return a usable change. Try again or reword the description.", when: the JSON or schema is invalid; `source` is out of range or decreases; any text contains a character not allowed in XML 1.0; the selection contains non-whitespace text and every output text is empty or whitespace (deleting a whole selection is out of scope; blank paragraphs inside a proposal that has text, and filling an originally blank paragraph, are allowed); or a selected paragraph that has bookmark markers receives no output paragraph. It normalizes CRLF and CR to `\n`. If every output text equals its original in order and count, the result is "The local AI proposed no change. Try again or reword the description."
 
 ## Patch
 
@@ -145,16 +170,17 @@ Validation (`proposal.validate`) rejects the reply, with "The local AI did not r
 
 where S is the start of the first selected paragraph and E the end of the last. Nothing else in the main part or the package changes.
 
-The replacement is written per original paragraph k of the selection, in order: the output paragraphs whose `source` is k, then the original bytes between paragraph k and paragraph k+1 (the gap, verbatim). An original paragraph with no output paragraph contributes no paragraph, but its gap and markers are kept.
+The replacement is written per original paragraph k of the selection, in order: the output paragraphs whose `source` is k, then the original bytes between paragraph k and paragraph k+1 (the gap, verbatim, including any body-level markers). An original paragraph without markers may receive no output paragraph; it then contributes no paragraph, but its gap is kept. Validation has already rejected proposals that drop a paragraph with markers.
 
-Each output paragraph is assembled as follows. The namespace prefix is the one in the original paragraph's start tag (`w:` in Word files; an unprefixed or other prefix is reused as found).
+The first output paragraph for k is the continuation of k; further output paragraphs for k are new paragraphs placed after it.
 
 | Part | Rule |
 |---|---|
-| Start tag | The first output paragraph for source k reuses k's original start-tag bytes (including `w14:paraId` and rsid attributes). Further output paragraphs for k use a bare `<w:p>`, so no paragraph ID is duplicated. |
-| Paragraph properties | Copy k's `w:pPr` bytes verbatim. Editable paragraphs cannot contain `w:sectPr` or revision properties, so an inserted paragraph never copies a section break or tracked change. List numbering in `w:numPr` is copied, so a new list item continues the list. |
-| Bookmarks | k's `w:bookmarkStart` bytes go at the start of its first output paragraph and its `w:bookmarkEnd` bytes at the end of its last output paragraph. If k has no output paragraph, its markers go to the nearest output paragraph before it (end of that paragraph), else the first output paragraph after it (start). Because source never decreases, every start stays before its end. |
-| Runs | Text is split where the formatting changes. Each run is `<w:r>` + the chosen `w:rPr` bytes verbatim + `<w:t xml:space="preserve">` with `&`, `<` and `>` escaped; `\t` becomes `<w:tab/>` and `\n` becomes `<w:br/>`. Run attributes (rsids) are not kept; `w:lastRenderedPageBreak` and `w:proofErr` markers are dropped (Word recomputes them). |
+| Element names | One name builder writes every generated element (`p`, `pPr`, `r`, `t`, `tab`, `br`) with k's recorded prefix: `w:r` for `w:`, `x:r` for `x:`, plain `r` when k uses the default namespace. That binding is in scope at the splice location, because k itself uses it and editable paragraphs declare no namespaces. |
+| Start tag | The continuation reuses k's original start-tag bytes (attributes, `w14:paraId`, rsids). A self-closing `<w:p .../>` is rewritten as the same start tag without the `/`, plus a matching end tag; this byte change is inside the selection. New paragraphs use a bare start tag with no attributes, so no paragraph ID is duplicated. |
+| Paragraph properties | The continuation copies k's `w:pPr` bytes verbatim. A new paragraph gets a `w:pPr` holding only these children of k's `w:pPr`, verbatim and in their original order: `pStyle`, `keepNext`, `keepLines`, `widowControl`, `numPr`, `pBdr`, `shd`, `tabs`, `spacing`, `ind`, `contextualSpacing`, `jc`, `outlineLvl`, `rPr`. Everything else, such as `pageBreakBefore`, `framePr` or `suppressLineNumbers`, is not copied. Editable paragraphs cannot contain `w:sectPr` or revision properties. Copied `w:numPr` means a new list item continues the list. |
+| Bookmarks | k's `lead` markers (including a collapsed `_GoBack` pair) go, in their original order, at the start of the continuation, before its runs; k's `trail` markers go, in order, at the end of the continuation, after its runs. New paragraphs carry no markers. A bookmark that ends after k (for example one covering k including its paragraph mark) therefore also covers k's new paragraphs, as in Word when a user splits such a paragraph; a bookmark that ends inside k covers only the continuation. |
+| Runs | Text is split where the formatting changes. Each run is the `r` start tag + the chosen `w:rPr` bytes verbatim + a `t` element with `xml:space="preserve"` and `&`, `<` and `>` escaped; `\t` becomes a `tab` element and `\n` a `br` element. Run attributes (rsids) are not kept; `w:lastRenderedPageBreak` and `w:proofErr` markers are dropped (Word recomputes them). |
 | Formatting of new text | Compare the original paragraph text of k and the new text word by word (tokens are words, whitespace runs and single punctuation characters; `difflib.SequenceMatcher`, autojunk off). Unchanged tokens keep their characters' original `w:rPr`. Replaced tokens take the `w:rPr` of the first character they replace. Inserted tokens take the `w:rPr` of the preceding original character, or of the first character at the start. An empty original paragraph gives new text no `w:rPr`, so it takes the paragraph's style. |
 
 The same comparison produces the "After" highlight (D2).
@@ -169,20 +195,33 @@ The new package is rebuilt in memory: the same entries in the same order, names,
 2. The new main part equals the original before S and after E, byte for byte.
 3. The new main part is well-formed (expat).
 4. python-docx opens the new package; its paragraph count equals the original count minus the selected count plus the output count.
-5. A new body map of the result has, at the output positions, exactly the proposed texts, and every one of those paragraphs is editable by the rules above.
-6. The bookmark start and end bytes inside the replacement are exactly those of the selected paragraphs, in the same order.
+5. A new body map of the result, including the story-level field and comment state, has at the output positions exactly the proposed texts, and every one of those paragraphs is editable by the rules above.
+6. Bookmarks: the ordered sequence of raw bookmark marker bytes in the original `[S, E)`, gaps included, equals the ordered sequence in the new replacement interval. For every bookmark ID with a marker in that interval, the new main part has the same number of start and end markers as the original, and its start still precedes its end.
 
-The candidate holds the new package bytes, its SHA-256, the before and after texts for review, and the original SHA-256.
+These checks establish the byte boundary, well-formedness, python-docx readability and the marker invariants. They are not an Office schema check or proof that Word opens the file; that is covered by the one-off Word check under Tests.
+
+The candidate holds the new package bytes, its SHA-256, the before and after display blocks for review, and the original SHA-256 and path.
 
 ## Review and save
 
-Review shows only the selected paragraphs before and the output paragraphs after (mockup), with the D2 highlight and, when relevant, the D3 notice. Use this change, Try again and Cancel follow the mockup. Try again keeps the description and increments the attempt number.
+Review shows the selected paragraphs before and the output paragraphs after (mockup), each rendered with the reading view's limited display (style, bold, italic, list marker). Before comes from the original; After is built by the reading view from the verified candidate bytes, so it shows the formatting actually saved, with the D2 highlight on top. When relevant it shows the D3 notice. Use this change, Try again and Cancel follow the mockup. Try again keeps the description and increments the attempt number.
 
-Save As uses the native dialog (it asks before replacing an existing file), starting in the original's folder with `<name> (edited).docx`. `save.save_candidate(candidate, original_path, destination)`:
+Save As uses the native dialog (it asks before replacing an existing file), starting in the original's folder with `<name> (edited).docx`. When the dialog is accepted, the worker records the destination's state: absent, or present with its size and modification time. `save.save_candidate(candidate, destination, destination_state)`:
 
 1. Refuse when the destination is the original (`extraction.jobs.same_path`): "Your original cannot be overwritten. Choose a different name or folder." Refuse a suffix other than `.docx`.
-2. Hash the original on disk. If it differs from the hash at open: "The original changed after you opened it. Open it again before editing." The candidate is discarded.
-3. Write the candidate bytes to a temporary file in the destination folder, close it, read it back and compare SHA-256, then `os.replace` it onto the destination. Any failure removes the temporary file and leaves an existing destination unchanged.
+2. Write the candidate bytes to a temporary file in the destination folder, close it, read it back and compare SHA-256.
+3. Commit point, immediately before replacing: read and hash the original at its recorded path, check again that the destination is not the original, and check that the destination's state still matches the recorded state.
+4. Then `os.replace` the temporary file onto the destination.
+
+Outcomes when step 3 fails; in every case the temporary file is removed and an existing destination is left unchanged:
+
+| Case | Message | Candidate |
+|---|---|---|
+| Original changed | "The original changed after you opened it. Open it again before editing." | Discarded; the screen returns to the open step. |
+| Original moved, deleted or unreadable | "The original was moved, deleted or cannot be read. Open it again before editing." | Discarded; the screen returns to the open step. |
+| Destination changed or appeared since the dialog | "The file you chose changed while saving. Choose where to save again." | Kept; Save As opens again. |
+
+These are optimistic checks just before the replace. They do not lock files against a write in the instant between the check and the replace; no locking subsystem is added.
 
 The Saved page shows the path, "The original is unchanged." and Open another document (mockup; D1).
 
@@ -192,7 +231,7 @@ A file picked while work exists follows the mockup's discard confirmation, with 
 
 EditWorker follows ExtractionWorker: one action per run, a frozen setup, a `threading.Event` for cancellation checked before and after the model request, and one terminal signal (`opened`, `proposed`, `saved`, `failed`, `cancelled`) followed by `finished`. A cancelled or late proposal never reaches Review. An accepted save finishes without Cancel and close waits for it. Mode switching, Settings and Choose another file are disabled while a worker runs, as in Create new; the existing model-size warning and missing-model message apply.
 
-Logs contain counts, byte sizes, durations, the failed check name and exception classes only. Never document text, the instruction, file names or paths.
+Logs contain counts, byte sizes, durations, the failed check name and exception classes only. Never document text, the instruction, file names, paths or model replies.
 
 ## Settings
 
@@ -202,27 +241,31 @@ Stored once in `defaults.py`.
 |---|---|
 | File limit | 50 MiB (`EXTRACTION_MAX_FILE_BYTES`) and 300 page equivalents |
 | Maximum selected text | 6,000 characters |
+| Maximum description | 2,000 characters |
 | Maximum output paragraphs | selected + 20 |
-| Context paragraphs | 2 before and 2 after |
+| Context paragraphs | up to 2 before and 2 after, only while they fit the budget |
 | Model request | num_ctx 16384, num_predict 4096, temperature 0.3, seed = attempt, think off, local only, 180 s |
 | Suggested name | `<name> (edited).docx` in the original's folder |
 
 ## Tests and the model check
 
-Fixtures are synthetic. Word-authored fixtures are made once with Word through a committed script and committed as files; CI never runs Word. Hand-written XML fixtures cover what Word does not write.
+Fixtures are synthetic. Word-authored fixtures are made once with Word through a committed script and committed as files; CI never runs Word. Hand-written XML fixtures cover what Word does not write. Compatibility with LibreOffice or Google Docs files is claimed only if the plan adds small synthetic exports from them; otherwise their unknown constructs fall under the read-only rules.
 
 | Area | Cases |
 |---|---|
-| Body map | Word fixture: paragraph count and texts equal python-docx; each read-only construct gets its reason. Hand-written: unprefixed and non-`w` prefix, attribute value containing `>`, empty `<w:p/>`, comment and processing instruction inside the body, CRLF and a UTF-8 BOM. |
-| Patch | Single paragraph, same count; range with count growth and shrink; bold word replaced and kept bold; insertion at start and end; tab and line break; bookmarked heading, including a dropped source paragraph; body-level markers in gaps; list items; empty original and empty output paragraph. Every case runs all six verification checks, plus a check that the result reopens with a new body map. |
-| Verification | Each check fails on a deliberately corrupted candidate (wrong prefix bytes, unbalanced tag, changed other part, wrong text). |
-| Refusals | Each table row under Opening a document, the changed original at save, the original as destination, a staged write failure. |
-| Proposal | Schema failures, decreasing or out-of-range source, invalid XML characters, CRLF normalization, no-change result, budget refusal, output-limit error, cancellation before and after the request. |
+| Opening | Each refusal row, including a Strict-namespace package, protection with enforcement on and explicitly off, Track Changes absent, on and explicitly off, and unbalanced field and comment ranges. |
+| Body map | Word fixture: paragraph count and texts equal python-docx; each read-only construct gets its reason. A field and a comment range each spanning three paragraphs, with a selection holding only the plain middle paragraph refused. Inline bookmark read-only; collapsed `_GoBack` editable. Hand-written: unprefixed (default namespace) and `x:` prefix, attribute value containing `>`, empty `<w:p/>`, comment and processing instruction inside the body, CDATA, multibyte text, CRLF and a UTF-8 BOM. |
+| Patch | Single paragraph, same count; range with count growth and shrink; bold word replaced and kept bold; insertion at start and end; tab and line break; heading with boundary bookmarks renamed and split; a bookmark covering a paragraph including its mark, split; `_GoBack` paragraph rewritten; two disjoint boundary bookmarks; a bookmark crossing the selection boundary; body-level markers in gaps; list items; split of a `pageBreakBefore` paragraph (new paragraph has no page break); default-prefix, `x:`-prefix and self-closing paragraphs replaced and split; empty original and blank output paragraph. Every case runs all six checks and reopens the result with a new body map. |
+| Verification | Each check fails on a deliberately corrupted candidate (changed prefix bytes, unbalanced tag, changed other part, wrong text, reordered or missing bookmark marker). |
+| Proposal | Schema failures, decreasing or out-of-range source, invalid XML characters, CRLF normalization, no-change result, all-blank output rejected for a selection with text and allowed for a blank selection, dropped bookmarked paragraph rejected, output-limit error, cancellation before and after the request. |
+| Budget | Short selection next to a 40,000-character paragraph (context skipped, request sent); description at the limit; defensive core refusal with smaller test settings. |
+| Reading view | List Bullet style without direct numbering; Strong character style; italic paragraph style; explicit `w:b w:val="0"` overriding a bold style; Review After rendered from candidate bytes. |
+| Save | Original as destination; original changed, deleted and unreadable at the commit point; destination created or changed after the dialog; staged write failure; read-back mismatch. Each leaves an existing destination unchanged and no temporary file. |
 | UI | Selection rules and messages, buttons per state, busy gates, discard confirmation after the file pick, Saved page, plain-text rendering of document text. |
 
-A one-off Word check, run on Alex's PC through COM and recorded, opens the patched Word fixtures read-only without repair, as in the spike.
+A one-off Word check, run on Alex's PC through COM and recorded, opens the patched Word fixtures read-only with repair turned off, as in the spikes.
 
-**Model check (release gate):** 12 fixed edit tasks on the Word fixtures (replace a value, shorten, formalize, fix a typo, add a sentence, split a paragraph, merge two, change list items, rename a heading, and three multi-paragraph rewrites). Each has mechanical checks: required text present, forbidden text absent, paragraphs outside the instruction's target unchanged. Pass: for qwen3:8b and llama3.1:8b at Q4_K_M, at least 11 of 12 proposals pass validation and their checks, and zero candidates fail verification. A verification failure is a code defect, not a model result.
+**Model check (release gate):** 12 fixed edit tasks on the Word fixtures (replace a value, shorten, formalize, fix a typo, add a sentence, split a paragraph, merge two, change list items, rename a heading, and three multi-paragraph rewrites). Each has mechanical checks: required text present, forbidden text absent, paragraphs outside the instruction's target unchanged. The gate runs the real request builder, validation and candidate builder with seed 0, keeps the checks out of the request, and records the model name and digest, quantization and settings for both candidates. Pass: for qwen3:8b and llama3.1:8b at Q4_K_M, at least 11 of 12 proposals pass validation and their checks, and zero candidates fail verification. A verification failure is a code defect, not a model result.
 
 ## Documents changed by the implementation
 
@@ -231,5 +274,20 @@ PRD.md: Edit for Word scope, refusals and the settings above as acceptance value
 ## Risks
 
 - **Model quality on long or vague instructions.** Review before saving is the safety net; the selection limit and the model check bound it.
-- **Formatting of rewritten text.** A heavily rewritten paragraph takes the formatting of the first replaced characters, so mixed formatting can be lost in that paragraph only. The before and after review shows the text but not the formatting.
+- **Formatting of rewritten text.** A heavily rewritten paragraph takes the formatting of the first replaced characters, so mixed formatting can be lost in that paragraph. Review shows bold, italic, style and list on the saved result, so the loss is visible before saving; size, color and font are not shown.
 - **Documents from other producers.** Google Docs and LibreOffice files may use constructs Word does not. Unknown constructs make a paragraph read-only rather than risking a bad patch, and the verification checks guard the rest.
+- **Read-only coverage.** Paragraphs with links, fields, comments, inline bookmarks or tracked changes cannot be edited in the first version. Documents heavy in these show many grey paragraphs; that is the intended trade for safety.
+
+## Changes from draft 1
+
+| Codex finding | Correction in draft 2 |
+|---|---|
+| F1 (P1) fields and comment ranges across paragraphs | Story-level field depth and comment range state in the body map; paragraphs inside them read-only; unbalanced ranges refuse the document; check 5 uses the same state. |
+| F2 (P1) bookmark relocation | Boundary-only bookmark policy with a `_GoBack` exception; inline markers make the paragraph read-only; markers stay on the continuation paragraph; dropping a paragraph with markers is rejected; check 6 compares the ordered marker stream over `[S, E)` and checks pairing across the document. |
+| F3 (P2) prefixes and empty paragraphs | One name builder using the paragraph's prefix; self-closing paragraphs rewritten with an end tag. |
+| F4 (P2) structural properties on inserted paragraphs | New paragraphs get an allow-listed subset of `w:pPr`; `pageBreakBefore` and other structural properties stay only on the continuation. |
+| F5 (P2) formatting in reading view and review | Effective bold, italic and list through style chains and document defaults; Review renders After from the verified candidate bytes. |
+| F6 (P2) save timing | Commit-point recheck of the original and the destination state, with defined outcomes. |
+| F7 (P2) context budget | Description limit of 2,000 characters; context added only while it fits, nearest first. |
+| F8 (P2) whole-selection deletion | All-blank output rejected when the selection has text. |
+| F9 (P3) Strict and on/off values | Transitional relationship and namespace checks; parsed on/off values for protection and Track Changes. |
