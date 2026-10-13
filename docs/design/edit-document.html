@@ -27,7 +27,9 @@ p { margin:0 0 12px; } .muted,.help { color:var(--muted); } .help { margin:8px 0
 .presets button[aria-pressed=true] { background:#dbeafe; border-color:var(--blue); color:#1d4ed8; font-weight:600; }
 .top { display:flex; align-items:center; flex-wrap:wrap; gap:14px 22px; padding:12px 20px; background:var(--paper); border-bottom:1px solid var(--line); }
 .identity { display:flex; align-items:baseline; gap:9px; } .brand { font-size:21px; font-weight:600; letter-spacing:-.5px; }
-.version { color:var(--muted); } .mode { padding:8px 12px; border-radius:4px; color:var(--blue); background:var(--soft); font-weight:600; }
+.version { color:var(--muted); } .modes { display:flex; gap:4px; flex-wrap:wrap; }
+.mode { border-color:transparent; color:var(--muted); }
+.mode[aria-pressed=true] { color:var(--blue); background:var(--soft); font-weight:600; }
 .local-state { display:flex; align-items:center; gap:7px; margin-left:auto; color:var(--muted); }
 .dot { width:8px; height:8px; border-radius:50%; background:var(--green); } .dot.unavailable { background:#7a8491; }
 .heading { padding:14px 20px 12px; } .heading p { margin:0; }
@@ -109,7 +111,7 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
   </section>
   <header class="top">
     <span class="identity"><span class="brand">Simplicitor</span><span class="version" title="Design preview, not a change to the released application">2.3.0</span></span>
-    <span class="mode">Edit document</span>
+    <nav class="modes" aria-label="Workspace mode"><button id="create-mode" class="mode" aria-pressed="false">Create new</button><button id="edit-mode" class="mode" aria-pressed="true">Edit document</button></nav>
     <span class="local-state"><span id="model-dot" class="dot"></span><span id="model-status">Local AI ready</span></span>
     <button id="settings">Settings</button>
   </header>
@@ -171,6 +173,15 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
   </main>
   <footer class="footer">Your documents and the AI processing stay on your computer.</footer>
 </div>
+<dialog id="discard-dialog" aria-labelledby="discard-title">
+  <h2 id="discard-title">Discard your changes to <span id="discard-name">service-outline.docx</span>?</h2>
+  <div class="actions"><button id="discard-work" class="primary">Discard</button><button id="keep-editing" autofocus>Keep editing</button></div>
+</dialog>
+<dialog id="create-dialog" aria-labelledby="create-title">
+  <h2 id="create-title">Create new</h2><p>This opens the Create new screen from Simplicitor 2.2.0.</p>
+  <p><a class="link" href="document-workspace.html">Open docs/design/document-workspace.html</a></p>
+  <button data-close="create-dialog">Back to Edit document</button>
+</dialog>
 <dialog id="browse-dialog" aria-labelledby="browse-title">
   <h2 id="browse-title">Browse Word documents</h2><p class="muted">Fictional files only. No file contents are read.</p>
   <button id="open-sample" class="sample secondary"><strong>service-outline.docx</strong><span>Word · paragraphs, headings, lists and read-only parts</span></button>
@@ -226,7 +237,7 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
     ['open','Open'],['loaded','Document loaded'],['single','One paragraph'],['range','Paragraph range'],
     ['unavailable','Read-only parts'],['describe','Describe change'],['busy','AI working'],['review','Review proposal'],
     ['chosen','Change chosen'],['save','Save As'],['replace','Replace another file'],['original','Original protected'],
-    ['saved','Saved'],['unreadable','Cannot read file'],['no-model','No local model']
+    ['saved','Saved'],['unreadable','Cannot read file'],['no-model','No local model'],['discard','Discard prompt']
   ];
   const sampleRequest = 'Change the payment period from 30 days to 45 days. Keep everything else as it is.';
   const originalFolder = 'Documents\\Examples';
@@ -235,13 +246,38 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
   let state = initial();
   let timer = null;
   let job = 0;
+  let pendingAction = null;
+  let discardPosition = null;
   const destinationKey = (folder,name) => folder.replace(/\\/g,'/').replace(/\/+$/,'').toLowerCase()+'/'+name.trim().toLowerCase();
   const savedOutputs = new Set([destinationKey(originalFolder,'review-copy.docx')]);
   const suggestion = () => state.fileName.replace(/\.docx$/i,'')+' (edited).docx';
   const selectedBlocks = () => blocks.filter((block,index) => state.selected.includes(index));
   function stopJob() { job++; clearTimeout(timer); timer=null; }
-  function closeDialogs() { document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close()); }
+  function closeDialogs() { document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close()); pendingAction=null;discardPosition=null; }
   function showDialog(id) { if (!el(id).open) el(id).showModal(); }
+  function requestLeave(action) {
+    if (state.phase==='busy'||pendingAction) return;
+    const hasWork=state.phase!=='saved'&&(state.selected.length||state.request.trim()||state.chosen);
+    if (!hasWork) { action();return; }
+    pendingAction=action;
+    discardPosition={reader:el('reader').scrollTop,x:window.scrollX,y:window.scrollY,focus:document.activeElement};
+    el('discard-name').textContent=state.fileName;showDialog('discard-dialog');
+  }
+  function keepEditing() {
+    const position=discardPosition;pendingAction=null;discardPosition=null;el('discard-dialog').close();
+    if (position) {
+      el('reader').scrollTop=position.reader;
+      if (position.focus && position.focus.isConnected) position.focus.focus({preventScroll:true});
+      window.scrollTo(position.x,position.y);
+    }
+  }
+  function discardWork() {
+    const action=pendingAction;if (!action) return;
+    pendingAction=null;discardPosition=null;el('discard-dialog').close();
+    state={...state,phase:state.loaded?'select':'open',selected:[],anchor:null,request:'',chosen:false,
+      message:'',preset:'custom',saveName:'',saveFolder:originalFolder};
+    render();action();
+  }
   function notice(message) { state.message=message; el('selection-message').textContent=message; el('selection-message').hidden=!message; }
   function resetFile(unreadable=false) {
     stopJob(); closeDialogs(); state={...initial(),modelReady:state.modelReady,loaded:!unreadable,phase:unreadable?'unreadable':'select',preset:'custom'};
@@ -315,6 +351,7 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
     document.querySelectorAll('[data-preset]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.preset===state.preset)));
     el('model-status').textContent=state.modelReady?'Local AI ready':'No local model';
     el('model-dot').classList.toggle('unavailable',!state.modelReady); el('settings').disabled=busy;
+    el('create-mode').disabled=busy;el('edit-mode').disabled=busy;
     const current=state.phase==='open'||state.phase==='unreadable'?0:state.phase==='select'?1:state.phase==='describe'||busy?2:state.phase==='review'?3:4;
     el('steps').replaceChildren(); ['Open document','Select part','Describe change','Review','Save new file'].forEach((label,index)=>{
       const step=document.createElement('span'); step.textContent=(index+1)+'. '+label;
@@ -322,7 +359,7 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
     });
     el('drop-zone').hidden=state.loaded; el('file-line').hidden=!state.loaded;
     el('file-name').textContent=state.fileName; el('original-note').hidden=!state.loaded;
-    el('change-file').disabled=busy||reviewing; el('file-error').hidden=state.phase!=='unreadable';
+    el('change-file').disabled=busy; el('file-error').hidden=state.phase!=='unreadable';
     el('read-card').hidden=!reading; el('instruction-card').hidden=!reading;
     el('review-card').hidden=!reviewing; el('save-card').hidden=state.phase!=='save'; el('saved-card').hidden=state.phase!=='saved';
     el('no-model').hidden=state.modelReady; el('select-hint').hidden=state.phase!=='select';
@@ -371,10 +408,10 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
     stopJob(); closeDialogs(); state=initial(); state.preset=preset; el('drop-note').hidden=true;
     savedOutputs.clear(); savedOutputs.add(destinationKey(originalFolder,'review-copy.docx'));
     if (preset!=='open'&&preset!=='unreadable') {state.loaded=true;state.phase='select';}
-    if (['single','describe','busy','review','chosen','save','replace','original','saved','no-model'].includes(preset)) {state.selected=[9];state.anchor=9;}
+    if (['single','describe','busy','review','chosen','save','replace','original','saved','no-model','discard'].includes(preset)) {state.selected=[9];state.anchor=9;}
     if (preset==='range') {state.selected=[3,4,5,6];state.anchor=3;}
-    if (['describe','busy','review','chosen','save','replace','original','saved','no-model'].includes(preset)) state.request=sampleRequest;
-    if (preset==='describe'||preset==='no-model') state.phase='describe';
+    if (['describe','busy','review','chosen','save','replace','original','saved','no-model','discard'].includes(preset)) state.request=sampleRequest;
+    if (preset==='describe'||preset==='no-model'||preset==='discard') state.phase='describe';
     if (preset==='busy') state.phase='busy';
     if (preset==='review') state.phase='review';
     if (['chosen','save','replace','original','saved'].includes(preset)) {state.phase='save';state.chosen=true;}
@@ -391,13 +428,17 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
       if (preset==='replace') {el('save-name').value='review-copy.docx';confirmSave();}
       if (preset==='original') {el('save-name').value=state.fileName;confirmSave();}
     }
+    if (preset==='discard') requestAnimationFrame(()=>{if(state.preset==='discard')requestLeave(()=>showDialog('browse-dialog'));});
   }
   presets.forEach(([key,label])=>{
     const button=document.createElement('button'); button.type='button';button.dataset.preset=key;button.textContent=label;button.setAttribute('aria-pressed','false');
     button.addEventListener('click',()=>applyPreset(key));el('presets').append(button);
   });
   document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>el(button.dataset.close).close()));
-  ['browse','change-file','start-over'].forEach(id=>el(id).addEventListener('click',()=>showDialog('browse-dialog')));
+  ['browse','change-file','start-over'].forEach(id=>el(id).addEventListener('click',()=>requestLeave(()=>showDialog('browse-dialog'))));
+  el('create-mode').addEventListener('click',()=>requestLeave(()=>showDialog('create-dialog')));
+  el('keep-editing').addEventListener('click',keepEditing);el('discard-work').addEventListener('click',discardWork);
+  el('discard-dialog').addEventListener('cancel',event=>{event.preventDefault();keepEditing();});
   el('open-sample').addEventListener('click',()=>resetFile());el('open-unreadable').addEventListener('click',()=>resetFile(true));
   ['settings','choose-model'].forEach(id=>el(id).addEventListener('click',()=>{el('model').value=state.modelReady?'sample':'';showDialog('settings-dialog');}));
   el('use-model').addEventListener('click',()=>{state.modelReady=!!el('model').value;state.preset='custom';el('settings-dialog').close();render();});
@@ -418,15 +459,17 @@ dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
   el('save-as').addEventListener('click',openSave);el('confirm-save').addEventListener('click',confirmSave);
   el('cancel-replace').addEventListener('click',()=>el('replace-dialog').close());
   el('confirm-replace').addEventListener('click',finishSave);
-  document.addEventListener('dragover',event=>{event.preventDefault();if(!state.loaded)el('drop-zone').classList.add('dragging');});
+  document.addEventListener('dragover',event=>{event.preventDefault();if(state.phase!=='busy'&&!state.loaded)el('drop-zone').classList.add('dragging');});
   document.addEventListener('dragleave',()=>el('drop-zone').classList.remove('dragging'));
   document.addEventListener('drop',event=>{
     event.preventDefault();el('drop-zone').classList.remove('dragging');
-    if(state.phase==='busy'||state.phase==='review'||state.phase==='save')return;
+    if(state.phase==='busy')return;
     const files=Array.from(event.dataTransfer.files);
     const accepted=files.length===1&&/\.docx$/i.test(files[0].name);
-    if(accepted)resetFile();
-    el('drop-note').hidden=false;el('drop-note').textContent=accepted?'The dropped file was not read. Showing the fictional service-outline.docx sample.':'Drop one .docx file. This mockup shows fictional text only.';
+    if(accepted) requestLeave(()=>{
+      resetFile();el('drop-note').hidden=false;el('drop-note').textContent='The dropped file was not read. Showing the fictional service-outline.docx sample.';
+    });
+    else {el('drop-note').hidden=false;el('drop-note').textContent='Drop one .docx file. This mockup shows fictional text only.';}
   });
   const initialPreset=location.hash.slice(1);
   applyPreset(presets.some(([key])=>key===initialPreset)?initialPreset:'open');
