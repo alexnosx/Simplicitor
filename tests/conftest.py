@@ -5,8 +5,23 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 # FreeType. Without it, PDF text layers are empty in tests.
 os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
 
+import gc
+
 import pytest
 from PySide6.QtCore import Qt
+
+
+@pytest.fixture(autouse=True)
+def collect_garbage_on_main_thread():
+    """Run Python's cyclic garbage collection only here, on the main thread, after each test.
+
+    Automatic collection can start in any thread that allocates, including a worker
+    QThread; destroying a leftover QObject there can deadlock Qt (hosted runs hung in
+    MainWindow._on_candidate_ready on 2026-10-13).
+    """
+    gc.disable()
+    yield
+    gc.collect()
 
 
 @pytest.fixture(autouse=True)
