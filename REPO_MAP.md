@@ -440,10 +440,13 @@ resources/
     icon.ico
 scripts/
     build_business_pitch_pptx.py
+    build_edit_samples.py
     build_extraction_fixtures.py
     build_sectioned_fixtures.py
     build_third_party_notices.py
     capture_screens.py
+    check_edits_in_word.ps1
+    evaluate_editing.py
     evaluate_extraction.py
     gen_repo_map.py
     inspect_template.py
@@ -553,12 +556,15 @@ simplicitor/
 tests/
     editing/
         fixtures/
+            edit_tasks.json
             word-basic.docx
             word-ranges.docx
         __init__.py
         conftest.py
         docx_builder.py
         test_body_map.py
+        test_build_edit_samples.py
+        test_evaluate_editing.py
         test_package.py
         test_patch.py
         test_proposal.py
@@ -744,6 +750,10 @@ requirements.txt
 - def build(source: Path) -> None
 - def main() -> None
 
+### scripts/build_edit_samples.py
+
+- def main(out: Path) -> int
+
 ### scripts/build_extraction_fixtures.py
 
 - def write_pdf(path: Path, pages: list[list[str]]) -> None: Write small text-layer pages using the existing pypdf dependency.
@@ -765,6 +775,16 @@ requirements.txt
 
 - def _offline_client(*args, **kwargs)
 - def main(out: Path) -> None
+
+### scripts/evaluate_editing.py
+
+- def _first_word(text: str) -> str
+- def check(task: dict, texts: list[str]) -> list[str]: Names of the failed mechanical checks for one proposal's output paragraphs.
+- def run_task(task: dict, model: str, client) -> dict
+- def identity(model: str, tags: dict) -> dict: The installed tag's digest and quantization from Ollama's model list.
+- def evaluate(models: list[str], client, tasks: list[dict], tags: dict) -> dict
+- def installed_tags(base_url: str) -> dict: Ollama's installed models by tag, read from the local server only.
+- def main(argv: list[str] | None=None) -> int
 
 ### scripts/evaluate_extraction.py
 
@@ -1296,6 +1316,25 @@ requirements.txt
 - def test_bookmark_places_and_the_goback_exception()
 - def test_namespace_declaration_inside_a_paragraph_makes_it_read_only()
 - def test_selection_rules()
+
+### tests/editing/test_build_edit_samples.py
+
+- def test_builds_every_sample_into_an_empty_folder(tmp_path)
+- def test_refuses_the_repository_and_a_non_empty_folder(tmp_path)
+
+### tests/editing/test_evaluate_editing.py
+
+- def test_twelve_tasks_with_unique_ids_valid_selections_and_passing_examples()
+- def test_lossy_replies_fail_their_checks(task_id, lossy)
+- class Client: Answers each task with its example, or with a lossy reply for chosen tasks.
+- def _answers(lossy=())
+- def test_examples_pass_through_the_production_route()
+- def test_codex_lossy_replies_fail_through_the_full_evaluator()
+- def test_lossy_replies_lower_the_score_and_fail_the_gate()
+- def test_dropping_a_bookmarked_heading_is_an_invalid_proposal()
+- def test_unidentified_or_wrong_quantization_fails_without_running(model)
+- def test_measured_polite_rewrites_pass(first)
+- def test_polite_rewrite_losing_the_document_review_fails_the_gate(first)
 
 ### tests/editing/test_package.py
 
@@ -2385,7 +2424,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 126 lines
+- docs/PROJECT_STATUS.md: md, 127 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2651,6 +2690,7 @@ requirements.txt
 - resources/third_party/qt/qtwebengine/LICENSES/MIT.txt: txt, 11 lines
 - resources/third_party/qt/qtwebengine/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
 - resources/third_party/qt/sources.json: json, 930 lines
+- scripts/check_edits_in_word.ps1: ps1, 36 lines
 - scripts/make_edit_fixtures.ps1: ps1, 82 lines
 - scripts/qualify_windows_installer.ps1: ps1, 203 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
@@ -2666,6 +2706,7 @@ requirements.txt
 - simplicitor/templates_engine/builtin/business_pitch/template.pptx: pptx (binary)
 - simplicitor/templates_engine/builtin/technical_overview/manifest.yaml: yaml, 45 lines
 - simplicitor/templates_engine/builtin/technical_overview/template.pptx: pptx (binary)
+- tests/editing/fixtures/edit_tasks.json: json, 14 lines
 - tests/editing/fixtures/word-basic.docx: docx (binary)
 - tests/editing/fixtures/word-ranges.docx: docx (binary)
 - tests/extraction/fixtures/.gitattributes: text, 1 lines
