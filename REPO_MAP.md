@@ -491,6 +491,7 @@ simplicitor/
             template_dialog.py
         workers/
             __init__.py
+            edit_worker.py
             extraction_worker.py
             generate_worker.py
             manipulate_worker.py
@@ -674,6 +675,7 @@ tests/
     test_create_progress.py
     test_create_routes.py
     test_create_screen.py
+    test_edit_worker.py
     test_extraction_worker.py
     test_file_generator.py
     test_file_manipulator.py
@@ -968,6 +970,11 @@ requirements.txt
 ### simplicitor/app/workers/__init__.py
 
 (no top-level definitions)
+
+### simplicitor/app/workers/edit_worker.py
+
+- class EditSetup: Frozen inputs for one action: open (path), propose (opened, range, instruction,
+- class EditWorker(QObject): Run one open, propose or accepted save off the GUI thread.
 
 ### simplicitor/app/workers/extraction_worker.py
 
@@ -1924,6 +1931,19 @@ requirements.txt
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 - def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
 - def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path)
+
+### tests/test_edit_worker.py
+
+- class Client
+- def source(tmp_path)
+- def _run(qtbot, worker, signal)
+- def test_open_emits_document_and_view(qtbot, source)
+- def test_open_failure_is_plain(qtbot, tmp_path)
+- def test_propose_then_save(qtbot, source, tmp_path)
+- def test_propose_refusals_make_no_model_call(qtbot, source, setup_change, message)
+- def test_long_selection_is_refused(qtbot, tmp_path)
+- def test_cancel_during_request_discards_the_reply(qtbot, source)
+- def test_unreadable_destination_reaches_the_save_outcome(qtbot, source, tmp_path, monkeypatch)
 
 ### tests/test_extraction_worker.py
 
