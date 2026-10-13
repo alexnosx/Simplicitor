@@ -504,6 +504,7 @@ simplicitor/
         body_map.py
         models.py
         package.py
+        patch.py
     extraction/
         __init__.py
         grounding.py
@@ -555,6 +556,7 @@ tests/
         docx_builder.py
         test_body_map.py
         test_package.py
+        test_patch.py
     extraction/
         fixtures/
             labels/
@@ -1033,6 +1035,20 @@ requirements.txt
 - def _page_cost(document) -> int: Page equivalents counted exactly as extraction.source_readers._read_docx counts them:
 - def rebuild(data: bytes, part: str, content: bytes) -> bytes: Same entries, order, names, times and compression; only `part` gets new content.
 
+### simplicitor/editing/patch.py
+
+- def _tokens(text: str) -> list[str]
+- def char_formats(block: Block) -> list[bytes]: The w:rPr bytes of each character of the paragraph text.
+- def new_formats(old_text: str, old: list[bytes], new_text: str) -> tuple[list[bytes], tuple[tuple[int, int], ...]]: Formatting per new character and the changed character ranges (for the After highlight).
+- def _name(prefix: bytes, local: str) -> bytes
+- def _runs(prefix: bytes, text: str, formats: list[bytes]) -> bytes
+- def _properties(xml: bytes, block: Block, continuation: bool) -> bytes
+- def _paragraph(xml: bytes, block: Block, text: str, continuation: bool) -> tuple[bytes, tuple]
+- def _splice(opened: OpenedDocument, first: int, last: int, proposal: Proposal)
+- def _markers_between(xml: bytes, bookmarks, start: int, end: int) -> list[bytes]
+- def _verify(opened: OpenedDocument, assembled: bytes, new_data: bytes, start: int, end: int, first: int, selected: int, proposal: Proposal) -> None: The six checks on the packaged candidate; each failure logs only its name.
+- def build_candidate(opened: OpenedDocument, first: int, last: int, proposal: Proposal) -> EditCandidate: Return a verified in-memory candidate or raise EditError; never writes a file.
+
 ### simplicitor/extraction/__init__.py
 
 (no top-level definitions)
@@ -1246,6 +1262,26 @@ requirements.txt
 - def test_rebuild_replaces_only_the_named_part()
 - def _first_page_header(document, text)
 - def test_page_limit_counts_exactly_like_extraction(tmp_path, body, header, merged, refused)
+
+### tests/editing/test_patch.py
+
+- def proposal(*items: tuple[int, str]) -> Proposal
+- def index_of(opened, start: str) -> int
+- def apply(opened, first, last, *items)
+- def xml_of(data: bytes) -> bytes
+- def test_replacing_a_bold_value_keeps_it_bold_and_everything_else_identical()
+- def test_heading_rename_and_split_keep_style_bookmark_tab_and_line_break()
+- def test_shrinking_a_range_and_blank_output_paragraph()
+- def test_list_items_continue_the_list()
+- def test_goback_paragraph_and_page_break_split()
+- def test_bookmarks_stay_on_the_continuation_paragraph()
+- def test_prefixes_and_self_closing_paragraphs_build_well_formed_parts(tmp_path)
+- def test_gap_markers_between_selected_paragraphs_are_kept_in_order(make_docx)
+- def test_empty_original_paragraph_takes_the_paragraph_style(make_docx)
+- def test_text_is_escaped_and_new_paragraphs_get_no_paragraph_id()
+- def test_verification_rejects_corrupted_candidates(monkeypatch, corrupt)
+- def test_verification_rejects_a_changed_other_part_and_a_moved_bookmark(monkeypatch)
+- def test_verification_reads_the_packaged_main_part(monkeypatch)
 
 ### tests/extraction/test_evaluation.py
 
