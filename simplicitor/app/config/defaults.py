@@ -58,6 +58,12 @@ EXTRACTION_NUM_PREDICT = 4096
 EXTRACTION_TIMEOUT_S = 180
 EXTRACTION_TEMPLATE_TOKEN_RESERVE = 256
 
+# Edit for Word (2.3.0); request settings reuse the extraction values above.
+EDIT_MAX_SELECTION_CHARS = 6000
+EDIT_MAX_INSTRUCTION_CHARS = 2000
+EDIT_EXTRA_OUTPUT_PARAGRAPHS = 20
+EDIT_TEMPERATURE = 0.3
+
 # ── PowerPoint layout indices (standard Blank template) ──────────────────────
 PPTX_LAYOUT_TITLE_SLIDE = 0       # "Title Slide" layout
 PPTX_LAYOUT_TITLE_CONTENT = 1     # "Title and Content" layout

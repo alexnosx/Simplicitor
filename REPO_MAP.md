@@ -505,6 +505,7 @@ simplicitor/
         models.py
         package.py
         patch.py
+        proposal.py
         reading_view.py
     extraction/
         __init__.py
@@ -558,6 +559,7 @@ tests/
         test_body_map.py
         test_package.py
         test_patch.py
+        test_proposal.py
         test_reading_view.py
     extraction/
         fixtures/
@@ -1051,6 +1053,17 @@ requirements.txt
 - def _verify(opened: OpenedDocument, assembled: bytes, new_data: bytes, start: int, end: int, first: int, selected: int, proposal: Proposal) -> None: The six checks on the packaged candidate; each failure logs only its name.
 - def build_candidate(opened: OpenedDocument, first: int, last: int, proposal: Proposal) -> EditCandidate: Return a verified in-memory candidate or raise EditError; never writes a file.
 
+### simplicitor/editing/proposal.py
+
+- class EditCancelled(EditError): Cooperative cancellation; a late reply produces no proposal.
+- def estimate_tokens(system: str, request: str) -> int: The extraction estimate: UTF-8 bytes / 2.5, plus template and output reserves.
+- def build_request(opened: OpenedDocument, first: int, last: int, instruction: str, styles: dict[int, str]) -> str: The selected paragraphs with their styles, then the instruction; no other document text.
+- def response_schema(selected: int) -> dict
+- def _similarity(a: str, b: str) -> float
+- def align(originals: list[str], outputs: list[str]) -> list[int] | None: Source paragraph for each output, never decreasing; None when contradictory.
+- def validate(reply: str, originals: list[str], has_markers: list[bool], attempt: int=0) -> Proposal: Parse and check the model reply against the selected paragraphs; raise EditError.
+- def request_change(opened: OpenedDocument, first: int, last: int, instruction: str, styles: dict[int, str], model: str, attempt: int, client: OllamaClient, cancel: Event) -> Proposal: One local model request; cancellation is checked before and after it.
+
 ### simplicitor/editing/reading_view.py
 
 - class Span
@@ -1300,6 +1313,28 @@ requirements.txt
 - def test_verification_rejects_corrupted_candidates(monkeypatch, corrupt)
 - def test_verification_rejects_a_changed_other_part_and_a_moved_bookmark(monkeypatch)
 - def test_verification_reads_the_packaged_main_part(monkeypatch)
+
+### tests/editing/test_proposal.py
+
+- def reply(*texts) -> str
+- def test_unusable_replies_are_rejected(raw)
+- def test_valid_reply_normalizes_line_endings_only()
+- def test_original_trailing_tab_break_and_spaces_are_kept()
+- def test_all_blank_output_is_rejected_unless_the_selection_was_blank()
+- def test_no_change_is_reported()
+- def test_too_many_output_paragraphs_are_rejected()
+- def test_alignment_is_monotonic_and_follows_word_similarity(originals, outputs, sources)
+- def test_dropping_a_paragraph_with_bookmarks_is_rejected()
+- def test_request_contains_styles_and_instruction_but_no_other_text(make_docx)
+- def test_metadata_heavy_core_is_refused_at_normal_settings(make_docx)
+- def test_schema_bounds_count_and_requires_strings()
+- class FakeClient
+- def test_request_change_uses_local_settings_and_attempt_seed(make_docx)
+- def test_request_change_errors_and_cancellation(make_docx)
+- def test_reordering_a_bookmarked_paragraph_is_rejected(outputs)
+- def test_intended_edits_keep_the_bookmark_on_its_heading(outputs, sources)
+- def test_splitting_a_bookmarked_paragraph_keeps_the_bookmark_on_the_first_part()
+- def test_identical_original_paragraphs_do_not_count_as_a_moved_bookmark()
 
 ### tests/editing/test_reading_view.py
 
