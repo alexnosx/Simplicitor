@@ -446,6 +446,7 @@ simplicitor/
             __init__.py
             defaults.py
             settings.py
+            styles.py
         generators/
             __init__.py
             excel_generator.py
@@ -638,6 +639,9 @@ tests/
     test_backup_service.py
     test_build_script.py
     test_cli.py
+    test_create_appearance.py
+    test_create_progress.py
+    test_create_routes.py
     test_create_screen.py
     test_extraction_worker.py
     test_file_generator.py
@@ -784,6 +788,10 @@ requirements.txt
 ### simplicitor/app/config/settings.py
 
 - class Settings: Persists application configuration to a JSON file.
+
+### simplicitor/app/config/styles.py
+
+- def input_styles() -> str: Keep editable text readable and show blue focus, hover and selection states.
 
 ### simplicitor/app/generators/__init__.py
 
@@ -1609,6 +1617,36 @@ requirements.txt
 - def test_legacy_root_notice_names_both_paths(tmp_path, monkeypatch, capsys): Templates left in the retired APPDATA root produce a notice naming both paths.
 - def test_no_legacy_notice_when_root_absent(tmp_path, monkeypatch, capsys): No legacy folder: no notice.
 
+### tests/test_create_appearance.py
+
+- def test_numbered_cards_show_only_the_chosen_inputs(qtbot, isolated_profile)
+- def test_body_borders_dropdown_and_focus_styles(qtbot, isolated_profile)
+- def test_template_button_chosen_clear_and_busy_states(window)
+- def test_template_is_kept_across_routes_but_not_a_real_type_change(window)
+- def test_clicking_active_option_keeps_its_selected_state(qtbot, isolated_profile)
+- def test_route_round_trip_keeps_the_action_at_the_left(qtbot, isolated_profile)
+
+### tests/test_create_progress.py
+
+- def row_labels(screen, index, view=None)
+- def test_rows_reading_ready_and_partly_read_are_per_attachment(qtbot, isolated_profile)
+- def test_worker_forwards_pipeline_source_identity_and_counts(setup, tmp_path, qtbot)
+- def test_progress_reaches_rows_and_main_button_during_real_worker_run(window, tmp_path, qtbot)
+- def test_proposal_and_save_show_busy_action_without_changing_gates(qtbot, isolated_profile)
+- def test_late_source_progress_is_ignored_on_write(window)
+- def test_progress_uses_source_ids_not_duplicate_names(qtbot, isolated_profile, qapp)
+
+### tests/test_create_routes.py
+
+- def test_routes_keep_independent_inputs_and_write_never_sends_sources(qtbot, isolated_profile)
+- def test_pull_without_sources_cannot_generate(qtbot, isolated_profile)
+- def test_switching_is_blocked_for_every_kind_of_work(qtbot, isolated_profile, work)
+- def test_leaving_pull_invalidates_columns_review_acknowledgement_and_owned_job(window, tmp_path, qtbot)
+- def test_late_pull_results_do_not_repopulate_write(window, tmp_path)
+- def test_late_write_result_does_not_clear_pull_request(window)
+- def test_reading_problems_survive_a_round_trip(qtbot, isolated_profile)
+- def test_pull_rejects_a_stale_write_request_and_write_status(window, tmp_path, monkeypatch)
+
 ### tests/test_create_screen.py
 
 - def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile)
@@ -1622,7 +1660,7 @@ requirements.txt
 - def test_busy_freezes_setup_and_reports(qtbot, isolated_profile)
 - def test_show_status_accepts_secondary_and_tooltip(qtbot, isolated_profile)
 - def test_source_changes_are_ignored_while_busy(qtbot, isolated_profile, tmp_path)
-- def test_switch_from_powerpoint_to_sources_notifies_type_once(qtbot, isolated_profile, tmp_path)
+- def test_sources_do_not_overwrite_the_retained_write_type(qtbot, isolated_profile, tmp_path)
 - def test_failed_inspection_ends_reading_and_keeps_setup(qtbot, isolated_profile, tmp_path)
 - def test_cancel_is_outside_the_frozen_setup(qtbot, isolated_profile)
 - def test_saved_prompt_page_and_start_another_preserve_folder(qtbot, isolated_profile, tmp_path)
@@ -1805,7 +1843,7 @@ requirements.txt
 - def test_mode_text_has_room_for_button_padding(window, qapp, mode)
 - def test_card_label_background_is_not_the_central_grey(window, qapp, page_name)
 - def test_settings_changes_model_only_on_save(window, monkeypatch, accepted)
-- def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, cancel)
+- def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, qtbot, cancel)
 
 ### tests/test_main_window_teardown.py
 

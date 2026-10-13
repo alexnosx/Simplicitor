@@ -1,9 +1,10 @@
 # scripts/capture_screens.py
-"""Render each 2.1.0 screen offscreen at 1280x800 with synthetic data and an
+"""Render the approved Create new v2 states offscreen at 1280x800 with synthetic data and an
 isolated profile under .venv. Installs nothing and touches no real user folders."""
 import os
 import sys
 from datetime import datetime
+from dataclasses import replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,10 +21,10 @@ from PySide6.QtCore import QPoint, QThread  # noqa: E402
 from PySide6.QtGui import QFont  # noqa: E402
 from PySide6.QtWidgets import QApplication, QFrame, QLabel  # noqa: E402
 
+from app.config.styles import input_styles  # noqa: E402
 from app.config.settings import Settings  # noqa: E402
 from app.config.defaults import (  # noqa: E402
-    APP_FONT_FAMILY, FONT_SIZE_BODY_PT, BORDER_COLOR, PRIMARY_ACCENT_COLOR,
-    BODY_TEXT_COLOR, DISABLED_COLOR, WHITE, BORDER_RADIUS_PX,
+    APP_FONT_FAMILY, FONT_SIZE_BODY_PT,
     BACKGROUND_COLOR,
 )
 import app.main_window as main_window  # noqa: E402
@@ -56,36 +57,8 @@ def main(out: Path) -> None:
     app = QApplication(sys.argv)
     app.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
     # Match the existing application entry point, including its input styles.
-    app.setStyleSheet(
-        f"QLineEdit, QPlainTextEdit, QListWidget, QComboBox {{"
-        f"    background-color: {WHITE};"
-        f"    border: 1px solid {BORDER_COLOR};"
-        f"    border-radius: {BORDER_RADIUS_PX}px;"
-        f"    padding: 6px 8px;"
-        f"    font-family: 'Segoe UI';"
-        f"    font-size: 13px;"
-        f"    color: {BODY_TEXT_COLOR};"
-        f"}}"
-        f"QLineEdit:focus, QPlainTextEdit:focus, QComboBox:focus {{"
-        f"    border: 1px solid {PRIMARY_ACCENT_COLOR};"
-        f"    outline: none;"
-        f"}}"
-        f"QLineEdit:disabled, QPlainTextEdit:disabled, QComboBox:disabled {{"
-        f"    background-color: #F9FAFB;"
-        f"    color: {DISABLED_COLOR};"
-        f"}}"
-        f"QListWidget::item {{"
-        f"    padding: 6px 8px;"
-        f"    border-radius: 2px;"
-        f"}}"
-        f"QListWidget::item:selected {{"
-        f"    background-color: {PRIMARY_ACCENT_COLOR};"
-        f"    color: {WHITE};"
-        f"}}"
-        f"QListWidget::item:hover:!selected {{"
-        f"    background-color: #EFF6FF;"
-        f"}}"
-    )
+    app.setStyleSheet(input_styles())
+
     config = PROFILE / "AppData" / "Roaming" / "Simplicitor"
     config.mkdir(parents=True, exist_ok=True)
     window = MainWindow(Settings(config))
@@ -98,6 +71,7 @@ def main(out: Path) -> None:
             break
         QThread.msleep(10)
     assert screen._connected
+    screen._folder_label.setText(r"Documents\Simplicitor\Generated")
     checks = []
 
     def shot(name: str) -> None:
@@ -121,16 +95,38 @@ def main(out: Path) -> None:
                        "grey_label_backgrounds": 0})
 
     shot("1-create-describe.png")
+    screen._prompt_edit.setPlainText(
+        "Create a six-slide project update covering progress, risks and next steps.")
+    screen.set_file_type("PowerPoint (.pptx)")
+    screen.set_template_loaded(True, "business_pitch")
+    shot("1b-write-template.png")
+    screen.set_route("pull")
     fixtures = ROOT / "tests" / "extraction" / "fixtures"
     screen._prompt_edit.setPlainText("Invoice number, customer, total and due date")
     screen.set_paths((fixtures / "invoice-01.docx", fixtures / "narrative-invoice-02.pdf"))
-    screen.show_inspection(read_sources(screen._paths))
+    screen.set_busy(True, action="inspect")
+    screen.show_progress("Reading sources...")
+    shot("2a-files-reading.png")
+    documents = read_sources(screen._paths)
+    screen.show_inspection(documents)
+    screen.set_busy(False)
+    screen.clear_status()  # MainWindow clears finished progress after the real worker settles.
     shot("2-create-with-files.png")
+    problem = Issue("skipped_text_box", documents[0].source_id,
+                    documents[0].source_id + "#", "unread")
+    partly = (replace(documents[0], issues=(problem,)),) + documents[1:]
+    screen.show_inspection(partly)
+    shot("2b-files-partly-read.png")
     screen.set_columns((ColumnSpec("c1", "Invoice number", "The invoice number", "text"),
                         ColumnSpec("c2", "Customer", "The customer name", "text"),
                         ColumnSpec("c3", "Total", "The amount to pay", "decimal"),
                         ColumnSpec("c4", "Due date", "The payment due date", "date")))
     shot("3-choose-columns.png")
+    screen.set_busy(True, action="extract")
+    screen.show_source_progress(documents[0].source_id, len(documents[0].units),
+                                sum(len(doc.units) for doc in documents))
+    shot("3b-pull-busy.png")
+    screen.set_busy(False)
     cells = (
         ReviewCell(2, 3, "00123", "s", ({"Data cell": "C2", "Record": "source-1",
             "File": "invoice-01.docx", "Field": "Invoice number", "Value": "00123",
@@ -150,19 +146,39 @@ def main(out: Path) -> None:
             "Status": "verified", "Issue": ""},), "yyyy-mm-dd"),
     )
     cells = tuple(sorted(cells, key=lambda cell: cell.column))
-    candidate = Candidate("job", PROFILE / "candidate.xlsx", (fixtures / "invoice-01.docx",),
+    # Stage one saved row per selected file; these are UI samples, not model evaluation.
+    cells += tuple(replace(cell, row=3, evidence=tuple(dict(
+        entry, **{"Data cell": entry["Data cell"][:-1] + "3", "Record": "source-2",
+                  "File": documents[1].label, "Anchor": "source-2#page:1",
+                  "Status": "verified", "Issue": ""}) for entry in cell.evidence))
+                   for cell in cells)
+    screen.show_inspection(documents)
+    candidate = Candidate("job", PROFILE / "candidate.xlsx", screen._paths,
                           (Issue("flagged_field", "source-1", "E2", "review"),
                            Issue("request_failed", "source-1", "source-1#p:9", "reading")))
     screen.show_candidate(candidate, cells)
+    assert screen._grid.rowCount() == len(candidate.source_paths)
     screen._grid.setCurrentCell(0, 3)
     screen._grid.clearSelection()  # Keep the evidence visible and show its yellow review fill.
     shot("4-review-and-save.png")
+    clean_cells = tuple(replace(cell, evidence=tuple(
+        dict(entry, Status="verified", Issue="") for entry in cell.evidence)) for cell in cells)
+    for name, highlighted, reading in (
+            ("4b-highlighted-values.png", True, False),
+            ("4c-reading-problems.png", False, True),
+            ("4d-clean-review.png", False, False)):
+        issues = tuple(issue for issue in candidate.issues
+                       if (issue.code == "flagged_field" and highlighted)
+                       or (issue.code != "flagged_field" and reading))
+        screen.show_candidate(replace(candidate, issues=issues),
+                              cells if highlighted else clean_cells)
+        shot(name)
     window._top_bar._edit_mode_btn.click()
     shot("5-edit-document.png")
     window._show_mode("create")
     screen.show_open_file_btn(str(PROFILE / "extracted-information.xlsx"))
     shot("6-saved-file.png")
-    print(f"Saved six screenshots to {out}")
+    print(f"Saved {len(checks)} synthetic screenshots")
     window.close()
     # Closing can wait for window-owned threads; drain them before exiting.
     for _ in range(300):
@@ -178,4 +194,4 @@ def main(out: Path) -> None:
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / ".venv" / "screens")
+    main(Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / ".venv" / "screens-part-d")
