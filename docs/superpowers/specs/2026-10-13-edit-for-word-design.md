@@ -2,6 +2,8 @@
 
 **Status:** Approved by Alex on 2026-10-13 at c770a74 (draft 4), after four Codex reviews; see the review file. Implementation needs an approved implementation plan.
 
+**Proposed amendments (2026-10-13, pending Alex's approval with the implementation plan):** measurements made while writing the [2.3.0 implementation plan](../plans/2026-10-13-release-2.3.0.md#amendments-to-the-approved-design) change the model request only. A1: the model returns paragraph strings and code assigns each its source paragraph (in order, by similarity), replacing the `source` field in the reply. A2: no context paragraphs are sent. A3: a new system prompt. A4: trailing whitespace is removed from each output paragraph. Selection, patch, verification, save and the UI are unchanged. Where this design's Model request section and Settings table differ, the plan's amendments apply once approved.
+
 **Inputs:** [PRD.md](../../../PRD.md#post-first-release-requirements) (selective editing and the preservation contract), the [approved mockup](../../design/edit-document.html) (1dd4949, approved 2026-10-13), and the "After 2.2.0: Edit for Word" section of the [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#after-220-edit-for-word-230-roadmap), which lists the decisions this design must make. PRD.md keeps ownership of requirements and acceptance values; the implementation plan copies the values below into PRD.md.
 
 ## Decisions (Alex, 2026-10-13)

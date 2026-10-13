@@ -132,6 +132,7 @@ docs/
             2026-10-08-first-release-extraction.md
             2026-10-09-release-2.1.0.md
             2026-10-12-release-2.2.0.md
+            2026-10-13-release-2.3.0.md
         specs/
             2026-05-29-phase-h-renderer-design.md
             2026-06-01-phase-i-prompt-builder-design.md
@@ -2200,6 +2201,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
+- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3302 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -2210,7 +2212,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 154 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 71 lines
-- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 319 lines
+- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 321 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
