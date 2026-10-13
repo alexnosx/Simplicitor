@@ -13,12 +13,14 @@ from tests.test_edit_screen import candidate_for, make_opened
 
 
 @pytest.fixture
-def window(qtbot, isolated_profile, tmp_path):
+def window(qtbot, qapp, isolated_profile, tmp_path):
     from app.main_window import MainWindow
     win = MainWindow(isolated_profile)
     # This fixture drives discovery explicitly; the global offline poll must not
     # clear the synthetic model during an edit-request test.
     win._ollama_worker.disconnected.disconnect(win._on_ollama_disconnected)
+    # A first poll that finished before the disconnect is already queued; deliver it now.
+    qapp.processEvents()
     qtbot.addWidget(win)
     win._show_mode("edit")
     opened = make_opened(tmp_path)
