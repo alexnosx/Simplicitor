@@ -163,3 +163,57 @@ The numbering sentence also allows a list marker when the paragraph's own **or**
 - The scratch XML/package rules are approximations of the design, not an implemented editing engine. Package reopening proves python-docx readability, not native Word rendering or all six product checks. No source-suite run, live model request, Word/COM call, producer export, application change, dependency installation, build or qualification was performed. Claude's second spike remains reported evidence rather than independently repeated native acceptance.
 - D1 to D3, unchanged byte-map/splice behaviour, and unrelated capture/formatting gaps were set aside as outside this revision's review. The new findings arise only from Draft 2's corrections. Synthetic scripts/files/results remain ignored under `.venv/review-edit-word-draft2/`.
 - Append-only review change; regenerate the map and verify links/whitespace before commit. The design, code, LICENSE, main and release records remain unchanged. Correct the three P2 issues and F13's wording before the next approval decision; this review authorizes neither planning nor implementation.
+
+## Draft 3
+
+Reviewed 2026-10-13: `c0428f757f8604bb1620f560b1bb95142d3af819`, against `ef458c4`, using only the changes to the [technical design](../superpowers/specs/2026-10-13-edit-for-word-design.md). Line numbers below refer to Draft 3. The earlier review sections are retained as historical findings.
+
+**One P2 correction remains: partial numbering overrides (F14).** F10, F12, F13 and the open part of F6 are resolved. The bold correction in F11 is confirmed in Word; the numbering correction handles explicit zero but introduces the F14 regression, leaving F5/F11 incomplete as written. No new preservation defect was found in the changed comment, fingerprint or budget rules. D1 to D3 and previously resolved findings were not reopened.
+
+### Resolution of the requested findings
+
+| Finding | Result | Reason |
+|---|---|---|
+| F5, open part | Not resolved | Candidate-derived Before/After display remains specified correctly. The corrected bold rules pass the native Word controls below, but the new whole-`numPr` precedence rule can omit a bullet that Word displays. F14 prevents closing the remaining display-fidelity requirement. |
+| F6, open part | Resolved | Lines 220 and 224 freeze an existing destination's SHA-256 and compare it at the commit point, retaining the source/path rechecks and explicit retry/discard outcomes. This closes the outstanding content-fingerprint issue without adding locks. |
+| F10 | Resolved | Line 96 pairs comment markers first, treats a lone start/end with its reference as a point rather than an open range, and refuses reversed/repeated associations. Synthetic start-only and end-only cases now keep the anchor paragraph read-only and the unrelated following paragraph editable; a balanced three-paragraph range still protects all three. |
+| F11 | Not resolved | Lines 128 to 133 resolve inheritance within each style chain, combine paragraph/character values across levels and apply direct formatting absolutely. Word 16 confirms the stated bold outcomes; my earlier contrary same-chain expectation is withdrawn. Explicit `numId=0` cancellation now works, but line 135 introduces the partial-override problem in F14. |
+| F12 | Resolved | The digest distinguishes the two valid same-size/same-time DOCX contents from the previous counterexample. The scratch check detects the changed digest, so the written destination-retry outcome applies. |
+| F13 | Resolved | Line 170 removes the guaranteed-fit assertion and explicitly includes serialized metadata in every core estimate. The test matrix now includes a metadata-heavy refusal at normal settings. The 1,000-paragraph example is correctly refused without changing the approved context or character limits. |
+
+### Word evidence and correction of my earlier F11 example
+
+I opened a synthetic seven-paragraph DOCX read-only in a separate Word instance and queried the paragraph ranges through the existing Word object model. Word reported version **16.0**, build **16.0.20326**. The first three controls gave:
+
+| Synthetic case | Word `Range.Font.Bold` | Result |
+|---|---|---|
+| Bold character style B based on bold character style A, on a normal paragraph | `-1` | Bold |
+| Bold paragraph style plus bold character style A | `0` | Not bold |
+| Bold paragraph style with direct bold off | `0` | Not bold |
+
+This independently confirms Claude's central distinction between inheritance within a character-style chain and the interaction of paragraph/character formatting. **My Draft 2 expectation that the two bold character styles in one chain would display as not bold was wrong for Word 16. I withdraw that part of F11.** The implementation tests should use the Word-qualified result in Draft 3, not my earlier reference calculation. This review does not challenge the remaining unchanged formatting coverage with new cases.
+
+### F14. P2: whole-`numPr` precedence loses inherited numbering on partial overrides
+
+**Evidence:** Draft 3 line 135 says a direct `w:numPr` decides, with style inheritance considered only when there is no direct `numPr`. A `numPr` can supply a level without a `numId`, or have no children. Selecting the first whole block loses a list ID supplied by the paragraph style.
+
+The fixture uses the built-in `List Bullet` style, whose style properties contain `numId=1`. Word's native `Range.ListFormat` measurements were:
+
+| Direct paragraph numbering properties | Draft 3 whole-block interpretation | Word `ListType` | Word result |
+|---|---|---|---|
+| No direct `numPr` | Inherit style ID | `2` | Bullet |
+| `<w:numPr><w:ilvl w:val="0"/></w:numPr>` | Direct block has no ID, so no list | `2` | Bullet, level 1 |
+| `<w:numPr><w:numId w:val="0"/></w:numPr>` | Cancel list | `0` | No list |
+| `<w:numPr/>` | Direct block has no ID, so no list | `2` | Bullet |
+
+`ListString` was nonempty for all three bullet cases and empty for explicit zero. These are Word-based results, not a standards-only inference. A literal reference implementation of line 135 predicts list flags `[True, False, False, False]`; Word gives `[True, True, False, True]`. Draft 2's own-or-style predicate displayed the inherited bullet in the partial/empty cases, so the new block-level precedence introduces this regression while fixing zero cancellation. It affects the reading view and candidate-derived review; the saved OOXML can still display the bullet correctly in Word.
+
+**Correction:** Resolve the effective `numId` by the first *present `numId`* in direct properties and then the paragraph style chain, rather than by the first present `numPr` container. A present zero stops inheritance and cancels the list; a missing `numId` continues inheritance. A direct `ilvl` overrides a level, not the list ID, and an empty `numPr` supplies no override. Apply the same component fallback to partial style-chain properties. Add level-only and empty-direct-`numPr` fixtures to reading and Review After tests, retaining the existing explicit-zero and inherited-list cases. No new numbering feature or full layout renderer is requested.
+
+### Draft 3 verification and boundary
+
+- Reviewed `git diff ef458c4 c0428f7 -- docs/superpowers/specs/2026-10-13-edit-for-word-design.md` and the changed definitions/test matrix in context. No unrelated design gap, resolved preservation finding or D1 to D3 decision was reassessed.
+- Scratch checks in `.venv/review-edit-word-draft3/probe_draft3.py` exited 0: both point-anchor cases, balanced range protection, reversed/repeated comment rejection, digest detection despite equal destination size/time, normal-settings metadata refusal, and comparison of the native Word results with the written numbering rule.
+- The successful native probe used the already-installed Windows PowerShell/Word COM interface. It opened only the synthetic fixture with `ReadOnly=true`, did not add it to recent files, requested no repair, saved nothing through Word, and closed without saving. The fixture SHA-256 before and after was `6876d4fe346f83e6071b7901872ca09ad145b3ef243699b9154ccdb5cc5b3b4f`. Its final run exited 0; a subsequent process check confirmed zero remaining Word processes. No existing user document or running Word instance was attached.
+- Synthetic inputs, scratch scripts and measured JSON remain ignored under `.venv/review-edit-word-draft3/`. No tool/dependency installation, source-suite run, live model request, application/code change, installer, build or qualification action was performed. This small Word check establishes these formatting outcomes, not overall editor or producer compatibility.
+- Only this review append and regenerated map metadata are committed. The design, application, plan, mockup, LICENSE, main and release records remain unchanged. Correct F14 before treating the design as ready for the implementation-plan approval step; no plan or implementation is authorized by this review.
