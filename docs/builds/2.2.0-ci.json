@@ -1,0 +1,137 @@
+{
+  "verified_at": "2026-10-13T07:48:12.521988+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38361208855",
+  "source_commit": "4bf7d864dd4a3f9707cd25ac168523ae55db5e6e",
+  "conclusion": "success",
+  "workflow_event": "workflow_dispatch",
+  "publication": "skipped",
+  "msi_bytes": 61200249,
+  "upgrade_probe_msi_version": "2.2.1",
+  "artifact_bundle": {
+    "name": "Simplicitor-windows",
+    "id": 11796198672,
+    "bytes": 136414084,
+    "api_reported_sha256": "f9189bb2d73295128155a53fde5f1ed9a0d4f6aee06fda1af3536c171a8b7730"
+  },
+  "artifacts": [
+    {
+      "name": "installer-qualification.json",
+      "bytes": 3157,
+      "sha256": "3291a4e01449580800601fc562d1e2e6a3e29bcd7a5a122f6afc6cd22151562f"
+    },
+    {
+      "name": "SHA256SUMS.json",
+      "bytes": 66326,
+      "sha256": "312de78144e0b2fdf2f28486be040aaa8d8d7d5531e4a3d4eeda06feb4f098c4"
+    },
+    {
+      "name": "Simplicitor-2.2.0.msi",
+      "bytes": 61200249,
+      "sha256": "424dcf1ca178858a0aab7f180d583de399d683ee78a96c4847249e0d8e23ed22"
+    },
+    {
+      "name": "Simplicitor-portable.zip",
+      "bytes": 75630642,
+      "sha256": "01b3cdb160e9d98b1aab3d7036a3ddfdd5b3e162bf9b1d2272abe955a024f411"
+    }
+  ],
+  "qualification": {
+    "status": "passed",
+    "source_commit": "4bf7d864dd4a3f9707cd25ac168523ae55db5e6e",
+    "run_id": "38361208855",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38361208855",
+    "runner_os": "10.0.26100.0",
+    "runner_image": "20260925.250.1",
+    "msi_version": "2.2.0",
+    "executable_version": "2.2.0.0",
+    "upgrade_probe_msi_version": "2.2.1",
+    "checks": [
+      "No Simplicitor product before qualification",
+      "Intended MSI exists: Simplicitor-2.2.0.msi",
+      "Artifact hash matches: Simplicitor-2.2.0.msi",
+      "Artifact hash matches: Simplicitor-portable.zip",
+      "Ollama endpoint is unavailable",
+      "MSI refuses to install over Simplicitor 2.0.0",
+      "Refused install left no files",
+      "Refused install registered nothing",
+      "Silent MSI install succeeded",
+      "Install: exactly one Simplicitor product",
+      "Install: product version 2.2.0",
+      "Install: install location",
+      "Install: executable present",
+      "Install: executable version 2.2.0.0",
+      "Install: executable matches built payload",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: app stays running for 20 seconds without Ollama",
+      "Repair target is inside the verified test installation",
+      "Same-version repair succeeded",
+      "Repair restored the removed file",
+      "Repair: exactly one Simplicitor product",
+      "Repair: product version 2.2.0",
+      "Repair: install location",
+      "Repair: executable present",
+      "Repair: executable version 2.2.0.0",
+      "Repair: executable matches built payload",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Settings survive repair",
+      "Upgrade probe 2.2.1 is newer than 2.2.0",
+      "Upgrade probe package built",
+      "Upgrade probe package validated",
+      "Major upgrade to 2.2.1 succeeded",
+      "Upgrade: exactly one Simplicitor product",
+      "Upgrade: product version 2.2.1",
+      "Upgrade: install location",
+      "Upgrade: executable present",
+      "Upgrade: executable version 2.2.0.0",
+      "Upgrade: executable matches built payload",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade replaced the previous ProductCode",
+      "Previous product no longer registered",
+      "Upgrade: app stays running for 20 seconds without Ollama",
+      "Settings survive upgrade",
+      "Silent uninstall succeeded",
+      "No Simplicitor product after uninstall",
+      "Install folder removed, including subfolders",
+      "Desktop shortcut removed",
+      "Start Menu shortcut removed",
+      "Settings survive uninstall"
+    ],
+    "artifacts": {
+      "Simplicitor-2.2.0.msi": "424dcf1ca178858a0aab7f180d583de399d683ee78a96c4847249e0d8e23ed22",
+      "Simplicitor-portable.zip": "01b3cdb160e9d98b1aab3d7036a3ddfdd5b3e162bf9b1d2272abe955a024f411"
+    },
+    "limitations": [
+      "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
+    ]
+  },
+  "verification": {
+    "downloaded_artifact_hashes": "MSI and portable ZIP match SHA256SUMS.json and the hosted qualification report.",
+    "workflow_jobs": {
+      "tests": "success",
+      "build": "success"
+    },
+    "local_suite": {
+      "passed": 1100,
+      "seconds": 51.0,
+      "warnings": [
+        "Existing pytest cache-permission warning."
+      ]
+    },
+    "hosted_source_suite": {
+      "passed": 1100,
+      "seconds": 49.43
+    },
+    "release_candidate": "The source_commit was built by this milestone; the later evidence-record commit is not the tag candidate unless Alex separately approves it after its source tests pass."
+  },
+  "local_execution": "Isolated source tests and read-only artifact hashing only. The outer GitHub artifact bundle was downloaded; the MSI and portable payload were not extracted or executed. No local build, installer, uninstaller, msiexec, Windows Sandbox, WiX or qualification script.",
+  "release_boundary": "E1 complete; 2.2.0 remains unreleased. E2 tagging and publication require Alex's separate go."
+}
