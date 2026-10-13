@@ -2142,7 +2142,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 125 lines
+- docs/PROJECT_STATUS.md: md, 126 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2214,7 +2214,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 154 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 71 lines
-- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 321 lines
+- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 323 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
