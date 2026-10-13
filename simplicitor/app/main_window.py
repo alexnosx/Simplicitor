@@ -296,6 +296,7 @@ class MainWindow(QMainWindow):
         worker.moveToThread(thread)
         thread.started.connect(worker.run)
         worker.progress.connect(self._on_extraction_progress)
+        worker.source_progress.connect(self._on_source_progress)
         worker.inspection_ready.connect(self._on_inspection_ready)
         worker.columns_ready.connect(self._on_columns_ready)
         worker.candidate_ready.connect(self._on_candidate_ready)
@@ -305,7 +306,7 @@ class MainWindow(QMainWindow):
         worker.finished.connect(thread.quit, Qt.ConnectionType.DirectConnection)
         thread.finished.connect(worker.deleteLater)
         thread.finished.connect(self._on_extraction_thread_finished)
-        panel.set_busy(True, saving=action == "save")
+        panel.set_busy(True, saving=action == "save", action=action)
         self._top_bar._model_combo.setEnabled(False)
         thread.start()
 
@@ -314,7 +315,13 @@ class MainWindow(QMainWindow):
         if self._create_screen.route() != "pull":
             return
         self._progress_shown = True
-        self._create_screen.show_status(message)
+        self._create_screen.show_progress(message)
+
+    @Slot(str, int, int)
+    def _on_source_progress(self, source_id: str, done: int, total: int) -> None:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
+            self._create_screen.show_source_progress(source_id, done, total)
 
     @Slot(object)
     def _on_inspection_ready(self, documents: tuple) -> None:

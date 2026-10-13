@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtWidgets import (
     QAbstractItemView, QCheckBox, QComboBox, QFileDialog, QFormLayout, QFrame, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QPlainTextEdit, QPushButton, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
+    QPlainTextEdit, QProgressBar, QPushButton, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,
 )
 from PySide6.QtGui import QColor
@@ -74,6 +74,10 @@ class CreateScreen(QWidget):
         self._last_generated_path = ""
         self._column_settings: dict[str, ColumnSpec] = {}
         self._next_column = 0
+        self._work_action = self._progress_message = ""
+        self._progress_counts: tuple[int, int] | None = None
+        self._source_counts: dict[str, int] = {}
+        self._reading_problems: set[str] = set()
         self.setAcceptDrops(True)
         self.setObjectName("createWorkspace")
         self.setStyleSheet(
@@ -99,7 +103,9 @@ class CreateScreen(QWidget):
             "border-radius: 4px; padding: 12px 16px; text-align: left; }"
             f"QPushButton[route='true']:hover {{ background: {INFO_BANNER_BG_COLOR}; }}"
             f"QPushButton[route='true']:checked {{ background: {INFO_BANNER_BG_COLOR}; "
-            f"border: 2px solid {PRIMARY_ACCENT_COLOR}; }}")
+            f"border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
+            f"QProgressBar {{ border: none; background: #E2E7EE; }}"
+            f"QProgressBar::chunk {{ background: {PRIMARY_ACCENT_COLOR}; }}")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 14, 20, 20)
         layout.setSpacing(12)
@@ -360,27 +366,10 @@ class CreateScreen(QWidget):
         if self._busy:
             return
         self._paths = tuple(Path(path) for path in paths if Path(path).suffix.lower() in SOURCE_SUFFIXES)
-        self._source_list.clear()
-        for index, path in enumerate(self._paths):
-            item = QListWidgetItem()
-            item.setData(Qt.ItemDataRole.AccessibleTextRole, path.name)
-            self._source_list.addItem(item)
-            holder = QWidget()
-            row = QHBoxLayout(holder)
-            row.setContentsMargins(2, 2, 2, 2)
-            label = QLabel(path.name)
-            label.setTextFormat(Qt.TextFormat.PlainText)
-            label.setWordWrap(True)
-            label.setMinimumWidth(0)
-            item.setToolTip(str(path))
-            remove = QPushButton("Remove")
-            remove.setMinimumHeight(28)
-            remove.clicked.connect(lambda _checked=False, i=index: self._remove_index(i))
-            row.addWidget(label, 1)
-            row.addWidget(remove)
-            item.setSizeHint(holder.sizeHint())
-            self._source_list.setItemWidget(item, holder)
         self._documents = ()
+        self._reading_problems.clear()
+        self._source_counts.clear()
+        self._render_source_rows()
         self._inspecting = self._route == "pull" and bool(self._paths)
         self._update_placeholder()
         self._setup_edited()
@@ -416,6 +405,7 @@ class CreateScreen(QWidget):
         if self._route != "pull":
             return
         self._documents = tuple(documents)
+        self._reading_problems = {doc.source_id for doc in self._documents if doc.issues}
         self._set_coverage("\n".join(describe_coverage(doc.label, issue.anchor, issue.code)
             for doc in self._documents for issue in doc.issues))
         self.inspection_finished()
@@ -481,14 +471,115 @@ class CreateScreen(QWidget):
         self._connected = connected
         self._refresh()
 
-    def set_busy(self, busy: bool, saving: bool = False) -> None:
+    def set_busy(self, busy: bool, saving: bool = False, action: str = "") -> None:
         """Freeze setup individually while keeping cancellable work outside the pages."""
         self._busy, self._saving = busy, saving
+        self._work_action = action if busy else ""
+        self._progress_message = ""
+        self._progress_counts = None
+        self._source_counts.clear()
+        if not busy:
+            self._inspecting = False
         for control in self._setup_controls():
             control.setEnabled(not busy)
         self._cancel_btn.setEnabled(busy and not saving and not self._generating)
         self.busy_changed.emit(busy)
         self._refresh()
+
+    def show_progress(self, message: str) -> None:
+        """Put existing worker progress on the action as well as the status line."""
+        if self._route != "pull":
+            return
+        self._progress_message = message
+        if message.startswith("Reading sources"):
+            self._inspecting = True
+        elif message.startswith("Suggesting columns"):
+            self._work_action = "propose"
+        self.show_status(message)
+        self._refresh()
+
+    @Slot(str, int, int)
+    def show_source_progress(self, source_id: str, done: int, total: int) -> None:
+        """Display the pipeline's completed units against their attachment identity."""
+        if self._route != "pull" or not any(doc.source_id == source_id for doc in self._documents):
+            return
+        self._progress_counts = (done, total)
+        offset = 0
+        for doc in self._documents:
+            if doc.source_id == source_id:
+                self._source_counts[source_id] = min(len(doc.units), max(0, done - offset))
+                break
+            offset += len(doc.units)
+        self._refresh()
+
+    def _render_source_rows(self) -> None:
+        for view in (self._source_list, self._working_files):
+            view.clear()
+            for index, path in enumerate(self._paths):
+                item = QListWidgetItem()
+                item.setData(Qt.ItemDataRole.AccessibleTextRole, path.name)
+                item.setToolTip(str(path))
+                view.addItem(item)
+                holder = QWidget()
+                layout = QVBoxLayout(holder)
+                layout.setContentsMargins(2, 2, 2, 2)
+                layout.setSpacing(4)
+                top = QHBoxLayout()
+                label = QLabel(path.name)
+                label.setTextFormat(Qt.TextFormat.PlainText)
+                label.setWordWrap(True)
+                label.setMinimumWidth(0)
+                top.addWidget(label, 1)
+                if view is self._source_list:
+                    remove = QPushButton("Remove")
+                    remove.setMinimumHeight(28)
+                    remove.clicked.connect(lambda _checked=False, i=index: self._remove_index(i))
+                    top.addWidget(remove)
+                layout.addLayout(top)
+                status = QLabel()
+                status.setObjectName("fileState")
+                layout.addWidget(status, alignment=Qt.AlignmentFlag.AlignLeft)
+                detail = QLabel()
+                detail.setObjectName("fileProgress")
+                layout.addWidget(detail)
+                bar = QProgressBar()
+                bar.setObjectName("fileProgressBar")
+                bar.setRange(0, 0)
+                bar.setTextVisible(False)
+                bar.setFixedHeight(4)
+                layout.addWidget(bar)
+                view.setItemWidget(item, holder)
+                item.setSizeHint(holder.sizeHint())
+
+    def _update_source_rows(self) -> None:
+        extracting = self._busy and self._work_action == "extract"
+        active = next((doc.source_id for doc in self._documents
+                       if self._source_counts.get(doc.source_id, 0) < len(doc.units)), None)
+        self._file_progress_box.setVisible(extracting)
+        for view in (self._source_list, self._working_files):
+            for index in range(view.count()):
+                item = view.item(index)
+                holder = view.itemWidget(item)
+                doc = self._documents[index] if index < len(self._documents) else None
+                state = ("Reading" if self._inspecting else
+                         "Partly read" if doc and doc.source_id in self._reading_problems else
+                         "Ready" if doc else "")
+                status = holder.findChild(QLabel, "fileState")
+                status.setText(state)
+                status.setVisible(bool(state))
+                background, ink = (("#E8F0FF", "#1D4ED8") if state == "Reading" else
+                                   ("#FFF1D6", "#80530A") if state == "Partly read" else
+                                   ("#EAF6EF", "#21633C"))
+                status.setStyleSheet(f"background: {background}; color: {ink}; padding: 1px 7px;")
+                detail = holder.findChild(QLabel, "fileProgress")
+                working = extracting and doc is not None and doc.source_id == active
+                done = self._source_counts.get(doc.source_id, 0) if doc else 0
+                detail.setText(f"Extracting... {done} / {len(doc.units)} source units" if working
+                               else f"Processed {done} source units" if done else "")
+                detail.setVisible(extracting and bool(detail.text()))
+                holder.findChild(QProgressBar, "fileProgressBar").setVisible(
+                    self._inspecting or working)
+                item.setSizeHint(holder.sizeHint())
 
     def _setup_controls(self) -> tuple:
         return (self._write_option, self._pull_option,
@@ -529,10 +620,12 @@ class CreateScreen(QWidget):
             self.set_columns(())  # A failed proposal still permits manual column entry.
         self.show_status(message, True)
         if issues:
+            self._reading_problems.update(issue.source_id for issue in issues)
             labels = {doc.source_id: doc.label for doc in self._documents}
             self._set_coverage("\n".join(describe_coverage(
                 labels.get(issue.source_id, "Source file"), issue.anchor, issue.code)
                 for issue in issues))
+            self._update_source_rows()
 
     def _set_coverage(self, text: str) -> None:
         if text:
@@ -642,7 +735,10 @@ class CreateScreen(QWidget):
         self._disconnected_label.setVisible(not self._connected)
         ready = (not self._busy and not self._generating and self._connected and bool(self._model)
                  and bool(self._prompt_edit.toPlainText().strip()))
-        self._primary_btn.setText("Next: choose columns" if pulling
+        self._primary_btn.setText("Reading files..." if pulling and self._inspecting else
+                                  "Suggesting columns..." if pulling and self._busy
+                                  and self._work_action == "propose" else
+                                  "Next: choose columns" if pulling
                                   else "Creating..." if self._generating else "Create file")
         self._primary_btn.setEnabled(ready and (not pulling or (has_sources and not self._inspecting)))
         is_ppt = not pulling and self.file_type() == TEMPLATE_FILE_TYPE
@@ -657,6 +753,7 @@ class CreateScreen(QWidget):
             len(text) > PROMPT_COMPLEXITY_THRESHOLD_CHARS
             or any(keyword in text.lower() for keyword in STYLING_KEYWORDS)))
         self._refresh_actions()
+        self._update_source_rows()
 
     def _build_columns_page(self) -> QWidget:
         page, layout = self._card()
@@ -707,6 +804,14 @@ class CreateScreen(QWidget):
         detail_layout.addWidget(self._date_details)
         detail_layout.addWidget(self._details_hint)
         layout.addWidget(details)
+        self._file_progress_box = QGroupBox("File progress")
+        progress = QVBoxLayout(self._file_progress_box)
+        self._working_files = QListWidget()
+        self._working_files.setStyleSheet("QListWidget::item { padding: 0; }")
+        self._working_files.setMaximumHeight(150)
+        progress.addWidget(self._working_files)
+        self._file_progress_box.hide()
+        layout.addWidget(self._file_progress_box)
         bottom = QHBoxLayout()
         self._extract_btn = QPushButton("Extract to Excel")
         self._extract_btn.setProperty("primary", True)
@@ -834,6 +939,13 @@ class CreateScreen(QWidget):
                  and self._route == "pull" and bool(self._paths)
                  and bool(self._prompt_edit.toPlainText().strip()))
         self._extract_btn.setEnabled(ready and valid)
+        self._extract_btn.setText(
+            "Checking workbook..." if self._busy and self._work_action == "extract"
+            and self._progress_message.startswith("Writing and checking") else
+            "Extracting..." + (f" {self._progress_counts[0]} / {self._progress_counts[1]}"
+                              if self._progress_counts else "")
+            if self._busy and self._work_action == "extract" else "Extract to Excel")
+        self._save_btn.setText("Saving..." if self._busy and self._saving else "Save to Excel")
         self._save_btn.setEnabled(bool(self._candidate) and not self._busy
             and (not self._candidate.issues or self._ack_checkbox.isChecked()))
 
@@ -887,6 +999,7 @@ class CreateScreen(QWidget):
         labels_by_source = {doc.source_id: doc.label for doc in self._documents}
         for issue in candidate.issues:
             if issue.code not in field_codes:
+                self._reading_problems.add(issue.source_id)
                 coverage.add(describe_coverage(labels_by_source.get(issue.source_id, "Source file"),
                                               issue.anchor, issue.code))
         self._set_coverage("\n".join(sorted(coverage)))

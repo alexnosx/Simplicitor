@@ -166,6 +166,7 @@ def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp
 
     class FakeWorker(QObject):
         progress = Signal(str)
+        source_progress = Signal(str, int, int)
         inspection_ready = Signal(object)
         columns_ready = Signal(object)
         candidate_ready = Signal(object, object)

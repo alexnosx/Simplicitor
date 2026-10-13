@@ -98,7 +98,7 @@ def test_sources_force_excel_and_wait_for_inspection(qtbot, isolated_profile, tm
     assert screen._type_combo.model().item(word).isEnabled()  # retained Write choice
     assert not screen._type_combo.isVisible()
     assert screen._sources_note.isVisible()
-    assert screen._primary_btn.text() == "Next: choose columns"
+    assert screen._primary_btn.text() == "Reading files..."
     assert not screen._primary_btn.isEnabled()  # still reading the files
     screen.show_inspection(())
     assert screen._primary_btn.isEnabled()
