@@ -109,6 +109,7 @@ docs/
         v2.1.0-notes.md
         v2.1.0.json
         v2.2.0-notes.md
+        v2.2.0.json
     reviews/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
@@ -2119,7 +2120,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 99 lines
+- CHANGELOG.md: md, 101 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
@@ -2136,7 +2137,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 120 lines
+- docs/PROJECT_STATUS.md: md, 121 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2175,6 +2176,7 @@ requirements.txt
 - docs/releases/v2.1.0-notes.md: md, 28 lines
 - docs/releases/v2.1.0.json: json, 107 lines
 - docs/releases/v2.2.0-notes.md: md, 35 lines
+- docs/releases/v2.2.0.json: json, 152 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
