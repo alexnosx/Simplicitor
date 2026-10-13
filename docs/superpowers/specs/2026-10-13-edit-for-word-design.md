@@ -1,6 +1,6 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Draft 4, 2026-10-13, by Claude. Draft 2 corrected the nine findings of the [Codex review of draft 1](../../reviews/2026-10-13-edit-for-word-design-codex.md); draft 3 corrected F10 to F13 and the open parts of F5 and F6 from the same file's Draft 2 section; draft 4 corrects F14 from its Draft 3 section (see [Changes from draft 1](#changes-from-draft-1)). Alex decided D1 to D3 on 2026-10-13. Not approved; no implementation starts before Alex approves this design and its implementation plan.
+**Status:** Approved by Alex on 2026-10-13 at c770a74 (draft 4), after four Codex reviews; see the review file. Implementation needs an approved implementation plan.
 
 **Inputs:** [PRD.md](../../../PRD.md#post-first-release-requirements) (selective editing and the preservation contract), the [approved mockup](../../design/edit-document.html) (1dd4949, approved 2026-10-13), and the "After 2.2.0: Edit for Word" section of the [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#after-220-edit-for-word-230-roadmap), which lists the decisions this design must make. PRD.md keeps ownership of requirements and acceptance values; the implementation plan copies the values below into PRD.md.
 
