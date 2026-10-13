@@ -1,10 +1,12 @@
-# Simplicitor document architecture, 2.1.0
+# Simplicitor document architecture, 2.2.0
 
-[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md) and [2.1.0 plan](../plans/2026-10-09-release-2.1.0.md) own signatures and checks. Updated 2026-10-12 to describe the implemented 2.1.0 release candidate.
+[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md) and [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md) own signatures and checks. Updated 2026-10-13 for the 2.2.0 release candidate after the B3 drop and Part D merge.
 
 ## Structure
 
 Keep Python/PySide6, existing generation/template workers, the plain-Python extraction package and its Qt worker adapter. MainWindow mounts one CreateScreen and an explanatory EditPlaceholder; TopBar selects the mode and Settings. CreateScreen emits requests with frozen setup, while MainWindow owns worker wiring, cancellation and teardown.
+
+CreateScreen chooses an explicit Write or Pull route. It keeps separate description/request buffers and retains the writing file type and source attachments independently. Write emits only type, folder and description; its extraction snapshot contains no paths. Pull always produces XLSX. Leaving Pull clears derived columns, candidate and acknowledgement through setup_changed, which MainWindow uses to discard the owned job. Busy work blocks switching; GUI receivers ignore results for the other route. Generation, grounding, review, save, cancellation and close algorithms are unchanged.
 
 ~~~mermaid
 flowchart TD
@@ -19,7 +21,7 @@ flowchart TD
     GRID --> SAVE[Native Save As and staged copy]
 ~~~
 
-The core has no Qt dependency. Readers open sources read-only, close handles, and retain extracted units rather than uploaded file copies. Code owns one record per attachment, identified independently of filename.
+The core has no Qt dependency. Readers open sources read-only, close handles, and retain extracted units without copying source files. Code owns one record per attachment, identified independently of filename.
 
 ## Module responsibilities
 
@@ -34,8 +36,10 @@ The core has no Qt dependency. Readers open sources read-only, close handles, an
 | simplicitor/extraction/pipeline.py | Column proposals, sectioned calls, field accumulation, issues, and cancellation. |
 | simplicitor/extraction/xlsx_writer.py | Dedicated typed/literal workbook writing and saved-grid data reading. |
 | simplicitor/extraction/jobs.py | Candidate folder, Save As copying, source-path refusal, and age-based cleanup. |
-| simplicitor/app/workers/extraction_worker.py | QObject adapter for core actions. |
-| simplicitor/app/widgets/create_screen.py | Describe, Choose columns, saved grid/evidence, native export request and Saved page; prompt/template route on the same screen. |
+| simplicitor/app/workers/extraction_worker.py | QObject adapter for core actions; forwards existing source IDs and progress counts to the GUI. |
+| simplicitor/app/widgets/create_screen.py | Explicit Write/Pull routes, retained inputs, columns, per-file states/progress, saved grid/evidence, native export request and Saved page. |
+| simplicitor/app/config/styles.py | Shared input, dropdown choice and focus styles for the app and deterministic captures. |
+| simplicitor/app/widgets/template_dialog.py | Built-in template selection and structure confirmation. |
 | simplicitor/app/widgets/step_indicator.py | Preserve the active step across prompt and source routes. |
 | simplicitor/app/widgets/plain_labels.py | Present source anchors, issues and coverage in plain language without interpreting rich text. |
 | simplicitor/app/widgets/edit_placeholder.py | Explain deferred selective editing and return to Create new. |
@@ -46,6 +50,8 @@ Reuse declared document libraries. Configuration stays in defaults.py. The legac
 ## Source reading and sectioning
 
 Adapt _extract_docx/_extract_pdf into structured readers without truncation. DOCX body paragraphs use source_id#p:index; cells use source_id#t:table:r:row:c:cell with zero-based indices including empty units. Traverse paragraphs/tables in document order and enumerate physical cells once. Report unsupported structures.
+
+Named coverage codes identify detected text boxes, tracked text (including w:moveFrom/w:moveTo), form controls, fields, embedded documents, footnotes/endnotes and nested tables. Tracked property changes retain readable text and require review in Word. plain_labels.py translates codes into readable problems; CreateScreen presents them under the [UI heading](2026-10-08-document-workspace-ui-design.md#source-files-and-reading-problems). PDF and failed-request coverage use the same review/acknowledgement path.
 
 Read each explicit Word header/footer part once, including first/even-page definitions; inherited parts are not repeated for each section. Their paragraphs use source_id#header:index:p:index and source_id#footer:index:p:index; tables use the same t:table:r:row:c:cell suffix within that part. Body anchors remain unchanged. Header/footer text contributes to the DOCX page-equivalent count. Footnotes/endnotes and unsupported structures remain coverage issues. Header/footer containers use python-docx's [document-order API](https://python-docx.readthedocs.io/en/latest/api/section.html).
 
@@ -103,14 +109,14 @@ Native Save As handles overwrite confirmation. Refuse a normalized source path, 
 
 Use existing QObject/QThread patterns and cooperative cancellation. The source readers never write back to supplied files.
 
-The Qt adapter freezes source paths, request, columns, and model profile for each operation. GUI receivers use Qt slots, and thread-finished handlers poll non-blocking wait(0), retaining ownership until native completion before close can stop the GUI event loop. Template import retains its result and disables dismissal until its thread has exited. Cancellation invalidates review immediately, including a candidate emitted just before cancellation. An accepted Save As copy finishes without a Cancel action; close waits for it. See Qt's [signal/slot thread guidance](https://doc.qt.io/qtforpython-6/tutorials/basictutorial/signals_and_slots.html) and [QThread completion semantics](https://doc.qt.io/qt-6/qthread.html#isFinished).
+The Qt adapter freezes source paths, request, columns, and model profile for each operation. GUI receivers use Qt slots, and thread-finished handlers poll non-blocking wait(0), retaining ownership until native completion before close can stop the GUI event loop. Cancellation invalidates review immediately, including a candidate emitted just before cancellation. An accepted Save As copy finishes without a Cancel action; close waits for it. See Qt's [signal/slot thread guidance](https://doc.qt.io/qtforpython-6/tutorials/basictutorial/signals_and_slots.html) and [QThread completion semantics](https://doc.qt.io/qt-6/qthread.html#isFinished).
 
 
 From 2.0.0 onward, extraction records one source-level Issue(sectioned_source, source_id, "", safe_message) when context planning requires sectioning. The writer applies it to every extracted Data cell for that source: highlight and flagged Evidence status with sectioned_source, retaining prior issues. This is a review policy, not a coverage failure or failed conversion. Verified values keep their saved types and numeric/date formats; invalid proposals remain literal. The saved grid and Save As acknowledgement consume these saved flags as before. Multiple whole files do not trigger the policy merely because the job has several requests.
 
 ## Evaluation and release order
 
-The sequence below records the completed 2.0.0 extraction plan; its criteria remain unchanged in 2.1.0. D1 qualifies the final 2.1.0 documentation commit with the hosted build, without a new model run.
+The sequence below records the completed 2.0.0 extraction plan; its criteria remain unchanged in 2.2.0. E1 qualifies the exact 2.2.0 source/documentation commit with a hosted build, without a new model run. E2 tagging/publication needs Alex's separate go.
 
 Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.
 
@@ -124,9 +130,15 @@ CreateScreen routes prompt-only Word, Excel and PowerPoint generation through th
 
 Generation diagnostics retain file type, response length where applicable and exception class, never output paths, prompt-derived names, slide content or exception text. This describes the updated generation route; legacy manipulation remains disabled.
 
+## Built-in PowerPoint templates
+
+The app picker lists only the seeded business_pitch and technical_overview templates. MainWindow retains the chosen manifest/directory for the existing generation worker; Clear removes that choice. Template generation and rendering remain unchanged. B5 removed the capture modules, sample script, background preparation worker and rejection dialog after the B3 drop.
+
+The developer CLI retains its separate import_template tool and template-generation commands. Its entries are not selectable in the app's built-in picker.
+
 ## MSI packaging and hosted CI
 
-Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.1.0.0. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths.
+Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.2.0.0, read from app/version.py. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths. The MSI version is 2.2.0 and its derived upgrade probe is 2.2.1.
 
 LICENSE and validated third_party notices are in the payload; the MSI and portable ZIP use that same payload. SHA256SUMS.json records payload and artifact hashes. The runner-only qualification checks NSIS refusal, install/registration/shortcuts, 20-second offscreen startup without Ollama, same-version repair, a synthetic major upgrade and settings-preserving uninstall. It does not establish native UI acceptance, SmartScreen reputation or a clean machine without developer runtimes.
 
@@ -134,7 +146,7 @@ The workflow runs source tests on pushes and pull requests. Only manual mileston
 
 ## Later architecture and references
 
-[Post-first-release requirements](../../../PRD.md#post-first-release-requirements) retain editing, reporting, and recognition contracts. Later editing patches bounded OOXML nodes; Office supports disposable preview/recalculation copies only.
+[Post-first-release requirements](../../../PRD.md#post-first-release-requirements) retain editing, reporting, and recognition contracts. Edit for Word is prioritized for 2.3.0 before table-row extraction, subject to its own mockup, technical design and implementation plan. It will patch bounded body-paragraph selections while preserving all bytes outside the selection and retaining tables/headers/footers as read-only. Office supports disposable preview/recalculation copies only in later designs. No editing implementation belongs to 2.2.0.
 
 - [python-docx document order and tables](https://python-docx.readthedocs.io/en/latest/api/document.html).
 - [pdfplumber text extraction](https://github.com/jsvine/pdfplumber#comparison-to-other-libraries).

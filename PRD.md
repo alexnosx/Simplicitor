@@ -1,6 +1,6 @@
 # Simplicitor product requirements
 
-Updated 2026-10-12 for 2.1.0 release preparation. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.1.0 plan](docs/superpowers/plans/2026-10-09-release-2.1.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
+Updated 2026-10-13 for 2.2.0 release preparation. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.2.0 plan](docs/superpowers/plans/2026-10-12-release-2.2.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
 
 ## Purpose
 
@@ -12,25 +12,29 @@ This is the single workflow table. Other documents link here.
 
 | Workflow | Release scope |
 |---|---|
-| Prompt-only Create | Preserve Word, Excel and PowerPoint generation; add PDF output in 2.1.0. |
-| Existing PowerPoint template creation | Preserve existing behavior. |
-| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.1.0, with one record per file. |
-| Invoice line items / one record per table row | Next extraction increment, with its own design. |
-| Selective editing of DOCX, XLSX, PPTX | Post-first-release milestone; preservation contract below. |
+| Prompt-only Create | Preserve Word, PDF, Excel and PowerPoint generation in 2.2.0. |
+| PowerPoint creation from built-in templates | Built-in picker only; preserve the generation engine. |
+| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.2.0, with one record per file. |
+| Invoice line items / one record per table row | After Edit for Word in 2.3.0, with its own design. |
+| Selective editing of DOCX, XLSX, PPTX | Word first in 2.3.0; Excel and PowerPoint later. Preservation contract below. |
 | XLSX-to-DOCX reporting | Post-first-release; blocked on the closed operation set below. |
 | Local OCR/vision for scanned PDFs | Separate post-first-release milestone. |
 
-The 2.1.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create also supports PDF in 2.1.0 and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
+The 2.2.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create retains PDF output and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
 
 English is the target language. Other languages may work but are not tested or claimed.
 
-The published v1.2.1 safety release disabled legacy Edit at its UI and worker entry points, preserving Create/templates. The 2.1.0 Edit document mode is explanatory only and must not re-enable legacy editing.
+The published v1.2.1 safety release disabled legacy Edit at its UI and worker entry points, preserving Create/templates. The 2.2.0 Edit document mode is explanatory only and must not re-enable legacy editing.
 
-## 2.1.0 UI
+## 2.2.0 UI
 
-Offer two modes: Create new (default) and Edit document. Edit document explains that selective editing is coming later, with a return to Create new and no editing action.
+Offer two modes: Create new (default) and Edit document. Edit document explains that Edit for Word arrives in 2.3.0, with a return to Create new and no editing action. Show the shared product version in the window title, top bar and Settings.
 
-Create new starts at Describe with a request, file type, save folder and optional source files. Without sources, it uses the existing prompt/template generation route, including PDF output. Adding sources fixes the output to Excel and advances through Choose columns, then Review and save. The user can edit, add, remove and confirm columns before extraction. Reports from source files remain unavailable. Switching modes or Settings is disabled while work is active. Source names, paths and evidence are plain text.
+Create new starts with two options, each with a one-line explanation: **Write a new document** and **Pull information from documents into Excel**. The chosen option determines the request. Writing uses its description, file type and save folder, and never sends attached source files. PowerPoint offers the built-in templates business_pitch and technical_overview, with the chosen name and Clear. Pulling uses its request and DOCX/text-layer PDF attachments, always produces Excel, and advances through Choose columns, then Review and save. The user can edit, add, remove and confirm columns before extraction. Reports from source files remain unavailable.
+
+Each option retains its own inputs during switching. Leaving Pull clears columns, review and acknowledgement through setup_changed and discards the owned job. Block switching while any work runs and ignore late results for the other option. Mode switching and Settings also remain disabled during work. Use body text of at least 11 pt, darker borders and numbered boxes, with blue hover, choice and focus states. Source names, paths and evidence are plain text.
+
+File rows show Reading, Ready or Partly read; Partly read means the file has reading problems. Show progress on the file row and the main action. While extracting, retain at least four visible column rows and a light disabled selection. The UI spec owns the reading-problems heading and acknowledgement labels.
 
 Show review acknowledgement whenever the candidate has issues, whether highlighted values, reading problems, or both. The UI spec owns the three acknowledgement labels. Successful generation or extraction export opens a Saved page; source extraction still uses the native XLSX Save As dialog.
 
@@ -41,6 +45,8 @@ Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data c
 ## Source reading and records
 
 Read structured units with stable source references, without truncation or source changes. Read DOCX body paragraphs and table cells in document order, plus Word headers and footers as separately anchored units. Read PDF page text; PDF table extraction is unnecessary for this release. Disclose supported scope and flag unsupported structures.
+
+Name detected unread Word content in coverage: text boxes, tracked insertions/deletions/moves, form fields, fields, embedded documents, footnotes/endnotes and nested tables. Text in tracked moves uses the same not-read warning as other tracked text. Tracked formatting or row changes instead require review in Word while their text remains readable. Show reading problems before the table is used, under the UI spec's incomplete-reading heading.
 
 Every attachment defines exactly one output row, even when files share a name or identical contents. Send the whole file in one request whenever it fits the estimated num_ctx budget after accounting for prompt and output tokens. Use the approved conservative estimate described in architecture; it may section files that an exact tokenizer would fit. Only files exceeding this budget are sectioned, using that same context. Accumulate the file's fields across non-overlapping sections in code. Each section uses the whole-file request format with only its current source units; never send previous_fields or source_scope. Do not discover multiple narrative records or implement row-level continuation/header matching. Code owns the complete file/column roster; model omission cannot silently remove rows or fields.
 
@@ -84,7 +90,7 @@ Delete job folders on normal close after handles/workers finish. At startup, del
 | Labelled fixtures | At least 20 synthetic English DOCX/text-PDF contracts and invoices and 200 scored field slots. Include eight prose-based documents with parties in preambles, ordinal dates, sentence-contained amounts, and supplier/invoice identifiers in Word headers. One record per file, including table-contained fields, competing dates, missing fields, literal strings, and fields spread across pages. |
 | Field accuracy | Whole-file path: at least 95% correct Data values against independent labels under confirmed column types. Missing records/fields count as incorrect except labelled absent values. Flagging alone does not make a wrong value correct. Sectioned accuracy is reported without gating it. |
 | Unflagged wrong values | Whole-file path: at most 1% of its scored slots, including semantic errors that pass grounding. At 200 slots, at most two; fail at three. Sectioned path: zero unflagged values, whether correct or incorrect. Every sectioned Data cell requires review with sectioned_source. Flags come from extraction/validation, never labels. |
-| Review burden | Report flag rates on correct values and expected missing values separately. Whole-file indiscriminate flagging is not a usability pass; sectioned sources intentionally require review of every value, including in 2.1.0. |
+| Review burden | Report flag rates on correct values and expected missing values separately. Whole-file indiscriminate flagging is not a usability pass; sectioned sources intentionally require review of every value, including in 2.2.0. |
 | Evaluation candidates | qwen3:8b and llama3.1:8b at Q4_K_M, with reported parameter size of 8B or more. Larger models are optional reference results and cannot be selected. |
 
 Run evaluation on [B1](docs/PROJECT_STATUS.md#benchmark-environment) using the actual English fixture files, anchored readers, and shared grounding/scorer. The Task 1 fixtures fit one request; the full-pipeline corpus also includes larger sectioned files. Record the candidate, quantization, and fixed settings described in [architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md#model-requests).
@@ -99,17 +105,17 @@ Retain instructions after failure, prevent duplicate jobs, and support cooperati
 
 ## Packaging
 
-Use the existing Nuitka/PySide6 foundation and one standalone payload. In 2.1.0, a per-user MSI replaces the 2.0.0 NSIS setup.exe; keep a portable ZIP of that same payload and SHA256SUMS.json. Install into the fixed per-user Programs/Simplicitor folder, with Desktop and Start Menu shortcuts and current-user registration. The MSI refuses an existing 2.0.0 NSIS installation; users uninstall it first, preserving settings and documents. Distribute through GitHub Releases and simplicitor.com. No Microsoft Store or paid signing. Customers need no Python, Office, OCR runtime, or agent configuration for the new workflow.
+Use the existing Nuitka/PySide6 foundation and one standalone payload. Retain the per-user MSI introduced in 2.1.0, with a portable ZIP of that same payload and SHA256SUMS.json. Install into the fixed per-user Programs/Simplicitor folder, with Desktop and Start Menu shortcuts and current-user registration. The MSI refuses an existing 2.0.0 NSIS installation; users uninstall it first, preserving settings and documents. Distribute through GitHub Releases and simplicitor.com. No Microsoft Store or paid signing. Customers need no Python, Office, OCR runtime, or agent configuration for the new workflow.
 
 Preserve settings, templates, and user documents during repair, upgrades and uninstall. Investigate unsigned Windows blocks with default protection enabled; MSI packaging does not establish publisher trust. [Packaging procedures](docs/code-signing.md) retain historical release evidence; the [2.1.0 plan](docs/superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy-alex-2026-10-09) owns the current testing policy.
 
-Run the isolated full local source suite after each task; synthetic temporary-file creation/deletion and mocked build tests are allowed. Never run installers, uninstallers, msiexec, Windows Sandbox, WiX, build.py or qualification on Alex's PC, or install tools/dependencies locally. Pushes run hosted source tests only. Full hosted builds run by manual dispatch at Task 0, B5, C2.7 and D1 and on explicitly authorized version tags. A passing D1 build prepares the release; tagging/publication still require Alex's explicit go.
+Run the isolated full local source suite after each task; synthetic temporary-file creation/deletion and mocked build tests are allowed. Never run installers, uninstallers, msiexec, Windows Sandbox, WiX, build.py or qualification on Alex's PC, or install tools/dependencies locally. Pushes run hosted source tests only. The 2.2.0 E1 milestone builds and qualifies the exact source commit by manual dispatch on GitHub. A passing E1 build prepares the release; E2 tagging/publication still require Alex's separate go. Earlier milestone checks remain historical evidence.
 
 ## Post-first-release requirements
 
-Invoice line-item/table-row extraction is the next extraction increment and needs its own design. Multiple narrative records, table continuation/repeated-header matching, and OCR/vision remain outside the first release.
+Edit for Word in 2.3.0 comes before invoice line-item/table-row extraction. Its separate mockup, technical design and implementation plan must be approved before work starts. The first Word editor targets selected whole body paragraphs; tables, headers and footers remain read-only. Table-row extraction then needs its own design. Multiple narrative records, table continuation/repeated-header matching, and OCR/vision remain outside this release.
 
-Selective editing remains a later milestone. Confirm exact targets, patch a separate candidate, and review before publication. Apply edits directly to OOXML parts: w:t, a:t, cell values, and shared strings. Every unedited package part's bytes remain identical; edited parts differ only at approved target nodes. Define shared-string alias handling so a selected cell edit cannot affect other cells. Do not broadly reserialize unrelated content.
+Selective editing remains outside 2.2.0, with Word first and Excel/PowerPoint later. Confirm exact targets, patch a separate candidate, and review before saving. Apply edits directly to OOXML parts: w:t, a:t, cell values, and shared strings. Every unedited package part's bytes remain identical; edited parts differ only at approved target nodes. Word editing must preserve every byte of document.xml outside the approved selection without whole-part reserialization. Define shared-string alias handling so a selected cell edit cannot affect other cells. Do not broadly reserialize unrelated content.
 
 Office COM is reserved for later PDF preview export and Excel recalculation on disposable copies. COM-saved copies cannot replace preserved patched output. Feature support and allowed node changes need a later design.
 

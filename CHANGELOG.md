@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.2.0, unreleased
+
+- Offer two explicit Create options: Write a new document and Pull information from documents into Excel. Retain each option's inputs; writing never sends attached sources and pulling always produces Excel. Leaving Pull clears derived columns/review and discards its temporary job. Busy and late-result gates remain.
+- Use numbered cards, 11 pt body text, darker borders, blue dropdown/focus and template-button states, and a chosen template label with Clear. Show per-file reading states and progress on file rows and main actions; keep four column rows visible while extracting with a light disabled selection.
+- Offer built-in PowerPoint templates only after the B3 drop. Remove the app's deck upload, preparation/rejection UI and B1-B3 capture code; retain the generation engine and developer CLI tools.
+- Name detected Word reading problems, including unread tracked moves. Distinguish tracked formatting/row changes that need review while retaining their text. Present incomplete-reading problems under the general check-before-use heading and preserve acknowledgement gates.
+- Clear finished progress messages, use an extraction-specific request hint and point model selection to Settings. Show one shared version in the window title, top bar, Settings and build outputs.
+- Set the product/MSI version to 2.2.0 and executable version to 2.2.0.0; the hosted upgrade probe is 2.2.1. Keep the MSI, portable ZIP, checksum inventory and license notices. Update scope/specs/status, the map and release notes; Word editing in 2.3.0 comes before table-row extraction.
+- Extraction algorithms, evaluation fixtures/labels/settings, dependencies and LICENSE remain unchanged. E1 prepares and qualifies the exact source commit on GitHub; tagging and publication require separate E2 approval.
+
 ## v2.1.0, 2026-10-12
 
 Published as [v2.1.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.1.0) and verified as Latest with MSI, portable ZIP, checksums and the release notes as its body. Verification: [docs/releases/v2.1.0.json](docs/releases/v2.1.0.json).
