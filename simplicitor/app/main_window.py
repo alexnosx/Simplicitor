@@ -456,6 +456,8 @@ class MainWindow(QMainWindow):
             save_dir: Directory where the generated file should be saved.
             prompt: The user's natural-language prompt.
         """
+        if self._create_screen.route() != "write":
+            return
         if not self._current_model:
             logger.warning("Generate requested but no model selected")
             self._create_screen.show_status(
@@ -514,6 +516,8 @@ class MainWindow(QMainWindow):
 
     def _on_generate_started(self) -> None:
         """Called when GenerateWorker begins execution."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.set_generating(True)
         self._create_screen.clear_status()
 
@@ -523,7 +527,8 @@ class MainWindow(QMainWindow):
         Args:
             msg: Human-readable progress message.
         """
-        self._create_screen.show_status(msg, is_error=False)
+        if self._create_screen.route() == "write" and not self._closing:
+            self._create_screen.show_status(msg, is_error=False)
 
     def _on_generate_completed(self, path: str) -> None:
         """Called when GenerateWorker successfully writes the output file.
@@ -549,6 +554,8 @@ class MainWindow(QMainWindow):
         Args:
             msg: User-friendly error message.
         """
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.show_status(msg, is_error=True)
         logger.error("Generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
@@ -629,6 +636,8 @@ class MainWindow(QMainWindow):
 
     def _on_template_started(self) -> None:
         """Called when TemplateGenerateWorker begins execution."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.set_generating(True)
         self._create_screen.clear_status()
 
@@ -651,6 +660,8 @@ class MainWindow(QMainWindow):
 
     def _on_template_failed(self, msg: str) -> None:
         """Called when the template pipeline fails. Keeps the loaded template for retry."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.show_status(msg, is_error=True)
         logger.error("Template generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down

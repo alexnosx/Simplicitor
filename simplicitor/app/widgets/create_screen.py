@@ -5,9 +5,9 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import QEvent, Qt, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QComboBox, QFileDialog, QFormLayout, QFrame, QGroupBox,
+    QAbstractItemView, QButtonGroup, QCheckBox, QComboBox, QFileDialog, QFormLayout, QFrame, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
     QPlainTextEdit, QProgressBar, QPushButton, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,
@@ -78,6 +78,9 @@ class CreateScreen(QWidget):
         self._progress_counts: tuple[int, int] | None = None
         self._source_counts: dict[str, int] = {}
         self._reading_problems: set[str] = set()
+        self._file_scroll_timer = QTimer(self)
+        self._file_scroll_timer.setSingleShot(True)
+        self._file_scroll_timer.timeout.connect(self._scroll_to_active_file)
         self.setAcceptDrops(True)
         self.setObjectName("createWorkspace")
         self.setStyleSheet(
@@ -86,6 +89,9 @@ class CreateScreen(QWidget):
             f"color: {BODY_TEXT_COLOR}; }}"
             f"QFrame#documentCard {{ background: white; border: 1px solid {BORDER_COLOR}; "
             "border-radius: 4px; }"
+            f"QPushButton {{ background: white; color: {BODY_TEXT_COLOR}; "
+            f"border: 1px solid {BORDER_COLOR}; border-radius: 4px; padding: 8px 12px; }}"
+            "QPushButton:disabled { background: #F9FAFB; color: #9CA3AF; }"
             f"QPushButton[primary='true'] {{ background: {PRIMARY_ACCENT_COLOR}; color: white; "
             "border: none; border-radius: 4px; padding: 8px 14px; font-weight: 600; }"
             "QPushButton[primary='true']:disabled { background: #E5E7EB; color: #747B87; }"
@@ -105,12 +111,14 @@ class CreateScreen(QWidget):
             f"QPushButton[route='true']:checked {{ background: {INFO_BANNER_BG_COLOR}; "
             f"border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
             f"QProgressBar {{ border: none; background: #E2E7EE; }}"
-            f"QProgressBar::chunk {{ background: {PRIMARY_ACCENT_COLOR}; }}")
+            f"QProgressBar::chunk {{ background: {PRIMARY_ACCENT_COLOR}; }}"
+            "QLabel[cardTitle='true'] { font-weight: 600; }"
+            "QPlainTextEdit#readingProblems { background: #FFF8E9; border: 1px solid #B88B40; }")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 14, 20, 20)
         layout.setSpacing(12)
         heading = QHBoxLayout()
-        title = QLabel("Create a new document")
+        title = QLabel("Create new")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
         self._caption = QLabel("Describe what you need.")
         self._caption.setStyleSheet("color: #626B78;")
@@ -122,9 +130,11 @@ class CreateScreen(QWidget):
                                         "Word, PDF, PowerPoint or Excel, from a description.")
         self._pull_option = QPushButton("Pull information from documents into Excel\n"
                                        "Read your Word files or PDFs and make an Excel table.")
+        self._route_buttons = QButtonGroup(self)
         for route, button in (("write", self._write_option), ("pull", self._pull_option)):
             button.setProperty("route", True)
             button.setCheckable(True)
+            self._route_buttons.addButton(button)
             button.clicked.connect(lambda _checked=False, value=route: self.set_route(value))
             options.addWidget(button, 1)
         self._steps = StepIndicator()
@@ -194,25 +204,35 @@ class CreateScreen(QWidget):
         layout.setSpacing(10)
         return card, layout
 
+    @staticmethod
+    def _card_title(text: str) -> QLabel:
+        label = QLabel(text)
+        label.setProperty("cardTitle", True)
+        return label
+
     def _build_describe_page(self) -> QWidget:
         page = QWidget()
         row = QHBoxLayout(page)
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(20)
         self._description_card, column = self._card()
-        self._describe_title = QLabel("1. Describe the document you need")
-        self._describe_title.setStyleSheet("font-weight: 600;")
+        self._describe_title = self._card_title("1. Describe the document you need")
         column.addWidget(self._describe_title)
+        self._prompt_label = QLabel("Description")
+        column.addWidget(self._prompt_label)
         self._prompt_edit = QPlainTextEdit()
         self._prompt_edit.setMinimumHeight(116)
         self._prompt_edit.setMaximumHeight(180)
         column.addWidget(self._prompt_edit)
+        self._writing_help = QLabel("Be specific about the content, sections and length.")
+        column.addWidget(self._writing_help)
         self._tip_label = QLabel(
             "Tip: Your model works best with short, clear prompts. "
             "Consider simplifying your request for better results.")
         self._tip_label.setWordWrap(True)
         column.addWidget(self._tip_label)
-        self._sources_note = QLabel("One record per file. You can edit the suggested columns next.")
+        self._sources_note = QLabel("One row per file. You will confirm the columns, then review "
+                                   "the table and its source text before saving.")
         self._sources_note.setWordWrap(True)
         self._sources_note.setStyleSheet("background: #EFF6FF; padding: 10px;")
         column.addWidget(self._sources_note)
@@ -228,7 +248,7 @@ class CreateScreen(QWidget):
         column.addStretch()
 
         self._output_card, output = self._card()
-        output.addWidget(QLabel("2. Choose the output"))
+        output.addWidget(self._card_title("2. Choose the output"))
         output.addWidget(QLabel("File type"))
         self._type_combo = QComboBox()
         for label in GENERATE_FILE_TYPES:
@@ -272,7 +292,7 @@ class CreateScreen(QWidget):
         self._write_actions.addStretch()
 
         self._source_card, sources = self._card()
-        sources.addWidget(QLabel("2. Add your source files"))
+        sources.addWidget(self._card_title("2. Add your source files"))
         drop = QHBoxLayout()
         hint = QLabel("Drop Word files or PDFs with selectable text here, or")
         hint.setWordWrap(True)
@@ -287,12 +307,16 @@ class CreateScreen(QWidget):
         self._source_list.setStyleSheet("QListWidget::item { padding: 0; }")
         self._source_list.setMaximumHeight(180)
         sources.addWidget(self._source_list)
+        source_hint = QLabel("DOCX and PDFs with selectable text. Scanned PDFs are not supported.")
+        source_hint.setWordWrap(True)
+        sources.addWidget(source_hint)
         self._reading_label = QLabel("Reading your files...")
         self._read_again_btn = QPushButton("Read files again")
         self._read_again_btn.clicked.connect(self._read_again)
         sources.addWidget(self._reading_label)
         sources.addWidget(self._read_again_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._source_coverage = QPlainTextEdit()
+        self._source_coverage.setObjectName("readingProblems")
         self._source_coverage.setReadOnly(True)
         self._source_coverage.setMaximumHeight(160)
         self._source_coverage.hide()
@@ -527,6 +551,7 @@ class CreateScreen(QWidget):
                 top = QHBoxLayout()
                 label = QLabel(path.name)
                 label.setTextFormat(Qt.TextFormat.PlainText)
+                label.setStyleSheet(f"color: {BODY_TEXT_COLOR};")
                 label.setWordWrap(True)
                 label.setMinimumWidth(0)
                 top.addWidget(label, 1)
@@ -557,6 +582,7 @@ class CreateScreen(QWidget):
                        if self._source_counts.get(doc.source_id, 0) < len(doc.units)), None)
         self._file_progress_box.setVisible(extracting)
         for view in (self._source_list, self._working_files):
+            active_item = None
             for index in range(view.count()):
                 item = view.item(index)
                 holder = view.itemWidget(item)
@@ -580,6 +606,27 @@ class CreateScreen(QWidget):
                 holder.findChild(QProgressBar, "fileProgressBar").setVisible(
                     self._inspecting or working)
                 item.setSizeHint(holder.sizeHint())
+                if working:
+                    active_item = item
+            if view is self._working_files and active_item is not None:
+                view.scrollToItem(active_item, QAbstractItemView.ScrollHint.PositionAtBottom)
+                # Row heights and scroll ranges also settle on the next layout turn.
+                self._file_scroll_timer.start(0)
+
+    def _scroll_to_active_file(self) -> None:
+        if not self._busy or self._work_action != "extract":
+            return
+        for index, doc in enumerate(self._documents):
+            if self._source_counts.get(doc.source_id, 0) < len(doc.units):
+                self._working_files.scrollToItem(self._working_files.item(index),
+                                                QAbstractItemView.ScrollHint.PositionAtBottom)
+                break
+
+    def eventFilter(self, watched, event) -> bool:
+        """Keep the active progress row visible after a viewport resize."""
+        if event.type() == QEvent.Type.Resize:
+            self._file_scroll_timer.start(0)
+        return super().eventFilter(watched, event)
 
     def _setup_controls(self) -> tuple:
         return (self._write_option, self._pull_option,
@@ -721,10 +768,12 @@ class CreateScreen(QWidget):
         self._output_card.setVisible(not pulling)
         self._describe_title.setText("1. Describe the information you need" if pulling
                                      else "1. Describe the document you need")
+        self._prompt_label.setText("What should go in Excel?" if pulling else "Description")
+        self._writing_help.setVisible(not pulling)
         host = self._description_card if pulling else self._output_card
         if self._primary_btn.parentWidget() is not host:
-            (self._pull_actions if pulling else self._write_actions).addWidget(
-                self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+            (self._pull_actions if pulling else self._write_actions).insertWidget(
+                0, self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._sources_note.setVisible(pulling)
         self._save_folder.setVisible(not pulling)
         self._reading_label.setVisible(self._inspecting)
@@ -757,7 +806,7 @@ class CreateScreen(QWidget):
 
     def _build_columns_page(self) -> QWidget:
         page, layout = self._card()
-        layout.addWidget(QLabel("3. Choose columns"))
+        layout.addWidget(self._card_title("3. Choose columns"))
         self._columns_table = QTableWidget(0, 3)
         self._columns_table.setHorizontalHeaderLabels(["Name", "Description", "Type"])
         self._columns_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -807,6 +856,7 @@ class CreateScreen(QWidget):
         self._file_progress_box = QGroupBox("File progress")
         progress = QVBoxLayout(self._file_progress_box)
         self._working_files = QListWidget()
+        self._working_files.viewport().installEventFilter(self)
         self._working_files.setStyleSheet("QListWidget::item { padding: 0; }")
         self._working_files.setMaximumHeight(150)
         progress.addWidget(self._working_files)
@@ -830,7 +880,7 @@ class CreateScreen(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         splitter = QSplitter(Qt.Orientation.Horizontal)
         review, left = self._card()
-        left.addWidget(QLabel("4. Review your table"))
+        left.addWidget(self._card_title("4. Review your table"))
         self._review_note = QLabel("Highlighted values need a check before you save.")
         self._review_note.setWordWrap(True)
         self._review_note.setStyleSheet("background: #FFF8E9; padding: 10px;")
@@ -840,6 +890,7 @@ class CreateScreen(QWidget):
         self._grid.currentCellChanged.connect(self._show_evidence)
         left.addWidget(self._grid, 1)
         self._coverage_view = QPlainTextEdit()
+        self._coverage_view.setObjectName("readingProblems")
         self._coverage_view.setReadOnly(True)
         self._coverage_view.setMaximumHeight(100)
         self._coverage_view.hide()
@@ -859,7 +910,7 @@ class CreateScreen(QWidget):
         bottom.addStretch()
         left.addLayout(bottom)
         evidence, right = self._card()
-        right.addWidget(QLabel("5. Where this value came from"))
+        right.addWidget(self._card_title("5. Where this value came from"))
         self._evidence = QPlainTextEdit()
         self._evidence.setReadOnly(True)
         right.addWidget(self._evidence, 1)

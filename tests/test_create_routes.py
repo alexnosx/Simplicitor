@@ -117,3 +117,21 @@ def test_reading_problems_survive_a_round_trip(qtbot, isolated_profile):
     screen.set_route("write")
     screen.set_route("pull")
     assert "text in text boxes was not read" in screen._source_coverage.toPlainText()
+
+
+def test_pull_rejects_a_stale_write_request_and_write_status(window, tmp_path, monkeypatch):
+    panel = window._create_screen
+    panel.set_route("pull")
+    window._current_model = "qwen3:8b"
+    monkeypatch.setattr(window, "_start_freeform_generation",
+                        lambda *args: pytest.fail("Pull started prompt generation"))
+    window._on_generate_requested("Word (.docx)", str(tmp_path / "unused"), "Stale write")
+    assert not (tmp_path / "unused").exists()
+    panel.show_status("Keep this Pull message")
+    window._on_generate_started()
+    window._on_generate_progress("Stale progress")
+    window._on_generate_failed("Stale failure")
+    window._on_template_started()
+    window._on_template_failed("Stale template failure")
+    assert panel._status.text() == "Keep this Pull message"
+    assert not panel._generating

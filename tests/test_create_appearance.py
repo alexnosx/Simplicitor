@@ -66,3 +66,20 @@ def test_template_is_kept_across_routes_but_not_a_real_type_change(window):
     assert panel._template_loaded and window._loaded_template is not None
     panel.set_file_type("PDF (.pdf)")
     assert not panel._template_loaded and window._loaded_template is None
+
+
+def test_clicking_active_option_keeps_its_selected_state(qtbot, isolated_profile):
+    screen = _screen(qtbot, isolated_profile)
+    screen._write_option.click()
+    assert screen.route() == "write" and screen._write_option.isChecked()
+    screen._pull_option.click()
+    screen._pull_option.click()
+    assert screen.route() == "pull" and screen._pull_option.isChecked()
+    assert not screen._write_option.isChecked()
+
+
+def test_route_round_trip_keeps_the_action_at_the_left(qtbot, isolated_profile):
+    screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
+    screen.set_route("write")
+    assert screen._write_actions.indexOf(screen._primary_btn) == 0

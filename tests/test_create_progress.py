@@ -87,7 +87,8 @@ def test_late_source_progress_is_ignored_on_write(window):
     assert window._create_screen._progress_counts is None
 
 
-def test_progress_uses_source_ids_not_duplicate_names(qtbot, isolated_profile):
+def test_progress_uses_source_ids_not_duplicate_names(qtbot, isolated_profile, qapp):
+    from PySide6.QtCore import QPoint
     from extraction.models import SourceUnit
     screen = _screen(qtbot, isolated_profile)
     screen.set_route("pull")
@@ -104,3 +105,12 @@ def test_progress_uses_source_ids_not_duplicate_names(qtbot, isolated_profile):
     assert "Processed 1 source units" in row_labels(screen, 0, screen._working_files)
     assert "Extracting... 1 / 3 source units" in row_labels(screen, 1, screen._working_files)
     assert screen._extract_btn.text() == "Extracting... 2 / 4"
+    screen.resize(1240, 660)
+    screen._pages.setCurrentWidget(screen._columns_page)
+    qapp.processEvents()
+    holder = screen._working_files.itemWidget(screen._working_files.item(1))
+    bar = holder.findChild(QProgressBar)
+    def active_row_is_visible():
+        y = bar.mapTo(screen._working_files.viewport(), QPoint(0, 0)).y()
+        return 0 <= y and y + bar.height() <= screen._working_files.viewport().height()
+    qtbot.waitUntil(active_row_is_visible, timeout=1000)
