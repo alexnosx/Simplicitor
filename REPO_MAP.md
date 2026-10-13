@@ -447,6 +447,7 @@ scripts/
     evaluate_extraction.py
     gen_repo_map.py
     inspect_template.py
+    make_edit_fixtures.ps1
     qualify_windows_installer.ps1
 simplicitor/
     app/
@@ -498,6 +499,10 @@ simplicitor/
         __init__.py
         main_window.py
         version.py
+    editing/
+        __init__.py
+        body_map.py
+        models.py
     extraction/
         __init__.py
         grounding.py
@@ -540,6 +545,14 @@ simplicitor/
     cli.py
     main.py
 tests/
+    editing/
+        fixtures/
+            word-basic.docx
+            word-ranges.docx
+        __init__.py
+        conftest.py
+        docx_builder.py
+        test_body_map.py
     extraction/
         fixtures/
             labels/
@@ -980,6 +993,32 @@ requirements.txt
 - def _build_parser() -> argparse.ArgumentParser
 - def main() -> int
 
+### simplicitor/editing/__init__.py
+
+(no top-level definitions)
+
+### simplicitor/editing/body_map.py
+
+- def tag_end(xml: bytes, start: int) -> int: Index just past the tag that starts at xml[start] == '<'; '>' inside quotes is text.
+- def _split(name: str) -> tuple[str, str]
+- def _parse(parser, xml: bytes) -> None
+- def _paired_comments(xml: bytes) -> set[str]: IDs with one comment range start followed by one end. Lone markers are point anchors.
+- def scan(xml: bytes) -> tuple[tuple[Block, ...], tuple[BookmarkMarker, ...]]: Map every direct child of w:body; raise EditError for unreadable or unbalanced XML.
+- def _freeze(block: dict) -> Block
+- def selection_problem(blocks: tuple[Block, ...], first: int, last: int) -> str | None: None when body paragraphs first..last form a valid selection, else the message.
+
+### simplicitor/editing/models.py
+
+- class EditError(ValueError): A safe, user-facing editing failure. outcome tells the UI what to do next.
+- class Run
+- class Marker: A bookmark marker inside a body paragraph; place is lead, trail or inline.
+- class Block: One direct child of w:body. index is the body paragraph index, or -1.
+- class BookmarkMarker: Any bookmark marker in the main part, for verification check 6.
+- class OpenedDocument
+- class ProposedParagraph
+- class Proposal
+- class EditCandidate: A verified new package held in memory until Save As.
+
 ### simplicitor/extraction/__init__.py
 
 (no top-level definitions)
@@ -1146,6 +1185,39 @@ requirements.txt
 
 - def auto_show_widgets(qtbot, monkeypatch): Auto-show top-level widgets registered with qtbot unless they were explicitly hidden.
 - def isolated_profile(tmp_path, monkeypatch): Point every per-user folder at tmp_path before Settings or MainWindow exist.
+
+### tests/editing/__init__.py
+
+(no top-level definitions)
+
+### tests/editing/conftest.py
+
+- def make_docx(tmp_path): Write build_docx(...) to a file and return its path.
+
+### tests/editing/docx_builder.py
+
+- def _replace(data: bytes, name: str, content: bytes) -> bytes
+- def build_docx(body: str='', styles: str='', settings: str='', document: bytes | None=None, extra: dict[str, bytes] | None=None) -> bytes: A .docx whose body is `body` (w: prefix) followed by the template's sectPr.
+- def p(text: str, ppr: str='', rpr: str='', attrs: str='') -> str: One paragraph with one run.
+
+### tests/editing/test_body_map.py
+
+- def _xml(data: bytes) -> bytes
+- def _reasons(data: bytes) -> list[tuple[str, str | None]]
+- def test_word_basic_fixture_matches_python_docx_and_names_read_only_parts()
+- def test_word_ranges_fixture_protects_fields_comments_and_inline_bookmarks()
+- def test_byte_ranges_cover_each_body_child_exactly()
+- def test_unusual_but_valid_xml_is_mapped()
+- def test_alternate_and_default_prefixes_are_recorded()
+- def test_paragraph_contents_that_make_it_read_only(inner, reason)
+- def test_section_break_and_revision_properties_make_it_read_only()
+- def test_complex_field_across_paragraphs_protects_the_plain_middle_paragraph()
+- def test_comment_range_across_paragraphs_protects_the_plain_middle_paragraph()
+- def test_point_comments_open_no_range(marker)
+- def test_reversed_repeated_or_unbalanced_ranges_refuse_the_document(body)
+- def test_bookmark_places_and_the_goback_exception()
+- def test_namespace_declaration_inside_a_paragraph_makes_it_read_only()
+- def test_selection_rules()
 
 ### tests/extraction/test_evaluation.py
 
@@ -2408,6 +2480,7 @@ requirements.txt
 - resources/third_party/qt/qtwebengine/LICENSES/MIT.txt: txt, 11 lines
 - resources/third_party/qt/qtwebengine/LICENSES/Qt-GPL-exception-1.0.txt: txt, 22 lines
 - resources/third_party/qt/sources.json: json, 930 lines
+- scripts/make_edit_fixtures.ps1: ps1, 82 lines
 - scripts/qualify_windows_installer.ps1: ps1, 203 lines
 - simplicitor/prompts/system_excel.txt: txt, 15 lines
 - simplicitor/prompts/system_manipulate.txt: txt, 13 lines
@@ -2422,6 +2495,8 @@ requirements.txt
 - simplicitor/templates_engine/builtin/business_pitch/template.pptx: pptx (binary)
 - simplicitor/templates_engine/builtin/technical_overview/manifest.yaml: yaml, 45 lines
 - simplicitor/templates_engine/builtin/technical_overview/template.pptx: pptx (binary)
+- tests/editing/fixtures/word-basic.docx: docx (binary)
+- tests/editing/fixtures/word-ranges.docx: docx (binary)
 - tests/extraction/fixtures/.gitattributes: text, 1 lines
 - tests/extraction/fixtures/README.md: md, 13 lines
 - tests/extraction/fixtures/authored_cases.json: json, 957 lines
