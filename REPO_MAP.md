@@ -78,6 +78,7 @@ docs/
         2.1.0-msi-ci.json
         2.1.0-ui-ci.json
         2.2.0-ci.json
+        2.3.0-word-check.json
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
         2026-10-09-task6-ci.json
@@ -2472,7 +2473,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 130 lines
+- docs/PROJECT_STATUS.md: md, 131 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2482,6 +2483,7 @@ requirements.txt
 - docs/builds/2.1.0-msi-ci.json: json, 149 lines
 - docs/builds/2.1.0-ui-ci.json: json, 220 lines
 - docs/builds/2.2.0-ci.json: json, 137 lines
+- docs/builds/2.3.0-word-check.json: json, 68 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines

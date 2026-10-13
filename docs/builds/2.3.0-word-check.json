@@ -1,0 +1,68 @@
+{
+  "checked_on": "2026-10-13",
+  "source_commit": "82311a7083366b529685729ca43972d188efb96c",
+  "sample_builder_exit_code": 0,
+  "word_check_exit_code": 0,
+  "word": {
+    "version": "16.0",
+    "build": "16.0.20326",
+    "result_line": "Word 16.0 build 16.0.20326"
+  },
+  "samples": [
+    {
+      "name": "bold-value.docx",
+      "sha256": "9b9390a3ef6baec4fd96e054c6c58050baecf5ede72cc1414c93853342876b62",
+      "result": "opened",
+      "paragraphs": 18,
+      "bookmarks": 1,
+      "result_line": "bold-value.docx: opened, paragraphs 18, bookmarks 1"
+    },
+    {
+      "name": "goback-rewrite.docx",
+      "sha256": "d5a8ed6f83366e05e116575c53616d4eff1b737b3d4851124665d2482a039562",
+      "result": "opened",
+      "paragraphs": 15,
+      "bookmarks": 5,
+      "result_line": "goback-rewrite.docx: opened, paragraphs 15, bookmarks 5"
+    },
+    {
+      "name": "headings-split.docx",
+      "sha256": "d6c8bdf0ee7551125fcd29e5412e10173108fcdcd5761899a81ac591d611abd9",
+      "result": "opened",
+      "paragraphs": 16,
+      "bookmarks": 5,
+      "result_line": "headings-split.docx: opened, paragraphs 16, bookmarks 5"
+    },
+    {
+      "name": "list-item-added.docx",
+      "sha256": "0b9a195a749ef318f2aea68a77e9c4295324a6a638a129171c37841686068079",
+      "result": "opened",
+      "paragraphs": 19,
+      "bookmarks": 1,
+      "result_line": "list-item-added.docx: opened, paragraphs 19, bookmarks 1"
+    },
+    {
+      "name": "page-break-split.docx",
+      "sha256": "27e3acf8263e580c7ecc1c2adfccccba51694ae82ae71bfb66f6dfac35812125",
+      "result": "opened",
+      "paragraphs": 16,
+      "bookmarks": 5,
+      "result_line": "page-break-split.docx: opened, paragraphs 16, bookmarks 5"
+    },
+    {
+      "name": "range-split.docx",
+      "sha256": "88ae4e185f58d363113616737999fe31cc6e70c97e835d4b73226241a344a3c3",
+      "result": "opened",
+      "paragraphs": 19,
+      "bookmarks": 1,
+      "result_line": "range-split.docx: opened, paragraphs 19, bookmarks 1"
+    }
+  ],
+  "cleanup": {
+    "sample_folder_deleted": true,
+    "word_processes_before": 2,
+    "word_processes_after": 2,
+    "new_word_processes_remaining": 0,
+    "pre_existing_word_processes_preserved": true
+  }
+}
