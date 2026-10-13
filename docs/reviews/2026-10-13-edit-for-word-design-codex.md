@@ -217,3 +217,25 @@ The fixture uses the built-in `List Bullet` style, whose style properties contai
 - The successful native probe used the already-installed Windows PowerShell/Word COM interface. It opened only the synthetic fixture with `ReadOnly=true`, did not add it to recent files, requested no repair, saved nothing through Word, and closed without saving. The fixture SHA-256 before and after was `6876d4fe346f83e6071b7901872ca09ad145b3ef243699b9154ccdb5cc5b3b4f`. Its final run exited 0; a subsequent process check confirmed zero remaining Word processes. No existing user document or running Word instance was attached.
 - Synthetic inputs, scratch scripts and measured JSON remain ignored under `.venv/review-edit-word-draft3/`. No tool/dependency installation, source-suite run, live model request, application/code change, installer, build or qualification action was performed. This small Word check establishes these formatting outcomes, not overall editor or producer compatibility.
 - Only this review append and regenerated map metadata are committed. The design, application, plan, mockup, LICENSE, main and release records remain unchanged. Correct F14 before treating the design as ready for the implementation-plan approval step; no plan or implementation is authorized by this review.
+
+## Draft 4
+
+Reviewed 2026-10-13: `c770a747a869679eadea6e11b8f219216d3fb34d`, against `c0428f7`, using only the changes to the [technical design](../superpowers/specs/2026-10-13-edit-for-word-design.md). Line numbers below refer to Draft 4. The earlier review sections remain unchanged.
+
+**As of c770a74, the design has no open review findings and is ready for Alex's approval as the basis of the implementation plan.** F14 and the remaining parts of F5/F11 are resolved as written. No new defect was found in this change; there are no new numbered findings.
+
+### Per-finding result
+
+| Finding | Result | Reason |
+|---|---|---|
+| F14 | Resolved | Line 135 now searches for the first present `numId` component in direct properties and then the style chain, continuing past level-only or empty containers. Explicit zero stops inheritance. `ilvl` is resolved independently. The four previous Word cases now produce effective IDs `[1, 1, 0, 1]` and list flags `[True, True, False, True]`, matching the measured Word results. Line 273 adds level-only and empty-direct cases to reading and candidate-derived review tests. |
+| F5, remaining part | Resolved | The numbering rule now retains the list marker in the partial/empty cases without losing explicit cancellation. Together with the already-reviewed candidate-derived display and Word-confirmed bold behaviour, this closes the outstanding reading/review fidelity finding. |
+| F11, remaining part | Resolved | The corrected per-component precedence removes the numbering regression left open in Draft 3. The bold rule is unchanged, and the withdrawal of my incorrect same-chain expectation remains in force. No resolved bold case was reopened. |
+
+### Verification and boundary
+
+- Reviewed `git diff c0428f7 c770a74 -- docs/superpowers/specs/2026-10-13-edit-for-word-design.md`, the revised numbering definition, its test-matrix entry and its correction record. D1 to D3 and previously resolved findings were not reassessed.
+- Ran `.venv/review-edit-word-draft4/probe_draft4.py`; it exited 0. A literal reference implementation of the written component search matches all four native Word numbering measurements recorded during Draft 3: inherited list, direct level-only override, direct zero and empty direct container. The stored fixture's SHA-256 still matches that measurement. This comparison uses the previous Word 16.0, build 16.0.20326 evidence; Word was not launched again.
+- Additional synthetic rule checks confirm that a partial style inherits its missing ID, a direct level overrides only the level, direct and style-level zero stop ID inheritance, and absence of any ID remains unlisted. These are checks of the specified rule, not new native Word measurements or application tests.
+- Scratch code/results remain ignored under `.venv/review-edit-word-draft4/`. Only this append and regenerated map metadata are changed. No design/code/plan edit, source-suite run, dependency installation, build, qualification, merge or release action was performed; main, LICENSE and release records remain unchanged.
+- The next step is Alex's design approval. No implementation plan was created, and this review does not authorize planning or implementation by itself.
