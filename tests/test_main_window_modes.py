@@ -37,6 +37,7 @@ def test_proposal_waits_for_inspection(window, tmp_path, monkeypatch):
     monkeypatch.setattr(window, "_start_extraction", lambda action, setup, **kw: starts.append(action))
     window._connect_create_screen()
     screen = window._create_screen
+    screen.set_route("pull")
     screen.set_model("qwen3:8b")
     screen.set_ollama_connected(True)
     screen._prompt_edit.setPlainText("Invoice number")
@@ -73,6 +74,7 @@ def test_step_labels_fit_at_screenshot_size(window, qapp, tmp_path, monkeypatch)
         source = tmp_path / "source.docx"
         Document().save(source)
         monkeypatch.setattr(window, "_start_extraction", lambda *a, **kw: None)
+        window._create_screen.set_route("pull")
         window._create_screen.set_paths((source,))
         steps = window._create_screen._steps
         steps.set_steps(["Describe", "Choose columns", "Review and save"])
@@ -152,7 +154,7 @@ def test_settings_changes_model_only_on_save(window, monkeypatch, accepted):
 
 
 @pytest.mark.parametrize("cancel", [False, True])
-def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, cancel):
+def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp_path, qtbot, cancel):
     from PySide6.QtCore import QObject, Signal, Slot
     from extraction.models import ColumnSpec, SourceDocument, SourceUnit
     import app.main_window as main_window
@@ -164,6 +166,7 @@ def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp
 
     class FakeWorker(QObject):
         progress = Signal(str)
+        source_progress = Signal(str, int, int)
         inspection_ready = Signal(object)
         columns_ready = Signal(object)
         candidate_ready = Signal(object, object)
@@ -188,6 +191,7 @@ def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp
 
     monkeypatch.setattr(main_window, "ExtractionWorker", FakeWorker)
     screen = window._create_screen
+    screen.set_route("pull")
     screen.set_model("qwen3:8b")
     screen.set_ollama_connected(True)
     screen._prompt_edit.setPlainText("Invoice number")
@@ -203,10 +207,8 @@ def test_pending_extract_survives_the_inspection_thread(window, monkeypatch, tmp
     if cancel:
         screen._cancel_btn.click()
         assert not screen._cancel_btn.isEnabled()
-    from PySide6.QtTest import QTest
-    for _ in range(100):
-        if window._extraction_thread is None:
-            break
-        QTest.qWait(50)
+    # Use pytest-qt's timed event loop. A native qWait blocked inside Qt on the
+    # full-suite handoff, so an iteration count did not bound the old wait.
+    qtbot.waitUntil(lambda: window._extraction_thread is None, timeout=5000)
     assert actions[0] == "inspect" and actions.count("extract") == (0 if cancel else 1)
 

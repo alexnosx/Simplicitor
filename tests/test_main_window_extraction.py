@@ -85,6 +85,7 @@ def test_empty_model_discovery_clears_the_selection_and_warning(window):
 def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_path, monkeypatch, cancel):
     candidate = saved_candidate(tmp_path, flagged=False)
     panel = window._create_screen
+    panel.set_route("pull")
     panel.show_candidate(candidate, read_candidate(candidate))
     destination = tmp_path / "chosen.xlsx"
     requests = []
@@ -106,6 +107,7 @@ def test_native_save_as_xlsx_filter_confirmation_and_cancellation(window, tmp_pa
 def test_save_acknowledgement_blocks_native_dialog(window, tmp_path, monkeypatch):
     candidate = saved_candidate(tmp_path, flagged=True)
     panel = window._create_screen
+    panel.set_route("pull")
     panel.show_candidate(candidate, read_candidate(candidate))
     monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *a, **k: pytest.fail("unacknowledged"))
     window._on_extraction_save_requested(candidate, False)
@@ -119,6 +121,7 @@ def configure_window(window, tmp_path, qtbot):
     doc.save(path)
     window._on_ollama_connected(["qwen3:8b"], "")
     panel = window._create_screen
+    panel.set_route("pull")
     panel.set_paths((path,))
     qtbot.waitUntil(lambda: window._extraction_thread is None)
     panel._prompt_edit.setPlainText("Extract the ID")
@@ -306,6 +309,7 @@ def test_prompt_generation_cannot_overlap_an_extraction(window, tmp_path, qtbot,
 def test_source_path_refusal_and_wrong_suffix_keep_review(window, tmp_path, monkeypatch):
     candidate = saved_candidate(tmp_path, flagged=False)
     panel = window._create_screen
+    panel.set_route("pull")
     panel.show_candidate(candidate, read_candidate(candidate))
     for destination, message in ((candidate.source_paths[0], "source file"),
                                   (tmp_path / "output.csv", ".xlsx")):

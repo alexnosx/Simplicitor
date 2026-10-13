@@ -139,6 +139,7 @@ class MainWindow(QMainWindow):
         self._screen_connections = (
             (screen.generate_requested, self._on_generate_requested),
             (screen.template_requested, self._on_template_requested),
+            (screen.template_cleared, self._on_template_cleared),
             (screen.file_type_changed, self._on_file_type_changed),
             (screen.retry_requested, self._recheck_connection.emit),
             (screen.inspect_requested, lambda setup: self._start_extraction("inspect", setup)),
@@ -270,7 +271,7 @@ class MainWindow(QMainWindow):
                                                    "Close any open temporary workbook and retry.", True)
 
     def _start_extraction(self, action: str, setup: ExtractionSetup, **kwargs) -> None:
-        if self._operation_busy() or self._closing:
+        if (self._create_screen.route() != "pull" or self._operation_busy() or self._closing):
             return
         panel = self._create_screen
         if action != "save":
@@ -295,6 +296,7 @@ class MainWindow(QMainWindow):
         worker.moveToThread(thread)
         thread.started.connect(worker.run)
         worker.progress.connect(self._on_extraction_progress)
+        worker.source_progress.connect(self._on_source_progress)
         worker.inspection_ready.connect(self._on_inspection_ready)
         worker.columns_ready.connect(self._on_columns_ready)
         worker.candidate_ready.connect(self._on_candidate_ready)
@@ -304,45 +306,56 @@ class MainWindow(QMainWindow):
         worker.finished.connect(thread.quit, Qt.ConnectionType.DirectConnection)
         thread.finished.connect(worker.deleteLater)
         thread.finished.connect(self._on_extraction_thread_finished)
-        panel.set_busy(True, saving=action == "save")
+        panel.set_busy(True, saving=action == "save", action=action)
         self._top_bar._model_combo.setEnabled(False)
         thread.start()
 
     @Slot(str)
     def _on_extraction_progress(self, message: str) -> None:
+        if self._create_screen.route() != "pull":
+            return
         self._progress_shown = True
-        self._create_screen.show_status(message)
+        self._create_screen.show_progress(message)
+
+    @Slot(str, int, int)
+    def _on_source_progress(self, source_id: str, done: int, total: int) -> None:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
+            self._create_screen.show_source_progress(source_id, done, total)
 
     @Slot(object)
     def _on_inspection_ready(self, documents: tuple) -> None:
-        if not self._cancel_pending and not self._closing:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
             self._create_screen.show_inspection(documents)
 
     @Slot(object)
     def _on_columns_ready(self, columns: tuple) -> None:
-        if not self._cancel_pending and not self._closing:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
             self._create_screen.set_columns(columns)
 
     @Slot(object, object)
     def _on_candidate_ready(self, candidate: Candidate, cells: tuple) -> None:
-        if not self._cancel_pending and not self._closing:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
             self._create_screen.show_candidate(candidate, cells)
 
     @Slot(str, object)
     def _on_extraction_failed(self, message: str, issues: tuple) -> None:
-        if not self._closing:
+        if self._create_screen.route() == "pull" and not self._closing:
             self._progress_shown = False
             self._create_screen.show_failure(message, issues)
 
     @Slot()
     def _on_extraction_cancelled(self) -> None:
-        if not self._closing:
+        if self._create_screen.route() == "pull" and not self._closing:
             self._progress_shown = False
             self._create_screen.show_status("Cancelled. Your setup is retained.")
 
     @Slot(str)
     def _on_extraction_saved(self, path: str) -> None:
-        if not self._closing:
+        if self._create_screen.route() == "pull" and not self._closing:
             self._progress_shown = False
             self._create_screen.show_status("Workbook saved successfully.")
             self._create_screen.show_open_file_btn(path)
@@ -443,6 +456,8 @@ class MainWindow(QMainWindow):
             save_dir: Directory where the generated file should be saved.
             prompt: The user's natural-language prompt.
         """
+        if self._create_screen.route() != "write":
+            return
         if not self._current_model:
             logger.warning("Generate requested but no model selected")
             self._create_screen.show_status(
@@ -501,6 +516,8 @@ class MainWindow(QMainWindow):
 
     def _on_generate_started(self) -> None:
         """Called when GenerateWorker begins execution."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.set_generating(True)
         self._create_screen.clear_status()
 
@@ -510,7 +527,8 @@ class MainWindow(QMainWindow):
         Args:
             msg: Human-readable progress message.
         """
-        self._create_screen.show_status(msg, is_error=False)
+        if self._create_screen.route() == "write" and not self._closing:
+            self._create_screen.show_status(msg, is_error=False)
 
     def _on_generate_completed(self, path: str) -> None:
         """Called when GenerateWorker successfully writes the output file.
@@ -518,6 +536,8 @@ class MainWindow(QMainWindow):
         Args:
             path: Absolute path to the generated file.
         """
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.clear_prompt()
         self._create_screen.show_status(
             "File created successfully",
@@ -534,6 +554,8 @@ class MainWindow(QMainWindow):
         Args:
             msg: User-friendly error message.
         """
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.show_status(msg, is_error=True)
         logger.error("Generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down
@@ -582,6 +604,10 @@ class MainWindow(QMainWindow):
             self._create_screen.set_template_loaded(False)
             logger.debug("Loaded template cleared (file type now %s)", file_type)
 
+    def _on_template_cleared(self) -> None:
+        """Clear a picked built-in template without changing the generation route."""
+        self._loaded_template = None
+
     def _start_template_generation(self, output_path: str, prompt: str) -> None:
         """Run the loaded template through the generate + render pipeline off-thread."""
         lt = self._loaded_template
@@ -610,12 +636,16 @@ class MainWindow(QMainWindow):
 
     def _on_template_started(self) -> None:
         """Called when TemplateGenerateWorker begins execution."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.set_generating(True)
         self._create_screen.clear_status()
 
     def _on_template_completed(self, path: str, issues: object) -> None:
         """Called when the template pipeline writes the deck. Clears the loaded template
         (reset-after-generate) and surfaces the result like the freeform flow."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.clear_prompt()
         primary = "File created successfully"
         if issues:
@@ -630,6 +660,8 @@ class MainWindow(QMainWindow):
 
     def _on_template_failed(self, msg: str) -> None:
         """Called when the template pipeline fails. Keeps the loaded template for retry."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.show_status(msg, is_error=True)
         logger.error("Template generation failed")
         self._recheck_connection.emit()  # update indicator immediately if Ollama went down

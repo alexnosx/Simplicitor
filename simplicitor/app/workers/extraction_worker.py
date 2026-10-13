@@ -25,6 +25,7 @@ class ExtractionSetup:
 class ExtractionWorker(QObject):
     """Run one inspection, proposal, extraction, or accepted Save As off-thread."""
     progress = Signal(str)
+    source_progress = Signal(str, int, int)
     inspection_ready = Signal(object)
     columns_ready = Signal(object)
     candidate_ready = Signal(object, object)
@@ -50,6 +51,11 @@ class ExtractionWorker(QObject):
     def _check_cancel(self) -> None:
         if self._cancel.is_set():
             raise ExtractionCancelled("Cancelled.")
+
+    def _report_source_progress(self, source_id: str, _section_id: str,
+                                done: int, total: int) -> None:
+        self.progress.emit(f"Extracting source units: {done} / {total}")
+        self.source_progress.emit(source_id, done, total)
 
     @Slot()
     def run(self) -> None:
@@ -82,8 +88,7 @@ class ExtractionWorker(QObject):
                     raise ValueError("Missing job directory.")
                 result = extract(documents, self.setup.columns, self.setup.request,
                                  self.setup.profile, self._client, self._cancel,
-                                 lambda _source, _section, done, total:
-                                 self.progress.emit(f"Extracting source units: {done} / {total}"))
+                                 self._report_source_progress)
                 self._check_cancel()
                 self.progress.emit("Writing and checking the workbook...")
                 candidate = write_candidate(result, self.setup.columns,

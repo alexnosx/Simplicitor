@@ -8,7 +8,10 @@ BODY_TEXT_COLOR = "#1E1E1E"
 SUCCESS_COLOR = "#16A34A"
 ERROR_COLOR = "#DC2626"
 DISABLED_COLOR = "#9CA3AF"
-BORDER_COLOR = "#E5E7EB"
+BORDER_COLOR = "#9CA8B7"
+CHOICE_HOVER_COLOR = "#E6F0FF"
+CHOICE_SELECTED_COLOR = "#DBEAFE"
+SECONDARY_PRESSED_COLOR = "#BFDBFE"
 INFO_BANNER_BG_COLOR = "#EFF6FF"
 WHITE = "#FFFFFF"
 HOVER_ACCENT_COLOR = "#1D4ED8"    # darker blue for button hover
@@ -16,7 +19,7 @@ BORDER_HOVER_COLOR = "#D1D5DB"    # darker grey for border hover
 
 # ── Typography ────────────────────────────────────────────────────────────────
 APP_FONT_FAMILY = "Segoe UI"
-FONT_SIZE_BODY_PT = 10
+FONT_SIZE_BODY_PT = 11
 FONT_SIZE_HEADING_PT = 11
 
 # ── Ollama ────────────────────────────────────────────────────────────────────
@@ -68,6 +71,8 @@ WINDOW_DEFAULT_HEIGHT = 840
 TOP_BAR_HEIGHT = 48
 BORDER_RADIUS_PX = 4
 MAX_PROMPT_CHARS = 2000
+EXTRACTION_VISIBLE_COLUMN_ROWS = 4
+EXTRACTION_PROGRESS_HEIGHT_PX = 44
 
 # Maximum characters of file content sent to the LLM (larger files are truncated)
 MAX_MANIPULATION_CHARS = 50_000

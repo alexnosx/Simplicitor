@@ -1,6 +1,6 @@
 # Simplicitor project status
 
-Updated 2026-10-13 after Alex's C1 mockup approval. B3 ended in a drop, B5 is complete and B4 was not executed. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
+Updated 2026-10-13 after Part D was merged into main with Alex's explicit approval. B3 ended in a drop, B5 is complete and B4 was not executed. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
 
 ## Current status
 
@@ -10,7 +10,8 @@ Updated 2026-10-13 after Alex's C1 mockup approval. B3 ended in a drop, B5 is co
 | 2.1.0 release | Task 0, Parts A/B/C1/C2, both C2 follow-ups, D1 and the final README corrections are accepted. Published from the tested README commit 2202cce; MSI version 2.1.0 and executable version 2.1.0.0. The [tag workflow](https://github.com/alexnosx/Simplicitor/actions/runs/38233039100) passed source tests, build, MSI qualification and publication. Downloaded hashes and the release body are verified in the release record. |
 | 2.2.0 Part A | A1-A4 complete in source: finished extraction progress clears while final messages stay; source-aware prompt hints and Settings guidance; one shared version for UI/build/upgrade qualification; named Word reading problems and a general review heading. The product version remains 2.1.0 until E1; no 2.2.0 build or release. |
 | 2.2.0 B3 gate and B5 | Gate B3 failed (3 of 8 decks acceptable, 1 of 4 real) and Alex chose to drop the upload without a fix round (2026-10-12). B5 removed the template upload, the rejection dialog and the B1-B3 capture code; the picker offers built-in templates only. B4 was not executed. |
-| 2.2.0 C1 | Alex reassigned the [Create new mockup](design/document-workspace.html) to Codex and approved it on 2026-10-13. The approved artifact is 38af728, including the 2.2.0 preview version and revised Edit wording, now integrated into main. It shows all seven requested points and ten preset states. The app remains at 2.1.0 until E1; no Qt implementation or C2, D or E work was performed. Claude owns the Part D specification and plan update. |
+| 2.2.0 C1 | Alex reassigned the [Create new mockup](design/document-workspace.html) to Codex and approved it on 2026-10-13. The approved artifact is 38af728, including the 2.2.0 preview version and revised Edit wording, integrated into main. It shows all seven requested points and ten preset states. |
+| 2.2.0 Part D | Merged into main from `feature/2.2.0-create-new-qt` at c51b8ee with Alex's explicit approval, after Claude's review and the verified layout/label follow-ups. Explicit Write/Pull routes retain their own inputs and apply the existing invalidation/busy gates. Numbered cards, larger text, blue choices, template Clear, reading states and per-file/action progress match C1's requested behavior. Version stays 2.1.0 until E1; C2 and E are not started. [Tasks as built](superpowers/plans/2026-10-12-release-2.2.0.md#part-d-tasks-as-built). |
 | Prompt creation and templates | Word, Excel and PowerPoint generation remain available. PDF uses the existing Word response structure and Qt writer with staged validation. PowerPoint's picker offers built-in templates only; generation and developer CLI import remain available. Alex reports that PDF generation from a prompt and click-through of the new screens passed from source. |
 | Create and Edit modes | Create new uses Describe, optional sources, Choose columns, Review and save, then Saved. Edit document is explanatory only; legacy editing remains disabled. Settings/mode switching freeze during work. |
 | Extraction and review | DOCX and text-layer PDF reading coverage, column proposals, grounding, cancellation and XLSX Data/Evidence behavior remain unchanged. Word coverage issues now name the skipped structures. The saved grid displays number formats and hides Record; Record stays in workbook/Evidence. Every sectioned-source Data cell requires review while preserving valid values/types/formats. Save to Excel requires acknowledgement for highlighted values, reading problems or both, then uses native XLSX Save As. |
@@ -47,6 +48,34 @@ B5 verification: the four new dialog cases failed before implementation (six ret
 The planned test-first checks reproduced their expected failures before each change. Isolated full local source suites passed after A1 (1,079), A2 (1,081), A3 (1,085) and A4 (1,089). Targeted suites passed 23, 70, 137 and 315 tests respectively. The qualification script has zero parse errors and was not executed; packaging tools stay mocked in source tests. Existing prompts, model settings and evaluation fixtures/labels were preserved; no live-model evaluation was run.
 
 The final block review found two bounded edge cases in the plan: cleanup errors could be hidden by progress clearing, and property-only revision markers could claim readable text was omitted. Regressions reproduced both; fixes keep cleanup errors visible and retain a truthful review warning for tracked formatting/row changes without changing extracted text. That follow-up suite passed 1,095 tests. The tracked-move follow-up now reports `w:moveFrom` and `w:moveTo` as `skipped_tracked_changes` with "Text in tracked changes was not read." Both regression cases first reproduced the missing warning, then passed while their `90` text remained absent from source units. The targeted source-reader suite passed 21 tests and the full isolated suite passed 1,142; REPO_MAP was regenerated. `smartTag`, `customXml` and `dir` handling and Part B are unchanged; one pytest cache-permission warning remains.
+
+## 2.2.0 Part D verification
+
+The new route, appearance and progress checks failed before their implementation.
+Targeted source suites passed 130, 134 and 147 tests, then 150 after layout and stale
+write-event follow-ups. The final isolated full suite passed **1,098 tests in 44.60
+seconds**, with the existing pytest cache-permission warning. Existing behavioral
+tests were migrated, not dropped. A full-run stack dump identified native `QTest.qWait`
+blocking in the existing inspection-to-extraction test; its wait now uses pytest-qt's
+timed event loop. Both handoff/cancellation cases passed 25 repetitions each and the
+final suite passed without diagnostic hooks. The underlying native wait cause is
+not proven. Production cancellation/closing algorithms remain unchanged.
+
+`scripts/capture_screens.py` produced 13 synthetic 1280x800 states under
+`.venv/screens-part-d`; rendered card-label checks show no grey backgrounds. The
+README image is the new Pull-ready view. Captures stage fictional values without
+model calls and use isolated profile paths; they do not establish model accuracy
+or native installer behavior. REPO_MAP was regenerated. No dependencies, model
+settings, evaluation corpus, engines, version or LICENSE changed. No packaging
+tool or installer ran locally, and no hosted milestone was dispatched.
+
+Part D review follow-ups: the column table keeps four full rows visible while
+extracting at 1280x800; the progress row is compact and disabled selection is
+light blue. The chosen template again reads `Template: <name>`. Geometry and
+rendered-color regressions failed before the fix, then the targeted suite passed
+153 tests and the isolated full suite passed 1,100 in 40.53 seconds. The existing
+cache-permission warning remains. All 13 screens were recaptured and REPO_MAP was
+regenerated; the README screenshot was retained because its hash did not change.
 
 ## 2.1.0 verification
 
@@ -87,4 +116,4 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-B3 ended in a drop; B5 is complete and B4 was not executed. Alex approved C1 and its mockup is on main. Next is Claude's Part D specification and plan revision, including the C1 reassignment record. C2 and Parts D and E have not been started by Codex. E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.
+B3 ended in a drop; B5 is complete and B4 was not executed. C1 is approved and Part D is merged into main with Alex's approval. Next is E1; it has not started. C2 is also not started. E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.
