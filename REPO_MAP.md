@@ -484,7 +484,7 @@ simplicitor/
             create_screen.py
             drop_zone.py
             edit_panel.py
-            edit_placeholder.py
+            edit_screen.py
             file_list.py
             plain_labels.py
             settings_dialog.py
@@ -681,6 +681,7 @@ tests/
     test_create_progress.py
     test_create_routes.py
     test_create_screen.py
+    test_edit_screen.py
     test_edit_worker.py
     test_extraction_worker.py
     test_file_generator.py
@@ -692,6 +693,7 @@ tests/
     test_generators.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
+    test_main_window_edit.py
     test_main_window_extraction.py
     test_main_window_modes.py
     test_main_window_teardown.py
@@ -953,9 +955,13 @@ requirements.txt
 
 - class EditPanel(QFrame): Right panel: upload a file, describe changes, save the result (Phase 4).
 
-### simplicitor/app/widgets/edit_placeholder.py
+### simplicitor/app/widgets/edit_screen.py
 
-- class EditPlaceholder(QWidget): Explain the deferred editing mode and offer the supported create route.
+- def _reason(block: DisplayBlock) -> str
+- class DocumentModel(QAbstractListModel): One display block per row; document content is data, never HTML.
+- class DocumentDelegate(QStyledItemDelegate): Paint only controlled text formats and table cells, without interpreting markup.
+- class DocumentView(QListView): Virtualized reader with explicit whole-paragraph clicks, including read-only notices.
+- class EditScreen(QWidget): Keep edit-session inputs and emit requests; workers own all document processing.
 
 ### simplicitor/app/widgets/file_list.py
 
@@ -1281,6 +1287,7 @@ requirements.txt
 
 ### tests/conftest.py
 
+- def collect_garbage_on_main_thread(): Run Python's cyclic garbage collection only here, on the main thread, after each test.
 - def auto_show_widgets(qtbot, monkeypatch): Auto-show top-level widgets registered with qtbot unless they were explicitly hidden.
 - def isolated_profile(tmp_path, monkeypatch): Point every per-user folder at tmp_path before Settings or MainWindow exist.
 
@@ -1927,7 +1934,6 @@ requirements.txt
 
 ### tests/test_create_screen.py
 
-- def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile)
 - def test_step_indicator_keeps_state_and_layout(qtbot, isolated_profile)
 - def test_anchor_issue_and_coverage_text_are_plain()
 - def _screen(qtbot, isolated_profile)
@@ -1970,6 +1976,32 @@ requirements.txt
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 - def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
 - def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path)
+
+### tests/test_edit_screen.py
+
+- def make_opened(folder, name='service-outline.docx'): A synthetic document with margins, ordinary paragraphs, a table and a field.
+- def candidate_for(opened)
+- def screen(qtbot, tmp_path)
+- def click_paragraph(qtbot, screen, index, shift=False)
+- def describe(screen, qtbot)
+- def review(screen, qtbot)
+- def test_open_shows_reading_view_and_read_only_reasons(screen, qtbot)
+- def test_refused_file_shows_message_and_keeps_drop_zone(screen)
+- def test_shift_click_selection_respects_tables_and_read_only_rows(screen, qtbot)
+- def test_long_selection_disables_edit_this_part(screen, qtbot)
+- def test_description_limit_and_no_model_warning(screen, qtbot)
+- def test_review_shows_before_after_highlight_and_track_changes_notice(screen, qtbot)
+- def test_try_again_keeps_description_and_increments_attempt(screen, qtbot)
+- def test_cancel_review_keeps_selection(screen, qtbot)
+- def test_save_as_cancel_keeps_the_candidate(screen, qtbot, monkeypatch)
+- def test_save_outcomes_retry_destination_original_failed(screen, qtbot, outcome)
+- def test_saved_page_has_only_open_another_document(screen, qtbot)
+- def test_choose_another_file_asks_after_the_pick_only_with_work(screen, qtbot, monkeypatch)
+- def test_keep_editing_restores_selection_description_and_scroll_position(screen, qtbot, monkeypatch)
+- def test_document_text_is_rendered_as_plain_text(screen, qtbot)
+- def test_reading_view_keeps_word_line_breaks(screen)
+- def test_busy_blocks_drops_and_preserves_current_work(screen, qtbot)
+- def test_reading_progress_stays_in_the_open_step(screen)
 
 ### tests/test_edit_worker.py
 
@@ -2097,6 +2129,19 @@ requirements.txt
 - class TestParsePptxResponse
 - class TestConvenienceFunctions
 - class TestThinkingModelOutput: Regression tests for Qwen3/DeepSeek-R1 thinking model output.
+
+### tests/test_main_window_edit.py
+
+- def window(qtbot, isolated_profile, tmp_path)
+- def test_propose_sends_selection_description_attempt_and_styles(window, qtbot)
+- def test_save_starts_the_worker_without_reading_the_destination(window, qtbot, monkeypatch, tmp_path, qapp)
+- def test_retry_and_destination_reopen_save_as_after_worker_settles(window, qtbot, monkeypatch, outcome)
+- def test_switching_to_create_with_work_asks_first(window, monkeypatch)
+- def test_busy_disables_modes_settings_and_choose_another_file(window)
+- def test_late_proposal_after_cancel_is_ignored(window)
+- def test_late_result_after_opening_another_document_is_ignored(window, tmp_path, monkeypatch, qtbot)
+- def test_late_result_after_switching_to_create_is_ignored(window, monkeypatch)
+- def test_close_waits_for_an_accepted_save(window, qtbot, tmp_path, monkeypatch)
 
 ### tests/test_main_window_extraction.py
 
@@ -2424,7 +2469,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 127 lines
+- docs/PROJECT_STATUS.md: md, 128 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2485,7 +2530,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
-- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3681 lines
+- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3721 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

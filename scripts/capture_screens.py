@@ -1,5 +1,5 @@
 # scripts/capture_screens.py
-"""Render the approved Create new v2 states offscreen at 1280x800 with synthetic data and an
+"""Render Create new and Edit for Word states offscreen at 1280x800 with synthetic data and an
 isolated profile under .venv. Installs nothing and touches no real user folders."""
 import os
 import sys
@@ -31,6 +31,10 @@ import app.main_window as main_window  # noqa: E402
 from app.main_window import MainWindow  # noqa: E402
 from extraction.models import Candidate, ColumnSpec, Issue, ReviewCell
 from extraction.source_readers import read_sources  # noqa: E402
+from editing import reading_view  # noqa: E402
+from editing.models import Proposal, ProposedParagraph  # noqa: E402
+from editing.package import open_document  # noqa: E402
+from editing.patch import build_candidate  # noqa: E402
 
 # Synthetic discovery and staged screens are deterministic and send no network requests.
 # The real local-Ollama extraction walkthrough is a separate integration check.
@@ -49,7 +53,7 @@ def _offline_client(*args, **kwargs):
 main_window.OllamaClient = _offline_client
 MainWindow._start_extraction = lambda self, *args, **kwargs: None
 _THREADS = ("_ollama_thread", "_extraction_thread", "_generate_thread",
-            "_template_thread", "_manipulate_thread")
+            "_template_thread", "_manipulate_thread", "_edit_thread")
 
 
 def main(out: Path) -> None:
@@ -80,7 +84,7 @@ def main(out: Path) -> None:
         assert image.width() == 1280 and image.height() == 800
         pixels = image.toImage()
         checked = 0
-        for card in screen.findChildren(QFrame):
+        for card in window._modes.currentWidget().findChildren(QFrame):
             if card.objectName() != "documentCard" or not card.isVisible():
                 continue
             for label in card.findChildren(QLabel):
@@ -174,7 +178,28 @@ def main(out: Path) -> None:
                               cells if highlighted else clean_cells)
         shot(name)
     window._top_bar._edit_mode_btn.click()
+    edit = window._edit_page
+    opened = open_document(ROOT / "tests" / "editing" / "fixtures" / "word-basic.docx")
+    edit.show_opened(opened, reading_view.build(opened))
     shot("5-edit-document.png")
+    first = next(b.index for b in opened.paragraphs if b.text.startswith("Invoices are payable"))
+    range_first = next(b.index for b in opened.paragraphs if b.text.startswith("The project includes"))
+    edit.select_paragraph(range_first)
+    edit.select_paragraph(range_first + 1, shift=True)
+    # Keep the selected paragraphs in view while retaining the real whole-paragraph rule.
+    row = next(i for i, block in enumerate(edit._view) if block.index == range_first)
+    edit._reader.scrollTo(edit._reader.model().index(row, 0))
+    shot("5b-edit-selected.png")
+    edit.select_paragraph(first)
+    edit._edit_part_btn.click()
+    edit._description.setPlainText("Change the payment period from 30 days to 45 days.")
+    proposal = Proposal((ProposedParagraph(0, "Invoices are payable within 45 days of receipt."),))
+    edited = build_candidate(opened, first, first, proposal)
+    edit.show_proposal(edited, reading_view.paragraphs(opened.data, first, 1),
+                       reading_view.paragraphs(edited.data, first, edited.after_count))
+    shot("5c-edit-review.png")
+    edit.show_saved(PROFILE / "service-outline (edited).docx")
+    shot("5d-edit-saved.png")
     window._show_mode("create")
     screen.show_open_file_btn(str(PROFILE / "extracted-information.xlsx"))
     shot("6-saved-file.png")

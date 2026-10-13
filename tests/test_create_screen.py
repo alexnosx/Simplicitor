@@ -7,17 +7,6 @@ from extraction.models import ColumnSpec, ExtractionResult, FieldProposal, Field
 from extraction.source_readers import read_sources
 from extraction.xlsx_writer import read_candidate, write_candidate
 
-# tests/test_create_screen.py
-def test_edit_placeholder_explains_and_offers_create(qtbot, isolated_profile):
-    from app.widgets.edit_placeholder import EditPlaceholder
-    page = EditPlaceholder()
-    qtbot.addWidget(page)
-    assert "Edit for Word arrives in Simplicitor 2.3.0." in page._body.text()
-    assert "Editing was turned off while a safer editor is built." in page._body.text()
-    with qtbot.waitSignal(page.create_requested):
-        page._create_btn.click()
-
-
 def test_step_indicator_keeps_state_and_layout(qtbot, isolated_profile):
     from app.widgets.step_indicator import StepIndicator
     steps = StepIndicator()

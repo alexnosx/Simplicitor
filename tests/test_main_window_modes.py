@@ -12,11 +12,11 @@ def window(qtbot, isolated_profile):
 
 def test_two_modes_switch_and_return(window):
     from app.widgets.create_screen import CreateScreen
-    from app.widgets.edit_placeholder import EditPlaceholder
+    from app.widgets.edit_screen import EditScreen
     assert isinstance(window._modes.currentWidget(), CreateScreen)
     window._top_bar._edit_mode_btn.click()
-    assert isinstance(window._modes.currentWidget(), EditPlaceholder)
-    window._edit_page._create_btn.click()
+    assert isinstance(window._modes.currentWidget(), EditScreen)
+    window._top_bar._create_mode_btn.click()
     assert isinstance(window._modes.currentWidget(), CreateScreen) and window._top_bar.mode() == "create"
 
 

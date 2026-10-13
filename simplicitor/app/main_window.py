@@ -22,7 +22,7 @@ from app.config.settings import Settings
 from app.services.ollama_client import OllamaClient
 from app.widgets.capability_banner import CapabilityBanner
 from app.widgets.create_screen import CreateScreen
-from app.widgets.edit_placeholder import EditPlaceholder
+from app.widgets.edit_screen import EditScreen
 from app.widgets.edit_panel import EditPanel
 from app.widgets.settings_dialog import SettingsDialog
 from app.widgets.status_bar import TopBar
@@ -32,6 +32,7 @@ from app.workers.manipulate_worker import ManipulateWorker
 from app.workers.ollama_worker import OllamaWorker
 from app.workers.template_worker import TemplateGenerateWorker
 from app.workers.extraction_worker import ExtractionSetup, ExtractionWorker
+from app.workers.edit_worker import EditSetup, EditWorker
 from extraction.jobs import cleanup_old_jobs, create_job, discard_job, same_path
 from extraction.models import Candidate
 from templates_engine.config import ensure_default_templates, get_app_data_dir
@@ -42,7 +43,7 @@ logger = logging.getLogger(__name__)
 class MainWindow(QMainWindow):
     """Root application window.
 
-    Hosts one Create screen and a placeholder for selective document editing.
+    Hosts Create and selective Word editing screens.
     Ollama discovery, extraction, and generation run on worker threads.
     """
 
@@ -61,6 +62,9 @@ class MainWindow(QMainWindow):
         self._generating = self._closing = self._cancel_pending = False
         self._ollama_stop_pending = False
         self._extraction_thread = self._extraction_worker = None
+        self._edit_thread = self._edit_worker = None
+        self._edit_epoch = 0
+        self._edit_cancel_pending = self._edit_save_again = False
         self._extraction_job: Path | None = None
         self._progress_shown = False  # a worker progress line is on screen
         self._app_data = get_app_data_dir()
@@ -108,7 +112,7 @@ class MainWindow(QMainWindow):
         self._edit_panel.show_status(LEGACY_EDIT_DISABLED_MESSAGE, is_error=True)
         self._edit_panel.hide()
         self._create_screen = CreateScreen(self._settings)
-        self._edit_page = EditPlaceholder()
+        self._edit_page = EditScreen()
         self._modes = QStackedWidget()
         self._modes.addWidget(self._create_screen)
         self._modes.addWidget(self._edit_page)
@@ -126,6 +130,12 @@ class MainWindow(QMainWindow):
         self._top_bar.model_changed.connect(self._on_model_changed)
         self._top_bar.mode_changed.connect(self._show_mode)
         self._edit_page.create_requested.connect(lambda: self._show_mode("create"))
+        self._edit_page.open_requested.connect(self._on_edit_open_requested)
+        self._edit_page.propose_requested.connect(self._on_edit_propose_requested)
+        self._edit_page.save_requested.connect(self._on_edit_save_requested)
+        self._edit_page.cancel_requested.connect(self._cancel_edit)
+        self._edit_page.settings_requested.connect(self._open_settings)
+        self._edit_page.busy_changed.connect(self._set_modes_enabled)
         self._capability_banner.dismissed.connect(self._on_banner_dismissed)
         self._edit_panel.save_requested.connect(self._on_save_requested)
         self._connect_create_screen()
@@ -154,8 +164,15 @@ class MainWindow(QMainWindow):
             signal.connect(handler)
 
     def _show_mode(self, mode: str) -> None:
-        if self._operation_busy() or self._create_screen._busy or self._closing:
+        if self._operation_busy() or self._create_screen._busy or self._edit_page._busy or self._closing:
+            self._top_bar.set_mode("edit" if self._modes.currentWidget() is self._edit_page else "create")
             return
+        if mode != "edit" and self._modes.currentWidget() is self._edit_page:
+            if self._edit_page.has_work() and not self._edit_page.confirm_discard():
+                self._top_bar.set_mode("edit")
+                return
+            self._edit_epoch += 1
+            self._edit_page.reset()
         self._modes.setCurrentWidget(self._edit_page if mode == "edit" else self._create_screen)
         self._top_bar.set_mode(mode)
 
@@ -211,6 +228,7 @@ class MainWindow(QMainWindow):
         self._banner_dismissed_for = ""
         self._capability_banner.hide_banner()
         self._create_screen.set_model(model)
+        self._edit_page.set_model_ready(bool(model and self._create_screen._connected))
         if model and not self._closing:
             self._model_params_requested.emit(model)
 
@@ -248,6 +266,7 @@ class MainWindow(QMainWindow):
             return
         self._top_bar.set_connected(models, current_model)
         self._create_screen.set_ollama_connected(True)
+        self._edit_page.set_model_ready(bool(self._current_model))
         self._top_bar._model_combo.setEnabled(not self._operation_busy() and bool(models or current_model))
 
     @Slot()
@@ -256,10 +275,132 @@ class MainWindow(QMainWindow):
         self._create_screen.set_ollama_connected(False)
         self._create_screen.set_model("")
         self._current_model = ""
+        self._edit_page.set_model_ready(False)
         self._capability_banner.hide_banner()
 
     def _operation_busy(self) -> bool:
-        return self._generating or self._extraction_thread is not None
+        return self._generating or self._extraction_thread is not None or self._edit_thread is not None
+
+    def _on_edit_open_requested(self, path: Path) -> None:
+        self._start_edit("open", EditSetup(path=path))
+
+    def _on_edit_propose_requested(self, first: int, last: int, instruction: str, attempt: int) -> None:
+        screen = self._edit_page
+        if screen._opened is None or screen._selection != (first, last):
+            return
+        styles = {b.index: b.style for b in screen._view if b.kind == "paragraph"}
+        self._start_edit("propose", EditSetup(opened=screen._opened, first=first, last=last,
+                         instruction=instruction, styles=styles, model=self._current_model,
+                         attempt=attempt))
+
+    def _on_edit_save_requested(self, destination: Path) -> None:
+        """Pass only the accepted destination and candidate; the worker records file state."""
+        candidate = self._edit_page._candidate
+        if candidate is not None:
+            self._start_edit("save", EditSetup(candidate=candidate, destination=destination))
+
+    def _start_edit(self, action: str, setup: EditSetup) -> None:
+        if (self._operation_busy() or self._closing
+                or self._modes.currentWidget() is not self._edit_page):
+            return
+        self._edit_epoch += 1
+        epoch = self._edit_epoch
+        self._edit_cancel_pending = self._edit_save_again = False
+        worker = EditWorker(action, setup, self._ollama_client)
+        thread = QThread(self)
+        self._edit_worker, self._edit_thread = worker, thread
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        # Connect to GUI-thread slots, not Python lambdas whose receiver thread is implicit.
+        worker.opened.connect(self._on_edit_opened)
+        worker.proposed.connect(self._on_edit_proposed)
+        worker.saved.connect(self._on_edit_saved)
+        worker.failed.connect(self._on_edit_failed)
+        worker.cancelled.connect(self._on_edit_cancelled)
+        worker._edit_epoch = epoch
+        worker.finished.connect(thread.quit, Qt.ConnectionType.DirectConnection)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(self._on_edit_thread_finished)
+        self._edit_page._action = action
+        self._edit_page.set_busy(True)
+        self._top_bar._model_combo.setEnabled(False)
+        thread.start()
+
+    def _edit_accepts_result(self, epoch=None) -> bool:
+        sender = self.sender()
+        if sender is not None:
+            if sender is not self._edit_worker:
+                return False
+            epoch = sender._edit_epoch
+        return (not self._closing and not self._edit_cancel_pending
+                and (epoch is None or epoch == self._edit_epoch)
+                and self._modes.currentWidget() is self._edit_page)
+
+    @Slot(object, object)
+    def _on_edit_opened(self, opened, view, epoch=None) -> None:
+        if self._edit_accepts_result(epoch):
+            self._edit_page.show_opened(opened, view)
+
+    @Slot(object, object, object)
+    def _on_edit_proposed(self, candidate, before, after, epoch=None) -> None:
+        if self._edit_accepts_result(epoch):
+            self._edit_page.show_proposal(candidate, before, after)
+
+    @Slot(str)
+    def _on_edit_saved(self, path: str) -> None:
+        if self._edit_accepts_result():
+            self._edit_page.show_saved(path)
+
+    @Slot(str, str)
+    def _on_edit_failed(self, message: str, outcome: str) -> None:
+        if not self._edit_accepts_result():
+            return
+        self._edit_page.show_failure(message, outcome)
+        self._edit_save_again = outcome in ("retry", "destination")
+        if self._edit_save_again and self._edit_thread is None:
+            self._schedule_edit_save()
+
+    @Slot()
+    def _on_edit_cancelled(self) -> None:
+        if self._edit_accepts_result():
+            self._edit_page.show_cancelled()
+
+    def _cancel_edit(self) -> None:
+        if self._edit_worker is not None and self._edit_worker.action == "save":
+            return
+        self._edit_epoch += 1
+        self._edit_cancel_pending = True
+        if self._edit_worker is not None:
+            self._edit_worker.cancel()
+        self._edit_page.show_cancelled()
+        self._edit_page._cancel_btn.setEnabled(False)
+        self._edit_page._open_cancel_btn.setEnabled(False)
+
+    def _schedule_edit_save(self) -> None:
+        self._edit_save_again = False
+        epoch = self._edit_epoch
+
+        def retry():
+            if (epoch == self._edit_epoch and not self._closing and not self._operation_busy()
+                    and self._modes.currentWidget() is self._edit_page):
+                self._edit_page._save_as()
+
+        QTimer.singleShot(0, retry)
+
+    @Slot()
+    def _on_edit_thread_finished(self) -> None:
+        if self._edit_thread is None:
+            return
+        if not self._edit_thread.wait(0):
+            QTimer.singleShot(10, self._on_edit_thread_finished)
+            return
+        self._edit_thread.deleteLater()
+        self._edit_thread = self._edit_worker = None
+        self._edit_page.set_busy(False)
+        self._top_bar._model_combo.setEnabled(bool(self._top_bar.current_model()))
+        if self._edit_save_again and not self._closing:
+            self._schedule_edit_save()
+        self._close_when_idle()
 
     def _discard_review_job(self) -> None:
         if self._extraction_job is not None and self._extraction_thread is None:
@@ -779,7 +920,7 @@ class MainWindow(QMainWindow):
 
     def _open_settings(self) -> None:
         """Open the settings modal dialog."""
-        if self._operation_busy() or self._create_screen._busy or self._closing:
+        if self._operation_busy() or self._create_screen._busy or self._edit_page._busy or self._closing:
             return
         combo = self._top_bar._model_combo
         models = [combo.itemText(index) for index in range(combo.count())]
@@ -798,15 +939,20 @@ class MainWindow(QMainWindow):
         self._closing = True
         if self._extraction_worker is not None:
             self._cancel_extraction()
+        if self._edit_worker is not None and self._edit_worker.action != "save":
+            self._cancel_edit()
         if getattr(self, "_ollama_worker", None) is not None and not self._ollama_stop_pending:
             self._ollama_stop_pending = True
             self._stop_ollama_requested.emit()
         waiting = False
         for name in ("_ollama_thread", "_extraction_thread", "_generate_thread",
-                     "_manipulate_thread", "_template_thread"):
+                     "_manipulate_thread", "_template_thread", "_edit_thread"):
             thread = getattr(self, name, None)
             if thread is not None:
-                if thread.isRunning():
+                if name == "_edit_thread":
+                    # An accepted save finishes; never block the GUI joining an edit worker.
+                    thread.wait(0)
+                elif thread.isRunning():
                     if name != "_ollama_thread":
                         thread.quit()
                     thread.wait(100)

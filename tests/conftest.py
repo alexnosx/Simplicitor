@@ -62,7 +62,7 @@ def auto_show_widgets(qtbot, monkeypatch):
     def patched_add(widget, **kwargs):
         thread_names = (
             ("_ollama_thread", "_extraction_thread", "_generate_thread",
-             "_template_thread", "_manipulate_thread")
+             "_template_thread", "_manipulate_thread", "_edit_thread")
             if hasattr(widget, "_close_when_idle") else ())
         if thread_names:
             prior_close = kwargs.pop("before_close_func", None)
