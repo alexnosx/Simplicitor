@@ -1,0 +1,165 @@
+{
+  "settings": {
+    "seed": 0,
+    "temperature": 0.3,
+    "num_ctx": 16384,
+    "num_predict": 4096,
+    "timeout_s": 180,
+    "think": false
+  },
+  "pass_minimum": 11,
+  "quantization": "Q4_K_M",
+  "models": [
+    {
+      "model": {
+        "tag": "qwen3:8b-q4_K_M",
+        "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+        "quantization": "Q4_K_M",
+        "parameter_size": "8.2B"
+      },
+      "passed": 11,
+      "tasks": 12,
+      "verification_failures": 0,
+      "gate": "pass",
+      "results": [
+        {
+          "id": "replace-value",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "shorten",
+          "result": "invalid proposal",
+          "message": "The local AI proposed no change. Try again or reword the description."
+        },
+        {
+          "id": "formalize",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "replace-word",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "add-sentence",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "split",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "merge",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "list-items",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "rename-heading",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "rename-headings",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "polite-requests",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "exclamation",
+          "result": "pass",
+          "failed": []
+        }
+      ]
+    },
+    {
+      "model": {
+        "tag": "llama3.1:8b-instruct-q4_K_M",
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "quantization": "Q4_K_M",
+        "parameter_size": "8.0B"
+      },
+      "passed": 11,
+      "tasks": 12,
+      "verification_failures": 0,
+      "gate": "pass",
+      "results": [
+        {
+          "id": "replace-value",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "shorten",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "formalize",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "replace-word",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "add-sentence",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "split",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "merge",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "list-items",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "rename-heading",
+          "result": "check failed",
+          "failed": [
+            "expected"
+          ]
+        },
+        {
+          "id": "rename-headings",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "polite-requests",
+          "result": "pass",
+          "failed": []
+        },
+        {
+          "id": "exclamation",
+          "result": "pass",
+          "failed": []
+        }
+      ]
+    }
+  ],
+  "gate": "pass"
+}

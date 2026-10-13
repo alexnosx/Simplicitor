@@ -88,6 +88,7 @@ docs/
         document-workspace.html
         edit-document.html
     evaluation/
+        2.3.0-edit-model-check.json
         2026-10-08-task1-qwen-currency-null.json
         2026-10-08-task1-qwen-currency-null.md
         2026-10-08-task1-rerun.json
@@ -2133,7 +2134,7 @@ requirements.txt
 
 ### tests/test_main_window_edit.py
 
-- def window(qtbot, isolated_profile, tmp_path)
+- def window(qtbot, qapp, isolated_profile, tmp_path)
 - def test_propose_sends_selection_description_attempt_and_styles(window, qtbot)
 - def test_save_starts_the_worker_without_reading_the_destination(window, qtbot, monkeypatch, tmp_path, qapp)
 - def test_retry_and_destination_reopen_save_as_after_worker_settles(window, qtbot, monkeypatch, outcome)
@@ -2471,7 +2472,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 129 lines
+- docs/PROJECT_STATUS.md: md, 130 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2490,6 +2491,7 @@ requirements.txt
 - docs/code-signing.md: md, 69 lines
 - docs/design/document-workspace.html: html, 346 lines
 - docs/design/edit-document.html: html, 479 lines
+- docs/evaluation/2.3.0-edit-model-check.json: json, 165 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.json: json, 378 lines
 - docs/evaluation/2026-10-08-task1-qwen-currency-null.md: md, 18 lines
 - docs/evaluation/2026-10-08-task1-rerun.json: json, 780 lines
