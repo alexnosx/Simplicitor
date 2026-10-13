@@ -1,6 +1,6 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Draft 3, 2026-10-13, by Claude. Draft 2 corrected the nine findings of the [Codex review of draft 1](../../reviews/2026-10-13-edit-for-word-design-codex.md); draft 3 corrects F10 to F13 and the open parts of F5 and F6 from the same file's Draft 2 section (see [Changes from draft 1](#changes-from-draft-1)). Alex decided D1 to D3 on 2026-10-13. Not approved; no implementation starts before Alex approves this design and its implementation plan.
+**Status:** Draft 4, 2026-10-13, by Claude. Draft 2 corrected the nine findings of the [Codex review of draft 1](../../reviews/2026-10-13-edit-for-word-design-codex.md); draft 3 corrected F10 to F13 and the open parts of F5 and F6 from the same file's Draft 2 section; draft 4 corrects F14 from its Draft 3 section (see [Changes from draft 1](#changes-from-draft-1)). Alex decided D1 to D3 on 2026-10-13. Not approved; no implementation starts before Alex approves this design and its implementation plan.
 
 **Inputs:** [PRD.md](../../../PRD.md#post-first-release-requirements) (selective editing and the preservation contract), the [approved mockup](../../design/edit-document.html) (1dd4949, approved 2026-10-13), and the "After 2.2.0: Edit for Word" section of the [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#after-220-edit-for-word-230-roadmap), which lists the decisions this design must make. PRD.md keeps ownership of requirements and acceptance values; the implementation plan copies the values below into PRD.md.
 
@@ -132,7 +132,7 @@ Effective bold and italic for a run, following what Word 16 showed in a third sp
 
 The third spike, a synthetic document saved and reopened by Word 16, gave: character style B (bold) based on character style A (bold) is bold; a bold paragraph style with bold character style A is not bold; a bold paragraph style with direct bold off is not bold; character style A with direct bold off is not bold.
 
-Numbering is resolved in order: if the paragraph has a direct `w:numPr`, it decides, and `w:numId` 0 means no list (it cancels a style's list); otherwise the nearest `w:numPr` in the paragraph style's chain decides; a non-zero `w:numId` makes the paragraph a list item. This covers built-in list and emphasis styles such as List Bullet and Strong; it is not a layout engine, and other properties (size, color, font) are not shown.
+Numbering is resolved per component, not per `w:numPr` block, as Word 16 showed in Codex's check: the list ID is the first `w:numId` present, looking at the paragraph's direct `w:numPr` and then the paragraph style's `w:basedOn` chain. A present `w:numId` 0 stops the search and means no list (it cancels a style's list); a non-zero one makes the paragraph a list item. A `w:numPr` without a `w:numId` (for example level only, or empty) supplies no list ID, so the search continues. The level (`w:ilvl`) is resolved the same way, independently. This covers built-in list and emphasis styles such as List Bullet and Strong; it is not a layout engine, and other properties (size, color, font) are not shown.
 
 The Qt view is a virtualized list (QListView with a delegate), so a 300-page document does not create one widget per paragraph. The delegate escapes every span and renders only its own bold, italic, heading and list markup; document text is never interpreted as rich text.
 
@@ -270,7 +270,7 @@ Fixtures are synthetic. Word-authored fixtures are made once with Word through a
 | Verification | Each check fails on a deliberately corrupted candidate (changed prefix bytes, unbalanced tag, changed other part, wrong text, reordered or missing bookmark marker). |
 | Proposal | Schema failures, decreasing or out-of-range source, invalid XML characters, CRLF normalization, no-change result, all-blank output rejected for a selection with text and allowed for a blank selection, dropped bookmarked paragraph rejected, output-limit error, cancellation before and after the request. |
 | Budget | Short selection next to a 40,000-character paragraph (context skipped, request sent); description at the limit; a metadata-heavy core refused at the normal settings (hundreds of short or blank paragraphs). |
-| Reading view | List Bullet style without direct numbering; direct `w:numId` 0 cancelling a list style; Strong character style; italic paragraph style; a bold character style based on a bold character style (bold); a bold paragraph style with a bold character style (not bold); explicit `w:b w:val="0"` overriding a bold style; the same cases in Review After rendered from candidate bytes. The bold cases are also opened in the one-off Word check. |
+| Reading view | List Bullet style without direct numbering; direct `w:numId` 0 cancelling a list style; direct level-only `w:numPr` and empty direct `w:numPr` on List Bullet (both still bullets); Strong character style; italic paragraph style; a bold character style based on a bold character style (bold); a bold paragraph style with a bold character style (not bold); explicit `w:b w:val="0"` overriding a bold style; the same cases in Review After rendered from candidate bytes. The bold cases are also opened in the one-off Word check. |
 | Save | Original as destination; original changed, deleted and unreadable at the commit point; destination created after the dialog; destination contents changed with the same size and modification time; staged write failure; read-back mismatch. Each leaves an existing destination unchanged and no temporary file. |
 | UI | Selection rules and messages, buttons per state, busy gates, discard confirmation after the file pick, Saved page, plain-text rendering of document text. |
 
@@ -311,3 +311,9 @@ Draft 3, after the Draft 2 section of the same review:
 | F6 (open part) and F12 (P2) destination fingerprint | Destination state is absent or its SHA-256, rechecked at the commit point. |
 | F10 (P2) point comments | Comment markers paired by ID; lone starts and ends are point anchors that open no range; only reversed or repeated IDs refuse the document. |
 | F13 (P3) budget claim | Guaranteed-fit claim removed; every core request is estimated after serialization; a metadata-heavy refusal test at normal settings. |
+
+Draft 4, after the Draft 3 section of the same review:
+
+| Codex finding | Correction in draft 4 |
+|---|---|
+| F14 (P2) partial numbering overrides | List ID and level resolved per component: the first present `w:numId` in direct properties then the style chain; 0 cancels; a `w:numPr` without `w:numId` continues the search. Level-only and empty direct `w:numPr` fixtures added. |
