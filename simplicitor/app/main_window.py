@@ -270,7 +270,7 @@ class MainWindow(QMainWindow):
                                                    "Close any open temporary workbook and retry.", True)
 
     def _start_extraction(self, action: str, setup: ExtractionSetup, **kwargs) -> None:
-        if self._operation_busy() or self._closing:
+        if (self._create_screen.route() != "pull" or self._operation_busy() or self._closing):
             return
         panel = self._create_screen
         if action != "save":
@@ -310,39 +310,44 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def _on_extraction_progress(self, message: str) -> None:
+        if self._create_screen.route() != "pull":
+            return
         self._progress_shown = True
         self._create_screen.show_status(message)
 
     @Slot(object)
     def _on_inspection_ready(self, documents: tuple) -> None:
-        if not self._cancel_pending and not self._closing:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
             self._create_screen.show_inspection(documents)
 
     @Slot(object)
     def _on_columns_ready(self, columns: tuple) -> None:
-        if not self._cancel_pending and not self._closing:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
             self._create_screen.set_columns(columns)
 
     @Slot(object, object)
     def _on_candidate_ready(self, candidate: Candidate, cells: tuple) -> None:
-        if not self._cancel_pending and not self._closing:
+        if (self._create_screen.route() == "pull"
+                and not self._cancel_pending and not self._closing):
             self._create_screen.show_candidate(candidate, cells)
 
     @Slot(str, object)
     def _on_extraction_failed(self, message: str, issues: tuple) -> None:
-        if not self._closing:
+        if self._create_screen.route() == "pull" and not self._closing:
             self._progress_shown = False
             self._create_screen.show_failure(message, issues)
 
     @Slot()
     def _on_extraction_cancelled(self) -> None:
-        if not self._closing:
+        if self._create_screen.route() == "pull" and not self._closing:
             self._progress_shown = False
             self._create_screen.show_status("Cancelled. Your setup is retained.")
 
     @Slot(str)
     def _on_extraction_saved(self, path: str) -> None:
-        if not self._closing:
+        if self._create_screen.route() == "pull" and not self._closing:
             self._progress_shown = False
             self._create_screen.show_status("Workbook saved successfully.")
             self._create_screen.show_open_file_btn(path)
@@ -518,6 +523,8 @@ class MainWindow(QMainWindow):
         Args:
             path: Absolute path to the generated file.
         """
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.clear_prompt()
         self._create_screen.show_status(
             "File created successfully",
@@ -616,6 +623,8 @@ class MainWindow(QMainWindow):
     def _on_template_completed(self, path: str, issues: object) -> None:
         """Called when the template pipeline writes the deck. Clears the loaded template
         (reset-after-generate) and surfaces the result like the freeform flow."""
+        if self._create_screen.route() != "write" or self._closing:
+            return
         self._create_screen.clear_prompt()
         primary = "File created successfully"
         if issues:

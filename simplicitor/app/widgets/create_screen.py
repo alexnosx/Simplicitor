@@ -60,6 +60,8 @@ class CreateScreen(QWidget):
         super().__init__(parent)
         self._settings = settings
         self._save_dir = settings.generated_dir
+        self._route = "write"
+        self._requests = {"write": "", "pull": ""}
         self._paths: tuple[Path, ...] = ()
         self._documents: tuple = ()
         self._inspecting = self._confirmed = self._pending_confirm = self._loading = False
@@ -91,6 +93,15 @@ class CreateScreen(QWidget):
         heading.addWidget(title)
         heading.addWidget(self._caption)
         heading.addStretch()
+        options = QHBoxLayout()
+        self._write_option = QPushButton("Write a new document\n"
+                                        "Word, PDF, PowerPoint or Excel, from a description.")
+        self._pull_option = QPushButton("Pull information from documents into Excel\n"
+                                       "Read your Word files or PDFs and make an Excel table.")
+        for route, button in (("write", self._write_option), ("pull", self._pull_option)):
+            button.setCheckable(True)
+            button.clicked.connect(lambda _checked=False, value=route: self.set_route(value))
+            options.addWidget(button, 1)
         self._steps = StepIndicator()
         self._pages = QStackedWidget()
         self._describe_page = self._build_describe_page()
@@ -110,6 +121,7 @@ class CreateScreen(QWidget):
         footer.addStretch()
         footer.addWidget(self._cancel_btn)
         layout.addLayout(heading)
+        layout.addLayout(options)
         layout.addWidget(self._steps)
         layout.addWidget(self._pages, stretch=1)
         layout.addLayout(footer)
@@ -118,6 +130,35 @@ class CreateScreen(QWidget):
         self._update_placeholder()
         self._refresh()
         self._update_details()
+
+    def route(self) -> str:
+        """Return the chosen operation independently of attached source files."""
+        return self._route
+
+    def set_route(self, route: str) -> None:
+        """Keep each option's inputs; invalidate derived Pull results through setup_changed."""
+        if route not in self._requests or route == self._route:
+            return
+        if self._busy or self._generating or self._inspecting:
+            return
+        self._requests[self._route] = self._prompt_edit.toPlainText()
+        self._loading = True
+        if self._route == "pull":
+            self._columns_table.setRowCount(0)
+            self._column_settings.clear()
+        self._route = route
+        self._prompt_edit.setPlainText(self._requests[route])
+        self._loading = False
+        self._pages.setCurrentWidget(self._describe_page)
+        self._setup_edited()
+        self._steps.set_current(0)
+        self._caption.setText("Describe what you need.")
+        self._update_placeholder()
+        if route == "pull":
+            if self._documents:
+                self.show_inspection(self._documents)
+            elif self._paths:
+                self._read_again()
 
     @staticmethod
     def _card() -> tuple[QFrame, QVBoxLayout]:
@@ -139,7 +180,9 @@ class CreateScreen(QWidget):
         self._prompt_edit.setMinimumHeight(116)
         self._prompt_edit.setMaximumHeight(180)
         column.addWidget(self._prompt_edit)
-        fields = QHBoxLayout()
+        self._output_fields = QWidget()
+        fields = QHBoxLayout(self._output_fields)
+        fields.setContentsMargins(0, 0, 0, 0)
         types = QVBoxLayout()
         types.addWidget(QLabel("File type"))
         self._type_combo = QComboBox()
@@ -169,7 +212,7 @@ class CreateScreen(QWidget):
         save.addStretch()
         fields.addLayout(types, 1)
         fields.addWidget(self._save_folder, 1)
-        column.addLayout(fields)
+        column.addWidget(self._output_fields)
         self._tip_label = QLabel(
             "Tip: Your model works best with short, clear prompts. "
             "Consider simplifying your request for better results.")
@@ -188,6 +231,7 @@ class CreateScreen(QWidget):
         column.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         column.addStretch()
         source, sources = self._card()
+        self._source_card = source
         sources.addWidget(QLabel("Source files (optional)"))
         drop = QHBoxLayout()
         hint = QLabel("Drop Word files or PDFs with selectable text here, or")
@@ -248,12 +292,14 @@ class CreateScreen(QWidget):
             return
         self._loading = True
         self._prompt_edit.clear()
+        self._requests = {"write": "", "pull": ""}
         self._loading = False
         self.set_template_loaded(False)
         if hasattr(self, "_columns_table"):
             self._columns_table.setRowCount(0)
             self._column_settings.clear()
         self.set_paths(())
+        self.set_route("write")
         self.set_file_type(GENERATE_FILE_TYPES[0])
         self._last_generated_path = ""
         self._pages.setCurrentWidget(self._describe_page)
@@ -304,23 +350,14 @@ class CreateScreen(QWidget):
             item.setSizeHint(holder.sizeHint())
             self._source_list.setItemWidget(item, holder)
         self._documents = ()
-        self._inspecting = bool(self._paths)
-        self._force_excel_if_sources()
+        self._inspecting = self._route == "pull" and bool(self._paths)
         self._update_placeholder()
         self._setup_edited()
-        if self._paths:
+        if self._inspecting:
             self.inspect_requested.emit(self.snapshot(False))
 
-    def _force_excel_if_sources(self) -> None:
-        if self._paths and self.file_type() != EXCEL:
-            self._type_combo.blockSignals(True)
-            self.set_file_type(EXCEL)
-            self._type_combo.blockSignals(False)
-            self.set_template_loaded(False)
-            self.file_type_changed.emit(EXCEL)
-
     def _read_again(self) -> None:
-        if self._paths and not self._busy:
+        if self._route == "pull" and self._paths and not self._busy:
             self._inspecting = True
             self._refresh()
             self.inspect_requested.emit(self.snapshot(False))
@@ -328,7 +365,7 @@ class CreateScreen(QWidget):
     def dragEnterEvent(self, event) -> None:
         """Accept supported local-file drops only while the setup is editable."""
         urls = event.mimeData().urls()
-        if (self._pages.currentWidget() is self._describe_page
+        if (self._route == "pull" and self._pages.currentWidget() is self._describe_page
                 and not self._busy and urls and all(url.isLocalFile()
                 and Path(url.toLocalFile()).suffix.lower() in SOURCE_SUFFIXES for url in urls)):
             event.acceptProposedAction()
@@ -336,7 +373,7 @@ class CreateScreen(QWidget):
     def dropEvent(self, event) -> None:
         """Append a supported drop without deduplicating attachment names."""
         urls = event.mimeData().urls()
-        if (self._pages.currentWidget() is self._describe_page
+        if (self._route == "pull" and self._pages.currentWidget() is self._describe_page
                 and not self._busy and urls and all(url.isLocalFile()
                 and Path(url.toLocalFile()).suffix.lower() in SOURCE_SUFFIXES for url in urls)):
             self.set_paths(self._paths + tuple(Path(url.toLocalFile()) for url in urls))
@@ -345,6 +382,8 @@ class CreateScreen(QWidget):
     @Slot(object)
     def show_inspection(self, documents) -> None:
         """Store source metadata and show its reading problems without internal codes."""
+        if self._route != "pull":
+            return
         self._documents = tuple(documents)
         self._set_coverage("\n".join(describe_coverage(doc.label, issue.anchor, issue.code)
             for doc in self._documents for issue in doc.issues))
@@ -376,12 +415,13 @@ class CreateScreen(QWidget):
             self._prompt_edit.setTextCursor(cursor)
             self._prompt_edit.blockSignals(False)
         self._confirmed = self._pending_confirm = False
+        self._requests[self._route] = self._prompt_edit.toPlainText()
         self.clear_review()
         self.setup_changed.emit()
         self._refresh()
 
     def _type_changed(self, _display_name: str) -> None:
-        label = self.file_type()
+        label = self._type_combo.currentData()
         self._update_placeholder()
         self.file_type_changed.emit(label)
         self._setup_edited()
@@ -389,12 +429,12 @@ class CreateScreen(QWidget):
     def _update_placeholder(self) -> None:
         """Hint at extraction while sources are attached, else at the chosen file type."""
         self._prompt_edit.setPlaceholderText(
-            EXTRACTION_PROMPT_PLACEHOLDER if self._paths
+            EXTRACTION_PROMPT_PLACEHOLDER if self._route == "pull"
             else PROMPT_PLACEHOLDERS.get(self.file_type(), ""))
 
     def file_type(self) -> str:
         """Return the existing backend type label, independently of display text."""
-        return self._type_combo.currentData()
+        return EXCEL if self._route == "pull" else self._type_combo.currentData()
 
     def set_file_type(self, label: str) -> None:
         """Select a backend type while preserving the ordinary change signal."""
@@ -420,7 +460,8 @@ class CreateScreen(QWidget):
         self._refresh()
 
     def _setup_controls(self) -> tuple:
-        return (self._prompt_edit, self._type_combo, self._source_list, self._browse_btn,
+        return (self._write_option, self._pull_option,
+                self._prompt_edit, self._type_combo, self._source_list, self._browse_btn,
                 self._change_folder_btn, self._template_btn, self._retry_btn, self._read_again_btn,
                 self._primary_btn, self._open_file_btn, self._another_btn,
                 self._columns_table, self._add_column_btn, self._remove_column_btn,
@@ -451,7 +492,7 @@ class CreateScreen(QWidget):
     @Slot(str, object)
     def show_failure(self, message: str, issues: tuple) -> None:
         """Retain editable instructions and show plain source-reading problems."""
-        if (self._paths and self._documents and not self._inspecting
+        if (self._route == "pull" and self._paths and self._documents and not self._inspecting
                 and self._pages.currentWidget() is self._describe_page):
             self.set_columns(())  # A failed proposal still permits manual column entry.
         self.show_status(message, True)
@@ -488,8 +529,8 @@ class CreateScreen(QWidget):
         self._last_generated_path = path
         self._saved_label.setText("Saved: " + Path(path).name)
         self._pages.setCurrentWidget(self._saved_page)
-        self._steps.set_steps(ROUTE_SOURCES if self._paths else ROUTE_PROMPT)
-        self._steps.set_current(2 if self._paths else 1)
+        self._steps.set_steps(ROUTE_SOURCES if self._route == "pull" else ROUTE_PROMPT)
+        self._steps.set_current(2 if self._route == "pull" else 1)
         self._caption.setText("Your file is ready.")
 
     def _on_open_file(self) -> None:
@@ -508,7 +549,8 @@ class CreateScreen(QWidget):
 
     def snapshot(self, include_columns: bool = True) -> ExtractionSetup:
         """Freeze setup for the worker without sharing live widget state."""
-        return ExtractionSetup(self._paths, self._prompt_edit.toPlainText().strip(),
+        return ExtractionSetup(self._paths if self._route == "pull" else (),
+            self._prompt_edit.toPlainText().strip(),
             self.current_columns() if include_columns else (), ExtractionProfile(self._model))
 
     def candidate(self):
@@ -537,24 +579,27 @@ class CreateScreen(QWidget):
         self._refresh()
 
     def _refresh(self) -> None:
-        has_sources = bool(self._paths)
-        for index in range(self._type_combo.count()):
-            self._type_combo.model().item(index).setEnabled(
-                not has_sources or self._type_combo.itemData(index) == EXCEL)
-        self._sources_note.setVisible(has_sources)
-        self._save_folder.setVisible(not has_sources)
+        pulling = self._route == "pull"
+        has_sources = pulling and bool(self._paths)
+        for route, button in (("write", self._write_option), ("pull", self._pull_option)):
+            button.setChecked(route == self._route)
+            button.setEnabled(not (self._busy or self._generating or self._inspecting))
+        self._source_card.setVisible(pulling)
+        self._output_fields.setVisible(not pulling)
+        self._sources_note.setVisible(pulling)
+        self._save_folder.setVisible(not pulling)
         self._reading_label.setVisible(self._inspecting)
         self._read_again_btn.setVisible(has_sources and not self._documents and not self._inspecting)
         self._read_again_btn.setEnabled(not self._busy)
-        self._steps.set_steps(ROUTE_SOURCES if has_sources else ROUTE_PROMPT)
+        self._steps.set_steps(ROUTE_SOURCES if pulling else ROUTE_PROMPT)
         self._retry_btn.setVisible(not self._connected)
         self._disconnected_label.setVisible(not self._connected)
         ready = (not self._busy and not self._generating and self._connected and bool(self._model)
                  and bool(self._prompt_edit.toPlainText().strip()))
-        self._primary_btn.setText("Next: choose columns" if has_sources
+        self._primary_btn.setText("Next: choose columns" if pulling
                                   else "Creating..." if self._generating else "Create file")
-        self._primary_btn.setEnabled(ready and (not has_sources or not self._inspecting))
-        is_ppt = self.file_type() == TEMPLATE_FILE_TYPE
+        self._primary_btn.setEnabled(ready and (not pulling or (has_sources and not self._inspecting)))
+        is_ppt = not pulling and self.file_type() == TEMPLATE_FILE_TYPE
         self._template_btn.setVisible(is_ppt)
         self._template_btn.setEnabled(is_ppt and not has_sources and not self._busy
                                       and not self._generating and self._connected
@@ -688,6 +733,8 @@ class CreateScreen(QWidget):
     @Slot(object)
     def set_columns(self, columns: tuple[ColumnSpec, ...]) -> None:
         """Install editable proposals and open the column-confirmation step."""
+        if self._route != "pull":
+            return
         self._loading = True
         self._columns_table.setRowCount(0)
         self._column_settings.clear()
@@ -703,6 +750,8 @@ class CreateScreen(QWidget):
         self._caption.setText("Choose the information you want in Excel.")
 
     def _confirm_and_extract(self) -> None:
+        if self._route != "pull":
+            return
         try:
             columns = self.current_columns()
             if not columns:
@@ -735,7 +784,8 @@ class CreateScreen(QWidget):
         except ValueError:
             valid = False
         ready = (not self._busy and not self._generating and self._connected and bool(self._model)
-                 and bool(self._paths) and bool(self._prompt_edit.toPlainText().strip()))
+                 and self._route == "pull" and bool(self._paths)
+                 and bool(self._prompt_edit.toPlainText().strip()))
         self._extract_btn.setEnabled(ready and valid)
         self._save_btn.setEnabled(bool(self._candidate) and not self._busy
             and (not self._candidate.issues or self._ack_checkbox.isChecked()))
@@ -747,6 +797,8 @@ class CreateScreen(QWidget):
     @Slot(object, object)
     def show_candidate(self, candidate: Candidate, cells: tuple[ReviewCell, ...]) -> None:
         """Review saved cells and evidence, preserving typed values and formats."""
+        if self._route != "pull":
+            return
         self._candidate = candidate
         self._cells = {(cell.row - 2, cell.column - 2): cell for cell in cells}
         rows = max((cell.row - 1 for cell in cells), default=0)
@@ -829,7 +881,9 @@ class CreateScreen(QWidget):
         self._evidence.setPlainText("\n\n".join(blocks))
 
     def _primary_clicked(self) -> None:
-        if self._paths:
+        if not self._primary_btn.isEnabled():
+            return
+        if self._route == "pull":
             self.propose_requested.emit(self.snapshot(False))
         else:
             self.generate_requested.emit(self.file_type(), self._save_dir,

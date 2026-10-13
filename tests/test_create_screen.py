@@ -82,6 +82,7 @@ def test_without_sources_all_types_and_create_file_uses_chosen_folder(qtbot, iso
 
 def test_sources_force_excel_and_wait_for_inspection(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "invoice.docx"
     source.write_bytes(b"x")
     ignored = tmp_path / "notes.txt"
@@ -91,9 +92,10 @@ def test_sources_force_excel_and_wait_for_inspection(qtbot, isolated_profile, tm
     with qtbot.waitSignal(screen.inspect_requested):
         screen.set_paths((source, ignored))
     assert screen._source_list.count() == 1
-    assert screen._type_combo.currentText() == "Excel"
+    assert screen.file_type() == "Excel (.xlsx)"
     word = screen._type_combo.findText("Word")
-    assert not screen._type_combo.model().item(word).isEnabled()
+    assert screen._type_combo.model().item(word).isEnabled()  # retained Write choice
+    assert not screen._type_combo.isVisible()
     assert screen._sources_note.isVisible()
     assert screen._primary_btn.text() == "Next: choose columns"
     assert not screen._primary_btn.isEnabled()  # still reading the files
@@ -105,6 +107,7 @@ def test_sources_force_excel_and_wait_for_inspection(qtbot, isolated_profile, tm
 
 def test_same_named_files_stay_separate(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     a, b = tmp_path / "a" / "invoice.pdf", tmp_path / "b" / "invoice.pdf"
     for path in (a, b):
         path.parent.mkdir()
@@ -115,10 +118,12 @@ def test_same_named_files_stay_separate(qtbot, isolated_profile, tmp_path):
 
 def test_removing_all_sources_restores_every_type(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "invoice.pdf"
     source.write_bytes(b"x")
     screen.set_paths((source,))
     screen.set_paths(())
+    screen.set_route("write")
     word = screen._type_combo.findText("Word")
     assert screen._type_combo.model().item(word).isEnabled()
     assert screen._primary_btn.text() == "Create file"
@@ -140,6 +145,7 @@ def test_show_status_accepts_secondary_and_tooltip(qtbot, isolated_profile):
 
 def test_source_changes_are_ignored_while_busy(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "invoice.pdf"
     source.write_bytes(b"x")
     screen.set_busy(True)
@@ -149,19 +155,24 @@ def test_source_changes_are_ignored_while_busy(qtbot, isolated_profile, tmp_path
     assert screen._source_list.count() == 0 and requests == []
 
 
-def test_switch_from_powerpoint_to_sources_notifies_type_once(qtbot, isolated_profile, tmp_path):
+def test_sources_do_not_overwrite_the_retained_write_type(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     screen._type_combo.setCurrentText("PowerPoint")
     seen = []
     screen.file_type_changed.connect(seen.append)
     source = tmp_path / "invoice.docx"
     source.write_bytes(b"x")
     screen.set_paths((source,))
-    assert seen == ["Excel (.xlsx)"]
+    assert seen == []
+    screen.show_inspection(())
+    screen.set_route("write")
+    assert screen.file_type() == "PowerPoint (.pptx)"
 
 
 def test_failed_inspection_ends_reading_and_keeps_setup(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     screen._prompt_edit.setPlainText("Invoice number")
     source = tmp_path / "invoice.docx"
     source.write_bytes(b"x")
@@ -200,6 +211,7 @@ def test_saved_prompt_page_and_start_another_preserve_folder(qtbot, isolated_pro
 
 def test_source_route_hides_save_folder_and_saved_reset_clears_sources(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     screen.set_paths((tmp_path / "invoice.docx",))
     assert not screen._save_folder.isVisible()
     screen.show_open_file_btn(str(tmp_path / "data.xlsx"))
@@ -217,6 +229,7 @@ def _document(path):
 def test_extract_before_reading_finishes_waits_and_resumes(qtbot, isolated_profile, tmp_path):
     from extraction.models import ColumnSpec
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "invoice.docx"
     source.write_bytes(b"x")
     screen._prompt_edit.setPlainText("Invoice number")
@@ -235,6 +248,7 @@ def test_extract_before_reading_finishes_waits_and_resumes(qtbot, isolated_profi
 def test_columns_page_navigation_and_confirmation(qtbot, isolated_profile, tmp_path):
     from extraction.models import ColumnSpec
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "invoice.docx"
     source.write_bytes(b"x")
     screen._prompt_edit.setPlainText("Invoice number")
@@ -255,6 +269,7 @@ def test_columns_page_navigation_and_confirmation(qtbot, isolated_profile, tmp_p
 def test_review_uses_plain_words_and_resets_acknowledgement(qtbot, isolated_profile, tmp_path):
     from extraction.models import Candidate, Issue, ReviewCell
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     cell = ReviewCell(2, 3, "00123", "s", ({
         "Data cell": "C2", "Record": "source-1", "File": "invoice.docx", "Field": "Invoice number",
         "Value": "00123", "Quote": "Invoice number: 00123", "Anchor": "source-1#t:0:r:0:c:1",
@@ -289,6 +304,7 @@ def test_review_acknowledgement_labels_and_export_gate(qtbot, isolated_profile, 
                                                      highlighted, reading, label):
     from extraction.models import Candidate, Issue, ReviewCell
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     issues = []
     if highlighted:
         issues.append(Issue("flagged_field", "source-1", "C2", "review"))
@@ -327,6 +343,7 @@ def test_failure_lists_plain_coverage(qtbot, isolated_profile):
 @pytest.fixture
 def panel(qtbot, isolated_profile, tmp_path):
     widget = _screen(qtbot, isolated_profile)
+    widget.set_route("pull")
     path = tmp_path / "source.docx"
     document = Document()
     document.add_paragraph("ID 00123; date 01/02/2026")
@@ -611,6 +628,7 @@ def test_source_remove_buttons_fit_with_application_list_padding(panel, qapp):
 
 def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "invoice.docx"
     screen._prompt_edit.setPlainText("Invoice number")
     screen.set_paths((source,))
@@ -627,6 +645,7 @@ def test_failed_column_proposal_offers_manual_columns(qtbot, isolated_profile, t
 def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path):
     from extraction.models import Candidate, ReviewCell
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     entry = {"Data cell": "C2", "Record": "source-1", "File": "invoice.docx", "Field": "PO",
              "Value": None, "Quote": "", "Anchor": "", "Status": "verified", "Issue": ""}
     candidate = Candidate("job", tmp_path / "candidate.xlsx", (), ())
@@ -642,9 +661,12 @@ def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp
     screen = _screen(qtbot, isolated_profile)
     screen.set_file_type("Excel (.xlsx)")
     assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Excel (.xlsx)"]
+    screen.set_route("pull")
     screen.set_paths((tmp_path / "invoice.docx",))
     assert screen._prompt_edit.placeholderText() == EXTRACTION_PROMPT_PLACEHOLDER
     screen.set_paths(())
+    assert screen._prompt_edit.placeholderText() == EXTRACTION_PROMPT_PLACEHOLDER
+    screen.set_route("write")
     assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Excel (.xlsx)"]
     screen.set_file_type("Word (.docx)")
     assert screen._prompt_edit.placeholderText() == PROMPT_PLACEHOLDERS["Word (.docx)"]
@@ -655,6 +677,7 @@ def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile,
     assert COVERAGE_HEADER == (
         "Some information may be missing from the table. Check these problems before you use it:")
     screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
     source = tmp_path / "boxes.docx"
     document = Document()
     document.add_paragraph("Invoice 100")
