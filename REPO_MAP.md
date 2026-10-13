@@ -507,6 +507,7 @@ simplicitor/
         patch.py
         proposal.py
         reading_view.py
+        save.py
     extraction/
         __init__.py
         grounding.py
@@ -561,6 +562,7 @@ tests/
         test_patch.py
         test_proposal.py
         test_reading_view.py
+        test_save.py
     extraction/
         fixtures/
             labels/
@@ -1080,6 +1082,14 @@ requirements.txt
 - def build(opened: OpenedDocument) -> tuple[DisplayBlock, ...]: Headers, then body blocks in document order, then footers.
 - def paragraphs(data: bytes, first: int, count: int) -> tuple[DisplayBlock, ...]: Display blocks for body paragraphs first..first+count-1 of a package (review).
 
+### simplicitor/editing/save.py
+
+- def suggested_name(original: Path) -> str
+- def destination_state(destination: Path) -> str | None: None when absent, else the SHA-256 of the existing file. Raises OSError if unreadable.
+- def _stage(candidate: EditCandidate, folder: Path) -> Path: Write the candidate to a temporary file in folder and read it back.
+- def _commit_checks(candidate: EditCandidate, destination: Path, recorded: str | None) -> None
+- def save_candidate(candidate: EditCandidate, destination: Path) -> Path: Write the verified bytes to destination; on any failure leave an existing file unchanged.
+
 ### simplicitor/extraction/__init__.py
 
 (no top-level definitions)
@@ -1345,6 +1355,20 @@ requirements.txt
 - def test_word_fixture_view_has_headings_lists_table_and_read_only_reasons()
 - def test_review_blocks_come_from_candidate_bytes()
 - def test_nested_and_header_tables_are_shown_read_only(tmp_path)
+
+### tests/editing/test_save.py
+
+- def candidate(tmp_path)
+- def _leftovers(folder)
+- def _interleave(monkeypatch, change): Run `change` after the destination was recorded and staged, before the commit checks.
+- def test_suggested_name()
+- def test_saves_new_file_and_leaves_original(tmp_path, candidate)
+- def test_refuses_original_and_wrong_suffix(tmp_path, candidate)
+- def test_replaces_an_existing_destination_that_stayed_unchanged(tmp_path, candidate)
+- def test_commit_point_changes_save_nothing(tmp_path, candidate, monkeypatch, change, outcome)
+- def test_same_size_same_time_content_change_is_detected(tmp_path, candidate, monkeypatch)
+- def test_unreadable_destination_is_reported_before_writing(tmp_path, candidate, monkeypatch)
+- def test_write_failure_and_read_back_mismatch_leave_destination(tmp_path, candidate, monkeypatch)
 
 ### tests/extraction/test_evaluation.py
 
