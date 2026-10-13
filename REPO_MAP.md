@@ -113,6 +113,7 @@ docs/
         v2.1.0.json
         v2.2.0-notes.md
         v2.2.0.json
+        v2.3.0-notes.md
     reviews/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
@@ -2456,12 +2457,12 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 101 lines
+- CHANGELOG.md: md, 111 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
-- PRD.md: md, 128 lines
-- README.md: md, 127 lines
+- PRD.md: md, 153 lines
+- README.md: md, 138 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
@@ -2473,7 +2474,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 131 lines
+- docs/PROJECT_STATUS.md: md, 132 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2516,6 +2517,7 @@ requirements.txt
 - docs/releases/v2.1.0.json: json, 107 lines
 - docs/releases/v2.2.0-notes.md: md, 35 lines
 - docs/releases/v2.2.0.json: json, 152 lines
+- docs/releases/v2.3.0-notes.md: md, 32 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
@@ -2545,8 +2547,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 154 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 71 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 169 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 85 lines
 - docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 323 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines

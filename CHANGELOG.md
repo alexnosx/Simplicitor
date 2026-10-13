@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.3.0 (unreleased)
+
+- Add selective Word editing: open a standard .docx, select continuous whole body paragraphs, describe a change, review Before/After with light green highlights, and save one change as a new file. Preserve all bytes outside the selection and all other package parts. The original is never overwritten.
+- Show paragraphs, headings, bold/italic, lists, tables and picture placeholders in a virtualized plain-text reading view. Keep tables, headers, footers and paragraphs with unsupported constructs read-only with reasons. Enforce the 50 MiB/300-page-equivalent input, 6,000-character selection and 2,000-character description limits; refuse protected, signed and unsupported documents.
+- Keep the selected-model, discard, cancellation and stale-result gates. Ask to discard only after a replacement file is picked. Wait for an accepted save on close, show that wait on Edit, and keep a failed save visible on Save with the window open. Match the approved mockup wording and show the original folder.
+- Keep the independent editing engine's byte-map/splice verification, formatting and bookmark rules, worker-side destination fingerprinting, staged read-back and commit-point checks. Track Changes documents are allowed, with a notice that new revision marks are not written. Legacy manipulation stays disabled.
+- Pass the one-shot model gate: both Q4_K_M candidates scored 11/12 with zero verification failures; [report](docs/evaluation/2.3.0-edit-model-check.json). All six patched samples opened read-only in Word 16.0 build 16.0.20326; [Word check](docs/builds/2.3.0-word-check.json).
+- Correct the Edit test fixture's queued first discovery poll and collect cyclic garbage only on the main thread between source tests. The 2.3.0 version-change isolated suite passed 1,290 tests. Update requirements, architecture/UI specs, the implemented design status, README, map and release notes.
+- Set product/MSI version 2.3.0, executable 2.3.0.0 and the derived hosted upgrade probe 2.3.1. Keep the existing MSI/portable route, extraction and generation behavior, dependencies and LICENSE. Milestone qualification and a separate explicit release go are required before publication.
+
 ## v2.2.0, 2026-10-13
 
 Published as [v2.2.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.2.0) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.2.0.json](docs/releases/v2.2.0.json).

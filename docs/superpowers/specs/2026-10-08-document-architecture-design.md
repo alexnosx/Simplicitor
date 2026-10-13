@@ -1,10 +1,10 @@
-# Simplicitor document architecture, 2.2.0
+# Simplicitor document architecture, 2.3.0
 
-[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md) and [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md) own signatures and checks. Updated 2026-10-13 for the 2.2.0 release candidate after the B3 drop and Part D merge.
+[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md) and [2.3.0 plan](../plans/2026-10-13-release-2.3.0.md) own signatures and checks. Updated 2026-10-13 for 2.3.0 release preparation after the Edit screen merge and Part C checks.
 
 ## Structure
 
-Keep Python/PySide6, existing generation/template workers, the plain-Python extraction package and its Qt worker adapter. MainWindow mounts one CreateScreen and an explanatory EditPlaceholder; TopBar selects the mode and Settings. CreateScreen emits requests with frozen setup, while MainWindow owns worker wiring, cancellation and teardown.
+Keep Python/PySide6, existing generation/template workers, and independent plain-Python extraction and editing packages with their Qt worker adapters. MainWindow mounts CreateScreen and EditScreen; TopBar selects the mode and Settings. The screens emit work requests, while MainWindow owns frozen setup, worker wiring, cancellation and teardown. Legacy editing remains hidden and disabled.
 
 CreateScreen chooses an explicit Write or Pull route. It keeps separate description/request buffers and retains the writing file type and source attachments independently. Write emits only type, folder and description; its extraction snapshot contains no paths. Pull always produces XLSX. Leaving Pull clears derived columns, candidate and acknowledgement through setup_changed, which MainWindow uses to discard the owned job. Busy work blocks switching; GUI receivers ignore results for the other route. Generation, grounding, review, save, cancellation and close algorithms are unchanged.
 
@@ -19,6 +19,11 @@ flowchart TD
     PIPE --> XLSX[Data and Evidence workbook]
     XLSX --> GRID[Saved workbook grid]
     GRID --> SAVE[Native Save As and staged copy]
+    EDIT[EditScreen] --> EDITWORKER[EditWorker]
+    EDITWORKER --> CORE[Independent editing package]
+    CORE --> OLLAMA
+    CORE --> CANDIDATE[In-memory verified DOCX candidate]
+    CANDIDATE --> EDITSAVE[Worker-side staged Save As]
 ~~~
 
 The core has no Qt dependency. Readers open sources read-only, close handles, and retain extracted units without copying source files. Code owns one record per attachment, identified independently of filename.
@@ -42,10 +47,20 @@ The core has no Qt dependency. Readers open sources read-only, close handles, an
 | simplicitor/app/widgets/template_dialog.py | Built-in template selection and structure confirmation. |
 | simplicitor/app/widgets/step_indicator.py | Preserve the active step across prompt and source routes. |
 | simplicitor/app/widgets/plain_labels.py | Present source anchors, issues and coverage in plain language without interpreting rich text. |
-| simplicitor/app/widgets/edit_placeholder.py | Explain deferred selective editing and return to Create new. |
+| simplicitor/editing/ | Package checks, byte map, display blocks, model proposals, splice verification and commit-point Save As checks; no Qt dependency. |
+| simplicitor/app/workers/edit_worker.py | Frozen EditSetup inputs and QObject open/propose/save actions; safe errors and cooperative cancellation. |
+| simplicitor/app/widgets/edit_screen.py | Virtualized Word reading view, whole-paragraph selection, description, Before/After review, native Save As and one-change Saved page. |
 | simplicitor/app/generators/pdf_generator.py | Render the parsed Word structure to a validated, staged PDF. |
 
 Reuse declared document libraries. Configuration stays in defaults.py. The legacy manipulator remains for its tests and template exception imports; new readers are independent.
+
+## Edit for Word
+
+The [implemented Edit for Word design](2026-10-13-edit-for-word-design.md) owns the byte map, editability, source alignment, formatting, bookmarks and six verification checks. Its approved amendments are incorporated into the model contract. `package.open_document` retains the source bytes and fingerprint; `body_map` records body-level byte ranges and read-only reasons. `reading_view` supplies plain DisplayBlock/Span data. `proposal` sends only selected paragraphs with styles and the instruction through the existing local-only OllamaClient, then validates the string reply and assigns sources in code. `patch.build_candidate` splices and verifies an in-memory package without reserializing unedited XML.
+
+EditScreen emits open, propose and save requests. MainWindow constructs EditSetup and runs one EditWorker action on a QThread. Results reach GUI-thread slots only while the sender and session still own the request. Save supplies only the candidate and accepted destination; the worker fingerprints the destination, stages and reads back output, rechecks source and destination, then replaces it. No destination read occurs on the GUI thread. Native Save As keeps overwrite confirmation enabled.
+
+Cancellation invalidates late open/proposal results; an accepted save finishes. Worker references are kept through non-blocking `wait(0)` teardown. Closing shows the wait on the visible screen. A failed accepted save withdraws the pending close, leaves the candidate/error on Save and resumes discovery; queued close callbacks recheck the close request. Ordinary non-closing save outcomes retain their existing retry/reset handling. Application diagnostics exclude document text, instructions, filenames, paths and replies. Acceptance values belong to the [PRD](../../../PRD.md#230-edit-for-word).
 
 ## Source reading and sectioning
 
@@ -138,7 +153,7 @@ The developer CLI retains its separate import_template tool and template-generat
 
 ## MSI packaging and hosted CI
 
-Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.2.0.0, read from app/version.py. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths. The MSI version is 2.2.0 and its derived upgrade probe is 2.2.1.
+Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.3.0.0, read from app/version.py. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths. The MSI version is 2.3.0 and its derived upgrade probe is 2.3.1.
 
 LICENSE and validated third_party notices are in the payload; the MSI and portable ZIP use that same payload. SHA256SUMS.json records payload and artifact hashes. The runner-only qualification checks NSIS refusal, install/registration/shortcuts, 20-second offscreen startup without Ollama, same-version repair, a synthetic major upgrade and settings-preserving uninstall. It does not establish native UI acceptance, SmartScreen reputation or a clean machine without developer runtimes.
 
@@ -146,7 +161,7 @@ The workflow runs source tests on pushes and pull requests. Only manual mileston
 
 ## Later architecture and references
 
-[Post-first-release requirements](../../../PRD.md#post-first-release-requirements) retain editing, reporting, and recognition contracts. Edit for Word is prioritized for 2.3.0 before table-row extraction, subject to its own mockup, technical design and implementation plan. It will patch bounded body-paragraph selections while preserving all bytes outside the selection and retaining tables/headers/footers as read-only. Office supports disposable preview/recalculation copies only in later designs. No editing implementation belongs to 2.2.0.
+[Post-first-release requirements](../../../PRD.md#post-first-release-requirements) retain reporting, recognition and later Excel/PowerPoint editing contracts. The implemented 2.3.0 Word editor precedes table-row extraction, which needs its own design. Office supports disposable preview/recalculation copies only in later designs; the application's Word editing uses OOXML and needs no Office installation.
 
 - [python-docx document order and tables](https://python-docx.readthedocs.io/en/latest/api/document.html).
 - [pdfplumber text extraction](https://github.com/jsvine/pdfplumber#comparison-to-other-libraries).

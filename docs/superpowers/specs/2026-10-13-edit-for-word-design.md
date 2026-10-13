@@ -1,6 +1,6 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Approved by Alex on 2026-10-13 at c770a74 (draft 4); amended by the approved 2.3.0 implementation plan (A1 to A3) on 2026-10-13.
+**Status:** Implemented for the 2.3.0 release candidate on main, 2026-10-13, including amendments A1 to A3 and the approved Part B corrections. Parts A and B are complete; the Part C model gate and one-off Word check passed. Tagging and publication require Alex's separate go. See [project status](../../PROJECT_STATUS.md).
 
 **Approved amendments (2026-10-13):** Alex approved A1 to A3 with the [2.3.0 implementation plan](../plans/2026-10-13-release-2.3.0.md#amendments-to-the-approved-design) at c0b7a91 (draft 4), after four [Codex reviews](../../reviews/2026-10-13-release-2.3.0-plan-codex.md). The Model request and Settings sections below incorporate the string reply, code-assigned sources and bookmark guard, no context, and the amended system prompt. Only line endings are normalized; draft 1's whitespace-trimming A4 was withdrawn. Selection, patch, verification, save and the UI are unchanged.
 

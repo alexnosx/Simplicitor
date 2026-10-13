@@ -1,6 +1,6 @@
 # Simplicitor product requirements
 
-Updated 2026-10-13 for 2.2.0 release preparation. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.2.0 plan](docs/superpowers/plans/2026-10-12-release-2.2.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
+Updated 2026-10-13 for 2.3.0 release preparation. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.3.0 plan](docs/superpowers/plans/2026-10-13-release-2.3.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
 
 ## Purpose
 
@@ -12,23 +12,23 @@ This is the single workflow table. Other documents link here.
 
 | Workflow | Release scope |
 |---|---|
-| Prompt-only Create | Preserve Word, PDF, Excel and PowerPoint generation in 2.2.0. |
+| Prompt-only Create | Preserve Word, PDF, Excel and PowerPoint generation in 2.3.0. |
 | PowerPoint creation from built-in templates | Built-in picker only; preserve the generation engine. |
-| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.2.0, with one record per file. |
+| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.3.0, with one record per file. |
 | Invoice line items / one record per table row | After Edit for Word in 2.3.0, with its own design. |
-| Selective editing of DOCX, XLSX, PPTX | Word first in 2.3.0; Excel and PowerPoint later. Preservation contract below. |
+| Edit for Word (2.3.0) | Selected whole body paragraphs; tables, headers, footers, fields, links, pictures, comments and tracked changes read-only; Excel and PowerPoint later. Preservation contract below. |
 | XLSX-to-DOCX reporting | Post-first-release; blocked on the closed operation set below. |
 | Local OCR/vision for scanned PDFs | Separate post-first-release milestone. |
 
-The 2.2.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work belongs in this release. Sources are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create retains PDF output and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
+The 2.3.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required by the application; the one-off Word compatibility check uses installed Word on Alex's PC. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work is added to the application. Sources for extraction are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create retains PDF output and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
 
 English is the target language. Other languages may work but are not tested or claimed.
 
-The published v1.2.1 safety release disabled legacy Edit at its UI and worker entry points, preserving Create/templates. The 2.2.0 Edit document mode is explanatory only and must not re-enable legacy editing.
+The published v1.2.1 safety release disabled legacy Edit at its UI and worker entry points, preserving Create/templates. The new Word editor uses an independent editing package; legacy editing remains disabled.
 
-## 2.2.0 UI
+## 2.3.0 UI
 
-Offer two modes: Create new (default) and Edit document. Edit document explains that Edit for Word arrives in 2.3.0, with a return to Create new and no editing action. Show the shared product version in the window title, top bar and Settings.
+Offer two modes: Create new (default) and Edit document. Edit document opens the selective Word editor described below. Show the shared product version in the window title, top bar and Settings.
 
 Create new starts with two options, each with a one-line explanation: **Write a new document** and **Pull information from documents into Excel**. The chosen option determines the request. Writing uses its description, file type and save folder, and never sends attached source files. PowerPoint offers the built-in templates business_pitch and technical_overview, with the chosen name and Clear. Pulling uses its request and DOCX/text-layer PDF attachments, always produces Excel, and advances through Choose columns, then Review and save. The user can edit, add, remove and confirm columns before extraction. Reports from source files remain unavailable.
 
@@ -41,6 +41,31 @@ Show review acknowledgement whenever the candidate has issues, whether highlight
 Read the selected model's parameter size from Ollama metadata (/api/show). Below 8B or unknown, show this non-blocking warning: **Simplicitor works best with models of 8B parameters or more.** This is the product's only model check. Do not infer size from a name, check hardware, or disable actions because of the warning. Thinking is off for all extraction calls, including column suggestions.
 
 Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data cells; selecting any cell shows its value/proposal, quote, source anchor, and issue. Show coverage issues separately. Re-running replaces the job candidate and resets review and acknowledgement. No PDF preview is needed.
+
+## 2.3.0 Edit for Word
+
+Open one standard Word document (.docx), select a continuous range of whole body paragraphs, describe a change, review the selected part before and after, and save a new file. A selection cannot cross a table or a read-only paragraph. Tables, headers and footers are shown read-only. Paragraphs containing fields, links, pictures, form fields, tracked changes, comments, section breaks, unsupported constructs or non-collapsed inline bookmarks are read-only with a reason. The collapsed Word _GoBack bookmark is supported. The [technical design](docs/superpowers/specs/2026-10-13-edit-for-word-design.md) defines the exact editability and formatting rules.
+
+Refuse password-protected, digitally signed and Word-protected documents. Refuse unreadable or malformed packages, macro-enabled files, templates, Strict OOXML, unsupported encodings and field/comment structures that cannot be mapped safely. Protection is refused when enforced; Track Changes being on is allowed. File refusals leave the original unchanged and show a plain message.
+
+| Acceptance value | Requirement |
+|---|---|
+| Input size | At most 50 MiB for one .docx. |
+| Document length | At most 300 page equivalents, computed by the existing reader using 3,000 extracted characters per equivalent, without Word pagination. |
+| Selection | At most 6,000 characters in a continuous whole-body-paragraph range. |
+| Description | At most 2,000 characters. |
+| D1: saved changes | One change per saved file. After saving, show the path, "The original is unchanged." and Open another document. Further changes require opening the saved file. |
+| D2: review | Show only the selected part before and after. Highlight changed or added words in light green in After; leave Before unchanged. Warn that longer text can change page breaks. |
+| D3: Track Changes | Allow editing and show: "Track Changes is on in this document. This change is saved without revision marks." Do not create revision marks. |
+| D4: model gate | Each of qwen3:8b-q4_K_M and llama3.1:8b-instruct-q4_K_M must pass at least 11 of 12 fixed tasks with zero candidate verification failures. Confirm installed tag, digest and Q4_K_M identity. Run seed 0 with the approved prompts, tasks and mechanical checks; do not send checks to the model. |
+
+Only selected paragraphs may be patched. Preserve every other package part's decompressed bytes and every byte outside the selected range of the main document part. All six candidate checks must pass before Review. Preserve unchanged formatting and supported bookmark boundaries according to the design; never silently substitute a broadly reserialized document. The preservation contract below is unchanged.
+
+Save As defaults to `<name> (edited).docx` beside the original. Never overwrite the original, including equivalent paths. Require a .docx destination and normal overwrite confirmation for another existing file. The worker records the destination after dialog acceptance, stages and reads back the file, rechecks the original and destination at the commit point, then replaces the destination. An original that changed, disappeared or became unreadable requires reopening; a changed or unreadable destination requires choosing again. Write failures keep the proposal available without showing success.
+
+Open and proposal work can be cancelled. An accepted save finishes before close; show the waiting message on the visible screen. If that save fails during closing, keep the window open with the failure on Save. Discarding a selection, description or unsaved proposal requires confirmation, with Keep editing as the default; pick a replacement file before asking so cancelling the picker retains the current work. Settings and mode switching are blocked during work, and cancelled or stale replies cannot reach Review.
+
+English synthetic fixtures and the one-off read-only Word compatibility check are the acceptance evidence. No broader LibreOffice or Google Docs compatibility is claimed. Excel and PowerPoint editing, table editing, PDF preview and multiple unsaved changes remain later work.
 
 ## Source reading and records
 
@@ -113,7 +138,7 @@ Run the isolated full local source suite after each task; synthetic temporary-fi
 
 ## Post-first-release requirements
 
-Edit for Word in 2.3.0 comes before invoice line-item/table-row extraction. Its separate mockup, technical design and implementation plan must be approved before work starts. The first Word editor targets selected whole body paragraphs; tables, headers and footers remain read-only. Table-row extraction then needs its own design. Multiple narrative records, table continuation/repeated-header matching, and OCR/vision remain outside this release.
+Edit for Word in 2.3.0 was built from its approved mockup, technical design and implementation plan and comes before invoice line-item/table-row extraction. Table-row extraction needs its own design. Multiple narrative records, table continuation/repeated-header matching, and OCR/vision remain outside this release.
 
 Selective editing remains outside 2.2.0, with Word first and Excel/PowerPoint later. Confirm exact targets, patch a separate candidate, and review before saving. Apply edits directly to OOXML parts: w:t, a:t, cell values, and shared strings. Every unedited package part's bytes remain identical; edited parts differ only at approved target nodes. Word editing must preserve every byte of document.xml outside the approved selection without whole-part reserialization. Define shared-string alias handling so a selected cell edit cannot affect other cells. Do not broadly reserialize unrelated content.
 

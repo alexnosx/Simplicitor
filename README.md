@@ -10,7 +10,7 @@ English is the target language. Other languages may work but are not tested or c
 
 [PRD.md](PRD.md) is the source for release scope, prerequisites, later milestones, and acceptance gates. [Project status](docs/PROJECT_STATUS.md) shows what exists and the decisions still open.
 
-The review set is the [document architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), and [2.2.0 implementation plan](docs/superpowers/plans/2026-10-12-release-2.2.0.md). Build procedures are in [packaging](docs/code-signing.md). Historical phase plans describe earlier versions.
+The review set is the [document architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), [Edit for Word design](docs/superpowers/specs/2026-10-13-edit-for-word-design.md), and [2.3.0 implementation plan](docs/superpowers/plans/2026-10-13-release-2.3.0.md). Build procedures are in [packaging](docs/code-signing.md). Historical phase plans describe earlier versions.
 
 ## Screenshot
 
@@ -20,9 +20,9 @@ The review set is the [document architecture](docs/superpowers/specs/2026-10-08-
 
 ### Download the binary
 
-Published downloads are on the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. For 2.2.0, the package files are (see the [release notes](docs/releases/v2.2.0-notes.md)):
+Published downloads and their release notes are on the [Releases](https://github.com/alexnosx/Simplicitor/releases) page. Each release provides:
 
-- `Simplicitor-2.2.0.msi`: installs for the current Windows user.
+- `Simplicitor-<version>.msi`: installs for the current Windows user.
 - `Simplicitor-portable.zip`: unpack and run `Simplicitor.exe` without installing.
 - `SHA256SUMS.json`: download checksums.
 
@@ -41,7 +41,7 @@ dotnet tool restore
 .\.venv\Scripts\python.exe build.py
 ```
 
-Outputs in `dist`: `Simplicitor-2.2.0.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
+Outputs in `dist`: `Simplicitor-2.3.0.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
 
 ### Run from source without building
 
@@ -60,6 +60,8 @@ Start Ollama, then launch the application:
 
 Open Settings and select an installed local model.
 
+The try-it steps below use the current source checkout.
+
 Try one synthetic extraction:
 
 1. Keep **Create new** selected and choose **Pull information from documents into Excel**. In Source files, click **browse** and choose `tests\extraction\fixtures\invoice-01.docx`. This option always produces Excel.
@@ -73,7 +75,16 @@ To create from a prompt, choose **Write a new document**, describe it, select Wo
 
 Files show Reading, Ready or Partly read. Check named reading problems before using the table: text boxes, tracked changes (including moved text), form fields and other supported warnings can identify information that was not read. Progress appears on each file and the main button. Highlighted values or reading problems require acknowledgement before saving.
 
-**Edit document** explains that Edit for Word arrives in 2.3.0. It comes before table-row extraction and needs its own approved design; editing is not available in 2.2.0.
+### Edit a Word document
+
+1. Choose **Edit document**, then **Browse .docx** and open `tests\editing\fixtures\word-basic.docx`, or drop a Word file into the Open step.
+2. Select the paragraph beginning `Invoices are payable` and click **Edit this part**. To select a range, click the first paragraph, then Shift-click the last. Grey parts are read-only; hover or click to see why.
+3. Enter: `Change the payment period from 30 days to 45 days. Keep everything else as it is.` Click **Review change**.
+4. Compare **Before** and **After**. Changed words are highlighted in light green. Use **Try again** to keep the description and request another proposal, or **Cancel** to return to selection.
+5. Click **Use this change**, then **Save as a new file**. The suggested name is `word-basic (edited).docx` beside the original. Choose where to save; the original cannot be overwritten.
+6. Each saved file holds one change. To make another, use **Open another document** and open the saved copy.
+
+Editing accepts up to 6,000 selected characters and a 2,000-character description. Tables, headers, footers and paragraphs with unsupported content stay read-only. Password-protected, signed and Word-protected documents cannot be edited. If Track Changes is on, Review explains that the change is saved without revision marks. The legacy editor remains disabled.
 
 ## Requirements
 
