@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simplicitor 2.3.0 Edit for Word mockup</title>
+<style>
+:root { color-scheme:light; --bg:#fafafa; --paper:#fff; --ink:#1e1e1e; --muted:#566171; --line:#9ca8b7; --blue:#2563eb; --soft:#eff6ff; --green:#237443; }
+* { box-sizing:border-box; } [hidden] { display:none!important; }
+body { margin:0; padding:12px; background:var(--bg); color:var(--ink); font:15px/1.5 'Segoe UI',system-ui,sans-serif; }
+button,input,select,textarea { font:inherit; }
+button { min-height:40px; padding:8px 12px; border:1px solid var(--line); border-radius:4px; background:var(--paper); color:var(--ink); cursor:pointer; }
+button:hover:not(:disabled) { background:#e6f0ff; }
+button:active:not(:disabled) { background:#bfdbfe; }
+button:disabled { color:#647080; background:#edf0f4; cursor:default; }
+:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+input,select,textarea { width:100%; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:4px; background:var(--paper); }
+input:focus,select:focus,textarea:focus { border-color:var(--blue); }
+textarea { min-height:140px; resize:vertical; } label { display:block; font-weight:600; margin-bottom:6px; }
+h1 { font-size:23px; font-weight:600; margin:0 0 4px; letter-spacing:-.35px; }
+h2 { font-size:18px; font-weight:600; margin:0 0 14px; } h3 { font-size:17px; margin:0 0 8px; }
+p { margin:0 0 12px; } .muted,.help { color:var(--muted); } .help { margin:8px 0 0; }
+.shell { max-width:1200px; margin:auto; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.mockup-controls { padding:12px 20px; color:var(--muted); background:#f2f4f7; border-bottom:1px solid var(--line); }
+.mockup-controls p { margin:0 0 8px; } .presets { display:flex; flex-wrap:wrap; gap:6px; }
+.presets button { min-height:32px; padding:4px 9px; }
+.presets button[aria-pressed=true] { background:#dbeafe; border-color:var(--blue); color:#1d4ed8; font-weight:600; }
+.top { display:flex; align-items:center; flex-wrap:wrap; gap:14px 22px; padding:12px 20px; background:var(--paper); border-bottom:1px solid var(--line); }
+.identity { display:flex; align-items:baseline; gap:9px; } .brand { font-size:21px; font-weight:600; letter-spacing:-.5px; }
+.version { color:var(--muted); } .mode { padding:8px 12px; border-radius:4px; color:var(--blue); background:var(--soft); font-weight:600; }
+.local-state { display:flex; align-items:center; gap:7px; margin-left:auto; color:var(--muted); }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--green); } .dot.unavailable { background:#7a8491; }
+.heading { padding:14px 20px 12px; } .heading p { margin:0; }
+.steps { display:flex; flex-wrap:wrap; gap:10px 20px; padding:0 20px 14px; color:var(--muted); }
+.steps .current { color:var(--blue); font-weight:600; }
+.workspace { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(0,1fr); gap:18px; padding:0 20px 20px; align-items:start; }
+.card { min-width:0; padding:20px; border:1px solid var(--line); border-radius:4px; background:var(--paper); }
+.wide { grid-column:1/-1; } .actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.reader-heading { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.reader-heading h2,.reader-heading .actions { margin:0; }
+.primary { background:var(--blue); color:white; border-color:var(--blue); font-weight:600; }
+.primary:hover:not(:disabled) { background:#1d4ed8; } .primary:active:not(:disabled) { background:#1e40af; }
+.primary:disabled { border-color:#b8c0ce; }
+.secondary { color:#1d4ed8; border-color:var(--blue); background:var(--soft); font-weight:600; }
+.secondary:hover:not(:disabled) { background:#dbeafe; } .secondary:active:not(:disabled) { background:#bfdbfe; }
+.link { min-height:32px; border-color:transparent; padding:3px 0; color:var(--blue); background:transparent; }
+.drop { padding:28px 16px; border:1px dashed #8996a9; border-radius:4px; text-align:center; color:var(--muted); }
+.drop p { margin-bottom:8px; } .drop.dragging { background:var(--soft); border-color:var(--blue); }
+.file-line { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+.file-line p { flex:1; margin:0; overflow-wrap:anywhere; } .path { overflow-wrap:anywhere; }
+.notice { padding:10px 12px; background:var(--soft); border-left:3px solid var(--blue); margin-top:12px; }
+.warning { padding:12px; border:1px solid #b88b40; border-left:3px solid #bd841c; background:#fff8e9; }
+.error { padding:12px; border:1px solid #bd7777; border-left:3px solid #a12626; background:#fff3f3; }
+.error p:last-child,.warning p:last-child { margin-bottom:0; }
+.reader { height:460px; min-height:260px; overflow:auto; border:1px solid var(--line); border-radius:4px; background:#f5f6f8; }
+.paper { padding:20px 18px; background:var(--paper); }
+.document-margin { padding:10px 12px; margin:0 0 14px; color:#586271; background:#edf0f4; border:1px dashed var(--line); border-radius:4px; cursor:help; }
+.document-margin:last-child { margin:14px 0 0; }
+.block { position:relative; padding:10px 12px; margin-bottom:6px; border:2px solid transparent; border-radius:4px; cursor:pointer; }
+.block p,.block h3,.block h4 { margin:0; } .block h4 { font-size:16px; }
+.block:hover:not([aria-disabled=true]) { background:#e6f0ff; border-color:#a8c2fa; }
+.block[aria-selected=true] { background:#dbeafe; border-color:var(--blue); }
+.block[aria-disabled=true] { color:#586271; background:#edf0f4; border-color:#c0c8d2; cursor:help; }
+.block[aria-disabled=true]:hover,.document-margin:hover { border-color:var(--blue); }
+.block.locked { cursor:default; } .block.locked:not([aria-disabled=true]):hover { border-color:transparent; background:transparent; }
+.block.locked[aria-selected=true]:hover { border-color:var(--blue); background:#dbeafe; }
+.block-label { display:block; margin-bottom:5px; color:var(--muted); }
+.block[aria-selected=true] .block-label { color:#1d4ed8; font-weight:600; }
+.list-item { display:flex; gap:10px; } .list-item .bullet { min-width:15px; }
+.table-scroll { overflow-x:auto; } table { width:100%; min-width:320px; border-collapse:collapse; }
+th,td { text-align:left; padding:8px; border:1px solid #aeb8c5; } th { background:#e2e7ee; }
+.picture { display:flex; align-items:center; justify-content:center; min-height:95px; border:1px dashed #8996a9; background:#e2e7ee; text-align:center; }
+.scope { padding:12px; border:1px solid var(--line); border-radius:4px; background:#f5f7fa; margin:14px 0; }
+.scope p { margin:0; } .scope>strong { display:block; margin-bottom:5px; }
+.snippet { margin:10px 0 0; padding-left:10px; border-left:2px solid var(--line); }
+.snippet p { margin:0 0 8px; } .snippet p:last-child { margin:0; }
+.reader-status { margin-top:10px; } .comparison { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+#selection-message { margin:0 0 12px; }
+.comparison>section { padding:16px; border:1px solid var(--line); border-radius:4px; background:#f5f6f8; min-width:0; }
+.comparison>.after { background:#f0f8f2; border-color:#7eaa8d; }
+.comparison .part { padding:8px 0; border-bottom:1px solid #c7ced8; overflow-wrap:anywhere; }
+.comparison .part:last-child { border-bottom:0; }
+.comparison h4 { font-size:16px; margin:0 0 8px; }
+.success { padding:12px; background:#f0f8f2; color:var(--green); border-left:3px solid var(--green); }
+.success p:last-child { margin-bottom:0; }
+.spinner { display:inline-block; width:16px; height:16px; margin-right:8px; vertical-align:-2px; border:2px solid var(--blue); border-right-color:transparent; border-radius:50%; animation:spin .9s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+dialog { width:500px; max-width:calc(100% - 32px); max-height:calc(100% - 40px); overflow:auto; padding:24px; color:var(--ink); border:1px solid var(--line); border-radius:6px; }
+dialog::backdrop { background:#17203166; } dialog label { margin-top:14px; }
+.sample { display:block; text-align:left; width:100%; margin-top:12px; } .sample strong,.sample span { display:block; }
+.sample span { color:var(--muted); margin-top:4px; } .save-error { margin-top:12px; color:#a12626; }
+.footer { padding:10px 20px; color:var(--muted); border-top:1px solid var(--line); }
+@media(prefers-reduced-motion:reduce) { .spinner { animation:none; } }
+@media(max-width:740px) {
+  body { padding:8px; } .mockup-controls,.top { padding:12px; gap:10px; }
+  .local-state { margin-left:0; } .heading { padding:16px 12px 12px; }
+  .steps { padding:0 12px 14px; gap:8px 12px; } .workspace { grid-template-columns:1fr; padding:0 12px 16px; gap:12px; }
+  .card { padding:16px; } .comparison { grid-template-columns:1fr; } .paper { padding:12px 8px; }
+  .file-line p { flex-basis:100%; }
+  .reader { height:420px; } .presets button { flex-grow:1; } .footer { padding:10px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="mockup-controls" aria-label="Mockup controls, outside the application">
+    <p><strong>Mockup states</strong> · 2.3.0 design preview. Fictional text only. No AI calls, document reading or files saved.</p>
+    <div id="presets" class="presets" role="group" aria-label="Open a preset state"></div>
+  </section>
+  <header class="top">
+    <span class="identity"><span class="brand">Simplicitor</span><span class="version" title="Design preview, not a change to the released application">2.3.0</span></span>
+    <span class="mode">Edit document</span>
+    <span class="local-state"><span id="model-dot" class="dot"></span><span id="model-status">Local AI ready</span></span>
+    <button id="settings">Settings</button>
+  </header>
+  <div class="heading"><h1>Edit your Word document</h1><p class="muted">Select a part, describe the change, then review it before saving a new file.</p></div>
+  <nav id="steps" class="steps" aria-label="Editing steps"></nav>
+  <main class="workspace">
+    <section class="card wide" id="open-card">
+      <h2>1. Open your Word document</h2>
+      <div id="drop-zone" class="drop">
+        <p>Drop a .docx here, or browse for a Word document.</p><button id="browse" class="secondary">Browse .docx</button>
+        <p class="help">In this mockup, browse opens fictional samples. A dropped file is not read.</p>
+      </div>
+      <div id="file-line" class="file-line" hidden>
+        <p>You are working on: <strong id="file-name">service-outline.docx</strong></p><button id="change-file">Choose another file</button>
+      </div>
+      <p id="original-note" class="help" hidden>Original in Documents\Examples. Your original will not be overwritten.</p>
+      <div id="file-error" class="error" role="alert" hidden><p><strong>This Word file could not be read.</strong></p><p>Try another .docx file. This is a fictional error state.</p></div>
+      <p id="drop-note" class="help" role="status" hidden></p>
+    </section>
+    <section class="card" id="read-card" hidden>
+      <div class="reader-heading"><h2>2. Select the part to edit</h2><div class="actions"><button id="edit-part" class="primary" disabled>Edit this part</button><button id="clear-selection" disabled>Clear selection</button></div></div>
+      <p class="muted">Click a paragraph. To select a range, click the first, then hold Shift and click the last.</p>
+      <div id="selection-message" class="notice" role="status" hidden></div>
+      <div class="reader" id="reader" tabindex="0" aria-label="Scrollable Word reading view"><div class="paper" id="paper"></div></div>
+      <p class="reader-status" id="selection-status" role="status">No paragraphs selected.</p>
+    </section>
+    <aside class="card" id="instruction-card" hidden>
+      <h2 id="instruction-title">3. Describe the change</h2>
+      <div id="no-model" class="warning" hidden><p><strong>No local model selected.</strong></p><p>Open Settings and select a local model before asking for a change.</p><button id="choose-model" class="link">Open Settings</button></div>
+      <div class="scope"><strong id="scope-label">Choose a part on the left</strong><p>Only the selected body paragraphs may change.</p><div id="scope-text" class="snippet" hidden></div></div>
+      <div id="select-hint"><p class="muted">Headings and list items count as whole paragraphs. Grey parts are read-only; hover or click to see why.</p></div>
+      <div id="request-box" hidden>
+        <label for="request">Describe the change</label><textarea id="request" placeholder="For example: Change the payment period from 30 days to 45 days."></textarea>
+        <p class="help">Everything outside your selection stays unchanged.</p>
+        <div class="actions"><button id="propose" class="primary">Review change</button><button id="back-select">Back to selection</button></div>
+      </div>
+      <div id="busy-box" class="notice" role="status" hidden>
+        <p><span class="spinner" aria-hidden="true"></span><strong>The local AI is working...</strong></p><p>Preparing a proposal for the selected part.</p><button id="cancel-busy">Cancel</button>
+      </div>
+    </aside>
+    <section class="card wide" id="review-card" hidden>
+      <h2 id="review-title">4. Review the selected part</h2>
+      <p id="review-scope" class="muted"></p>
+      <div class="comparison"><section><h3>Before</h3><div id="before"></div></section><section class="after"><h3>After</h3><div id="after"></div></section></div>
+      <p class="help">Only the selected part is shown. This is a fictional proposal, not an AI response. Longer text can change page breaks.</p>
+      <div class="actions" id="review-actions"><button id="use-change" class="primary">Use this change</button><button id="try-again" class="secondary">Try again</button><button id="cancel-review">Cancel</button></div>
+      <div id="chosen-note" class="success" hidden>Your change is chosen. Save a new file to keep it; the original stays unchanged.</div>
+    </section>
+    <section class="card wide" id="save-card" hidden>
+      <h2>5. Save as a new file</h2>
+      <p class="path">Suggested name: <strong id="suggested-name">service-outline (edited).docx</strong></p>
+      <p class="muted">By default, save next to the original in Documents\Examples. Saving over another file asks first. The original cannot be replaced.</p>
+      <div class="actions"><button id="save-as" class="primary">Save as a new file</button><button id="return-review">Back to review</button></div>
+    </section>
+    <section class="card wide" id="saved-card" hidden>
+      <h2>5. Your new file is ready</h2><div class="success"><p id="saved-path" class="path"></p><p>The original is unchanged.</p></div>
+      <p class="muted">Mockup only: no file was written or opened.</p><button id="start-over" class="secondary">Open another document</button>
+    </section>
+  </main>
+  <footer class="footer">Your documents and the AI processing stay on your computer.</footer>
+</div>
+<dialog id="browse-dialog" aria-labelledby="browse-title">
+  <h2 id="browse-title">Browse Word documents</h2><p class="muted">Fictional files only. No file contents are read.</p>
+  <button id="open-sample" class="sample secondary"><strong>service-outline.docx</strong><span>Word · paragraphs, headings, lists and read-only parts</span></button>
+  <button id="open-unreadable" class="sample"><strong>unreadable-sample.docx</strong><span>Show the file-reading error</span></button>
+  <div class="actions"><button data-close="browse-dialog">Cancel</button></div>
+</dialog>
+<dialog id="settings-dialog" aria-labelledby="settings-title">
+  <h2 id="settings-title">Local AI</h2><p class="muted">This mockup does not contact Ollama.</p>
+  <label for="model">Installed local model</label><select id="model"><option value="">Choose a model</option><option value="sample">Sample local model</option></select>
+  <div class="actions"><button id="use-model" class="primary">Use this model</button><button data-close="settings-dialog">Cancel</button></div>
+</dialog>
+<dialog id="save-dialog" aria-labelledby="save-title">
+  <h2 id="save-title">Save a new Word file</h2><p>The original stays unchanged.</p>
+  <label for="save-name">File name</label><input id="save-name" value="service-outline (edited).docx">
+  <label for="save-folder">Folder</label><select id="save-folder"><option value="Documents\Examples">Documents\Examples (next to the original)</option><option value="Documents\Examples\Reviewed">Documents\Examples\Reviewed</option></select>
+  <p class="help">Suggested: <span id="save-suggestion">service-outline (edited).docx</span></p>
+  <p class="save-error" id="save-error" role="alert" hidden></p>
+  <div class="actions"><button id="confirm-save" class="primary">Save</button><button data-close="save-dialog">Cancel</button></div>
+</dialog>
+<dialog id="replace-dialog" aria-labelledby="replace-title">
+  <h2 id="replace-title">Replace this file?</h2><p class="path">A file named <strong id="existing-name">review-copy.docx</strong> already exists in <span id="existing-folder">Documents\Examples</span>.</p>
+  <p>Replace that file with the reviewed change? Your original document will stay unchanged.</p>
+  <div class="actions"><button id="confirm-replace" class="primary">Replace this file</button><button id="cancel-replace">Cancel</button></div>
+</dialog>
+<script>
+(() => {
+  'use strict';
+  const el = id => document.getElementById(id);
+  // Trusted, fictional content only. File drops supply no document text or names.
+  const blocks = [
+    {id:'title',kind:'heading',label:'Title',html:'Service outline',after:'Project service outline'},
+    {id:'intro',kind:'paragraph',label:'Introduction',html:'This sample agreement describes a review project between <strong>Example Services</strong> and <strong>Sample Studio</strong>.',after:'<strong>Example Services</strong> and <strong>Sample Studio</strong> agree to a short review project.'},
+    {id:'scope-heading',kind:'heading',label:'Scope heading',html:'1. Scope',after:'1. Project scope'},
+    {id:'scope',kind:'paragraph',label:'Scope',html:'The project includes a document review and a short findings report.',after:'Review the documents and deliver a concise findings report.'},
+    {id:'delivery',kind:'paragraph',label:'Delivery',html:'Deliver the first draft within two weeks. Keep feedback <em>concise and specific</em>.',after:'Deliver the draft within two weeks, with <em>concise, specific</em> feedback.'},
+    {id:'list-one',kind:'list',label:'Deliverable 1',html:'A short findings report with the main actions.',after:'A concise findings report listing the next actions.'},
+    {id:'list-two',kind:'list',label:'Deliverable 2',html:'One review meeting after the draft.',after:'One meeting to review the draft and agree the next steps.'},
+    {id:'schedule',kind:'table',label:'Delivery table',reason:'Tables are read-only in the first Word editor.',html:'<div class="table-scroll"><table aria-label="Fictional delivery schedule"><thead><tr><th>Milestone</th><th>Example date</th></tr></thead><tbody><tr><td>First draft</td><td>10 November 2026</td></tr><tr><td>Review meeting</td><td>17 November 2026</td></tr></tbody></table></div>'},
+    {id:'payment-heading',kind:'heading',label:'Payment heading',html:'2. Payment',after:'2. Payment terms'},
+    {id:'payment',kind:'paragraph',label:'Payment period',html:'Invoices are payable within <strong>30 days</strong> of receipt.',after:'Invoices are payable within <strong>45 days</strong> of receipt.'},
+    {id:'invoice',kind:'paragraph',label:'Invoice timing',html:'Send the invoice after the final report is accepted.',after:'Issue the invoice once the final report has been accepted.'},
+    {id:'field',kind:'paragraph',label:'Automatic field',reason:'This paragraph contains a field and cannot be edited yet.',html:'Reference: [automatic document field]'},
+    {id:'link',kind:'paragraph',label:'Linked text',reason:'This paragraph contains a link and cannot be edited yet.',html:'Related policy: <u>example policy link</u>'},
+    {id:'picture',kind:'paragraph',label:'Picture',reason:'This paragraph contains a picture and cannot be edited yet.',html:'<div class="picture" role="img" aria-label="Picture placeholder, example diagram">Picture placeholder: example diagram</div>'},
+    {id:'form',kind:'paragraph',label:'Form field',reason:'This paragraph contains a form field and cannot be edited yet.',html:'Approval: [form field]'},
+    {id:'tracked',kind:'paragraph',label:'Tracked changes',reason:'This paragraph contains tracked changes and cannot be edited yet.',html:'A sample sentence with <s>earlier wording</s> and revised wording.'},
+    {id:'comment',kind:'paragraph',label:'Comment',reason:'This paragraph contains a comment and cannot be edited yet.',html:'A sample paragraph with a document comment.'},
+    {id:'section',kind:'paragraph',label:'Section break',reason:'This paragraph contains a section break and cannot be edited yet.',html:'New section [section break]'},
+    {id:'notes-heading',kind:'heading',label:'Notes heading',html:'3. Notes',after:'3. Working notes'},
+    {id:'notes',kind:'paragraph',label:'Working notes',html:'Use the agreed project scope when preparing the final report.',after:'Keep the final report focused on the agreed scope.'}
+  ];
+  const presets = [
+    ['open','Open'],['loaded','Document loaded'],['single','One paragraph'],['range','Paragraph range'],
+    ['unavailable','Read-only parts'],['describe','Describe change'],['busy','AI working'],['review','Review proposal'],
+    ['chosen','Change chosen'],['save','Save As'],['replace','Replace another file'],['original','Original protected'],
+    ['saved','Saved'],['unreadable','Cannot read file'],['no-model','No local model']
+  ];
+  const sampleRequest = 'Change the payment period from 30 days to 45 days. Keep everything else as it is.';
+  const originalFolder = 'Documents\\Examples';
+  const initial = () => ({phase:'open',loaded:false,fileName:'service-outline.docx',modelReady:true,
+    selected:[],anchor:null,request:'',message:'',preset:'open',chosen:false,saveName:'',saveFolder:originalFolder,savedPath:''});
+  let state = initial();
+  let timer = null;
+  let job = 0;
+  const destinationKey = (folder,name) => folder.replace(/\\/g,'/').replace(/\/+$/,'').toLowerCase()+'/'+name.trim().toLowerCase();
+  const savedOutputs = new Set([destinationKey(originalFolder,'review-copy.docx')]);
+  const suggestion = () => state.fileName.replace(/\.docx$/i,'')+' (edited).docx';
+  const selectedBlocks = () => blocks.filter((block,index) => state.selected.includes(index));
+  function stopJob() { job++; clearTimeout(timer); timer=null; }
+  function closeDialogs() { document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close()); }
+  function showDialog(id) { if (!el(id).open) el(id).showModal(); }
+  function notice(message) { state.message=message; el('selection-message').textContent=message; el('selection-message').hidden=!message; }
+  function resetFile(unreadable=false) {
+    stopJob(); closeDialogs(); state={...initial(),modelReady:state.modelReady,loaded:!unreadable,phase:unreadable?'unreadable':'select',preset:'custom'};
+    render();
+  }
+  function selectParagraph(index,extend=false) {
+    const block=blocks[index];
+    if (block.reason) { notice(block.reason); return; }
+    if (state.phase!=='select') return;
+    const anchor=extend && state.anchor!==null?state.anchor:index;
+    const start=Math.min(anchor,index), end=Math.max(anchor,index);
+    const unavailable=blocks.slice(start,end+1).find(part=>part.reason);
+    if (unavailable) {
+      notice(unavailable.kind==='table'?'A selection cannot cross a table. Select paragraphs on one side of the table.':'This range includes a read-only paragraph. Select editable paragraphs on one side of it.');
+      return;
+    }
+    state.selected=Array.from({length:end-start+1},(_,offset)=>start+offset);
+    state.anchor=anchor; state.message=''; state.preset='custom'; render();
+    el('paper').querySelector('[data-index="'+index+'"]').focus({preventScroll:true});
+  }
+  function makeContent(block,html) {
+    const content=document.createElement(block.kind==='heading'?'h3':block.kind==='paragraph'&&block.id!=='picture'?'p':'div');
+    if (block.kind==='list') { content.className='list-item'; content.innerHTML='<span class="bullet" aria-hidden="true">•</span><span>'+html+'</span>'; }
+    else content.innerHTML=html;
+    return content;
+  }
+  function renderReader() {
+    const paper=el('paper'); paper.replaceChildren();
+    const margin=(label,text) => {
+      const node=document.createElement('div'); node.className='document-margin'; node.tabIndex=0;
+      node.setAttribute('aria-disabled','true'); node.title=label+' is shown for context and cannot be edited.';
+      node.innerHTML='<strong>'+label+' (read-only)</strong><br>'+text;
+      node.addEventListener('click',()=>notice(node.title));
+      node.addEventListener('keydown',event=>{ if (event.key==='Enter'||event.key===' ') {event.preventDefault();notice(node.title);} });
+      return node;
+    };
+    paper.append(margin('Header','Example document · internal draft'));
+    blocks.forEach((block,index)=>{
+      const row=document.createElement('div'); row.className='block'+(state.phase!=='select'?' locked':''); row.tabIndex=0;
+      row.dataset.index=index; row.setAttribute('role','option'); row.setAttribute('aria-selected',String(state.selected.includes(index)));
+      row.setAttribute('aria-label',block.label+(block.reason?': '+block.reason:''));
+      if (block.reason) { row.setAttribute('aria-disabled','true'); row.title=block.reason; }
+      const label=document.createElement('span'); label.className='block-label';
+      label.textContent=block.reason?block.label+' · Read-only':block.label+(state.selected.includes(index)?' · Selected':'');
+      row.append(label,makeContent(block,block.html));
+      row.addEventListener('click',event=>selectParagraph(index,event.shiftKey));
+      row.addEventListener('keydown',event=>{ if (event.key==='Enter'||event.key===' ') { event.preventDefault();selectParagraph(index,event.shiftKey); } });
+      paper.append(row);
+    });
+    paper.append(margin('Footer','Fictional content · page 1'));
+  }
+  function renderComparison() {
+    ['before','after'].forEach(side=>{
+      el(side).replaceChildren();
+      selectedBlocks().forEach(block=>{
+        const part=document.createElement('div'); part.className='part';
+        const label=document.createElement('p'); label.className='muted'; label.textContent=block.label;
+        part.append(label,makeContent(block,side==='before'?block.html:block.after)); el(side).append(part);
+      });
+    });
+  }
+  function scrollToBlock(index) {
+    requestAnimationFrame(()=>{
+      const row=el('paper').querySelector('[data-index="'+index+'"]');
+      if (row) el('reader').scrollTop+=row.getBoundingClientRect().top-el('reader').getBoundingClientRect().top-70;
+    });
+  }
+  function render() {
+    const busy=state.phase==='busy', reviewing=state.phase==='review'||state.phase==='save';
+    const reading=state.loaded && !reviewing && state.phase!=='saved';
+    document.querySelectorAll('[data-preset]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.preset===state.preset)));
+    el('model-status').textContent=state.modelReady?'Local AI ready':'No local model';
+    el('model-dot').classList.toggle('unavailable',!state.modelReady); el('settings').disabled=busy;
+    const current=state.phase==='open'||state.phase==='unreadable'?0:state.phase==='select'?1:state.phase==='describe'||busy?2:state.phase==='review'?3:4;
+    el('steps').replaceChildren(); ['Open document','Select part','Describe change','Review','Save new file'].forEach((label,index)=>{
+      const step=document.createElement('span'); step.textContent=(index+1)+'. '+label;
+      if (index===current) {step.className='current';step.setAttribute('aria-current','step');} el('steps').append(step);
+    });
+    el('drop-zone').hidden=state.loaded; el('file-line').hidden=!state.loaded;
+    el('file-name').textContent=state.fileName; el('original-note').hidden=!state.loaded;
+    el('change-file').disabled=busy||reviewing; el('file-error').hidden=state.phase!=='unreadable';
+    el('read-card').hidden=!reading; el('instruction-card').hidden=!reading;
+    el('review-card').hidden=!reviewing; el('save-card').hidden=state.phase!=='save'; el('saved-card').hidden=state.phase!=='saved';
+    el('no-model').hidden=state.modelReady; el('select-hint').hidden=state.phase!=='select';
+    el('request-box').hidden=state.phase!=='describe'; el('busy-box').hidden=!busy;
+    el('instruction-title').textContent=busy?'3. Preparing your change':'3. Describe the change';
+    el('edit-part').disabled=!state.selected.length||state.phase!=='select';
+    el('clear-selection').disabled=!state.selected.length||state.phase!=='select';
+    const count=state.selected.length;
+    el('selection-status').textContent=count?count+' whole '+(count===1?'paragraph':'paragraphs')+' selected.':'No paragraphs selected.';
+    el('scope-label').textContent=count?(count===1?selectedBlocks()[0].label:selectedBlocks()[0].label+' to '+selectedBlocks().at(-1).label):'Choose a part on the left';
+    el('scope-text').replaceChildren(); selectedBlocks().forEach(block=>{const p=document.createElement('p'); p.innerHTML=block.html; el('scope-text').append(p);});
+    el('scope-text').hidden=!count; el('request').value=state.request;
+    el('propose').disabled=!count||!state.request.trim()||!state.modelReady;
+    notice(state.message);
+    if (reading) {
+      const top=el('reader').scrollTop; renderReader(); el('reader').scrollTop=top;
+      el('paper').setAttribute('role','listbox'); el('paper').setAttribute('aria-label','Whole body paragraphs'); el('paper').setAttribute('aria-multiselectable','true');
+    }
+    if (reviewing) renderComparison();
+    el('review-title').textContent=state.chosen?'4. Your chosen change':'4. Review the selected part';
+    el('review-scope').textContent=count+' selected '+(count===1?'paragraph':'paragraphs')+'. Everything outside this selection stays unchanged.';
+    el('review-actions').hidden=state.chosen; el('chosen-note').hidden=!state.chosen;
+    el('suggested-name').textContent=suggestion(); el('save-suggestion').textContent=suggestion();
+    el('saved-path').textContent=state.savedPath;
+  }
+  function openSave() {
+    el('save-name').value=state.saveName||suggestion(); el('save-folder').value=state.saveFolder;
+    el('save-error').hidden=true; showDialog('save-dialog');
+  }
+  function saveProblem(message) { el('save-error').textContent=message; el('save-error').hidden=false; el('save-name').focus(); }
+  function destinationIsOriginal() {return destinationKey(state.saveFolder,state.saveName)===destinationKey(originalFolder,state.fileName);}
+  function finishSave() {
+    if (!state.chosen||destinationIsOriginal()) return;
+    savedOutputs.add(destinationKey(state.saveFolder,state.saveName));
+    state.savedPath=state.saveFolder+'\\'+state.saveName; state.phase='saved'; state.preset='custom'; closeDialogs(); render();
+  }
+  function confirmSave() {
+    state.saveName=el('save-name').value.trim(); state.saveFolder=el('save-folder').value;
+    if (!state.saveName||!/^.+\.docx$/i.test(state.saveName)||/[\\/:*?"<>|]/.test(state.saveName)) {saveProblem('Choose a file name ending in .docx, without a folder path.');return;}
+    if (destinationIsOriginal()) {saveProblem('Your original cannot be overwritten. Choose a different name or folder.');return;}
+    if (savedOutputs.has(destinationKey(state.saveFolder,state.saveName))) {
+      el('existing-name').textContent=state.saveName; el('existing-folder').textContent=state.saveFolder; showDialog('replace-dialog');
+    } else finishSave();
+  }
+  function applyPreset(preset) {
+    stopJob(); closeDialogs(); state=initial(); state.preset=preset; el('drop-note').hidden=true;
+    savedOutputs.clear(); savedOutputs.add(destinationKey(originalFolder,'review-copy.docx'));
+    if (preset!=='open'&&preset!=='unreadable') {state.loaded=true;state.phase='select';}
+    if (['single','describe','busy','review','chosen','save','replace','original','saved','no-model'].includes(preset)) {state.selected=[9];state.anchor=9;}
+    if (preset==='range') {state.selected=[3,4,5,6];state.anchor=3;}
+    if (['describe','busy','review','chosen','save','replace','original','saved','no-model'].includes(preset)) state.request=sampleRequest;
+    if (preset==='describe'||preset==='no-model') state.phase='describe';
+    if (preset==='busy') state.phase='busy';
+    if (preset==='review') state.phase='review';
+    if (['chosen','save','replace','original','saved'].includes(preset)) {state.phase='save';state.chosen=true;}
+    if (preset==='unavailable') state.message='Tables and grey paragraphs are read-only. Hover or click each part to see its reason.';
+    if (preset==='unreadable') state.phase='unreadable';
+    if (preset==='no-model') state.modelReady=false;
+    if (preset==='saved') {state.phase='saved';state.savedPath=originalFolder+'\\'+suggestion();}
+    render();
+    if (preset==='unavailable') scrollToBlock(11);
+    else if (state.selected.length) scrollToBlock(state.selected[0]);
+    else el('reader').scrollTop=0;
+    if (['save','replace','original'].includes(preset)) {
+      openSave();
+      if (preset==='replace') {el('save-name').value='review-copy.docx';confirmSave();}
+      if (preset==='original') {el('save-name').value=state.fileName;confirmSave();}
+    }
+  }
+  presets.forEach(([key,label])=>{
+    const button=document.createElement('button'); button.type='button';button.dataset.preset=key;button.textContent=label;button.setAttribute('aria-pressed','false');
+    button.addEventListener('click',()=>applyPreset(key));el('presets').append(button);
+  });
+  document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>el(button.dataset.close).close()));
+  ['browse','change-file','start-over'].forEach(id=>el(id).addEventListener('click',()=>showDialog('browse-dialog')));
+  el('open-sample').addEventListener('click',()=>resetFile());el('open-unreadable').addEventListener('click',()=>resetFile(true));
+  ['settings','choose-model'].forEach(id=>el(id).addEventListener('click',()=>{el('model').value=state.modelReady?'sample':'';showDialog('settings-dialog');}));
+  el('use-model').addEventListener('click',()=>{state.modelReady=!!el('model').value;state.preset='custom';el('settings-dialog').close();render();});
+  el('clear-selection').addEventListener('click',()=>{state.selected=[];state.anchor=null;state.message='';state.preset='custom';render();});
+  el('edit-part').addEventListener('click',()=>{if(!state.selected.length)return;state.phase='describe';state.preset='custom';render();el('request').focus();});
+  el('back-select').addEventListener('click',()=>{state.phase='select';state.preset='custom';render();});
+  el('request').addEventListener('input',event=>{state.request=event.target.value;state.preset='custom';el('propose').disabled=!state.request.trim()||!state.modelReady;});
+  el('propose').addEventListener('click',()=>{
+    if(!state.modelReady||!state.request.trim()||!state.selected.length)return;
+    stopJob();const current=job;state.phase='busy';state.preset='custom';render();
+    timer=setTimeout(()=>{if(current!==job||state.phase!=='busy')return;state.phase='review';render();},1900);
+  });
+  el('cancel-busy').addEventListener('click',()=>{stopJob();state.phase='describe';state.preset='custom';render();});
+  el('try-again').addEventListener('click',()=>{state.phase='describe';state.chosen=false;state.preset='custom';render();el('request').focus();});
+  el('cancel-review').addEventListener('click',()=>{state.phase='select';state.chosen=false;state.preset='custom';render();scrollToBlock(state.selected[0]);});
+  el('use-change').addEventListener('click',()=>{state.chosen=true;state.phase='save';state.preset='custom';render();});
+  el('return-review').addEventListener('click',()=>{state.chosen=false;state.phase='review';state.preset='custom';render();});
+  el('save-as').addEventListener('click',openSave);el('confirm-save').addEventListener('click',confirmSave);
+  el('cancel-replace').addEventListener('click',()=>el('replace-dialog').close());
+  el('confirm-replace').addEventListener('click',finishSave);
+  document.addEventListener('dragover',event=>{event.preventDefault();if(!state.loaded)el('drop-zone').classList.add('dragging');});
+  document.addEventListener('dragleave',()=>el('drop-zone').classList.remove('dragging'));
+  document.addEventListener('drop',event=>{
+    event.preventDefault();el('drop-zone').classList.remove('dragging');
+    if(state.phase==='busy'||state.phase==='review'||state.phase==='save')return;
+    const files=Array.from(event.dataTransfer.files);
+    const accepted=files.length===1&&/\.docx$/i.test(files[0].name);
+    if(accepted)resetFile();
+    el('drop-note').hidden=false;el('drop-note').textContent=accepted?'The dropped file was not read. Showing the fictional service-outline.docx sample.':'Drop one .docx file. This mockup shows fictional text only.';
+  });
+  const initialPreset=location.hash.slice(1);
+  applyPreset(presets.some(([key])=>key===initialPreset)?initialPreset:'open');
+})();
+</script>
+</body>
+</html>
