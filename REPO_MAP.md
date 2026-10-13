@@ -2190,7 +2190,7 @@ requirements.txt
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-4.md: md, 49 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex.md: md, 150 lines
 - docs/reviews/2026-10-13-edit-for-word-design-codex.md: md, 241 lines
-- docs/reviews/2026-10-13-release-2.3.0-plan-codex.md: md, 240 lines
+- docs/reviews/2026-10-13-release-2.3.0-plan-codex.md: md, 265 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
