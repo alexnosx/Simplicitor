@@ -503,6 +503,7 @@ simplicitor/
         __init__.py
         body_map.py
         models.py
+        package.py
     extraction/
         __init__.py
         grounding.py
@@ -553,6 +554,7 @@ tests/
         conftest.py
         docx_builder.py
         test_body_map.py
+        test_package.py
     extraction/
         fixtures/
             labels/
@@ -1019,6 +1021,18 @@ requirements.txt
 - class Proposal
 - class EditCandidate: A verified new package held in memory until Save As.
 
+### simplicitor/editing/package.py
+
+- def sha256(data: bytes) -> str
+- def _rels(zf: zipfile.ZipFile, part: str) -> list[tuple[str, str]]: (type, target part name) for the package ("") or a part; [] when it has none.
+- def _on(element, attribute: str='val', absent: bool=True) -> bool: OOXML on/off value of element's w:<attribute>; an absent attribute gives `absent`.
+- def _settings_flags(zf: zipfile.ZipFile, main: str) -> tuple[bool, bool]: (document protection enforced, track changes on) from the settings part.
+- def _check_package(path: Path, data: bytes) -> tuple[zipfile.ZipFile, str]
+- def _encoding_ok(xml: bytes) -> bool
+- def open_document(path: Path) -> OpenedDocument: Read the file once and return its map; raise EditError with a plain message.
+- def _page_cost(document) -> int: Page equivalents counted exactly as extraction.source_readers._read_docx counts them:
+- def rebuild(data: bytes, part: str, content: bytes) -> bytes: Same entries, order, names, times and compression; only `part` gets new content.
+
 ### simplicitor/extraction/__init__.py
 
 (no top-level definitions)
@@ -1218,6 +1232,20 @@ requirements.txt
 - def test_bookmark_places_and_the_goback_exception()
 - def test_namespace_declaration_inside_a_paragraph_makes_it_read_only()
 - def test_selection_rules()
+
+### tests/editing/test_package.py
+
+- def _rewrite(data: bytes, name: str, old: bytes, new: bytes) -> bytes
+- def test_opens_word_fixtures_without_changing_them()
+- def test_refuses_files_that_are_not_readable_docx(tmp_path, name, data, message)
+- def test_refuses_macro_documents_strict_packages_and_signed_files(tmp_path)
+- def test_protection_uses_on_off_values(make_docx, setting, refused)
+- def test_track_changes_flag_uses_on_off_values(make_docx, setting, on)
+- def test_refuses_over_300_page_equivalents(make_docx)
+- def test_refuses_unbalanced_ranges_and_non_utf8(make_docx, tmp_path)
+- def test_rebuild_replaces_only_the_named_part()
+- def _first_page_header(document, text)
+- def test_page_limit_counts_exactly_like_extraction(tmp_path, body, header, merged, refused)
 
 ### tests/extraction/test_evaluation.py
 
