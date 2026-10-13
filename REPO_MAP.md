@@ -1319,7 +1319,7 @@ requirements.txt
 
 ### tests/editing/test_build_edit_samples.py
 
-- def test_builds_every_sample_into_an_empty_folder(tmp_path)
+- def test_builds_every_sample_into_an_empty_folder(tmp_path, monkeypatch)
 - def test_refuses_the_repository_and_a_non_empty_folder(tmp_path)
 
 ### tests/editing/test_evaluate_editing.py
@@ -2485,7 +2485,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
-- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3676 lines
+- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3681 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
