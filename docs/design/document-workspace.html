@@ -1,153 +1,346 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Simplicitor 2.1.0 workspace mockup</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simplicitor 2.2.0 Create new mockup</title>
 <style>
-:root { color-scheme:light; --st-bg:#fafafa; --st-paper:#fff; --st-ink:#1e1e1e; --st-muted:#626b78; --st-line:#e5e7eb; --st-blue:#2563eb; --st-soft:#eff6ff; --st-green:#237443; --st-preview:65%; }
+:root { color-scheme:light; --st-bg:#fafafa; --st-paper:#fff; --st-ink:#1e1e1e; --st-muted:#566171; --st-line:#9ca8b7; --st-blue:#2563eb; --st-soft:#eff6ff; --st-green:#237443; }
 * { box-sizing:border-box; } [hidden] { display:none!important; }
-body { margin:0; padding:12px; background:var(--st-bg); color:var(--st-ink); font:14px/1.5 'Segoe UI',system-ui,sans-serif; }
-button,input,select,textarea { font:inherit; } button { min-height:36px; padding:7px 12px; border:1px solid var(--st-line); border-radius:4px; background:var(--st-paper); color:var(--st-ink); cursor:pointer; }
-button:hover:not(:disabled) { background:#f2f5fa; } button:disabled { color:#747b87; background:#f2f3f5; cursor:default; }
+body { margin:0; padding:12px; background:var(--st-bg); color:var(--st-ink); font:15px/1.5 'Segoe UI',system-ui,sans-serif; }
+button,input,select,textarea { font:inherit; } button { min-height:40px; padding:8px 12px; border:1px solid var(--st-line); border-radius:4px; background:var(--st-paper); color:var(--st-ink); cursor:pointer; }
+button:hover:not(:disabled) { background:#f2f5fa; } button:disabled { color:#647080; background:#edf0f4; cursor:default; }
 :focus-visible { outline:2px solid var(--st-blue); outline-offset:2px; }
-input,select,textarea { width:100%; min-width:0; padding:8px 10px; border:1px solid #b8c0ce; border-radius:4px; background:var(--st-paper); }
-input[type=checkbox],input[type=radio] { width:auto; padding:0; border:0; } textarea { min-height:116px; resize:vertical; }
-h1 { font-size:23px; font-weight:600; margin:0 0 4px; letter-spacing:-.35px; } h2 { font-size:16px; font-weight:600; margin:0 0 14px; } p { margin:0 0 12px; }
-label { display:block; font-weight:600; margin-bottom:6px; }
+input,select,textarea { width:100%; min-width:0; padding:9px 10px; border:1px solid var(--st-line); border-radius:4px; background:var(--st-paper); }
+input:focus,select:focus,textarea:focus { border-color:var(--st-blue); }
+input[type=checkbox],input[type=radio] { width:18px; height:18px; margin:3px 0 0; flex-shrink:0; accent-color:var(--st-blue); }
+textarea { min-height:156px; resize:vertical; } h1 { font-size:23px; font-weight:600; margin:0 0 4px; letter-spacing:-.35px; }
+h2 { font-size:18px; font-weight:600; margin:0 0 16px; } h3 { font-size:15px; margin:0 0 8px; } p { margin:0 0 12px; }
+label { display:block; font-weight:600; margin-bottom:6px; } .st-muted,.st-help { color:var(--st-muted); } .st-help { margin:8px 0 0; }
 #simplicitor-design-template { max-width:1200px; margin:auto; border:1px solid var(--st-line); border-radius:6px; overflow:hidden; }
-.st-banner { padding:7px 20px; font-size:12px; color:var(--st-muted); background:#f5f5f5; border-bottom:1px solid var(--st-line); }
-.st-top { display:flex; align-items:center; flex-wrap:wrap; gap:24px; padding:12px 20px; background:var(--st-paper); border-bottom:1px solid var(--st-line); }
-.st-brand { font-size:21px; font-weight:600; letter-spacing:-.5px; } .st-modes { display:flex; gap:4px; }
-.st-mode { border-color:transparent; color:var(--st-muted); } .st-mode[aria-pressed=true] { color:var(--st-blue); background:var(--st-soft); font-weight:600; }
-.st-ready { display:flex; align-items:center; gap:6px; margin-left:auto; font-size:12px; color:var(--st-muted); } .st-dot { width:7px; height:7px; border-radius:50%; background:var(--st-green); }
-.st-link { border-color:transparent; color:var(--st-blue); background:transparent; padding:3px 0; min-height:28px; }
-.st-heading { padding:20px 20px 12px; } #st-create-page>.st-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:14px; padding:14px 20px 12px; } #st-create-page>.st-heading h1 { font-size:22px; margin:0; } #st-create-page>.st-heading p { margin:0; } .st-muted,.st-help { color:var(--st-muted); } .st-help { font-size:12px; margin:8px 0 0; }
-.st-steps { display:flex; gap:22px; flex-wrap:wrap; padding:0 20px 12px; font-size:12px; color:var(--st-muted); }
-.st-step { display:flex; align-items:center; gap:7px; } .st-step b { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:#edf0f4; font-weight:500; }
-.st-step.is-current { color:var(--st-blue); font-weight:600; } .st-step.is-current b { background:var(--st-blue); color:white; }
-.st-workspace { display:grid; grid-template-columns:minmax(0,var(--st-preview)) minmax(0,1fr); gap:20px; padding:0 20px 20px; align-items:start; }
-.st-card { min-width:0; padding:20px; border:1px solid var(--st-line); border-radius:4px; background:var(--st-paper); }
-.st-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin:16px 0; } .st-folder { overflow-wrap:anywhere; margin-bottom:0; }
-.st-drop { padding:18px 12px; border:1px dashed #b8c0ce; border-radius:4px; text-align:center; color:var(--st-muted); } .st-drop.is-dragging { border-color:var(--st-blue); background:var(--st-soft); } .st-drop p { margin-bottom:4px; }
-.st-files { list-style:none; margin:10px 0; padding:0; } .st-files li { display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--st-line); padding:5px 0; } .st-files span { min-width:0; overflow-wrap:anywhere; flex:1; } .st-files button { font-size:12px; padding:4px 7px; min-height:28px; }
-.st-notice { padding:10px 12px; background:var(--st-soft); border-left:3px solid var(--st-blue); font-size:12px; margin-top:12px; }
-.st-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; } .st-primary { background:var(--st-blue); color:white; border-color:var(--st-blue); font-weight:600; } .st-primary:hover:not(:disabled) { background:#1d4ed8; }
-.st-wide { grid-column:1/-1; } .st-columns { display:grid; gap:6px; } #st-columns { padding:16px 20px; } .st-column input,.st-column select { padding:6px 8px; font-size:13px; } .st-column:not(:first-child) label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; } .st-column { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,2fr) minmax(0,1fr) auto; gap:10px; align-items:end; } .st-column label { font-size:12px; margin-bottom:4px; }
-.st-date-order { display:flex; align-items:center; flex-wrap:wrap; gap:16px; margin-top:12px; padding:10px; border:1px solid var(--st-line); border-radius:4px; } .st-date-order p { flex:1; margin:0; } .st-date-order .st-options label { margin:0; } .st-options { display:flex; gap:20px; flex-wrap:wrap; } .st-options label,.st-ack { display:flex; align-items:flex-start; gap:8px; font-weight:400; }
-.st-review-note { padding:10px 12px; background:#fff8e9; border-left:3px solid #c98c12; font-size:12px; margin-bottom:12px; }
-.st-table-wrap { overflow-x:auto; } table { width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed; } th,td { text-align:left; padding:9px 8px; border-bottom:1px solid var(--st-line); vertical-align:top; overflow-wrap:anywhere; } th { background:#f5f6f8; color:var(--st-muted); font-weight:600; } th:first-child { width:25%; }
-.st-cell { width:100%; min-height:28px; padding:4px; text-align:left; border:1px solid transparent; font-size:12px; overflow-wrap:anywhere; } .st-cell.is-flagged { background:#fff2ca; } .st-cell[aria-pressed=true] { border-color:var(--st-blue); }
-.st-coverage { margin-top:12px; font-size:12px; color:var(--st-muted); } .st-coverage p { margin-bottom:4px; } .st-evidence dt { color:var(--st-muted); font-size:12px; margin-top:12px; } .st-evidence dd { margin:4px 0 0; overflow-wrap:anywhere; } blockquote { margin:0; padding-left:10px; border-left:2px solid var(--st-line); }
-.st-ack { margin:16px 0 0; } .st-success { padding:12px; background:#f0f8f2; color:var(--st-green); border-left:3px solid var(--st-green); margin-bottom:16px; overflow-wrap:anywhere; }
-.st-footer { padding:10px 20px; font-size:12px; color:var(--st-muted); border-top:1px solid var(--st-line); }
-dialog { width:440px; max-width:calc(100% - 32px); border:1px solid var(--st-line); border-radius:6px; padding:24px; color:var(--st-ink); } dialog::backdrop { background:#17203166; } dialog label { margin-top:12px; } .st-sample { display:flex; gap:10px; align-items:center; padding:10px; border:1px solid var(--st-line); border-radius:4px; font-weight:400; }
-@media(max-width:740px) { body { padding:8px; } .st-top { padding:12px; gap:10px; } .st-ready { margin-left:0; } .st-heading { padding:16px 12px 12px; } .st-steps { gap:12px; padding:0 12px 16px; } .st-workspace { grid-template-columns:minmax(0,1fr); padding:0 12px 16px; gap:12px; } .st-fields,.st-column { grid-template-columns:minmax(0,1fr); gap:8px; } .st-card { padding:14px; } .st-column { padding-bottom:12px; border-bottom:1px solid var(--st-line); } .st-column>button { justify-self:start; } .st-column:not(:first-child) label { position:static; width:auto; height:auto; overflow:visible; clip-path:none; white-space:normal; } .st-modes { flex-wrap:wrap; } th,td { padding:6px 3px; } .st-footer { padding:10px 12px; } .st-date-order { display:block; } .st-date-order p { margin-bottom:8px; } .st-date-order .st-options label { margin-bottom:6px; } }
+.st-banner { display:flex; gap:10px 16px; flex-wrap:wrap; align-items:center; padding:10px 20px; color:var(--st-muted); background:#f2f4f7; border-bottom:1px solid var(--st-line); }
+.st-banner label { margin:0; } .st-banner select { width:auto; max-width:100%; padding:5px 8px; } .st-demo-note { flex:1; }
+.st-top { display:flex; align-items:center; flex-wrap:wrap; gap:22px; padding:12px 20px; background:var(--st-paper); border-bottom:1px solid var(--st-line); }
+.st-identity { display:flex; align-items:baseline; gap:9px; } .st-brand { font-size:21px; font-weight:600; letter-spacing:-.5px; } .st-version { color:var(--st-muted); }
+.st-modes { display:flex; gap:4px; } .st-mode { border-color:transparent; color:var(--st-muted); }
+.st-mode[aria-pressed=true] { color:var(--st-blue); background:var(--st-soft); font-weight:600; }
+.st-ready { display:flex; align-items:center; gap:7px; margin-left:auto; color:var(--st-muted); } .st-dot { width:8px; height:8px; border-radius:50%; background:var(--st-green); }
+.st-heading { padding:14px 20px 12px; } .st-heading p { margin:0; }
+#st-create-page>.st-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px 16px; }
+#st-create-page>.st-heading h1 { margin:0; }
+.st-routes { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px 16px; }
+.st-route { text-align:left; padding:13px 16px; } .st-route strong,.st-route span { display:block; } .st-route strong { font-weight:600; } .st-route span { color:var(--st-muted); margin-top:3px; }
+.st-route[aria-pressed=true] { border:2px solid var(--st-blue); padding:12px 15px; background:var(--st-soft); } .st-route[aria-pressed=true] strong { color:#1d4ed8; }
+.st-steps { display:flex; gap:22px; flex-wrap:wrap; padding:0 20px 14px; color:var(--st-muted); } .st-step.is-current { color:var(--st-blue); font-weight:600; }
+.st-workspace { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(0,1fr); gap:18px; padding:0 20px 20px; align-items:start; }
+.st-card { min-width:0; padding:20px; border:1px solid var(--st-line); border-radius:4px; background:var(--st-paper); } .st-wide { grid-column:1/-1; }
+#st-columns { display:flex; flex-direction:column; } #st-add-column { align-self:flex-start; }
+#st-columns.is-busy>.st-busy-files { order:1; } #st-columns.is-busy>.st-actions { order:2; }
+#st-columns.is-busy>#st-column-list,#st-columns.is-busy>#st-add-column { order:3; } #st-columns.is-busy>.st-details { order:4; }
+.st-fields { display:grid; gap:18px; } .st-folder { overflow-wrap:anywhere; margin-bottom:4px; }
+.st-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:16px; }
+.st-primary { background:var(--st-blue); color:white; border-color:var(--st-blue); font-weight:600; } .st-primary:hover:not(:disabled) { background:#1d4ed8; }
+.st-primary:disabled { border-color:#b8c0ce; } .st-link { border-color:transparent; color:var(--st-blue); background:transparent; padding:3px 0; min-height:32px; }
+.st-secondary { color:#1d4ed8; border-color:var(--st-blue); background:#eff6ff; font-weight:600; }
+.st-secondary:hover:not(:disabled) { background:#dbeafe; } .st-secondary:active:not(:disabled) { background:#bfdbfe; box-shadow:inset 0 1px 3px #2563eb40; }
+.st-secondary[aria-pressed=true] { background:#dbeafe; border-width:2px; padding:7px 11px; }
+.st-template-choice { display:flex; align-items:center; gap:12px; margin-top:8px; flex-wrap:wrap; } .st-template-choice p { margin:0; overflow-wrap:anywhere; }
+.st-format { position:relative; } .st-format-trigger { display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; }
+.st-format-trigger:focus,.st-format-trigger[aria-expanded=true] { border-color:var(--st-blue); outline:2px solid var(--st-blue); outline-offset:1px; }
+.st-format-menu { position:absolute; z-index:5; left:0; right:0; margin-top:5px; padding:4px; background:white; border:1px solid var(--st-blue); border-radius:4px; box-shadow:0 5px 16px #1720311a; }
+.st-format-option { display:block; width:100%; text-align:left; border:0; } .st-format-option:hover:not(:disabled),.st-format-option:focus { background:#e6f0ff; }
+.st-format-option[aria-selected=true] { background:#dbeafe; color:#1d4ed8; font-weight:600; }
+.st-drop { padding:14px 12px; border:1px dashed #8996a9; border-radius:4px; text-align:center; color:var(--st-muted); }
+.st-drop.is-dragging { border-color:var(--st-blue); background:var(--st-soft); } .st-drop p { margin-bottom:2px; }
+.st-files { list-style:none; margin:12px 0 0; padding:0; } .st-file { border-bottom:1px solid #c7ced8; padding:11px 0; }
+.st-file-line { display:flex; gap:10px; align-items:center; } .st-file-name { flex:1; min-width:0; overflow-wrap:anywhere; font-weight:600; } .st-file button { min-height:32px; padding:3px 7px; }
+.st-file-detail { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:5px; color:var(--st-muted); }
+.st-badge { padding:1px 7px; border-radius:4px; background:#eaf6ef; color:#21633c; } .st-badge.reading { background:#e8f0ff; color:#1d4ed8; } .st-badge.partial { background:#fff1d6; color:#80530a; }
+.st-row-progress { height:4px; margin-top:8px; border-radius:3px; overflow:hidden; background:#e2e7ee; } .st-row-progress::before { content:''; display:block; width:40%; height:100%; background:var(--st-blue); animation:st-progress 1.8s ease-in-out infinite alternate; }
+@keyframes st-progress { from { transform:translateX(0); } to { transform:translateX(145%); } }
+.st-spinner { display:inline-block; width:14px; height:14px; margin-right:7px; vertical-align:-2px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:st-spin .9s linear infinite; }
+@keyframes st-spin { to { transform:rotate(360deg); } }
+.st-notice { padding:10px 12px; background:var(--st-soft); border-left:3px solid var(--st-blue); margin-top:12px; }
+.st-problems { padding:12px; background:#fff8e9; border:1px solid #b88b40; border-left:3px solid #bd841c; margin-top:14px; }
+.st-problems p { font-weight:600; margin-bottom:8px; } .st-problems ul { margin:0; padding-left:20px; } .st-problems li { overflow-wrap:anywhere; }
+.st-column { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,2fr) minmax(0,1fr) auto; gap:10px; align-items:end; margin-bottom:10px; }
+.st-column:not(:first-child) label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.st-column input,.st-column select { padding:7px 8px; } .st-details { margin-top:16px; padding:12px; border:1px solid var(--st-line); border-radius:4px; }
+.st-details .st-options { display:flex; flex-wrap:wrap; gap:12px; } .st-details .st-options>div { flex:1; min-width:130px; } .st-details p { margin:8px 0 0; }
+.st-busy-files { margin:14px 0; padding:12px; border:1px solid var(--st-line); border-radius:4px; } .st-busy-files .st-file:first-child { padding-top:0; }
+.st-review-note { padding:10px 12px; background:#fff8e9; border-left:3px solid #c98c12; margin-bottom:12px; }
+.st-table-wrap { overflow-x:auto; } .st-table-hint { display:none; } table { width:100%; min-width:640px; border-collapse:collapse; table-layout:fixed; }
+th,td { text-align:left; padding:9px 7px; border-bottom:1px solid #bdc6d2; vertical-align:top; overflow-wrap:anywhere; } th { background:#f2f4f7; color:var(--st-muted); font-weight:600; } th:first-child { width:22%; }
+.st-cell { width:100%; min-height:32px; padding:4px; text-align:left; border:1px solid transparent; overflow-wrap:anywhere; }
+.st-cell.is-flagged { background:#fff2ca; } .st-cell[aria-pressed=true] { border-color:var(--st-blue); }
+.st-evidence { margin:0; } .st-evidence dt { color:var(--st-muted); margin-top:14px; } .st-evidence dt:first-child { margin-top:0; } .st-evidence dd { margin:4px 0 0; overflow-wrap:anywhere; }
+blockquote { margin:0; padding-left:10px; border-left:2px solid var(--st-line); } .st-ack { display:flex; align-items:flex-start; gap:9px; font-weight:400; margin:18px 0 0; }
+.st-success { padding:12px; background:#f0f8f2; color:var(--st-green); border-left:3px solid var(--st-green); margin-bottom:16px; overflow-wrap:anywhere; }
+.st-footer { padding:10px 20px; color:var(--st-muted); border-top:1px solid var(--st-line); }
+dialog { width:470px; max-width:calc(100% - 32px); max-height:calc(100% - 40px); overflow:auto; border:1px solid var(--st-line); border-radius:6px; padding:24px; color:var(--st-ink); }
+dialog::backdrop { background:#17203166; } dialog label { margin-top:12px; } .st-sample { display:flex; gap:10px; align-items:flex-start; padding:10px; border:1px solid var(--st-line); border-radius:4px; font-weight:400; }
+.st-sample span { min-width:0; overflow-wrap:anywhere; } .st-sample strong { display:block; } .st-error { color:#a12626; margin:10px 0 0; }
+@media(prefers-reduced-motion:reduce) { .st-spinner,.st-row-progress::before { animation:none; } }
+@media(max-width:740px) {
+  body { padding:8px; } .st-banner,.st-top { padding:12px; gap:10px; } .st-banner select { width:100%; } .st-demo-note { flex-basis:100%; }
+  .st-ready { margin-left:0; } .st-heading { padding:16px 12px 12px; } .st-routes { grid-template-columns:1fr; padding:0 12px 14px; }
+  .st-steps { gap:12px; padding:0 12px 14px; } .st-workspace { grid-template-columns:minmax(0,1fr); padding:0 12px 16px; gap:12px; } .st-card { padding:16px; }
+  .st-column { grid-template-columns:minmax(0,1fr); gap:8px; padding-bottom:12px; border-bottom:1px solid var(--st-line); } .st-column>button { justify-self:start; }
+  .st-column:not(:first-child) label { position:static; width:auto; height:auto; overflow:visible; clip-path:none; } .st-modes { flex-wrap:wrap; }
+  .st-file-line { flex-wrap:wrap; } .st-file-name { flex-basis:70%; } .st-footer { padding:10px 12px; }
+  .st-table-hint { display:block; }
+}
 </style>
-</head><body>
+</head>
+<body>
 <div id="simplicitor-design-template" aria-label="Simplicitor document workspace design">
-<div class="st-banner">Interactive design sample. No AI processing or files saved.</div>
-<header class="st-top"><span class="st-brand">Simplicitor</span><nav class="st-modes" aria-label="Workspace mode"><button id="st-create-mode" class="st-mode" aria-pressed="true">Create new</button><button id="st-edit-mode" class="st-mode" aria-pressed="false">Edit document</button></nav><span class="st-ready"><span class="st-dot"></span>Local AI ready</span><button id="st-settings-button">Settings</button></header>
-<section id="st-edit-page" class="st-heading" hidden><div class="st-card"><h1>Edit a document</h1><p>Editing documents is coming in a later version of Simplicitor. The earlier editing feature was removed because it could damage files. For now, use Create new to make a new Word, PDF, Excel or PowerPoint file, or to pull information from your documents into Excel.</p><button id="st-go-create">Go to Create new</button></div></section>
-<main id="st-create-page"><div class="st-heading"><h1>Create a new file</h1><p class="st-muted" id="st-caption">Describe what you need.</p></div><div id="st-steps" class="st-steps" aria-label="File workflow"></div>
-<div class="st-workspace">
-<section id="st-describe" class="st-card"><label for="st-request">What do you want to create?</label><textarea id="st-request"></textarea>
-<div class="st-fields"><div><label for="st-file-type">File type</label><select id="st-file-type"><option value="word">Word</option><option value="pdf">PDF</option><option value="excel">Excel</option><option value="ppt">PowerPoint</option></select><button id="st-template" class="st-link" hidden>Use a template</button><p class="st-help" id="st-template-name" hidden></p></div><div id="st-save-folder"><label>Save to</label><p class="st-folder" id="st-folder">Documents\Simplicitor\Generated</p><button id="st-change-folder" class="st-link">Change</button></div></div>
-<p id="st-progress" role="status" hidden>Creating your file...</p><div class="st-actions"><button id="st-create-file" class="st-primary" disabled>Create file</button></div></section>
-<aside id="st-sources" class="st-card"><h2>Source files (optional)</h2><div id="st-drop" class="st-drop"><p>Drop Word files or PDFs with selectable text here, or <button id="st-browse" class="st-link">browse</button>.</p></div><ul id="st-files" class="st-files"></ul><p id="st-reading" class="st-help" role="status" hidden>Reading your files...</p><p id="st-source-error" class="st-help" role="alert" hidden></p><div id="st-excel-note" class="st-notice" hidden>Files you add are turned into an Excel table. Reports from files come in a later version.</div></aside>
-<section id="st-columns" class="st-card st-wide" hidden><h2>Choose columns</h2><div id="st-column-list" class="st-columns"></div><button id="st-add-column" class="st-link">Add column</button><div id="st-date-order" class="st-date-order" hidden><p>Dates in your files are written like 03/04/2026. Is that day/month or month/day?</p><div class="st-options"><label><input type="radio" name="date-order" value="day_month">Day/month</label><label><input type="radio" name="date-order" value="month_day">Month/day</label></div></div><div class="st-actions"><button id="st-extract" class="st-primary">Extract to Excel</button><button id="st-back-describe">Back</button></div></section>
-<section id="st-review" class="st-card" hidden><h2>Review your table</h2><div id="st-review-note" class="st-review-note">Highlighted values need a check before you save.</div><div class="st-table-wrap"><table id="st-table"></table></div><div id="st-coverage" class="st-coverage"></div><label id="st-ack-label" class="st-ack"><input id="st-ack" type="checkbox"><span id="st-ack-text">I have checked the highlighted values</span></label><div class="st-actions"><button id="st-save-excel" class="st-primary" disabled>Save to Excel</button><button id="st-back-columns">Back to columns</button></div></section>
-<aside id="st-evidence" class="st-card" hidden><h2>Where this value came from</h2><dl class="st-evidence" id="st-evidence-content"></dl></aside>
-<section id="st-saved" class="st-card st-wide" hidden><div id="st-saved-name" class="st-success" role="status"></div><p class="st-muted">This is a design sample. No file was written or opened.</p><div class="st-actions"><button id="st-open-file" class="st-primary">Open file</button><button id="st-start-over">Create another file</button></div><p id="st-open-note" class="st-help" hidden>In the app, this opens your saved file in its usual program.</p></section>
-</div></main><footer class="st-footer">Your documents and the AI processing stay on your computer.</footer></div>
-<dialog id="st-source-dialog" aria-labelledby="st-source-title"><h2 id="st-source-title">Choose sample files</h2><p class="st-muted">These synthetic documents let you try the mockup.</p><label class="st-sample"><input type="checkbox" value="invoice-01.docx">invoice-01.docx</label><label class="st-sample"><input type="checkbox" value="invoice-02.pdf">invoice-02.pdf</label><div class="st-actions"><button id="st-add-files" class="st-primary">Add files</button><button data-close="st-source-dialog">Cancel</button></div></dialog>
+  <!-- Mockup controls are outside the product UI. States stay visible until changed. -->
+  <div class="st-banner">
+    <label for="st-state-select">Mockup state</label>
+    <select id="st-state-select">
+      <optgroup label="Write"><option value="write-empty">Write: empty</option><option value="write-template">Write: filled, template chosen</option></optgroup>
+      <optgroup label="Pull"><option value="pull-reading">Pull: files reading</option><option value="pull-ready">Pull: all ready</option><option value="pull-partly">Pull: partly read</option><option value="pull-review">Pull: review, highlighted values</option><option value="pull-busy">Pull: busy</option></optgroup>
+      <optgroup label="Additional review checks"><option value="review-problems">Review: reading problems only</option><option value="review-both">Review: both kinds of issue</option><option value="review-clean">Review: no issues</option></optgroup>
+    </select>
+    <span class="st-demo-note">2.2.0 design sample. Fictional data only. No AI calls or files saved.</span>
+  </div>
+  <header class="st-top">
+    <span class="st-identity"><span class="st-brand">Simplicitor</span><span class="st-version" title="Current source version; E1 owns the version bump">2.1.0</span></span>
+    <nav class="st-modes" aria-label="Workspace mode"><button id="st-create-mode" class="st-mode" aria-pressed="true">Create new</button><button id="st-edit-mode" class="st-mode" aria-pressed="false">Edit document</button></nav>
+    <span class="st-ready"><span class="st-dot"></span>Local AI ready</span><button id="st-settings-button">Settings</button>
+  </header>
+  <section id="st-edit-page" class="st-heading" hidden>
+    <div class="st-card"><h1>Edit a document</h1><p>Edit for Word arrives in Simplicitor 2.3.0. The earlier editing feature was removed because it could damage files. In 2.2.0, use Create new to make a new Word, PDF, Excel or PowerPoint file, or to pull information from your documents into Excel.</p><button id="st-go-create">Go to Create new</button></div>
+  </section>
+  <main id="st-create-page">
+    <div class="st-heading"><h1>Create new</h1><p class="st-muted" id="st-caption">Choose what you want to do.</p></div>
+    <div class="st-routes" role="group" aria-label="What would you like to do?">
+      <button id="st-route-write" class="st-route" aria-pressed="true" aria-controls="st-write-request-card st-write-output"><strong>Write a new document</strong><span>Word, PDF, PowerPoint or Excel, from a description.</span></button>
+      <button id="st-route-pull" class="st-route" aria-pressed="false" aria-controls="st-pull-request-card st-sources"><strong>Pull information from documents into Excel</strong><span>Read your Word files or PDFs and make an Excel table.</span></button>
+    </div>
+    <div id="st-steps" class="st-steps" aria-label="File workflow"></div>
+    <div class="st-workspace">
+      <section id="st-write-request-card" class="st-card">
+        <h2>1. Describe the document you need</h2><label for="st-write-request">Description</label><textarea id="st-write-request" placeholder="Describe the document you need, e.g.: Create a project status report with sections for timeline, risks, and next steps"></textarea>
+        <p class="st-help">Be specific about the content, sections and length.</p>
+      </section>
+      <aside id="st-write-output" class="st-card">
+        <h2>2. Choose the output</h2>
+        <div class="st-fields">
+          <div><label id="st-format-label" for="st-format-trigger">File type</label>
+            <div class="st-format">
+              <button id="st-format-trigger" class="st-format-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-format-label st-format-name"><span id="st-format-name">Word</span><span aria-hidden="true">▾</span></button>
+              <div id="st-format-menu" class="st-format-menu" role="listbox" aria-label="File type" hidden>
+                <button class="st-format-option" id="st-format-word" role="option" data-type="word" aria-selected="true">Word</button><button class="st-format-option" id="st-format-pdf" role="option" data-type="pdf" aria-selected="false">PDF</button><button class="st-format-option" id="st-format-ppt" role="option" data-type="ppt" aria-selected="false">PowerPoint</button><button class="st-format-option" id="st-format-excel" role="option" data-type="excel" aria-selected="false">Excel</button>
+              </div>
+            </div>
+            <div id="st-template-controls" hidden><button id="st-template" class="st-secondary" aria-pressed="false" style="margin-top:12px">Use a template</button><div id="st-template-choice" class="st-template-choice" hidden><p id="st-template-name"></p><button id="st-clear-template" class="st-link">Clear</button></div></div>
+          </div>
+          <div><label>Save to</label><p class="st-folder" id="st-folder">Documents\Simplicitor\Generated</p><button id="st-change-folder" class="st-link">Change</button></div>
+        </div>
+        <div class="st-actions"><button id="st-create-file" class="st-primary" disabled>Create file</button></div>
+      </aside>
+      <section id="st-pull-request-card" class="st-card" hidden>
+        <h2>1. Describe the information you need</h2><label for="st-pull-request">What should go in Excel?</label><textarea id="st-pull-request" placeholder="Describe the information you want in Excel, e.g.: Extract the supplier, invoice number, total amount, and invoice date from each file"></textarea>
+        <div class="st-notice">One row per file. You will confirm the columns, then review the table and its source text before saving.</div>
+        <div class="st-actions"><button id="st-choose-columns" class="st-primary" disabled>Next: choose columns</button></div>
+      </section>
+      <aside id="st-sources" class="st-card" hidden>
+        <h2>2. Add your source files</h2><div id="st-drop" class="st-drop"><p>Drop Word files or PDFs with selectable text here, or <button id="st-browse" class="st-link">browse</button>.</p></div>
+        <ul id="st-files" class="st-files"></ul><p class="st-help">DOCX and PDFs with selectable text. Scanned PDFs are not supported.</p><p id="st-demo-drop-note" class="st-help" hidden>The mockup uses sample files only. Use browse to choose them.</p>
+        <div id="st-source-problems" class="st-problems" hidden></div>
+      </aside>
+      <section id="st-columns" class="st-card st-wide" hidden>
+        <h2>3. Choose columns</h2><p id="st-columns-hint" class="st-muted">These are suggestions. Change the names, descriptions or types before extracting.</p>
+        <div id="st-column-list"></div><button id="st-add-column" class="st-link">Add column</button>
+        <div class="st-details"><h3>Selected column details</h3><label for="st-detail-column">Column</label><select id="st-detail-column"></select><div id="st-numeric-details" class="st-options" hidden><div><label for="st-thousands">Thousands separator</label><input id="st-thousands" maxlength="1" value=","></div><div><label for="st-decimal">Decimal separator</label><input id="st-decimal" maxlength="1" value="."></div></div><p id="st-detail-hint">Text identifiers preserve their leading zeros.</p></div>
+        <div id="st-busy-files" class="st-busy-files" hidden><h3>File progress</h3><ul id="st-working-files" class="st-files"></ul></div>
+        <div class="st-actions"><button id="st-extract" class="st-primary">Extract to Excel</button><button id="st-back-describe">Back</button><button id="st-cancel-extract" hidden>Cancel</button></div>
+      </section>
+      <section id="st-review" class="st-card" hidden>
+        <h2>4. Review your table</h2><div id="st-review-note" class="st-review-note">Highlighted values need a check before you save.</div><div class="st-table-wrap"><table id="st-table" aria-label="Saved Excel values"></table></div><p class="st-help st-table-hint">Scroll the table sideways to see all columns.</p>
+        <div id="st-review-problems" class="st-problems" hidden></div><label id="st-ack-label" class="st-ack"><input id="st-ack" type="checkbox"><span id="st-ack-text">I have checked the highlighted values</span></label>
+        <div class="st-actions"><button id="st-save-excel" class="st-primary" disabled>Save to Excel</button><button id="st-back-columns">Back to columns</button></div>
+      </section>
+      <aside id="st-evidence" class="st-card" hidden><h2>5. Where this value came from</h2><p class="st-muted">Select a value in the table to see its source.</p><dl class="st-evidence" id="st-evidence-content"></dl></aside>
+      <section id="st-saved" class="st-card st-wide" hidden><h2>Your file is ready</h2><div id="st-saved-name" class="st-success" role="status"></div><p class="st-muted">This is a design sample. No file was written or opened.</p><div class="st-actions"><button id="st-open-file" class="st-primary">Open file</button><button id="st-start-over">Create another file</button></div><p id="st-open-note" class="st-help" hidden>In the app, this opens your saved file in its usual program.</p></section>
+    </div>
+  </main>
+  <footer class="st-footer">Your documents and the AI processing stay on your computer.</footer>
+</div>
+<dialog id="st-source-dialog" aria-labelledby="st-source-title"><h2 id="st-source-title">Choose sample files</h2><p class="st-muted">Fictional documents for this mockup. No file contents are read.</p><label class="st-sample"><input type="checkbox" value="invoice-01.docx"><span>invoice-01.docx</span></label><label class="st-sample"><input type="checkbox" value="invoice-02.pdf"><span>invoice-02.pdf</span></label><div class="st-actions"><button id="st-add-files" class="st-primary">Add files</button><button data-close="st-source-dialog">Cancel</button></div></dialog>
 <dialog id="st-folder-dialog" aria-labelledby="st-folder-title"><h2 id="st-folder-title">Save to folder</h2><label for="st-folder-input">Folder</label><input id="st-folder-input" value="Documents\Simplicitor\Generated"><div class="st-actions"><button id="st-use-folder" class="st-primary">Use folder</button><button data-close="st-folder-dialog">Cancel</button></div></dialog>
-<dialog id="st-template-dialog" aria-labelledby="st-template-title"><h2 id="st-template-title">Use a template</h2><label for="st-template-select">PowerPoint template</label><select id="st-template-select"><option>Business pitch</option><option>Technical overview</option></select><div class="st-actions"><button id="st-use-template" class="st-primary">Use template</button><button data-close="st-template-dialog">Cancel</button></div></dialog>
-<dialog id="st-settings-dialog" aria-labelledby="st-settings-title"><h2 id="st-settings-title">Local AI</h2><p>Ollama is ready.</p><label for="st-model">Model</label><select id="st-model"><option>Current local model</option></select><div class="st-actions"><button data-close="st-settings-dialog">Close</button></div></dialog>
+<dialog id="st-template-dialog" aria-labelledby="st-template-title">
+  <div id="st-template-picker"><h2 id="st-template-title">Choose a template</h2><p class="st-muted">Built-in PowerPoint templates.</p>
+    <label class="st-sample"><input type="radio" name="template" value="business_pitch" checked><span><strong>business_pitch</strong>Title, agenda, content and closing slides.</span></label><label class="st-sample"><input type="radio" name="template" value="technical_overview"><span><strong>technical_overview</strong>Title, architecture and bullet slides.</span></label>
+    <div class="st-actions"><button id="st-template-next" class="st-primary">Next</button><button data-close="st-template-dialog">Cancel</button></div>
+  </div>
+  <div id="st-template-confirm" hidden><h2>Confirm your template</h2><p id="st-template-confirm-name"></p><p>Slide types:</p><ul id="st-template-structure"></ul><div class="st-actions"><button id="st-use-template" class="st-primary">Next</button><button id="st-template-back">Back</button></div></div>
+</dialog>
+<dialog id="st-settings-dialog" aria-labelledby="st-settings-title"><h2 id="st-settings-title">Local AI</h2><p>Ollama is ready in this sample.</p><label for="st-model">Model</label><select id="st-model"><option>Current local model</option></select><div class="st-actions"><button data-close="st-settings-dialog">Close</button></div></dialog>
+<dialog id="st-save-dialog" aria-labelledby="st-save-title"><h2 id="st-save-title">Save to Excel</h2><p class="st-muted">In the app, this opens Windows Save As for an Excel workbook.</p><label for="st-save-name">File name</label><input id="st-save-name" value="extracted-information.xlsx"><p id="st-save-error" class="st-error" hidden>Choose a file name ending in .xlsx.</p><div class="st-actions"><button id="st-confirm-save" class="st-primary">Save</button><button data-close="st-save-dialog">Cancel</button></div></dialog>
 <script>
 (() => {
   'use strict';
   const el = id => document.getElementById(id);
-  const extensions = {word:'.docx',pdf:'.pdf',excel:'.xlsx',ppt:'.pptx'};
+  const types = {word:'Word',pdf:'PDF',ppt:'PowerPoint',excel:'Excel'};
+  const extensions = {word:'.docx',pdf:'.pdf',ppt:'.pptx',excel:'.xlsx'};
   const placeholders = {
     word:'Describe the document you need, e.g.: Create a project status report with sections for timeline, risks, and next steps',
     pdf:'Describe the document you need, e.g.: Create a one-page project summary with goals, timeline, and contacts',
-    excel:'Describe the spreadsheet you need, e.g.: Create a monthly budget tracker with columns for category, planned amount, actual amount, and difference',
-    ppt:'Describe the presentation you need, e.g.: Create a 5-slide pitch deck about our new product launch'
+    ppt:'Describe the presentation you need, e.g.: Create a 5-slide pitch deck about our new product launch',
+    excel:'Describe the spreadsheet you need, e.g.: Create a monthly budget tracker with columns for category, planned amount, actual amount, and difference'
   };
-  const initialColumns = () => [{name:'Supplier',description:'Name of the supplier',type:'Text'},{name:'Invoice number',description:'Identifier of the invoice',type:'Text'},{name:'Total',description:'Total amount payable',type:'Decimal number'},{name:'Invoice date',description:'Date of the invoice',type:'Date'}];
-  const state = {mode:'create',step:'describe',files:[],reading:false,busy:false,columns:initialColumns(),type:'word',dateOrder:'',template:'',flagged:false,needsCheck:false};
-  function node(tag,text,className='') { const result=document.createElement(tag); result.textContent=text; result.className=className; return result; }
-  function render() {
-    el('st-create-page').hidden=state.mode!=='create'; el('st-edit-page').hidden=state.mode!=='edit';
-    el('st-create-mode').setAttribute('aria-pressed',String(state.mode==='create')); el('st-edit-mode').setAttribute('aria-pressed',String(state.mode==='edit'));
-    const attached=state.files.length>0, steps=attached?['Describe','Choose columns','Review and save']:['Describe','Save'];
-    const current=state.step==='describe'?0:state.step==='columns'?1:steps.length-1;
-    el('st-steps').replaceChildren(...steps.map((title,index)=>{ const item=node('span','','st-step'+(index===current?' is-current':'')); item.append(node('b',String(index+1)),node('span',title)); return item; }));
-    for (const id of ['describe','sources','columns','review','evidence','saved']) el('st-'+id).hidden=id==='sources'?state.step!=='describe':id==='evidence'?state.step!=='review':state.step!==id;
-    el('st-caption').textContent=state.step==='columns'?'Choose the information you want in Excel.':state.step==='review'?'Check the values and their source text.':state.step==='saved'?'Your file is ready.':'Describe what you need.';
-    el('st-file-type').value=state.type; for (const option of el('st-file-type').options) option.disabled=attached&&option.value!=='excel';
-    el('st-request').placeholder=placeholders[state.type]; el('st-template').hidden=state.type!=='ppt'; el('st-template-name').hidden=!state.template||state.type!=='ppt'; el('st-template-name').textContent='Template: '+state.template;
-    el('st-save-folder').hidden=attached; el('st-excel-note').hidden=!attached; el('st-reading').hidden=!state.reading; el('st-progress').hidden=!state.busy;
-    el('st-create-file').textContent=attached?'Next: choose columns':'Create file'; el('st-create-file').disabled=state.reading||state.busy||!el('st-request').value.trim();
-    el('st-file-type').disabled=state.busy||state.reading; el('st-request').disabled=state.busy; el('st-browse').disabled=state.busy||state.reading;
-    el('st-files').replaceChildren(...state.files.map(file=>{ const row=node('li',''),remove=node('button','Remove'); remove.setAttribute('aria-label','Remove '+file.name); remove.disabled=state.busy||state.reading; remove.addEventListener('click',()=>{ state.files=state.files.filter(item=>item!==file); state.dateOrder=''; document.querySelectorAll('input[name=date-order]').forEach(input=>{input.checked=false;}); el('st-ack').checked=false; render(); }); row.append(node('span',file.name),remove); return row; }));
-    el('st-date-order').hidden=!state.files.some(file=>file.ambiguous)||!state.columns.some(column=>column.type==='Date');
-    el('st-extract').disabled=!state.columns.length||state.columns.some(column=>!column.name.trim()||!column.description.trim())||(!el('st-date-order').hidden&&!state.dateOrder)||state.busy;
+  const problemHeading = 'Some information may be missing from the table. Check these problems before you use it:';
+  const problem = 'invoice-02.pdf, page 3: this page has too little text to read.';
+  const initialColumns = () => [
+    {name:'Supplier',description:'Name of the supplier',type:'Text'},
+    {name:'Invoice number',description:'Identifier of the invoice',type:'Text'},
+    {name:'Total',description:'Total amount payable',type:'Decimal number'},
+    {name:'Invoice date',description:'Date of the invoice',type:'Date'}
+  ].map(column=>({...column,thousands:',',decimal:'.'}));
+  const sampleFiles = () => [{name:'invoice-01.docx',status:'Ready',detail:'Word document'}, {name:'invoice-02.pdf',status:'Ready',detail:'PDF with selectable text'}];
+  const sampleRequest = 'Make one row per file with the supplier, invoice number, total and invoice date.';
+  const sampleValues = [
+    {Supplier:'Atlas Services Ltd.','Invoice number':'INV-2026-014',Total:'12500.00','Invoice date':'2026-03-15'},
+    {Supplier:'Maple Design Ltd.','Invoice number':'INV-2026-015',Total:'2400.00','Invoice date':'2026-03-16'}
+  ];
+  const sampleIndex = file => file.name.endsWith('.pdf')?1:0;
+  const state = {mode:'create',route:'write',step:'describe',busy:false,reading:false,type:'word',template:'',files:[],columns:initialColumns(),readingProblems:false,flagged:false,ack:false,selectedColumn:0};
+  let timer = null;
+  function node(tag,text,className='') { const item=document.createElement(tag); item.textContent=text; item.className=className; return item; }
+  function problems(id,show) {
+    const target=el(id); target.hidden=!show; target.replaceChildren();
+    if(show) { const list=node('ul',''); list.append(node('li',problem)); target.append(node('p',problemHeading),list); }
   }
-  function addFiles(files) {
-    if (state.busy||state.reading) return;
-    const accepted=files.filter(file=>/\.(docx|pdf)$/i.test(file.name)); el('st-source-error').hidden=accepted.length===files.length; el('st-source-error').textContent='Use Word (.docx) files or PDFs with selectable text.'; if (!accepted.length) return;
-    state.files.push(...accepted); state.type='excel'; state.template=''; state.dateOrder=''; state.columns=initialColumns(); state.reading=true; el('st-ack').checked=false;
-    document.querySelectorAll('input[name=date-order]').forEach(input=>{input.checked=false;}); render(); setTimeout(()=>{state.reading=false;render();},900);
-  }
-  function renderColumns() {
-    el('st-column-list').replaceChildren(...state.columns.map((column,index)=>{
-      const row=node('div','','st-column');
-      for (const [key,title] of [['name','Name'],['description','Description'],['type','Type']]) {
-        const field=node('div',''),label=node('label',title),control=document.createElement(key==='type'?'select':'input');
-        label.htmlFor=control.id='st-column-'+index+'-'+key; if(key==='type') for(const type of ['Text','Whole number','Decimal number','Date']) control.append(new Option(type,type)); control.value=column[key];
-        control.addEventListener(key==='type'?'change':'input',()=>{column[key]=control.value;el('st-ack').checked=false;render();}); field.append(label,control); row.append(field);
-      }
-      const remove=node('button','Remove'); remove.setAttribute('aria-label','Remove column '+(index+1)); remove.addEventListener('click',()=>{state.columns.splice(index,1);renderColumns();render();}); row.append(remove); return row;
+  function fileRows(targetId,working=false) {
+    el(targetId).replaceChildren(...state.files.map((file,index) => {
+      const row=node('li','','st-file'),line=node('div','','st-file-line'),detail=node('div','','st-file-detail');
+      line.append(node('span',file.name,'st-file-name'));
+      if(!working) { const remove=node('button','Remove'); remove.disabled=state.busy||state.reading; remove.setAttribute('aria-label','Remove '+file.name); remove.addEventListener('click',()=>{state.files.splice(index,1);state.readingProblems=state.files.some(f=>f.status==='Partly read');invalidate();render();});line.append(remove); }
+      const status=state.reading?'Reading':file.status;
+      detail.append(node('span',status,'st-badge'+(status==='Reading'?' reading':status==='Partly read'?' partial':'')),node('span',working?(index===0?'Extracting values...':'Waiting to extract'):file.detail));
+      row.append(line,detail);
+      if(state.reading||(working&&index===0)) { const bar=node('div','','st-row-progress'); bar.setAttribute('role','progressbar');bar.setAttribute('aria-label',file.name+': '+(working?'extracting':'reading'));row.append(bar); }
+      return row;
     }));
   }
-  function evidence(value,file,column,flagged) {
-    const quote=column==='Supplier'?'The supplier is Atlas Services Ltd.':column==='Invoice number'?'Invoice INV-2026-014.':column==='Total'?'Total: GBP 12,500.00.':column==='Invoice date'?'Invoice date: 03/04/2026.':'This sample document contains no value for this column.';
-    el('st-evidence-content').replaceChildren();
-    for(const [label,text] of [['Value',value||'Not found'],['Source text',quote],['Found in',file.name+(file.name.toLowerCase().endsWith('.pdf')?', page 1':', table 1, row 2, column 2')],['Check',flagged?(value?'Two proposed values disagreed.':'The source text did not contain a value for this column.'):'The value was found in the source text.']]) {const detail=node('dd','');detail.append(node(label==='Source text'?'blockquote':'span',text));el('st-evidence-content').append(node('dt',label),detail);}
+  function action(id,label,busy) { const button=el(id);button.replaceChildren();if(busy)button.append(node('span','','st-spinner'));button.append(document.createTextNode(label)); }
+  function render() {
+    const write=state.route==='write',describe=state.step==='describe',review=state.step==='review';
+    el('st-create-page').hidden=state.mode!=='create'; el('st-edit-page').hidden=state.mode!=='edit';
+    for(const mode of ['create','edit']) {el('st-'+mode+'-mode').setAttribute('aria-pressed',String(state.mode===mode));el('st-'+mode+'-mode').disabled=state.busy||state.reading;}
+    for(const route of ['write','pull']) {el('st-route-'+route).setAttribute('aria-pressed',String(state.route===route));el('st-route-'+route).disabled=state.busy||state.reading;}
+    el('st-settings-button').disabled=state.busy||state.reading;
+    el('st-caption').textContent=review?'Check the values and their source text.':state.step==='columns'?'Choose the information you want in Excel.':state.step==='saved'?'Your file is ready.':write?'Describe what you need.':'Describe the information you want in Excel.';
+    const steps=write?['Describe','Save']:['Describe','Choose columns','Review and save'];
+    const current=state.step==='describe'?0:state.step==='columns'?1:steps.length-1;
+    el('st-steps').replaceChildren(...steps.map((title,index)=>node('span',title,'st-step'+(index===current?' is-current':''))));
+    for(const id of ['write-request-card','write-output'])el('st-'+id).hidden=!write||!describe;
+    for(const id of ['pull-request-card','sources'])el('st-'+id).hidden=write||!describe;
+    el('st-columns').hidden=write||state.step!=='columns';el('st-review').hidden=write||!review;el('st-evidence').hidden=write||!review;el('st-saved').hidden=state.step!=='saved';
+    el('st-columns').classList.toggle('is-busy',state.busy&&!write);
+    el('st-columns-hint').textContent=state.busy?'Extraction is running. You can cancel; your source files stay unchanged.':'These are suggestions. Change the names, descriptions or types before extracting.';
+    el('st-format-name').textContent=types[state.type];
+    document.querySelectorAll('[data-type]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.type===state.type)));
+    el('st-write-request').placeholder=placeholders[state.type];el('st-template-controls').hidden=state.type!=='ppt';
+    el('st-template').setAttribute('aria-pressed',String(Boolean(state.template)));el('st-template-choice').hidden=!state.template;el('st-template-name').textContent='Template: '+state.template;
+    for(const id of ['write-request','format-trigger','template','clear-template','change-folder','pull-request','browse','back-describe','back-columns','add-column','detail-column','thousands','decimal'])el('st-'+id).disabled=state.busy||state.reading;
+    document.querySelectorAll('#st-column-list input,#st-column-list select,#st-column-list button').forEach(control=>control.disabled=state.busy);
+    action('st-create-file',state.busy?'Creating...':'Create file',state.busy&&write);el('st-create-file').disabled=state.busy||!el('st-write-request').value.trim();
+    action('st-choose-columns',state.reading?'Reading your files...':'Next: choose columns',state.reading);el('st-choose-columns').disabled=state.busy||state.reading||!state.files.length||!el('st-pull-request').value.trim();
+    el('st-cancel-extract').hidden=!state.busy||write;el('st-busy-files').hidden=!state.busy||write;
+    action('st-extract',state.busy?'Extracting...':'Extract to Excel',state.busy&&!write);
+    el('st-extract').disabled=state.busy||!state.columns.length||state.columns.some(c=>!c.name.trim()||!c.description.trim()||(['Whole number','Decimal number'].includes(c.type)&&(!['',',','.',' ',"'"].includes(c.thousands)||!['.',','].includes(c.decimal)||c.thousands===c.decimal)));
+    fileRows('st-files');if(state.busy&&!write)fileRows('st-working-files',true);problems('st-source-problems',state.readingProblems);
+    el('st-review-note').hidden=!state.flagged;problems('st-review-problems',state.readingProblems);
+    const needsCheck=state.flagged||state.readingProblems;el('st-ack-label').hidden=!needsCheck;el('st-ack').checked=state.ack;
+    el('st-ack-text').textContent=state.flagged&&state.readingProblems?'I have checked the highlighted values and reading problems':state.flagged?'I have checked the highlighted values':'I have checked the reading problems';
+    el('st-save-excel').disabled=state.busy||(needsCheck&&!state.ack);
   }
-  function renderReview() {
-    const table=el('st-table'),head=document.createElement('thead'),titles=document.createElement('tr'),body=document.createElement('tbody'); table.replaceChildren();
-    for(const title of ['File',...state.columns.map(column=>column.name)]) titles.append(node('th',title)); head.append(titles); table.append(head); state.flagged=false; let first=null;
-    state.files.forEach(file=>{
-      const row=document.createElement('tr'); row.append(node('td',file.name));
-      state.columns.forEach(column=>{
-        const known={'Supplier':'Atlas Services Ltd.','Invoice number':'INV-2026-014','Total':'12500.00','Invoice date':state.dateOrder==='month_day'?'04 Mar 2026':'03 Apr 2026'},value=known[column.name]||'',flagged=!value||(file.name.toLowerCase().endsWith('.pdf')&&column.name==='Total'); state.flagged ||= flagged;
-        const cell=node('td',''),button=node('button',value||'Not found','st-cell'+(flagged?' is-flagged':'')); button.setAttribute('aria-pressed','false'); button.setAttribute('aria-label',file.name+', '+column.name+': '+(value||'Not found'));
-        button.addEventListener('click',()=>{table.querySelectorAll('button').forEach(item=>item.setAttribute('aria-pressed','false'));button.setAttribute('aria-pressed','true');evidence(value,file,column.name,flagged);});
-        if(!first||(flagged&&!first.flagged)) first={button,value,file,column:column.name,flagged}; cell.append(button); row.append(cell);
-      }); body.append(row);
-    }); table.append(body); el('st-coverage').replaceChildren(...state.files.filter(file=>file.name==='invoice-02.pdf').map(file=>node('p',file.name+', page 3: this page has too little text to read.')));
-    state.needsCheck=state.flagged||state.files.some(file=>file.name==='invoice-02.pdf');
-    el('st-review-note').hidden=!state.flagged; el('st-ack-label').hidden=!state.needsCheck; el('st-ack').checked=false; el('st-save-excel').disabled=state.needsCheck;
-    el('st-ack-text').textContent=state.flagged?(state.files.some(file=>file.name==='invoice-02.pdf')?'I have checked the highlighted values and reading problems':'I have checked the highlighted values'):'I have checked the reading problems';
-    if(first){first.button.setAttribute('aria-pressed','true');evidence(first.value,first.file,first.column,first.flagged);}
+  function invalidate() { state.ack=false;state.flagged=false;if(state.step==='review')state.step='describe'; }
+  function route(value) {if(state.busy||state.reading)return;state.route=value;state.step='describe';invalidate();closeFormat();render();}
+  function columns() {
+    el('st-column-list').replaceChildren(...state.columns.map((column,index)=>{
+      const row=node('div','','st-column');
+      for(const [key,title] of [['name','Name'],['description','Description'],['type','Type']]) {
+        const field=node('div',''),label=node('label',title),control=document.createElement(key==='type'?'select':'input');label.htmlFor=control.id='st-column-'+index+'-'+key;
+        if(key==='type')for(const type of ['Text','Whole number','Decimal number','Date'])control.append(new Option(type,type));control.value=column[key];
+        control.addEventListener(key==='type'?'change':'input',()=>{column[key]=control.value;state.ack=false;if(key==='type')details();render();});control.addEventListener('focus',()=>{state.selectedColumn=index;details();});field.append(label,control);row.append(field);
+      }
+      const remove=node('button','Remove');remove.setAttribute('aria-label','Remove column '+(index+1));remove.addEventListener('click',()=>{state.columns.splice(index,1);state.selectedColumn=0;columns();render();});row.append(remove);return row;
+    }));details();
   }
-  function saved(type) {state.step='saved';state.busy=false;el('st-saved-name').textContent='Saved: '+(state.files.length?'extracted-information.xlsx':'project-summary'+extensions[type]);el('st-open-note').hidden=true;render();}
-  function mode(value){if(!state.busy){state.mode=value;render();}}
-  el('st-create-mode').addEventListener('click',()=>mode('create')); el('st-edit-mode').addEventListener('click',()=>mode('edit')); el('st-go-create').addEventListener('click',()=>mode('create'));
-  el('st-request').addEventListener('input',render); el('st-file-type').addEventListener('change',()=>{state.type=el('st-file-type').value;state.template='';render();});
-  el('st-browse').addEventListener('click',()=>el('st-source-dialog').showModal()); el('st-add-files').addEventListener('click',()=>{const files=Array.from(el('st-source-dialog').querySelectorAll('input:checked')).map(input=>({name:input.value,ambiguous:input.value.endsWith('.pdf')}));if(files.length){el('st-source-dialog').close();addFiles(files);}});
-  for(const event of ['dragenter','dragover']) el('st-drop').addEventListener(event,e=>{e.preventDefault();el('st-drop').classList.add('is-dragging');}); el('st-drop').addEventListener('dragleave',()=>el('st-drop').classList.remove('is-dragging'));
-  el('st-drop').addEventListener('drop',e=>{e.preventDefault();el('st-drop').classList.remove('is-dragging');addFiles(Array.from(e.dataTransfer.files).map(file=>({name:file.name,ambiguous:false})));});
-  el('st-create-file').addEventListener('click',()=>{if(el('st-create-file').disabled)return;if(state.files.length){state.step='columns';renderColumns();render();}else{state.busy=true;render();setTimeout(()=>saved(state.type),700);}});
-  el('st-add-column').addEventListener('click',()=>{state.columns.push({name:'',description:'',type:'Text'});renderColumns();render();}); document.querySelectorAll('input[name=date-order]').forEach(input=>input.addEventListener('change',()=>{state.dateOrder=input.value;render();}));
-  el('st-back-describe').addEventListener('click',()=>{state.step='describe';render();}); el('st-back-columns').addEventListener('click',()=>{state.step='columns';el('st-ack').checked=false;renderColumns();render();});
-  el('st-extract').addEventListener('click',()=>{if(el('st-extract').disabled)return;state.busy=true;el('st-extract').textContent='Extracting...';render();setTimeout(()=>{state.busy=false;state.step='review';el('st-extract').textContent='Extract to Excel';renderReview();render();},700);});
-  el('st-ack').addEventListener('change',()=>{el('st-save-excel').disabled=state.needsCheck&&!el('st-ack').checked;}); el('st-save-excel').addEventListener('click',()=>{if(!el('st-save-excel').disabled)saved('excel');}); el('st-open-file').addEventListener('click',()=>{el('st-open-note').hidden=false;});
-  el('st-start-over').addEventListener('click',()=>{state.step='describe';state.files=[];state.columns=initialColumns();state.dateOrder='';state.flagged=false;state.type='word';state.template='';el('st-request').value='';render();});
-  for(const [button,dialog] of [['st-settings-button','st-settings-dialog'],['st-change-folder','st-folder-dialog'],['st-template','st-template-dialog']])el(button).addEventListener('click',()=>el(dialog).showModal()); document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>el(button.dataset.close).close()));
-  el('st-use-folder').addEventListener('click',()=>{if(el('st-folder-input').value.trim()){el('st-folder').textContent=el('st-folder-input').value.trim();el('st-folder-dialog').close();}}); el('st-use-template').addEventListener('click',()=>{state.template=el('st-template-select').value;el('st-template-dialog').close();render();}); render();
+  function details() {
+    const select=el('st-detail-column');select.replaceChildren(...state.columns.map((column,index)=>new Option(column.name||'Unnamed column',String(index))));select.value=String(state.selectedColumn);
+    const type=state.columns[state.selectedColumn]?.type||'Text';el('st-numeric-details').hidden=!['Whole number','Decimal number'].includes(type);el('st-detail-hint').hidden=!el('st-numeric-details').hidden;
+    el('st-thousands').value=state.columns[state.selectedColumn]?.thousands??',';el('st-decimal').value=state.columns[state.selectedColumn]?.decimal??'.';
+    el('st-detail-hint').textContent=type==='Date'?'English month-name dates need no order setting.':'Text identifiers preserve their leading zeros.';
+  }
+  function evidence(rowIndex,columnIndex) {
+    const file=state.files[rowIndex],column=state.columns[columnIndex];
+    const rawValues=[{Total:'12,500.00','Invoice date':'15 March 2026'},{Total:'2,400.00','Invoice date':'16 March 2026'}];
+    const sourceIndex=sampleIndex(file),value=rawValues[sourceIndex]?.[column.name]||sampleValues[sourceIndex]?.[column.name]||'';
+    const phrases=[
+      {Supplier:'The supplier is Atlas Services Ltd.','Invoice number':'Invoice INV-2026-014.',Total:'Total: GBP 12,500.00.','Invoice date':'Invoice date: 15 March 2026.'},
+      {Supplier:'The supplier is Maple Design Ltd.','Invoice number':'Invoice INV-2026-015.',Total:'Total: GBP 2,400.00.','Invoice date':'Invoice date: 16 March 2026.'}
+    ];
+    const flagged=state.flagged&&sourceIndex===1&&column.name==='Total';
+    const entries=[['Value',value||'Not found'],['Source text',phrases[sourceIndex]?.[column.name]||''],['Found in',file.name+(file.name.endsWith('.pdf')?', page 1':', paragraph 2')],['Check',flagged?'Two proposed values disagreed.':value?'The value was found in the source text.':'The source text did not contain a value for this column.']];
+    if(flagged)entries.push(['Other proposal','Value: 2,500.00. Source text: "Total: GBP 2,500.00." Found in: invoice-02.pdf, page 2.']);
+    el('st-evidence-content').replaceChildren();for(const [label,text]of entries){const detail=node('dd','');detail.append(node(label==='Source text'?'blockquote':'span',text));el('st-evidence-content').append(node('dt',label),detail);}
+  }
+  function review() {
+    const table=el('st-table'),head=node('thead',''),header=node('tr',''),body=node('tbody','');table.replaceChildren();
+    for(const title of ['File',...state.columns.map(c=>c.name)]){const cell=node('th',title);cell.scope='col';header.append(cell);}head.append(header);table.append(head);
+    state.files.forEach((file,rowIndex)=>{const row=node('tr','');row.append(node('td',file.name));state.columns.forEach((column,columnIndex)=>{
+      const sourceIndex=sampleIndex(file),value=sampleValues[sourceIndex]?.[column.name]||'',flagged=state.flagged&&sourceIndex===1&&column.name==='Total',cell=node('td',''),button=node('button',value,'st-cell'+(flagged?' is-flagged':''));
+      button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',file.name+', '+column.name+': '+(value||'Not found'));
+      button.addEventListener('click',()=>{table.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));button.setAttribute('aria-pressed','true');evidence(rowIndex,columnIndex);});cell.append(button);row.append(cell);
+    });body.append(row);});table.append(body);table.querySelector('button')?.click();
+  }
+  function saved(name) {state.busy=false;state.step='saved';el('st-saved-name').textContent='Saved: '+name;el('st-open-note').hidden=true;render();}
+  function closeFormat() {el('st-format-menu').hidden=true;el('st-format-trigger').setAttribute('aria-expanded','false');}
+  function chooseType(type) {state.type=type;if(type!=='ppt')state.template='';closeFormat();render();el('st-format-trigger').focus();}
+  function snapshot(name) {
+    clearTimeout(timer);document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close());closeFormat();state.mode='create';state.route=name.startsWith('write')?'write':'pull';state.step='describe';state.busy=false;state.reading=false;state.ack=false;state.flagged=false;state.readingProblems=false;state.columns=initialColumns();state.selectedColumn=0;state.files=[];state.type='word';state.template='';el('st-write-request').value='';el('st-pull-request').value='';el('st-demo-drop-note').hidden=true;
+    if(name==='write-template'){state.type='ppt';state.template='business_pitch';el('st-write-request').value='Create a five-slide presentation for a fictional product launch. Include a title, an agenda, goals, a launch timeline and next steps.';}
+    if(state.route==='pull'){
+      state.files=sampleFiles();el('st-pull-request').value=sampleRequest;state.reading=name==='pull-reading';state.readingProblems=['pull-partly','review-problems','review-both'].includes(name);if(state.readingProblems)state.files[1].status='Partly read';
+      if(name==='pull-busy'){state.step='columns';state.busy=true;columns();}
+      if(['pull-review','review-problems','review-both','review-clean'].includes(name)){state.step='review';state.flagged=['pull-review','review-both'].includes(name);review();}
+    }
+    el('st-state-select').value=name;render();
+  }
+  el('st-state-select').addEventListener('change',()=>snapshot(el('st-state-select').value));
+  for(const mode of ['create','edit'])el('st-'+mode+'-mode').addEventListener('click',()=>{if(!state.busy&&!state.reading){state.mode=mode;render();}});el('st-go-create').addEventListener('click',()=>{state.mode='create';render();});
+  el('st-route-write').addEventListener('click',()=>route('write'));el('st-route-pull').addEventListener('click',()=>route('pull'));
+  for(const id of ['write-request','pull-request'])el('st-'+id).addEventListener('input',()=>{invalidate();render();});
+  el('st-format-trigger').addEventListener('click',()=>{const open=el('st-format-menu').hidden;el('st-format-menu').hidden=!open;el('st-format-trigger').setAttribute('aria-expanded',String(open));if(open)el('st-format-'+state.type).focus();});
+  document.querySelectorAll('[data-type]').forEach(button=>{button.addEventListener('click',()=>chooseType(button.dataset.type));button.addEventListener('keydown',event=>{
+    const options=Array.from(document.querySelectorAll('[data-type]')),index=options.indexOf(button);let target=null;
+    if(event.key==='ArrowDown')target=options[(index+1)%options.length];if(event.key==='ArrowUp')target=options[(index+options.length-1)%options.length];if(event.key==='Home')target=options[0];if(event.key==='End')target=options.at(-1);
+    if(target){event.preventDefault();target.focus();}if(event.key==='Escape'){closeFormat();el('st-format-trigger').focus();}
+  });});
+  document.addEventListener('click',event=>{if(!event.target.closest('.st-format'))closeFormat();});document.addEventListener('keydown',event=>{if(event.key==='Escape')closeFormat();});
+  el('st-template').addEventListener('click',()=>{el('st-template-picker').hidden=false;el('st-template-confirm').hidden=true;document.querySelector('input[name=template][value="'+(state.template||'business_pitch')+'"]').checked=true;el('st-template-dialog').showModal();});
+  el('st-template-next').addEventListener('click',()=>{const name=document.querySelector('input[name=template]:checked').value;el('st-template-confirm-name').textContent='Template: '+name;const names=name==='business_pitch'?['title: title, subtitle','agenda: heading, items','content: heading, bullets','closing: heading, statement']:['title: title, subtitle','architecture: heading, components','bullets: heading, bullets'];el('st-template-structure').replaceChildren(...names.map(label=>node('li',label)));el('st-template-picker').hidden=true;el('st-template-confirm').hidden=false;});
+  el('st-template-back').addEventListener('click',()=>{el('st-template-confirm').hidden=true;el('st-template-picker').hidden=false;});el('st-use-template').addEventListener('click',()=>{state.template=document.querySelector('input[name=template]:checked').value;el('st-template-dialog').close();render();});el('st-clear-template').addEventListener('click',()=>{state.template='';render();});
+  for(const [button,dialog]of [['st-settings-button','st-settings-dialog'],['st-change-folder','st-folder-dialog'],['st-browse','st-source-dialog']])el(button).addEventListener('click',()=>el(dialog).showModal());document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>el(button.dataset.close).close()));
+  el('st-use-folder').addEventListener('click',()=>{const value=el('st-folder-input').value.trim();if(value){el('st-folder').textContent=value;el('st-folder-dialog').close();}});
+  el('st-add-files').addEventListener('click',()=>{const selected=Array.from(el('st-source-dialog').querySelectorAll('input:checked')).map(input=>input.value);if(!selected.length)return;state.files.push(...selected.map(name=>({name,status:'Ready',detail:name.endsWith('.pdf')?'PDF with selectable text':'Word document'})));state.reading=true;state.readingProblems=false;state.ack=false;el('st-source-dialog').close();render();timer=setTimeout(()=>{state.reading=false;render();},1200);});
+  for(const event of ['dragenter','dragover'])el('st-drop').addEventListener(event,e=>{e.preventDefault();if(!state.busy&&!state.reading)el('st-drop').classList.add('is-dragging');});el('st-drop').addEventListener('dragleave',()=>el('st-drop').classList.remove('is-dragging'));el('st-drop').addEventListener('drop',e=>{e.preventDefault();el('st-drop').classList.remove('is-dragging');el('st-demo-drop-note').hidden=false;});
+  el('st-create-file').addEventListener('click',()=>{if(el('st-create-file').disabled)return;state.busy=true;closeFormat();render();timer=setTimeout(()=>saved('project-summary'+extensions[state.type]),1200);});
+  el('st-choose-columns').addEventListener('click',()=>{if(el('st-choose-columns').disabled)return;state.step='columns';state.columns=initialColumns();state.selectedColumn=0;columns();render();});
+  el('st-add-column').addEventListener('click',()=>{state.columns.push({name:'',description:'',type:'Text',thousands:',',decimal:'.'});columns();render();});el('st-detail-column').addEventListener('change',()=>{state.selectedColumn=Number(el('st-detail-column').value);details();});for(const [id,key]of [['st-thousands','thousands'],['st-decimal','decimal']])el(id).addEventListener('input',()=>{state.columns[state.selectedColumn][key]=el(id).value;state.ack=false;render();});
+  el('st-back-describe').addEventListener('click',()=>{state.step='describe';render();});el('st-back-columns').addEventListener('click',()=>{state.step='columns';state.ack=false;columns();render();});
+  el('st-extract').addEventListener('click',()=>{if(el('st-extract').disabled)return;state.busy=true;state.ack=false;render();timer=setTimeout(()=>{state.busy=false;state.step='review';state.flagged=state.files.some(file=>sampleIndex(file)===1);review();render();},1400);});
+  el('st-cancel-extract').addEventListener('click',()=>{clearTimeout(timer);state.busy=false;state.ack=false;render();});
+  el('st-ack').addEventListener('change',()=>{state.ack=el('st-ack').checked;render();});el('st-save-excel').addEventListener('click',()=>{if(!el('st-save-excel').disabled){el('st-save-error').hidden=true;el('st-save-dialog').showModal();}});
+  el('st-confirm-save').addEventListener('click',()=>{const name=el('st-save-name').value.trim();if(!/\.xlsx$/i.test(name)){el('st-save-error').hidden=false;return;}el('st-save-dialog').close();saved(name);});
+  el('st-open-file').addEventListener('click',()=>{el('st-open-note').hidden=false;});el('st-start-over').addEventListener('click',()=>{state.step='describe';state.ack=false;state.flagged=false;render();});
+  snapshot('write-empty');
 })();
 </script>
-</body></html>
+</body>
+</html>
