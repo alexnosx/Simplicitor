@@ -102,7 +102,7 @@ def test_template_selected_stores_and_relabels(window):
     window._on_template_selected(manifest, "C:/tmpl/deck", "deck")
     assert window._loaded_template["name"] == "deck"
     assert window._loaded_template["manifest"] is manifest
-    assert window._create_screen._template_name.text() == "deck"
+    assert window._create_screen._template_name.text() == "Template: deck"
 
 
 def test_file_type_off_pptx_clears_loaded_template(window):

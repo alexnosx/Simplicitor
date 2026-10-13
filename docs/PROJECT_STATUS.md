@@ -1,6 +1,6 @@
 # Simplicitor project status
 
-Updated 2026-10-13 after Part D source verification on `feature/2.2.0-create-new-qt`, pending Claude's review and Alex's merge approval. B3 ended in a drop, B5 is complete and B4 was not executed. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
+Updated 2026-10-13 after Part D review follow-ups on `feature/2.2.0-create-new-qt`, pending Alex's merge approval. B3 ended in a drop, B5 is complete and B4 was not executed. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md) and the [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) are the current review set. The [2.1.0 plan](superpowers/plans/2026-10-09-release-2.1.0.md) and [2.0.0 extraction plan](superpowers/plans/2026-10-08-first-release-extraction.md) retain their earlier execution records.
 
 ## Current status
 
@@ -11,7 +11,7 @@ Updated 2026-10-13 after Part D source verification on `feature/2.2.0-create-new
 | 2.2.0 Part A | A1-A4 complete in source: finished extraction progress clears while final messages stay; source-aware prompt hints and Settings guidance; one shared version for UI/build/upgrade qualification; named Word reading problems and a general review heading. The product version remains 2.1.0 until E1; no 2.2.0 build or release. |
 | 2.2.0 B3 gate and B5 | Gate B3 failed (3 of 8 decks acceptable, 1 of 4 real) and Alex chose to drop the upload without a fix round (2026-10-12). B5 removed the template upload, the rejection dialog and the B1-B3 capture code; the picker offers built-in templates only. B4 was not executed. |
 | 2.2.0 C1 | Alex reassigned the [Create new mockup](design/document-workspace.html) to Codex and approved it on 2026-10-13. The approved artifact is 38af728, including the 2.2.0 preview version and revised Edit wording, integrated into main. It shows all seven requested points and ten preset states. |
-| 2.2.0 Part D | Implemented on `feature/2.2.0-create-new-qt`, awaiting Claude's review and Alex's merge approval. Explicit Write/Pull routes retain their own inputs and apply the existing invalidation/busy gates. Numbered cards, larger text, blue choices, template Clear, reading states and per-file/action progress match C1's requested behavior. Version stays 2.1.0 until E1; C2 and E are not started. [Tasks as built](superpowers/plans/2026-10-12-release-2.2.0.md#part-d-tasks-as-built). |
+| 2.2.0 Part D | Implemented on `feature/2.2.0-create-new-qt`, reviewed by Claude, with the two requested layout/label follow-ups now source-verified; awaiting Alex's merge approval. Explicit Write/Pull routes retain their own inputs and apply the existing invalidation/busy gates. Numbered cards, larger text, blue choices, template Clear, reading states and per-file/action progress match C1's requested behavior. Version stays 2.1.0 until E1; C2 and E are not started. [Tasks as built](superpowers/plans/2026-10-12-release-2.2.0.md#part-d-tasks-as-built). |
 | Prompt creation and templates | Word, Excel and PowerPoint generation remain available. PDF uses the existing Word response structure and Qt writer with staged validation. PowerPoint's picker offers built-in templates only; generation and developer CLI import remain available. Alex reports that PDF generation from a prompt and click-through of the new screens passed from source. |
 | Create and Edit modes | Create new uses Describe, optional sources, Choose columns, Review and save, then Saved. Edit document is explanatory only; legacy editing remains disabled. Settings/mode switching freeze during work. |
 | Extraction and review | DOCX and text-layer PDF reading coverage, column proposals, grounding, cancellation and XLSX Data/Evidence behavior remain unchanged. Word coverage issues now name the skipped structures. The saved grid displays number formats and hides Record; Record stays in workbook/Evidence. Every sectioned-source Data cell requires review while preserving valid values/types/formats. Save to Excel requires acknowledgement for highlighted values, reading problems or both, then uses native XLSX Save As. |
@@ -69,6 +69,14 @@ or native installer behavior. REPO_MAP was regenerated. No dependencies, model
 settings, evaluation corpus, engines, version or LICENSE changed. No packaging
 tool or installer ran locally, and no hosted milestone was dispatched.
 
+Part D review follow-ups: the column table keeps four full rows visible while
+extracting at 1280x800; the progress row is compact and disabled selection is
+light blue. The chosen template again reads `Template: <name>`. Geometry and
+rendered-color regressions failed before the fix, then the targeted suite passed
+153 tests and the isolated full suite passed 1,100 in 40.53 seconds. The existing
+cache-permission warning remains. All 13 screens were recaptured and REPO_MAP was
+regenerated; the README screenshot was retained because its hash did not change.
+
 ## 2.1.0 verification
 
 | Part | Verification |
@@ -108,4 +116,4 @@ CPU/OS facts came from registry reads and memory from the Windows API; CIM queri
 
 ## Next step
 
-B3 ended in a drop; B5 is complete and B4 was not executed. C1 is approved on main. Next is Claude's review of Part D on `feature/2.2.0-create-new-qt`, then Alex's merge approval. C2 and Part E are not started. E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.
+B3 ended in a drop; B5 is complete and B4 was not executed. C1 is approved on main. Next is Alex's approval before merging Part D and its review follow-ups from `feature/2.2.0-create-new-qt`. C2 and Part E are not started. E1 owns the hosted packaging milestone and E2 still needs explicit release go. v2.1.0 remains published and verified; its [release record](releases/v2.1.0.json) owns the publication evidence. Historical releases remain unchanged.

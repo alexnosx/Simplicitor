@@ -1625,6 +1625,7 @@ requirements.txt
 - def test_template_is_kept_across_routes_but_not_a_real_type_change(window)
 - def test_clicking_active_option_keeps_its_selected_state(qtbot, isolated_profile)
 - def test_route_round_trip_keeps_the_action_at_the_left(qtbot, isolated_profile)
+- def test_busy_columns_keep_four_rows_visible_and_a_light_selection(window, qapp, monkeypatch, tmp_path, check)
 
 ### tests/test_create_progress.py
 
@@ -2133,7 +2134,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 90 lines
+- docs/PROJECT_STATUS.md: md, 111 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2187,7 +2188,7 @@ requirements.txt
 - docs/superpowers/plans/2026-06-02-phase-k-gui-integration.md: md, 1691 lines
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
-- docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4399 lines
+- docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

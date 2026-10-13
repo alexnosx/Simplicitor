@@ -20,6 +20,7 @@ from app.config.defaults import (
     SECONDARY_PRESSED_COLOR, INFO_BANNER_BG_COLOR, BODY_TEXT_COLOR,
     PROMPT_COMPLEXITY_THRESHOLD_CHARS, PROMPT_PLACEHOLDERS, STYLING_KEYWORDS,
     EXTRACTION_SOURCE_FILTER, TEMPLATE_FILE_TYPE, EXTRACTION_FLAG_COLOR,
+    EXTRACTION_VISIBLE_COLUMN_ROWS, EXTRACTION_PROGRESS_HEIGHT_PX,
 )
 from app.config.settings import Settings
 from app.config.styles import input_styles
@@ -563,10 +564,15 @@ class CreateScreen(QWidget):
                 layout.addLayout(top)
                 status = QLabel()
                 status.setObjectName("fileState")
-                layout.addWidget(status, alignment=Qt.AlignmentFlag.AlignLeft)
                 detail = QLabel()
                 detail.setObjectName("fileProgress")
-                layout.addWidget(detail)
+                if view is self._source_list:
+                    layout.addWidget(status, alignment=Qt.AlignmentFlag.AlignLeft)
+                    layout.addWidget(detail)
+                else:
+                    # One compact active-file row leaves room for the column editor.
+                    top.addWidget(status)
+                    top.addWidget(detail)
                 bar = QProgressBar()
                 bar.setObjectName("fileProgressBar")
                 bar.setRange(0, 0)
@@ -693,7 +699,7 @@ class CreateScreen(QWidget):
     def set_template_loaded(self, loaded: bool, name: str = "") -> None:
         """Reflect the selected PowerPoint template without changing its engine."""
         self._template_loaded = loaded
-        self._template_name.setText((name or "selected") if loaded else "")
+        self._template_name.setText("Template: " + (name or "selected") if loaded else "")
         self._template_btn.setProperty("chosen", loaded)
         self._template_btn.style().unpolish(self._template_btn)
         self._template_btn.style().polish(self._template_btn)
@@ -809,6 +815,13 @@ class CreateScreen(QWidget):
         layout.addWidget(self._card_title("3. Choose columns"))
         self._columns_table = QTableWidget(0, 3)
         self._columns_table.setHorizontalHeaderLabels(["Name", "Description", "Type"])
+        self._columns_table.setMinimumHeight(
+            self._columns_table.horizontalHeader().sizeHint().height()
+            + EXTRACTION_VISIBLE_COLUMN_ROWS * self._columns_table.verticalHeader().defaultSectionSize()
+            + 2 * self._columns_table.frameWidth())
+        self._columns_table.setStyleSheet(
+            f"QTableWidget::item:disabled:selected {{ background: {CHOICE_SELECTED_COLOR}; "
+            f"color: {BODY_TEXT_COLOR}; }}")
         self._columns_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self._columns_table.verticalHeader().hide()
         self._columns_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -855,10 +868,11 @@ class CreateScreen(QWidget):
         layout.addWidget(details)
         self._file_progress_box = QGroupBox("File progress")
         progress = QVBoxLayout(self._file_progress_box)
+        progress.setContentsMargins(6, 4, 6, 4)
         self._working_files = QListWidget()
         self._working_files.viewport().installEventFilter(self)
         self._working_files.setStyleSheet("QListWidget::item { padding: 0; }")
-        self._working_files.setMaximumHeight(150)
+        self._working_files.setFixedHeight(EXTRACTION_PROGRESS_HEIGHT_PX)
         progress.addWidget(self._working_files)
         self._file_progress_box.hide()
         layout.addWidget(self._file_progress_box)
