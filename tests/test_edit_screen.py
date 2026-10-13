@@ -7,7 +7,7 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from PySide6.QtCore import QPoint, Qt
-from PySide6.QtWidgets import QFileDialog, QPushButton
+from PySide6.QtWidgets import QFileDialog, QLabel, QPushButton
 
 from editing import reading_view
 from editing.models import Proposal, ProposedParagraph
@@ -89,6 +89,16 @@ def test_open_shows_reading_view_and_read_only_reasons(screen, qtbot):
     screen._reader.activate_row(row)
     assert "cannot be edited" in screen._selection_notice.text()
     assert "Read-only" in screen._reader.itemDelegate().row_label(blocks[row])
+
+
+def test_edit_wording_matches_the_approved_mockup(screen):
+    labels = [label.text() for label in screen.findChildren(QLabel)]
+    assert "Edit your Word document" in labels
+    assert "Select a part, describe the change, then review it before saving a new file." in labels
+    assert "1. Open your Word document" in labels
+    assert screen._drop_zone.text() == "Drop a .docx here, or browse for a Word document."
+    assert screen._original_note.text() == (
+        f"Original in {screen._opened.path.parent}. Your original will not be overwritten.")
 
 
 def test_refused_file_shows_message_and_keeps_drop_zone(screen):

@@ -278,10 +278,10 @@ class EditScreen(QWidget):
             "QLabel[cardTitle='true'] { font-size: 17px; font-weight: 600; }")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 14, 20, 20)
-        title = QLabel("Edit document")
+        title = QLabel("Edit your Word document")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
         layout.addWidget(title)
-        layout.addWidget(QLabel("Change a selected part of a Word document. Review it before saving a new file."))
+        layout.addWidget(QLabel("Select a part, describe the change, then review it before saving a new file."))
         self._steps = StepIndicator()
         self._steps.set_steps(["Open", "Select", "Describe", "Review", "Save"])
         layout.addWidget(self._steps)
@@ -295,6 +295,9 @@ class EditScreen(QWidget):
         layout.addWidget(self._file_line)
         self._original_note = self._label("Your original will not be overwritten.")
         layout.addWidget(self._original_note)
+        self._close_status = self._label("Waiting for local processing to stop before closing...")
+        self._close_status.setStyleSheet("padding: 10px; background: #EFF6FF; color: #1D4ED8;")
+        layout.addWidget(self._close_status)
         self._error = self._label("")
         self._error.setStyleSheet("background: #FFF3F3; color: #9B2525; padding: 10px; border: 1px solid #BD7777;")
         layout.addWidget(self._error)
@@ -329,8 +332,8 @@ class EditScreen(QWidget):
         return card, layout
 
     def _build_pages(self) -> None:
-        self._open_page, opening = self._card("1. Open a Word document")
-        self._drop_zone = self._label("Drop a .docx file here\nOr browse to a Word document on your computer.")
+        self._open_page, opening = self._card("1. Open your Word document")
+        self._drop_zone = self._label("Drop a .docx here, or browse for a Word document.")
         self._drop_zone.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._drop_zone.setStyleSheet(f"padding: 36px; border: 1px dashed {BORDER_COLOR};")
         opening.addWidget(self._drop_zone)
@@ -596,8 +599,11 @@ class EditScreen(QWidget):
         self._reader.set_blocks(view)
         self._clear_selection()
         self._file_label.setText(f"You are working on: {opened.path.name}")
+        self._original_note.setText(
+            f"Original in {opened.path.parent}. Your original will not be overwritten.")
         self._suggested.setText(f"Suggested name: {suggested_name(opened.path)}")
         self._error.hide()
+        self._close_status.hide()
         self._show(self._select_page)
 
     def show_proposal(self, candidate, before, after) -> None:
@@ -619,6 +625,7 @@ class EditScreen(QWidget):
 
     def show_failure(self, message: str, outcome: str) -> None:
         """Keep a candidate on save errors; close the session when the original changed."""
+        self._close_status.hide()
         if outcome == "original":
             self.reset()
         elif self._candidate is not None:
@@ -629,6 +636,10 @@ class EditScreen(QWidget):
             self._show(self._open_page)
         self._error.setText(message)
         self._error.show()
+
+    def show_close_wait(self) -> None:
+        """Show a pending close on the visible Edit screen while local processing finishes."""
+        self._close_status.show()
 
     def show_cancelled(self) -> None:
         """Return to selection after cancelling a proposal; an unread file returns to Open."""
@@ -685,6 +696,7 @@ class EditScreen(QWidget):
         self._scope.set_blocks(())
         self._clear_selection()
         self._error.hide()
+        self._close_status.hide()
         self._track_notice.hide()
         self._show(self._open_page)
         self.set_model_ready(self._model_ready)

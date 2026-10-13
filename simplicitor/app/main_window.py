@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
         self._edit_thread = self._edit_worker = None
         self._edit_epoch = 0
         self._edit_cancel_pending = self._edit_save_again = False
+        self._edit_close_failed = False
         self._extraction_job: Path | None = None
         self._progress_shown = False  # a worker progress line is on screen
         self._app_data = get_app_data_dir()
@@ -326,13 +327,13 @@ class MainWindow(QMainWindow):
         self._top_bar._model_combo.setEnabled(False)
         thread.start()
 
-    def _edit_accepts_result(self, epoch=None) -> bool:
+    def _edit_accepts_result(self, epoch=None, allow_closing: bool = False) -> bool:
         sender = self.sender()
         if sender is not None:
             if sender is not self._edit_worker:
                 return False
             epoch = sender._edit_epoch
-        return (not self._closing and not self._edit_cancel_pending
+        return ((not self._closing or allow_closing) and not self._edit_cancel_pending
                 and (epoch is None or epoch == self._edit_epoch)
                 and self._modes.currentWidget() is self._edit_page)
 
@@ -353,6 +354,16 @@ class MainWindow(QMainWindow):
 
     @Slot(str, str)
     def _on_edit_failed(self, message: str, outcome: str) -> None:
+        if (self._closing and self._edit_worker is not None
+                and self._edit_worker.action == "save"
+                and self._edit_accepts_result(allow_closing=True)):
+            # A failed accepted save cancels the close request. Keep its error on
+            # Save, even for retry/original outcomes, instead of hiding it or discarding work.
+            self._closing = False
+            self._edit_close_failed = True
+            self._edit_save_again = False
+            self._edit_page.show_failure(message, "failed")
+            return
         if not self._edit_accepts_result():
             return
         self._edit_page.show_failure(message, outcome)
@@ -400,7 +411,16 @@ class MainWindow(QMainWindow):
         self._top_bar._model_combo.setEnabled(bool(self._top_bar.current_model()))
         if self._edit_save_again and not self._closing:
             self._schedule_edit_save()
+        self._resume_discovery_after_failed_edit_close()
         self._close_when_idle()
+
+    def _resume_discovery_after_failed_edit_close(self) -> None:
+        """Restore discovery stopped by a close request that an accepted save failure cancelled."""
+        if (self._edit_close_failed and not self._closing
+                and self._ollama_thread is None):
+            self._edit_close_failed = False
+            self._ollama_stop_pending = False
+            self._start_ollama_worker()
 
     def _discard_review_job(self) -> None:
         if self._extraction_job is not None and self._extraction_thread is None:
@@ -562,11 +582,13 @@ class MainWindow(QMainWindow):
             return
         self._ollama_thread.deleteLater()
         self._ollama_thread = self._ollama_worker = None
+        self._resume_discovery_after_failed_edit_close()
         self._close_when_idle()
 
     def _close_when_idle(self) -> None:
         if self._closing:
-            QTimer.singleShot(0, self.close)
+            # A save failure may withdraw the close after this callback was queued.
+            QTimer.singleShot(0, lambda: self.close() if self._closing else None)
 
     def _build_output_path(self, file_type: str, save_dir: str, prompt: str) -> str:
         """Build an auto-generated output file path.
@@ -961,7 +983,10 @@ class MainWindow(QMainWindow):
                 waiting = True
         if waiting:
             event.ignore()
-            self._create_screen.show_status("Waiting for local processing to stop before closing...")
+            if self._modes.currentWidget() is self._edit_page:
+                self._edit_page.show_close_wait()
+            else:
+                self._create_screen.show_status("Waiting for local processing to stop before closing...")
             return
         self._discard_review_job()
         super().closeEvent(event)

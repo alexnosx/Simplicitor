@@ -158,6 +158,50 @@ def test_close_waits_for_an_accepted_save(window, qtbot, tmp_path, monkeypatch):
         window.closeEvent(event)
         assert not event.isAccepted() and window._edit_thread is not None
         assert not window._edit_worker._cancel.is_set()
+        assert page._pages.currentWidget() is page._save_page
+        assert page._close_status.isVisible()
+        assert page._close_status.text() == "Waiting for local processing to stop before closing..."
     finally:
         release.set()
     qtbot.waitUntil(lambda: window._edit_thread is None, timeout=5000)
+
+
+@pytest.mark.parametrize("outcome", ["retry", "destination", "original", "failed"])
+def test_failed_accepted_save_aborts_close_and_shows_the_save_failure(
+        window, qtbot, tmp_path, monkeypatch, qapp, outcome):
+    import app.workers.edit_worker as workers
+    from editing.models import EditError
+
+    entered, release = Event(), Event()
+    page = window._edit_page
+    page.show_proposal(*candidate_for(page._opened))
+    page._use_btn.click()
+    candidate = page._candidate
+
+    def failing_save(candidate, destination):
+        entered.set()
+        assert release.wait(5)
+        raise EditError("Synthetic save failure. Choose another file or try again.", outcome)
+
+    monkeypatch.setattr(workers, "save_candidate", failing_save)
+    picks = []
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *a, **kw: (picks.append(True) or "", ""))
+    window._on_edit_save_requested(tmp_path / "copy.docx")
+    qtbot.waitUntil(entered.is_set, timeout=3000)
+    try:
+        event = QCloseEvent()
+        window.closeEvent(event)
+        assert not event.isAccepted()
+        # A queued close can already exist when discovery finishes during the save.
+        window._close_when_idle()
+    finally:
+        release.set()
+    qtbot.waitUntil(lambda: window._edit_thread is None, timeout=5000)
+    qapp.processEvents()
+    assert not window._closing and window.isVisible()
+    assert page._pages.currentWidget() is page._save_page
+    assert page._candidate is candidate and page._error.isVisible()
+    assert page._error.text() == "Synthetic save failure. Choose another file or try again."
+    assert not picks  # Closing failures stay visible; no automatic dialog hides them.
+    qtbot.waitUntil(lambda: not window._ollama_stop_pending, timeout=5000)
+    assert window._ollama_thread is not None and window._ollama_thread.isRunning()

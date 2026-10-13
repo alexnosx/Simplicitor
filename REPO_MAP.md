@@ -1986,6 +1986,7 @@ requirements.txt
 - def describe(screen, qtbot)
 - def review(screen, qtbot)
 - def test_open_shows_reading_view_and_read_only_reasons(screen, qtbot)
+- def test_edit_wording_matches_the_approved_mockup(screen)
 - def test_refused_file_shows_message_and_keeps_drop_zone(screen)
 - def test_shift_click_selection_respects_tables_and_read_only_rows(screen, qtbot)
 - def test_long_selection_disables_edit_this_part(screen, qtbot)
@@ -2142,6 +2143,7 @@ requirements.txt
 - def test_late_result_after_opening_another_document_is_ignored(window, tmp_path, monkeypatch, qtbot)
 - def test_late_result_after_switching_to_create_is_ignored(window, monkeypatch)
 - def test_close_waits_for_an_accepted_save(window, qtbot, tmp_path, monkeypatch)
+- def test_failed_accepted_save_aborts_close_and_shows_the_save_failure(window, qtbot, tmp_path, monkeypatch, qapp, outcome)
 
 ### tests/test_main_window_extraction.py
 
@@ -2530,7 +2532,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-08-first-release-extraction.md: md, 204 lines
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
-- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3721 lines
+- docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
