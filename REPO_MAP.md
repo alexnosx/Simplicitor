@@ -116,6 +116,7 @@ docs/
         v2.2.0.json
         v2.3.0-notes.md
         v2.3.0.json
+        v2.3.1-notes.md
     reviews/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
@@ -968,6 +969,7 @@ requirements.txt
 - class DocumentModel(QAbstractListModel): One display block per row; document content is data, never HTML.
 - class DocumentDelegate(QStyledItemDelegate): Paint only controlled text formats and table cells, without interpreting markup.
 - class DocumentView(QListView): Virtualized reader with explicit whole-paragraph clicks, including read-only notices.
+- class DropArea(QLabel): Drop target whose dashed outline is painted, so all four edges stay visible at any display scale.
 - class EditScreen(QWidget): Keep edit-session inputs and emit requests; workers own all document processing.
 
 ### simplicitor/app/widgets/file_list.py
@@ -1983,6 +1985,7 @@ requirements.txt
 - def test_absent_saved_value_is_not_reported_as_found(qtbot, isolated_profile, tmp_path)
 - def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
 - def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path)
+- def test_browse_sits_directly_under_the_source_box(qtbot, isolated_profile)
 
 ### tests/test_edit_screen.py
 
@@ -2010,6 +2013,7 @@ requirements.txt
 - def test_reading_view_keeps_word_line_breaks(screen)
 - def test_busy_blocks_drops_and_preserves_current_work(screen, qtbot)
 - def test_reading_progress_stays_in_the_open_step(screen)
+- def test_drop_zone_outline_is_visible_on_all_four_edges(qtbot, ratio)
 
 ### tests/test_edit_worker.py
 
@@ -2461,7 +2465,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 113 lines
+- CHANGELOG.md: md, 119 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
@@ -2478,7 +2482,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 133 lines
+- docs/PROJECT_STATUS.md: md, 134 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2524,6 +2528,7 @@ requirements.txt
 - docs/releases/v2.2.0.json: json, 152 lines
 - docs/releases/v2.3.0-notes.md: md, 32 lines
 - docs/releases/v2.3.0.json: json, 148 lines
+- docs/releases/v2.3.1-notes.md: md, 24 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
@@ -2546,7 +2551,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
-- docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 336 lines
+- docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 310 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
