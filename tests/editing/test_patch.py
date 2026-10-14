@@ -200,3 +200,25 @@ def test_verification_reads_the_packaged_main_part(monkeypatch):
         data, part, content.replace(b"45 days", b"99 days")))
     with pytest.raises(EditError, match="could not apply this change safely"):
         patch.build_candidate(opened, k, k, proposal((0, "Invoices are payable within 45 days of receipt.")))
+
+
+TIME_RUN = '<w:r><w:rPr><w:sz w:val="21"/></w:rPr><w:t xml:space="preserve">12:15 to 13:00 </w:t></w:r>'
+TITLE_RUN = '<w:r><w:rPr><w:i/></w:rPr><w:t>The Future of the Software Engineering Profession</w:t></w:r>'
+
+
+def test_a_rewritten_paragraph_takes_one_format_from_most_of_the_original(make_docx):
+    # Alex's devTalks case: a mostly new sentence was split between two original formats.
+    opened = open_document(make_docx("<w:p>" + TIME_RUN + TITLE_RUN + "</w:p>"))
+    candidate, document = apply(opened, 0, 0, (0, "Superman is the best."))
+    runs = document.paragraphs[0].runs
+    assert [r.text for r in runs] == ["Superman is the best."]
+    assert runs[0].italic and runs[0].font.size is None
+    assert candidate.highlights == (((0, 21),),)
+
+
+def test_a_small_edit_keeps_word_by_word_formatting(make_docx):
+    opened = open_document(make_docx("<w:p>" + TIME_RUN + TITLE_RUN + "</w:p>"))
+    _, document = apply(opened, 0, 0, (0, "12:15 to 13:30 The Future of the Software Engineering Profession"))
+    runs = [(r.text, r.font.size is not None, bool(r.italic)) for r in document.paragraphs[0].runs]
+    assert runs == [("12:15 to 13:30 ", True, False),
+                    ("The Future of the Software Engineering Profession", False, True)]

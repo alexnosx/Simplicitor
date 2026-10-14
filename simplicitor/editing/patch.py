@@ -1,4 +1,5 @@
 """Splice a validated proposal into the original bytes and verify the result in memory."""
+from collections import Counter
 from difflib import SequenceMatcher
 import io
 import logging
@@ -20,6 +21,10 @@ NEW_PARAGRAPH_PROPERTIES = ("pStyle", "keepNext", "keepLines", "widowControl", "
                             "shd", "tabs", "spacing", "ind", "contextualSpacing", "jc",
                             "outlineLvl", "rPr")
 _TOKEN = re.compile(r"\w+|\s+|[^\w\s]")
+_WORD = re.compile(r"\w")
+# A new paragraph that keeps fewer of its words from its source is a rewrite: it takes one
+# format, the one covering most of the source, not a word-by-word mix of distant formats.
+REWRITE_SHARED_WORDS = 0.5
 
 
 def _tokens(text: str) -> list[str]:
@@ -40,9 +45,16 @@ def new_formats(old_text: str, old: list[bytes], new_text: str) -> tuple[list[by
     offsets = [0]
     for token in a:
         offsets.append(offsets[-1] + len(token))
+    opcodes = SequenceMatcher(None, a, b, autojunk=False).get_opcodes()
+    words = sum(1 for token in b if _WORD.match(token))
+    shared = sum(1 for op, _, _, b1, b2 in opcodes if op == "equal"
+                 for token in b[b1:b2] if _WORD.match(token))
+    if old and words and shared < REWRITE_SHARED_WORDS * words:
+        dominant = Counter(old).most_common(1)[0][0]  # ties: the first format in the paragraph
+        return [dominant] * len(new_text), ((0, len(new_text)),)
     formats: list[bytes] = []
     changed: list[tuple[int, int]] = []
-    for op, a1, a2, b1, b2 in SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+    for op, a1, a2, b1, b2 in opcodes:
         size = sum(len(t) for t in b[b1:b2])
         if op == "equal":
             formats.extend(old[offsets[a1]:offsets[a2]])
