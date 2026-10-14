@@ -1,6 +1,8 @@
 # Changelog
 
-## v2.3.1 (unreleased)
+## v2.3.1, 2026-10-15
+
+Published as [v2.3.1](https://github.com/alexnosx/Simplicitor/releases/tag/v2.3.1) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.3.1.json](docs/releases/v2.3.1.json).
 
 - Paint the Edit drop area's dashed outline so all four edges stay visible at fractional display scales.
 - Place Pull's Browse files button directly under the source file box, with a wrapping hint and the existing picker, drop and busy behavior.
