@@ -313,3 +313,37 @@ def test_drop_zone_outline_is_visible_on_all_four_edges(qtbot, ratio):
         "right": line_weight((x, y) for y in ys for x in range(w - band, w)),
     }
     assert all(weight >= 1.0 for weight in edges.values()), edges
+
+
+def test_drag_selects_a_range_and_respects_tables(screen, qtbot):
+    from PySide6.QtCore import QEvent, QPointF
+    from PySide6.QtGui import QMouseEvent
+    from PySide6.QtWidgets import QApplication
+    view = screen._reader
+
+    def center(index):
+        row = next(i for i, b in enumerate(view.model().blocks) if b.index == index)
+        model_index = view.model().index(row, 0)
+        view.scrollTo(model_index)
+        qtbot.waitUntil(lambda: view.visualRect(model_index).height() > 0)
+        return view.visualRect(model_index).center()
+
+    def move(index, buttons=Qt.MouseButton.LeftButton):
+        pos = QPointF(center(index))
+        QApplication.sendEvent(view.viewport(), QMouseEvent(
+            QEvent.Type.MouseMove, pos, view.viewport().mapToGlobal(pos), Qt.MouseButton.NoButton,
+            buttons, Qt.KeyboardModifier.NoModifier))
+
+    labels = [label.text() for label in screen.findChildren(QLabel)]
+    assert "Click a paragraph, or drag across several. Shift-click extends the selection." in labels
+    qtbot.mousePress(view.viewport(), Qt.MouseButton.LeftButton, pos=center(1))
+    move(2)
+    qtbot.mouseRelease(view.viewport(), Qt.MouseButton.LeftButton, pos=center(2))
+    assert screen._selection == (1, 2)
+    assert screen._selection_status.text() == "2 whole paragraph(s) selected."
+    qtbot.mousePress(view.viewport(), Qt.MouseButton.LeftButton, pos=center(1))
+    move(4)  # across the table: refused, the press's selection stays
+    assert screen._selection == (1, 1) and "table" in screen._selection_notice.text()
+    qtbot.mouseRelease(view.viewport(), Qt.MouseButton.LeftButton, pos=center(4))
+    move(2, Qt.MouseButton.NoButton)  # moving without the button held selects nothing
+    assert screen._selection == (1, 1)

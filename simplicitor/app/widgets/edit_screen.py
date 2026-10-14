@@ -208,6 +208,7 @@ class DocumentView(QListView):
         self.setResizeMode(QListView.ResizeMode.Adjust)
         self.setMouseTracking(True)
         self.interactive = True
+        self._drag_row = None  # the row a left-button drag last selected to
         self.setStyleSheet(f"QListView {{ background: white; border: 1px solid {BORDER_COLOR}; }}"
                           f"QListView:focus {{ border: 1px solid {PRIMARY_ACCENT_COLOR}; }}")
 
@@ -228,6 +229,9 @@ class DocumentView(QListView):
         if index.isValid() and event.button() == Qt.MouseButton.LeftButton:
             self.setFocus()
             self.setCurrentIndex(index)
+            block = self.model().blocks[index.row()]
+            editable = self.interactive and block.kind == "paragraph" and not block.reason
+            self._drag_row = index.row() if editable else None
             self.activate_row(index.row(), bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier))
 
     def mouseMoveEvent(self, event) -> None:
@@ -236,7 +240,16 @@ class DocumentView(QListView):
             block = self.model().blocks[index.row()]
             if block.reason or block.kind != "paragraph":
                 self.reason_shown.emit(_reason(block))
+            elif (event.buttons() & Qt.MouseButton.LeftButton and self._drag_row is not None
+                  and index.row() != self._drag_row):
+                # Dragging extends from the pressed paragraph, exactly like Shift-click.
+                self._drag_row = index.row()
+                self.paragraph_clicked.emit(block.index, True)
         super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event) -> None:
+        self._drag_row = None
+        super().mouseReleaseEvent(event)
 
     def keyPressEvent(self, event) -> None:
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Space) and self.currentIndex().isValid():
@@ -364,7 +377,7 @@ class EditScreen(QWidget):
         selection = QHBoxLayout(self._select_page)
         selection.setContentsMargins(0, 0, 0, 0)
         reader_card, reader_layout = self._card("2. Select the part to edit")
-        reader_layout.addWidget(self._label("Click a paragraph. To select a range, click the first, then hold Shift and click the last."))
+        reader_layout.addWidget(self._label("Click a paragraph, or drag across several. Shift-click extends the selection."))
         self._reader = DocumentView()
         self._reader.paragraph_clicked.connect(self.select_paragraph)
         self._reader.reason_shown.connect(self._show_selection_notice)
