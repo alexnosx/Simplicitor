@@ -279,3 +279,37 @@ def test_reading_progress_stays_in_the_open_step(screen):
     assert screen._open_busy_label.text() == "Reading the document..."
     assert screen._open_cancel_btn.isVisible()
     assert not screen._browse_btn.isEnabled()
+
+
+
+@pytest.mark.parametrize("ratio", [1.0, 1.25, 1.5])
+def test_drop_zone_outline_is_visible_on_all_four_edges(qtbot, ratio):
+    from PySide6.QtGui import QColor, QImage
+    from app.widgets.edit_screen import EditScreen
+    page = EditScreen()
+    qtbot.addWidget(page)
+    page.resize(1240, 700)
+    page.show()
+    zone = page._drop_zone
+    qtbot.waitUntil(zone.isVisible)
+    # Render as a display at this scale would; Alex's 125% display lost the top edge.
+    image = QImage(round(zone.width() * ratio), round(zone.height() * ratio), QImage.Format.Format_ARGB32)
+    image.setDevicePixelRatio(ratio)
+    image.fill(QColor("white"))
+    zone.render(image, QPoint())
+    w, h, band = image.width(), image.height(), round(3 * ratio)
+
+    def line_weight(points):
+        """Dark pixels per position along an edge, counted inside the outer band."""
+        points = list(points)
+        dark = sum(image.pixelColor(x, y).lightness() < 215 for x, y in points)
+        return dark / (len(points) / band)
+
+    xs, ys = range(20, w - 20), range(20, h - 20)
+    edges = {
+        "top": line_weight((x, y) for x in xs for y in range(band)),
+        "bottom": line_weight((x, y) for x in xs for y in range(h - band, h)),
+        "left": line_weight((x, y) for y in ys for x in range(band)),
+        "right": line_weight((x, y) for y in ys for x in range(w - band, w)),
+    }
+    assert all(weight >= 1.0 for weight in edges.values()), edges

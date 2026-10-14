@@ -1,8 +1,8 @@
 """Selective Word editing: a virtualized plain-text reader and explicit review/save steps."""
 from pathlib import Path
 
-from PySide6.QtCore import QAbstractListModel, QModelIndex, QPointF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QPainter, QTextCharFormat, QTextLayout, QTextOption
+from PySide6.QtCore import QAbstractListModel, QModelIndex, QPointF, QRectF, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QTextCharFormat, QTextLayout, QTextOption
 from PySide6.QtWidgets import (
     QAbstractItemView, QDialog, QFileDialog, QFrame, QHBoxLayout, QLabel, QListView,
     QPlainTextEdit, QPushButton, QStackedWidget, QStyledItemDelegate, QVBoxLayout, QWidget,
@@ -19,6 +19,7 @@ from editing.reading_view import DisplayBlock
 from editing.save import suggested_name
 
 WORD_FILTER = "Word document (*.docx)"
+DROP_BORDER_COLOR = "#8996A9"  # the approved mockup's drop outline
 
 
 def _reason(block: DisplayBlock) -> str:
@@ -244,6 +245,19 @@ class DocumentView(QListView):
             super().keyPressEvent(event)
 
 
+class DropArea(QLabel):
+    """Drop target whose dashed outline is painted, so all four edges stay visible at any display scale."""
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(QColor(DROP_BORDER_COLOR), 1.5, Qt.PenStyle.DashLine))
+        # Inset by the pen's half-width so no edge is clipped at fractional scales.
+        painter.drawRoundedRect(QRectF(self.rect()).adjusted(1, 1, -1, -1), 4, 4)
+        painter.end()
+
+
 class EditScreen(QWidget):
     """Keep edit-session inputs and emit requests; workers own all document processing."""
 
@@ -333,9 +347,11 @@ class EditScreen(QWidget):
 
     def _build_pages(self) -> None:
         self._open_page, opening = self._card("1. Open your Word document")
-        self._drop_zone = self._label("Drop a .docx here, or browse for a Word document.")
+        self._drop_zone = DropArea("Drop a .docx here, or browse for a Word document.")
+        self._drop_zone.setTextFormat(Qt.TextFormat.PlainText)
+        self._drop_zone.setWordWrap(True)
         self._drop_zone.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._drop_zone.setStyleSheet(f"padding: 36px; border: 1px dashed {BORDER_COLOR};")
+        self._drop_zone.setStyleSheet("padding: 36px;")
         opening.addWidget(self._drop_zone)
         self._browse_btn = self._button("Browse .docx", self._browse, secondary=True)
         opening.addWidget(self._browse_btn, alignment=Qt.AlignmentFlag.AlignLeft)
