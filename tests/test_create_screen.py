@@ -686,3 +686,16 @@ def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile,
     assert screen._source_coverage.toPlainText().splitlines()[0] == COVERAGE_HEADER
     screen.show_inspection(documents)
     assert screen._source_coverage.isHidden()
+
+
+
+def test_browse_sits_directly_under_the_source_box(qtbot, isolated_profile):
+    screen = _screen(qtbot, isolated_profile)
+    screen.set_route("pull")
+    screen.resize(1280, 760)
+    screen.show()
+    qtbot.waitUntil(screen._browse_btn.isVisible)
+    box, browse = screen._source_list.geometry(), screen._browse_btn.geometry()
+    assert screen._browse_btn.parentWidget() is screen._source_list.parentWidget()
+    assert 0 <= browse.top() - box.bottom() <= 16 and browse.left() == box.left()
+    assert screen._browse_btn.text() == "Browse files"

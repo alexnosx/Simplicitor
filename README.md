@@ -64,7 +64,7 @@ The try-it steps below use the current source checkout.
 
 Try one synthetic extraction:
 
-1. Keep **Create new** selected and choose **Pull information from documents into Excel**. In Source files, click **browse** and choose `tests\extraction\fixtures\invoice-01.docx`. This option always produces Excel.
+1. Keep **Create new** selected and choose **Pull information from documents into Excel**. In Source files, click **Browse files** and choose `tests\extraction\fixtures\invoice-01.docx`. This option always produces Excel.
 2. Enter: `Extract the invoice number, customer name, gross total, and due date.`
 3. Click **Next: choose columns**. Edit the names/descriptions/types if needed. Keep identifiers as text. If a date column has ambiguous numeric dates, choose the day/month order in its details.
 4. Click **Extract to Excel** to confirm the columns and start extraction.
