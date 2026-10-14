@@ -1386,6 +1386,8 @@ requirements.txt
 - def test_verification_rejects_corrupted_candidates(monkeypatch, corrupt)
 - def test_verification_rejects_a_changed_other_part_and_a_moved_bookmark(monkeypatch)
 - def test_verification_reads_the_packaged_main_part(monkeypatch)
+- def test_a_rewritten_paragraph_takes_one_format_from_most_of_the_original(make_docx)
+- def test_a_small_edit_keeps_word_by_word_formatting(make_docx)
 
 ### tests/editing/test_proposal.py
 
@@ -2015,6 +2017,7 @@ requirements.txt
 - def test_busy_blocks_drops_and_preserves_current_work(screen, qtbot)
 - def test_reading_progress_stays_in_the_open_step(screen)
 - def test_drop_zone_outline_is_visible_on_all_four_edges(qtbot, ratio)
+- def test_drag_selects_a_range_and_respects_tables(screen, qtbot)
 
 ### tests/test_edit_worker.py
 
@@ -2466,7 +2469,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 119 lines
+- CHANGELOG.md: md, 121 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
@@ -2530,7 +2533,7 @@ requirements.txt
 - docs/releases/v2.2.0.json: json, 152 lines
 - docs/releases/v2.3.0-notes.md: md, 32 lines
 - docs/releases/v2.3.0.json: json, 148 lines
-- docs/releases/v2.3.1-notes.md: md, 24 lines
+- docs/releases/v2.3.1-notes.md: md, 30 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
@@ -2553,7 +2556,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
-- docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 310 lines
+- docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 565 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

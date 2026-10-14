@@ -5,6 +5,8 @@
 - Paint the Edit drop area's dashed outline so all four edges stay visible at fractional display scales.
 - Place Pull's Browse files button directly under the source file box, with a wrapping hint and the existing picker, drop and busy behavior.
 - Refresh the README picture with version 2.3.1 and the new Browse files placement; update its build-output filename.
+- Give a mostly rewritten paragraph the format covering most of its original characters, and highlight the whole paragraph; small edits keep word-by-word formatting.
+- Select a range of editable Word paragraphs by dragging, with the same checks as Shift-click and a hint naming both gestures.
 
 ## v2.3.0, 2026-10-13
 

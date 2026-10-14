@@ -78,7 +78,7 @@ Files show Reading, Ready or Partly read. Check named reading problems before us
 ### Edit a Word document
 
 1. Choose **Edit document**, then **Browse .docx** and open `tests\editing\fixtures\word-basic.docx`, or drop a Word file into the Open step.
-2. Select the paragraph beginning `Invoices are payable` and click **Edit this part**. To select a range, click the first paragraph, then Shift-click the last. Grey parts are read-only; hover or click to see why.
+2. Select the paragraph beginning `Invoices are payable` and click **Edit this part**. To select a range, drag across the paragraphs, or click the first and Shift-click the last. Grey parts are read-only; hover or click to see why.
 3. Enter: `Change the payment period from 30 days to 45 days. Keep everything else as it is.` Click **Review change**.
 4. Compare **Before** and **After**. Changed words are highlighted in light green. Use **Try again** to keep the description and request another proposal, or **Cancel** to return to selection.
 5. Click **Use this change**, then **Save as a new file**. The suggested name is `word-basic (edited).docx` beside the original. Choose where to save; the original cannot be overwritten.
