@@ -2532,7 +2532,7 @@ requirements.txt
 - docs/reviews/2026-10-12-release-2.2.0-codex.md: md, 150 lines
 - docs/reviews/2026-10-13-edit-for-word-design-codex.md: md, 241 lines
 - docs/reviews/2026-10-13-release-2.3.0-plan-codex.md: md, 265 lines
-- docs/reviews/2026-10-14-release-2.3.1-plan-codex.md: md, 58 lines
+- docs/reviews/2026-10-14-release-2.3.1-plan-codex.md: md, 87 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines
@@ -2546,7 +2546,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-09-release-2.1.0.md: md, 2743 lines
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
-- docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 321 lines
+- docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 336 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
