@@ -1,45 +1,45 @@
 {
-  "verified_at": "2026-10-14T19:33:14.054374+00:00",
-  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38618729388",
-  "source_commit": "ce3b2d790b321521a416aa507135c053f68c8270",
+  "verified_at": "2026-10-14T20:34:30.783731+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38627957477",
+  "source_commit": "83a5f9647ae57d9275373359dd54bd372de338b1",
   "conclusion": "success",
   "workflow_event": "workflow_dispatch",
   "publication": "skipped",
-  "msi_bytes": 61446009,
+  "msi_bytes": 61433721,
   "upgrade_probe_msi_version": "2.3.2",
   "artifact_bundle": {
     "name": "Simplicitor-windows",
-    "id": 11923490782,
-    "bytes": 136952382,
-    "api_reported_sha256": "5a8857effce1e24f504ecde0af0ca1768f7c811ff1655f807e35b41b500dfe52"
+    "id": 11926662291,
+    "bytes": 136945022,
+    "api_reported_sha256": "c3d5ba50b9e6bb707a765d4d18130b8ea28f5956595a30d9f7b01195a29758ce"
   },
   "artifacts": [
     {
       "name": "SHA256SUMS.json",
       "bytes": 66326,
-      "sha256": "d2a6b8dea872fafab688b6c9cb5937476ee73ecf3f673f5eb93801dcaff29585"
+      "sha256": "7868a3863783f19345a1ebc5527d5087e2c59add7e2c5f234246a64f94f4b6fb"
     },
     {
       "name": "Simplicitor-2.3.1.msi",
-      "bytes": 61446009,
-      "sha256": "c500d9b0dfd952f0bfc425c4945551f1b54ec024f4ece20520b444abd4a37515"
+      "bytes": 61433721,
+      "sha256": "2d1c17ac200c55120860f9bced056b320aec7f7f81462fe6041c821170274349"
     },
     {
       "name": "Simplicitor-portable.zip",
-      "bytes": 75921107,
-      "sha256": "64f4a51b56ce497aea0d8853662bd7db78b65baedabdb476753150f552ffb821"
+      "bytes": 75925881,
+      "sha256": "52f635f8fe9d0d0e10d686348bb517e83e6058e6b21b7dd91056de7cf2ff7aff"
     },
     {
       "name": "installer-qualification.json",
       "bytes": 3157,
-      "sha256": "b0f643092d3761e357004436204b5ff01807a3674bf67f353c12f743795fce10"
+      "sha256": "e8a467f2d906ac07a1313f48282b8d14e836233102767ae5a441bfd1ef63fd53"
     }
   ],
   "qualification": {
     "status": "passed",
-    "source_commit": "ce3b2d790b321521a416aa507135c053f68c8270",
-    "run_id": "38618729388",
-    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38618729388",
+    "source_commit": "83a5f9647ae57d9275373359dd54bd372de338b1",
+    "run_id": "38627957477",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38627957477",
     "runner_os": "10.0.26100.0",
     "runner_image": "20260925.250.1",
     "msi_version": "2.3.1",
@@ -106,8 +106,8 @@
       "Settings survive uninstall"
     ],
     "artifacts": {
-      "Simplicitor-2.3.1.msi": "c500d9b0dfd952f0bfc425c4945551f1b54ec024f4ece20520b444abd4a37515",
-      "Simplicitor-portable.zip": "64f4a51b56ce497aea0d8853662bd7db78b65baedabdb476753150f552ffb821"
+      "Simplicitor-2.3.1.msi": "2d1c17ac200c55120860f9bced056b320aec7f7f81462fe6041c821170274349",
+      "Simplicitor-portable.zip": "52f635f8fe9d0d0e10d686348bb517e83e6058e6b21b7dd91056de7cf2ff7aff"
     },
     "limitations": [
       "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
@@ -120,25 +120,25 @@
       "build": "success"
     },
     "local_suite": {
-      "passed": 1294,
-      "seconds": 90.72,
+      "passed": 1297,
+      "seconds": 99.88,
       "warnings": [
         "Existing pytest cache-permission warning."
       ]
     },
     "hosted_source_suite": {
-      "passed": 1294,
-      "seconds": 148.58
+      "passed": 1297,
+      "seconds": 184.68
     },
     "source_push_tests": {
-      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38618014954",
-      "source_commit": "ce3b2d790b321521a416aa507135c053f68c8270",
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38627261670",
+      "source_commit": "83a5f9647ae57d9275373359dd54bd372de338b1",
       "conclusion": "success",
-      "passed": 1294,
-      "seconds": 150.08
+      "passed": 1297,
+      "seconds": 177.59
     },
-    "release_candidate": "The source_commit was built by this milestone; the later evidence-record commit is not the tag candidate unless Alex separately approves it after its source tests pass."
+    "release_candidate": "This milestone supersedes the ce3b2d7 build recorded at 0acdb9a. The source_commit includes Tasks 6-8 and was built by this milestone; the later evidence-record commit is not the tag candidate unless Alex separately approves it after its source tests pass."
   },
   "local_execution": "Isolated source tests, source screenshots and read-only artifact hashing only. The outer GitHub artifact bundle was downloaded; MSI and portable ZIP members were hashed as byte streams without writing, extracting or executing them. Only JSON metadata was read from the wrapper. No local build, installer, uninstaller, msiexec, Windows Sandbox, WiX or qualification script.",
-  "release_boundary": "Task 4 complete; 2.3.1 remains unreleased. Task 5 tagging and publication require Alex's separate go."
+  "release_boundary": "Tasks 6-8 and the replacement milestone are complete; 2.3.1 remains unreleased. Task 5 tagging and publication require Alex's separate go."
 }
