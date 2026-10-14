@@ -1,0 +1,144 @@
+{
+  "verified_at": "2026-10-14T19:33:14.054374+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38618729388",
+  "source_commit": "ce3b2d790b321521a416aa507135c053f68c8270",
+  "conclusion": "success",
+  "workflow_event": "workflow_dispatch",
+  "publication": "skipped",
+  "msi_bytes": 61446009,
+  "upgrade_probe_msi_version": "2.3.2",
+  "artifact_bundle": {
+    "name": "Simplicitor-windows",
+    "id": 11923490782,
+    "bytes": 136952382,
+    "api_reported_sha256": "5a8857effce1e24f504ecde0af0ca1768f7c811ff1655f807e35b41b500dfe52"
+  },
+  "artifacts": [
+    {
+      "name": "SHA256SUMS.json",
+      "bytes": 66326,
+      "sha256": "d2a6b8dea872fafab688b6c9cb5937476ee73ecf3f673f5eb93801dcaff29585"
+    },
+    {
+      "name": "Simplicitor-2.3.1.msi",
+      "bytes": 61446009,
+      "sha256": "c500d9b0dfd952f0bfc425c4945551f1b54ec024f4ece20520b444abd4a37515"
+    },
+    {
+      "name": "Simplicitor-portable.zip",
+      "bytes": 75921107,
+      "sha256": "64f4a51b56ce497aea0d8853662bd7db78b65baedabdb476753150f552ffb821"
+    },
+    {
+      "name": "installer-qualification.json",
+      "bytes": 3157,
+      "sha256": "b0f643092d3761e357004436204b5ff01807a3674bf67f353c12f743795fce10"
+    }
+  ],
+  "qualification": {
+    "status": "passed",
+    "source_commit": "ce3b2d790b321521a416aa507135c053f68c8270",
+    "run_id": "38618729388",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38618729388",
+    "runner_os": "10.0.26100.0",
+    "runner_image": "20260925.250.1",
+    "msi_version": "2.3.1",
+    "executable_version": "2.3.1.0",
+    "upgrade_probe_msi_version": "2.3.2",
+    "checks": [
+      "No Simplicitor product before qualification",
+      "Intended MSI exists: Simplicitor-2.3.1.msi",
+      "Artifact hash matches: Simplicitor-2.3.1.msi",
+      "Artifact hash matches: Simplicitor-portable.zip",
+      "Ollama endpoint is unavailable",
+      "MSI refuses to install over Simplicitor 2.0.0",
+      "Refused install left no files",
+      "Refused install registered nothing",
+      "Silent MSI install succeeded",
+      "Install: exactly one Simplicitor product",
+      "Install: product version 2.3.1",
+      "Install: install location",
+      "Install: executable present",
+      "Install: executable version 2.3.1.0",
+      "Install: executable matches built payload",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: app stays running for 20 seconds without Ollama",
+      "Repair target is inside the verified test installation",
+      "Same-version repair succeeded",
+      "Repair restored the removed file",
+      "Repair: exactly one Simplicitor product",
+      "Repair: product version 2.3.1",
+      "Repair: install location",
+      "Repair: executable present",
+      "Repair: executable version 2.3.1.0",
+      "Repair: executable matches built payload",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Settings survive repair",
+      "Upgrade probe 2.3.2 is newer than 2.3.1",
+      "Upgrade probe package built",
+      "Upgrade probe package validated",
+      "Major upgrade to 2.3.2 succeeded",
+      "Upgrade: exactly one Simplicitor product",
+      "Upgrade: product version 2.3.2",
+      "Upgrade: install location",
+      "Upgrade: executable present",
+      "Upgrade: executable version 2.3.1.0",
+      "Upgrade: executable matches built payload",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade replaced the previous ProductCode",
+      "Previous product no longer registered",
+      "Upgrade: app stays running for 20 seconds without Ollama",
+      "Settings survive upgrade",
+      "Silent uninstall succeeded",
+      "No Simplicitor product after uninstall",
+      "Install folder removed, including subfolders",
+      "Desktop shortcut removed",
+      "Start Menu shortcut removed",
+      "Settings survive uninstall"
+    ],
+    "artifacts": {
+      "Simplicitor-2.3.1.msi": "c500d9b0dfd952f0bfc425c4945551f1b54ec024f4ece20520b444abd4a37515",
+      "Simplicitor-portable.zip": "64f4a51b56ce497aea0d8853662bd7db78b65baedabdb476753150f552ffb821"
+    },
+    "limitations": [
+      "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
+    ]
+  },
+  "verification": {
+    "downloaded_artifact_hashes": "MSI and portable ZIP byte streams in the downloaded outer GitHub artifact bundle match SHA256SUMS.json and the hosted qualification report. The outer bundle also matches GitHub's API-reported SHA-256.",
+    "workflow_jobs": {
+      "tests": "success",
+      "build": "success"
+    },
+    "local_suite": {
+      "passed": 1294,
+      "seconds": 90.72,
+      "warnings": [
+        "Existing pytest cache-permission warning."
+      ]
+    },
+    "hosted_source_suite": {
+      "passed": 1294,
+      "seconds": 148.58
+    },
+    "source_push_tests": {
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38618014954",
+      "source_commit": "ce3b2d790b321521a416aa507135c053f68c8270",
+      "conclusion": "success",
+      "passed": 1294,
+      "seconds": 150.08
+    },
+    "release_candidate": "The source_commit was built by this milestone; the later evidence-record commit is not the tag candidate unless Alex separately approves it after its source tests pass."
+  },
+  "local_execution": "Isolated source tests, source screenshots and read-only artifact hashing only. The outer GitHub artifact bundle was downloaded; MSI and portable ZIP members were hashed as byte streams without writing, extracting or executing them. Only JSON metadata was read from the wrapper. No local build, installer, uninstaller, msiexec, Windows Sandbox, WiX or qualification script.",
+  "release_boundary": "Task 4 complete; 2.3.1 remains unreleased. Task 5 tagging and publication require Alex's separate go."
+}
