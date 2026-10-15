@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from threading import Event
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QCoreApplication, QObject, QThread, Signal, Slot
 
 from app.config.defaults import EDIT_MAX_INSTRUCTION_CHARS, EDIT_MAX_SELECTION_CHARS
 from app.services.ollama_client import OllamaClient
@@ -92,6 +92,11 @@ class EditWorker(QObject):
             else:
                 self.failed.emit(FAILED, "failed")
         finally:
+            # Avoid concurrent worker destruction and GUI-side Qt/GIL locking.
+            current_thread = QThread.currentThread()
+            gui_thread = QCoreApplication.instance().thread()
+            if self.thread() == current_thread and current_thread != gui_thread:
+                self.moveToThread(gui_thread)
             self.finished.emit()
 
     def _propose(self) -> None:

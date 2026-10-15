@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from threading import Event
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QCoreApplication, QObject, QThread, Signal, Slot
 
 from app.services.ollama_client import OllamaClient
 from extraction.jobs import discard_job, save_candidate
@@ -119,6 +119,11 @@ class ExtractionWorker(QObject):
                            "and Excel text limits, then retry. Your setup is retained.")
                 self.failed.emit(message, ())
         finally:
+            # Avoid concurrent worker destruction and GUI-side Qt/GIL locking.
+            current_thread = QThread.currentThread()
+            gui_thread = QCoreApplication.instance().thread()
+            if self.thread() == current_thread and current_thread != gui_thread:
+                self.moveToThread(gui_thread)
             self.finished.emit()
 
     def _discard_failed_job(self) -> None:

@@ -3,7 +3,7 @@ import logging
 import re
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QCoreApplication, QObject, QThread, Signal
 
 from app.config.defaults import (
     MAX_MANIPULATION_CHARS,
@@ -75,8 +75,15 @@ class ManipulateWorker(QObject):
 
     def run(self) -> None:
         """Reject retired editing before any file, backup, or model operation."""
-        self.failed.emit(LEGACY_EDIT_DISABLED_MESSAGE)
-        return
+        try:
+            return
+        finally:
+            # Avoid concurrent worker destruction and GUI-side Qt/GIL locking.
+            current_thread = QThread.currentThread()
+            gui_thread = QCoreApplication.instance().thread()
+            if self.thread() == current_thread and current_thread != gui_thread:
+                self.moveToThread(gui_thread)
+            self.failed.emit(LEGACY_EDIT_DISABLED_MESSAGE)
 
         # ── Scope check ───────────────────────────────────────────────────────
         # Detect visual/styling requests that the v1 pipeline cannot fulfill.

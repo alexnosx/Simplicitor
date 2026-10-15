@@ -4,7 +4,7 @@ import logging
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QCoreApplication, QObject, QThread, Signal
 
 from app.services.file_generator import FileGenerator, FileGenerationError
 from app.services.ollama_client import OllamaClient, OllamaConnectionError, OllamaGenerationError
@@ -67,104 +67,155 @@ class GenerateWorker(QObject):
         Emits started(), then progress() messages throughout, and finally either
         completed(path) or failed(message).
         """
-        self.started.emit()
-        self.progress.emit("Sending prompt to AI\u2026")
-
-        # Load system prompt
-        prompt_filename = _PROMPT_FILES.get(self.file_type)
-        if prompt_filename is None:
-            logger.error("No system prompt mapping for file type %r", self.file_type)
-            self.failed.emit(f"System configuration error: unknown file type {self.file_type!r}")
-            return
-
-        prompt_path = PROMPTS_DIR / prompt_filename
+        terminal = None
         try:
-            system_prompt = prompt_path.read_text(encoding="utf-8")
-        except OSError as exc:
-            logger.error("Could not read system prompt file: %s", type(exc).__name__)
-            self.failed.emit(
-                f"System configuration error: missing prompt file {prompt_filename}"
-            )
-            return
+            self.started.emit()
+            self.progress.emit("Sending prompt to AI\u2026")
 
-        # Call Ollama without a format constraint: Qwen3 and other thinking models return empty
-        # responses when Ollama's json mode is active (the two features conflict). Instead we
-        # rely on the system prompt's JSON-only instruction and .clean()'s extraction logic.
-        start = time.monotonic()
-        try:
-            llm_response = self._client.generate(self.model, self.prompt, system_prompt)
-        except OllamaConnectionError as exc:
-            logger.error("Ollama connection lost during generation: %s", type(exc).__name__)
-            self.failed.emit(
-                "The AI engine stopped responding. Please check Ollama is running."
-            )
-            return
-        except OllamaGenerationError as exc:
-            logger.error("Ollama generation error: %s", type(exc).__name__)
-            self.failed.emit("The AI returned an unexpected response. Please try again.")
-            return
+            # Load system prompt
+            prompt_filename = _PROMPT_FILES.get(self.file_type)
+            if prompt_filename is None:
+                logger.error("No system prompt mapping for file type %r", self.file_type)
+                terminal = (
+                    self.failed,
+                    (
+                        f"System configuration error: unknown file type {self.file_type!r}",
+                    ),
+                )
+                return
 
-        # Metadata only: model, duration, and length. Never the response text.
-        logger.info(
-            "LLM generation complete: model=%s duration=%.1fs response_chars=%d",
-            self.model, time.monotonic() - start, len(llm_response),
-        )
-
-        self.progress.emit("Generating file\u2026")
-
-        output_path = Path(self.save_path)
-
-        try:
-            result_path = FileGenerator().generate(self.file_type, llm_response, output_path)
-        except FileGenerationError as exc:
-            # Retry once with a simplified prompt
-            logger.warning(
-                "First generation attempt failed (%s), retrying with simplified prompt",
-                type(exc).__name__
-            )
-            self.progress.emit("Retrying with simplified prompt\u2026")
-            simplified = f"Generate a simple {self.file_type} document about: {self.prompt[:200]}"
-            retry_start = time.monotonic()
+            prompt_path = PROMPTS_DIR / prompt_filename
             try:
-                llm_response2 = self._client.generate(self.model, simplified, system_prompt)
-                logger.info(
-                    "LLM retry generation complete: model=%s duration=%.1fs response_chars=%d",
-                    self.model, time.monotonic() - retry_start, len(llm_response2),
-                )
-                result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
-            except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
-                logger.error("Retry Ollama call failed: %s", type(retry_exc).__name__)
-                self.failed.emit(
-                    "The AI engine stopped responding. Please check Ollama is running."
+                system_prompt = prompt_path.read_text(encoding="utf-8")
+            except OSError as exc:
+                logger.error("Could not read system prompt file: %s", type(exc).__name__)
+                terminal = (
+                    self.failed,
+                    (
+                        f"System configuration error: missing prompt file {prompt_filename}",
+                    ),
                 )
                 return
-            except FileGenerationError as retry_exc:
-                logger.error("Retry also produced unparseable response: %s", type(retry_exc).__name__)
-                self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
-                return
-            except OSError as retry_exc:
-                logger.error("Retry file write failed: %s", type(retry_exc).__name__)
-                self.failed.emit(
-                    f"Could not save file to {self.save_path}. "
-                    "Check the folder exists and you have write permission."
-                )
-                return
-            except Exception as retry_exc:
-                logger.error("Retry unexpected error: %s", type(retry_exc).__name__)
-                self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
-                return
-            self.completed.emit(str(result_path))
-            return
-        except OSError as exc:
-            logger.error("File write failed: %s", type(exc).__name__)
-            self.failed.emit(
-                f"Could not save file to {self.save_path}. "
-                "Check the folder exists and you have write permission."
-            )
-            return
-        except Exception as exc:
-            logger.error("Unexpected error during file generation: %s", type(exc).__name__)
-            self.failed.emit("Could not generate file. Please try a simpler or shorter prompt.")
-            return
 
-        self.completed.emit(str(result_path))
+            # Call Ollama without a format constraint: Qwen3 and other thinking models return empty
+            # responses when Ollama's json mode is active (the two features conflict). Instead we
+            # rely on the system prompt's JSON-only instruction and .clean()'s extraction logic.
+            start = time.monotonic()
+            try:
+                llm_response = self._client.generate(self.model, self.prompt, system_prompt)
+            except OllamaConnectionError as exc:
+                logger.error("Ollama connection lost during generation: %s", type(exc).__name__)
+                terminal = (
+                    self.failed,
+                    (
+                        "The AI engine stopped responding. Please check Ollama is running.",
+                    ),
+                )
+                return
+            except OllamaGenerationError as exc:
+                logger.error("Ollama generation error: %s", type(exc).__name__)
+                terminal = (
+                    self.failed,
+                    (
+                        "The AI returned an unexpected response. Please try again.",
+                    ),
+                )
+                return
+
+            # Metadata only: model, duration, and length. Never the response text.
+            logger.info(
+                "LLM generation complete: model=%s duration=%.1fs response_chars=%d",
+                self.model, time.monotonic() - start, len(llm_response),
+            )
+
+            self.progress.emit("Generating file\u2026")
+
+            output_path = Path(self.save_path)
+
+            try:
+                result_path = FileGenerator().generate(self.file_type, llm_response, output_path)
+            except FileGenerationError as exc:
+                # Retry once with a simplified prompt
+                logger.warning(
+                    "First generation attempt failed (%s), retrying with simplified prompt",
+                    type(exc).__name__
+                )
+                self.progress.emit("Retrying with simplified prompt\u2026")
+                simplified = f"Generate a simple {self.file_type} document about: {self.prompt[:200]}"
+                retry_start = time.monotonic()
+                try:
+                    llm_response2 = self._client.generate(self.model, simplified, system_prompt)
+                    logger.info(
+                        "LLM retry generation complete: model=%s duration=%.1fs response_chars=%d",
+                        self.model, time.monotonic() - retry_start, len(llm_response2),
+                    )
+                    result_path = FileGenerator().generate(self.file_type, llm_response2, output_path)
+                except (OllamaConnectionError, OllamaGenerationError) as retry_exc:
+                    logger.error("Retry Ollama call failed: %s", type(retry_exc).__name__)
+                    terminal = (
+                        self.failed,
+                        (
+                            "The AI engine stopped responding. Please check Ollama is running.",
+                        ),
+                    )
+                    return
+                except FileGenerationError as retry_exc:
+                    logger.error("Retry also produced unparseable response: %s", type(retry_exc).__name__)
+                    terminal = (
+                        self.failed,
+                        (
+                            "Could not generate file. Please try a simpler or shorter prompt.",
+                        ),
+                    )
+                    return
+                except OSError as retry_exc:
+                    logger.error("Retry file write failed: %s", type(retry_exc).__name__)
+                    terminal = (
+                        self.failed,
+                        (
+                            f"Could not save file to {self.save_path}. "
+                            "Check the folder exists and you have write permission.",
+                        ),
+                    )
+                    return
+                except Exception as retry_exc:
+                    logger.error("Retry unexpected error: %s", type(retry_exc).__name__)
+                    terminal = (
+                        self.failed,
+                        (
+                            "Could not generate file. Please try a simpler or shorter prompt.",
+                        ),
+                    )
+                    return
+                terminal = (self.completed, (str(result_path),))
+                return
+            except OSError as exc:
+                logger.error("File write failed: %s", type(exc).__name__)
+                terminal = (
+                    self.failed,
+                    (
+                        f"Could not save file to {self.save_path}. "
+                        "Check the folder exists and you have write permission.",
+                    ),
+                )
+                return
+            except Exception as exc:
+                logger.error("Unexpected error during file generation: %s", type(exc).__name__)
+                terminal = (
+                    self.failed,
+                    (
+                        "Could not generate file. Please try a simpler or shorter prompt.",
+                    ),
+                )
+                return
+
+            terminal = (self.completed, (str(result_path),))
+        finally:
+            # Avoid concurrent worker destruction and GUI-side Qt/GIL locking.
+            current_thread = QThread.currentThread()
+            gui_thread = QCoreApplication.instance().thread()
+            if self.thread() == current_thread and current_thread != gui_thread:
+                self.moveToThread(gui_thread)
+            if terminal is not None:
+                signal, args = terminal
+                signal.emit(*args)

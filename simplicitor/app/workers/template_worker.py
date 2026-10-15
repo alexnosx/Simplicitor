@@ -3,7 +3,7 @@
 # on a background QThread.
 import logging
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QCoreApplication, QObject, QThread, Signal
 
 from app.parsers.llm_response_parser import ParseError
 from app.services.file_manipulator import ManipulationError
@@ -63,58 +63,96 @@ class TemplateGenerateWorker(QObject):
 
         Emits started(), then either completed(out_path, issues) or failed(message).
         """
-        self.started.emit()
-        messages = build_prompt(self._manifest, self._user_request)
+        terminal = None
         try:
-            result = pipeline.run(
-                self._manifest,
-                self._template_dir,
-                messages,
-                self._model,
-                self._out_path,
-                client=self._client,
-            )
-        except OllamaTimeoutError as exc:  # subclass of OllamaConnectionError: catch FIRST
-            logger.error("Ollama timed out during template generation: %s", exc)
-            self.failed.emit("The AI engine timed out. It may be busy; please try again.")
-            return
-        except OllamaConnectionError as exc:
-            logger.error("Ollama connection lost during template generation: %s", exc)
-            self.failed.emit(
-                "The AI engine stopped responding. Please check Ollama is running."
-            )
-            return
-        except OllamaGenerationError as exc:
-            logger.error("Ollama generation error during template generation: %s", exc)
-            self.failed.emit("The AI returned an unexpected response. Please try again.")
-            return
-        except ParseError as exc:
-            # Per NOTES.md follow-up #4, schema-invalid-after-repair also arrives here as
-            # ParseError. Surface a generation failure, never a "parse error", to the user.
-            logger.error("Template content invalid after repair: %s", exc)
-            self.failed.emit(
-                "The AI could not produce a valid slide structure after retrying. "
-                "Try a simpler request or a different model."
-            )
-            return
-        except ManipulationError as exc:
-            # Render I/O failure or manifest/template index mismatch.
-            logger.error("Template render failed (manipulation): %s", exc)
-            self.failed.emit(
-                "Could not save the presentation, or the template and its manifest "
-                "are out of sync."
-            )
-            return
-        except ValueError as exc:
-            # Template file could not be opened as a PowerPoint file (corrupt/invalid).
-            logger.error("Template render failed (template open): %s", exc)
-            self.failed.emit("The template file could not be opened as a PowerPoint file.")
-            return
-        except Exception as exc:  # defensive net; matches OllamaWorker/GenerateWorker
-            logger.error("Unexpected error during template generation: %s", exc)
-            self.failed.emit(
-                "Something went wrong while generating the slides. Please try again."
-            )
-            return
+            self.started.emit()
+            messages = build_prompt(self._manifest, self._user_request)
+            try:
+                result = pipeline.run(
+                    self._manifest,
+                    self._template_dir,
+                    messages,
+                    self._model,
+                    self._out_path,
+                    client=self._client,
+                )
+            except OllamaTimeoutError as exc:  # subclass of OllamaConnectionError: catch FIRST
+                logger.error("Ollama timed out during template generation: %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "The AI engine timed out. It may be busy; please try again.",
+                    ),
+                )
+                return
+            except OllamaConnectionError as exc:
+                logger.error("Ollama connection lost during template generation: %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "The AI engine stopped responding. Please check Ollama is running.",
+                    ),
+                )
+                return
+            except OllamaGenerationError as exc:
+                logger.error("Ollama generation error during template generation: %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "The AI returned an unexpected response. Please try again.",
+                    ),
+                )
+                return
+            except ParseError as exc:
+                # Per NOTES.md follow-up #4, schema-invalid-after-repair also arrives here as
+                # ParseError. Surface a generation failure, never a "parse error", to the user.
+                logger.error("Template content invalid after repair: %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "The AI could not produce a valid slide structure after retrying. "
+                        "Try a simpler request or a different model.",
+                    ),
+                )
+                return
+            except ManipulationError as exc:
+                # Render I/O failure or manifest/template index mismatch.
+                logger.error("Template render failed (manipulation): %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "Could not save the presentation, or the template and its manifest "
+                        "are out of sync.",
+                    ),
+                )
+                return
+            except ValueError as exc:
+                # Template file could not be opened as a PowerPoint file (corrupt/invalid).
+                logger.error("Template render failed (template open): %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "The template file could not be opened as a PowerPoint file.",
+                    ),
+                )
+                return
+            except Exception as exc:  # defensive net; matches OllamaWorker/GenerateWorker
+                logger.error("Unexpected error during template generation: %s", exc)
+                terminal = (
+                    self.failed,
+                    (
+                        "Something went wrong while generating the slides. Please try again.",
+                    ),
+                )
+                return
 
-        self.completed.emit(str(result["path"]), result["issues"])
+            terminal = (self.completed, (str(result["path"]), result["issues"]))
+        finally:
+            # Avoid concurrent worker destruction and GUI-side Qt/GIL locking.
+            current_thread = QThread.currentThread()
+            gui_thread = QCoreApplication.instance().thread()
+            if self.thread() == current_thread and current_thread != gui_thread:
+                self.moveToThread(gui_thread)
+            if terminal is not None:
+                signal, args = terminal
+                signal.emit(*args)

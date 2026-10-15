@@ -720,6 +720,7 @@ tests/
     test_template_worker.py
     test_third_party_notices.py
     test_widgets.py
+    test_worker_lifetime.py
 .gitattributes
 .gitignore
 AGENTS.md
@@ -2461,6 +2462,11 @@ requirements.txt
 - def test_create_screen_set_template_loaded_toggles_label(qtbot, tmp_path) -> None
 - def test_create_screen_emits_file_type_changed(qtbot, tmp_path) -> None
 - def test_top_bar_switches_between_two_modes(qtbot, isolated_profile)
+
+### tests/test_worker_lifetime.py
+
+- def _worker(kind, outcome, tmp_path, monkeypatch): Use real worker processing, replacing only the model or template-engine boundary.
+- def test_one_shot_worker_is_childless_when_returned_and_deleted_on_gui_thread(kind, outcome, qapp, qtbot, tmp_path, monkeypatch): Catch native deletion, premature terminal emission and child ownership regressions.
 
 ## Other files
 
