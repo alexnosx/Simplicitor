@@ -1,0 +1,144 @@
+{
+  "verified_at": "2026-10-15T17:54:22.773625+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38775814242",
+  "source_commit": "831914b8459fc504bf67c373c3b1cddedcc912b4",
+  "conclusion": "success",
+  "workflow_event": "workflow_dispatch",
+  "publication": "skipped",
+  "msi_bytes": 61437817,
+  "upgrade_probe_msi_version": "2.3.3",
+  "artifact_bundle": {
+    "name": "Simplicitor-windows",
+    "id": 11995133715,
+    "bytes": 136954271,
+    "api_reported_sha256": "5c152877b88f69359a3d24f21288352d6d419d80a0442fc56475fc9465851dc5"
+  },
+  "artifacts": [
+    {
+      "name": "SHA256SUMS.json",
+      "bytes": 66326,
+      "sha256": "04dc8e33bd2e9d89a375cedc7031be2ec3d07d8f6da83cd234c5057a4edb99f3"
+    },
+    {
+      "name": "Simplicitor-2.3.2.msi",
+      "bytes": 61437817,
+      "sha256": "088390301398d30c35fccd2ad2d75bf8a1d31022ebbb419ba451ae91bb1a2fd1"
+    },
+    {
+      "name": "Simplicitor-portable.zip",
+      "bytes": 75930145,
+      "sha256": "8529456bcc7001c8469bed772c80c3bd783e711a09990d9ad63b7614d60a63dc"
+    },
+    {
+      "name": "installer-qualification.json",
+      "bytes": 3157,
+      "sha256": "589f915a1d51a7d8739a0b093aea852ca41cb79b622ef3239e939ce262a70dda"
+    }
+  ],
+  "qualification": {
+    "status": "passed",
+    "source_commit": "831914b8459fc504bf67c373c3b1cddedcc912b4",
+    "run_id": "38775814242",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38775814242",
+    "runner_os": "10.0.26100.0",
+    "runner_image": "20261007.264.1",
+    "msi_version": "2.3.2",
+    "executable_version": "2.3.2.0",
+    "upgrade_probe_msi_version": "2.3.3",
+    "checks": [
+      "No Simplicitor product before qualification",
+      "Intended MSI exists: Simplicitor-2.3.2.msi",
+      "Artifact hash matches: Simplicitor-2.3.2.msi",
+      "Artifact hash matches: Simplicitor-portable.zip",
+      "Ollama endpoint is unavailable",
+      "MSI refuses to install over Simplicitor 2.0.0",
+      "Refused install left no files",
+      "Refused install registered nothing",
+      "Silent MSI install succeeded",
+      "Install: exactly one Simplicitor product",
+      "Install: product version 2.3.2",
+      "Install: install location",
+      "Install: executable present",
+      "Install: executable version 2.3.2.0",
+      "Install: executable matches built payload",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: app stays running for 20 seconds without Ollama",
+      "Repair target is inside the verified test installation",
+      "Same-version repair succeeded",
+      "Repair restored the removed file",
+      "Repair: exactly one Simplicitor product",
+      "Repair: product version 2.3.2",
+      "Repair: install location",
+      "Repair: executable present",
+      "Repair: executable version 2.3.2.0",
+      "Repair: executable matches built payload",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Settings survive repair",
+      "Upgrade probe 2.3.3 is newer than 2.3.2",
+      "Upgrade probe package built",
+      "Upgrade probe package validated",
+      "Major upgrade to 2.3.3 succeeded",
+      "Upgrade: exactly one Simplicitor product",
+      "Upgrade: product version 2.3.3",
+      "Upgrade: install location",
+      "Upgrade: executable present",
+      "Upgrade: executable version 2.3.2.0",
+      "Upgrade: executable matches built payload",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade replaced the previous ProductCode",
+      "Previous product no longer registered",
+      "Upgrade: app stays running for 20 seconds without Ollama",
+      "Settings survive upgrade",
+      "Silent uninstall succeeded",
+      "No Simplicitor product after uninstall",
+      "Install folder removed, including subfolders",
+      "Desktop shortcut removed",
+      "Start Menu shortcut removed",
+      "Settings survive uninstall"
+    ],
+    "artifacts": {
+      "Simplicitor-2.3.2.msi": "088390301398d30c35fccd2ad2d75bf8a1d31022ebbb419ba451ae91bb1a2fd1",
+      "Simplicitor-portable.zip": "8529456bcc7001c8469bed772c80c3bd783e711a09990d9ad63b7614d60a63dc"
+    },
+    "limitations": [
+      "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
+    ]
+  },
+  "verification": {
+    "downloaded_artifact_hashes": "MSI and portable ZIP byte streams in the downloaded outer GitHub artifact bundle match SHA256SUMS.json and the hosted qualification report. The outer bundle also matches GitHub's API-reported SHA-256.",
+    "workflow_jobs": {
+      "tests": "success",
+      "build": "success"
+    },
+    "local_suite": {
+      "passed": 1312,
+      "seconds": 88.9,
+      "warnings": [
+        "Existing pytest cache-permission warning."
+      ]
+    },
+    "hosted_source_suite": {
+      "passed": 1312,
+      "seconds": 150.6
+    },
+    "source_push_tests": {
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38775073624",
+      "source_commit": "831914b8459fc504bf67c373c3b1cddedcc912b4",
+      "conclusion": "success",
+      "passed": 1312,
+      "seconds": 181.06
+    },
+    "release_candidate": "The milestone built the source_commit including the reviewed worker teardown fix and 2.3.2 preparation. The later evidence-record commit changes documentation only; tagging and publication require Alex's separate go."
+  },
+  "local_execution": "Isolated source tests and read-only artifact hashing only. The outer GitHub artifact bundle was downloaded; MSI and portable ZIP members were hashed as byte streams without writing, extracting or executing them. Only JSON metadata was read from the wrapper. No local build, installer, uninstaller, msiexec, Windows Sandbox, WiX or qualification script.",
+  "release_boundary": "2.3.2 preparation and the milestone are complete; 2.3.2 remains unreleased. Tagging and publication require Alex's separate go."
+}
