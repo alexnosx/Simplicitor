@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.3.2 (unreleased)
+
+- Prevent an intermittent freeze when a one-shot task finishes by returning all five task workers to the GUI thread before their deferred deletion. Keep discovery, result handling, cancellation, saving and document engines unchanged.
+- Add 15 worker-lifetime regression cases. The isolated suite passes 1,312 tests; the untraced acceptance loop completes 200 cycles / 800 cases without a freeze or dump. See the [investigation](https://github.com/alexnosx/Simplicitor/blob/d9bd573/docs/reviews/2026-10-15-test-freeze-investigation.md).
+- Prepare product/MSI version 2.3.2, executable 2.3.2.0 and hosted upgrade probe 2.3.3. Tagging and publication require Alex's separate go.
+
 ## v2.3.1, 2026-10-15
 
 Published as [v2.3.1](https://github.com/alexnosx/Simplicitor/releases/tag/v2.3.1) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.3.1.json](docs/releases/v2.3.1.json).

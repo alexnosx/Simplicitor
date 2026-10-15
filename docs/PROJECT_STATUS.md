@@ -1,12 +1,13 @@
 # Simplicitor project status
 
-Updated 2026-10-15 after v2.3.1 publication and verification as Latest. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md), [Edit for Word design](superpowers/specs/2026-10-13-edit-for-word-design.md) and the [2.3.0 plan](superpowers/plans/2026-10-13-release-2.3.0.md) are the current review set. The [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) retains the B3 drop, completed B5 and unexecuted B4; earlier plans retain their execution records.
+Updated 2026-10-15 for 2.3.2 preparation after the reviewed worker teardown fix was fast-forwarded into main. v2.3.1 remains Latest. [PRD.md](../PRD.md) owns requirements; [architecture](superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](superpowers/specs/2026-10-08-document-workspace-ui-design.md), [Edit for Word design](superpowers/specs/2026-10-13-edit-for-word-design.md) and the [2.3.0 plan](superpowers/plans/2026-10-13-release-2.3.0.md) are the current review set. The [2.2.0 plan](superpowers/plans/2026-10-12-release-2.2.0.md) retains the B3 drop, completed B5 and unexecuted B4; earlier plans retain their execution records.
 
 ## Current status
 
 | Area | Current state |
 |---|---|
 | Published releases | [v2.3.1](https://github.com/alexnosx/Simplicitor/releases/tag/v2.3.1) is published and verified as Latest with Simplicitor-2.3.1.msi, portable ZIP, checksums and the tagged notes as its body. The tag points to e16cdb7; [release evidence](releases/v2.3.1.json). Earlier [v2.3.0](releases/v2.3.0.json), [v2.2.0](releases/v2.2.0.json), [v2.1.0](releases/v2.1.0.json), [v2.0.0](releases/v2.0.0.json) and [v1.2.1](releases/v1.2.1.json) releases and licenses remain unchanged. |
+| 2.3.2 | Unreleased preparation: Alex approved merging the worker teardown fix at `cf9eec6` after Claude's review. All five one-shot workers return to the GUI thread before deferred deletion; the [investigation at d9bd573](https://github.com/alexnosx/Simplicitor/blob/d9bd573/docs/reviews/2026-10-15-test-freeze-investigation.md) remains unmerged. Product/MSI 2.3.2, executable 2.3.2.0, derived upgrade probe 2.3.3 and [release notes](releases/v2.3.2-notes.md) are prepared. The version-change isolated suite passed 1,312 tests in 88.90 seconds, with the existing cache-permission warning. Hosted source tests and the milestone build are pending. No tag or publication is authorized. |
 | 2.1.0 release | Task 0, Parts A/B/C1/C2, both C2 follow-ups, D1 and the final README corrections are accepted. Published from the tested README commit 2202cce; MSI version 2.1.0 and executable version 2.1.0.0. The [tag workflow](https://github.com/alexnosx/Simplicitor/actions/runs/38233039100) passed source tests, build, MSI qualification and publication. Downloaded hashes and the release body are verified in the release record. |
 | 2.2.0 Part A | A1-A4 complete in source: finished extraction progress clears while final messages stay; source-aware prompt hints and Settings guidance; one shared version for UI/build/upgrade qualification; named Word reading problems and a general review heading. Product version 2.2.0 is published after the E1 milestone and E2 tag workflow passed. |
 | 2.2.0 B3 gate and B5 | Gate B3 failed (3 of 8 decks acceptable, 1 of 4 real) and Alex chose to drop the upload without a fix round (2026-10-12). B5 removed the template upload, the rejection dialog and the B1-B3 capture code; the picker offers built-in templates only. B4 was not executed. |
@@ -133,7 +134,7 @@ Verification on 2026-10-15:
 - The focused worker suite passed 65 tests in 3.58 seconds. The full isolated suite passed **1,312 tests in 87.23 seconds**, the original 1,297 plus 15 new cases. The existing pytest cache-permission warning remains.
 - The unchanged investigation driver, used locally with tracing disabled and no prototype monkeypatch, completed **200 cycles / 800 cases in 189.47 seconds**, exit 0, with **no timeout or dump**, on implementation commit `3a4e843`. It repeated the two extraction cases, the complete extraction/save case and the real document-open/stale-result case.
 
-The local result and complete log remain in `.venv/worker-teardown-acceptance/targets-200/`. Investigation tooling is not part of the fix branch's commits. The branch awaits Claude's review and Alex's merge decision; this is local source verification, not installed-Windows or release qualification.
+The local result and complete log remain in `.venv/worker-teardown-acceptance/targets-200/`. Investigation tooling is not part of the fix branch's commits. Claude reviewed the fix and Alex approved its fast-forward into main at `cf9eec6`; this evidence remains local source verification, not installed-Windows or release qualification.
 
 ## Open decisions
 
@@ -141,6 +142,6 @@ The local result and complete log remain in `.venv/worker-teardown-acceptance/ta
 
 ## Next step
 
-v2.3.1 is published and verified. The worker teardown fix is verified on `fix/worker-teardown`; next is Claude's review and Alex's merge decision. It has not been merged.
+Complete 2.3.2 source verification and the hosted milestone build, then wait for Alex's separate tagging and publication go. v2.3.1 remains published; investigate/test-freeze remains unmerged.
 
 Input from Claude's review: in the app, ask to discard after the new file is picked, so cancelling the file picker keeps the current work.
