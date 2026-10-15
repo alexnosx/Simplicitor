@@ -120,6 +120,14 @@ docs/
         v2.3.1-notes.md
         v2.3.1.json
     reviews/
+        test-freeze-2026-10-15/
+            .gitattributes
+            hosted-38429126493-timeout.txt
+            hosted-38431107034-timeout.txt
+            measurements.json
+            native-targets--targets-200--dump-01.txt
+            native-targets--targets-200--native-stack.json
+            targets-200--dump-01.txt
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
         2026-10-12-release-2.2.0-codex-revision-2.md
@@ -129,6 +137,7 @@ docs/
         2026-10-13-edit-for-word-design-codex.md
         2026-10-13-release-2.3.0-plan-codex.md
         2026-10-14-release-2.3.1-plan-codex.md
+        2026-10-15-test-freeze-investigation.md
     superpowers/
         plans/
             2026-04-02-phase1-skeleton.md
@@ -684,6 +693,12 @@ tests/
         test_validation.py
     __init__.py
     conftest.py
+    freeze_native_stack.py
+    freeze_probe.py
+    freeze_probe_calibration.py
+    freeze_retire_probe.py
+    freeze_retirement_check.py
+    run_freeze_probe.py
     test_backup_service.py
     test_build_script.py
     test_cli.py
@@ -1596,6 +1611,49 @@ requirements.txt
 - def test_safe_numeric_extremes_round_trip(tmp_path, value)
 - def test_missing_field_fails_instead_of_dropping_it(tmp_path)
 - def test_failed_candidate_replace_leaves_no_previous_review(tmp_path, monkeypatch)
+
+### tests/freeze_native_stack.py
+
+- class Address(C.Structure)
+- class Frame(C.Structure)
+- class Symbol(C.Structure)
+- class ThreadEntry(C.Structure)
+- def capture(pid, output): Capture only the requested owned process, recording unavailable symbols honestly.
+
+### tests/freeze_probe.py
+
+- def write_json(path, value): Keep observer output independent of application filesystem failure injection.
+- class _ThreadEntry(ctypes.Structure)
+- def pytest_addoption(parser): Keep both repetition and observation opt-in, with no new dependency.
+- def _freeze_iteration(request)
+- def pytest_generate_tests(metafunc)
+- def pytest_collection_modifyitems(items)
+- def native_threads(): Read this process's Windows thread IDs without suspending or altering any thread.
+- class Probe: Observe thread affinity without replacing a result slot or connecting its signals.
+- def pytest_sessionstart(session)
+- def pytest_runtest_protocol(item)
+- def pytest_runtest_makereport(item, call)
+- def pytest_runtest_call(item)
+- def pytest_runtest_teardown(item)
+- def pytest_sessionfinish(session, exitstatus)
+
+### tests/freeze_probe_calibration.py
+
+- def test_monitor_observes_native_qthread_and_preserves_queued_gui_delivery(qapp, qtbot)
+
+### tests/freeze_retire_probe.py
+
+- def retire_finished_workers_in_gui(monkeypatch): Move only idle, childless extraction/edit workers, legally from their own thread.
+- def pytest_sessionfinish(session): Retain the exact number of real worker retirements exercised by this experiment.
+
+### tests/freeze_retirement_check.py
+
+- def test_worker_destruction_runs_on_gui_thread(kind, qapp, qtbot, tmp_path): Pin the lifetime change, rather than infer success solely from an intermittent loop.
+
+### tests/run_freeze_probe.py
+
+- def run_batch(name, selectors, repeat, trace, output, extra=()): Execute one new pytest process, retaining source output and a machine-readable result.
+- def main(): Stop on the first failure or timeout; never silently rerun or change a test.
 
 ### tests/templates_engine/__init__.py
 
@@ -2545,6 +2603,14 @@ requirements.txt
 - docs/reviews/2026-10-13-edit-for-word-design-codex.md: md, 241 lines
 - docs/reviews/2026-10-13-release-2.3.0-plan-codex.md: md, 265 lines
 - docs/reviews/2026-10-14-release-2.3.1-plan-codex.md: md, 87 lines
+- docs/reviews/2026-10-15-test-freeze-investigation.md: md, 260 lines
+- docs/reviews/test-freeze-2026-10-15/.gitattributes: text, 3 lines
+- docs/reviews/test-freeze-2026-10-15/hosted-38429126493-timeout.txt: txt, 62 lines
+- docs/reviews/test-freeze-2026-10-15/hosted-38431107034-timeout.txt: txt, 62 lines
+- docs/reviews/test-freeze-2026-10-15/measurements.json: json, 1566 lines
+- docs/reviews/test-freeze-2026-10-15/native-targets--targets-200--dump-01.txt: txt, 45 lines
+- docs/reviews/test-freeze-2026-10-15/native-targets--targets-200--native-stack.json: json, 1733 lines
+- docs/reviews/test-freeze-2026-10-15/targets-200--dump-01.txt: txt, 49 lines
 - docs/screenshot.png: png (binary)
 - docs/superpowers/plans/2026-04-02-phase1-skeleton.md: md, 2235 lines
 - docs/superpowers/plans/2026-04-05-phase-4-edit.md: md, 1875 lines

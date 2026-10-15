@@ -1,0 +1,3 @@
+# Keep captured evidence bytes unchanged so their SHA-256 hashes remain valid.
+*.txt -text -whitespace
+*.json -text whitespace=cr-at-eol

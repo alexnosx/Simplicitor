@@ -1,0 +1,1733 @@
+{
+  "pid": 23544,
+  "threads": [
+    {
+      "tid": 15840,
+      "hex_tid": "0x3de0",
+      "frames": [
+        {
+          "pc": "0x7fff471459c4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1659c4",
+          "nearest_symbol": "ZwWaitForAlertByThreadId",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471459c4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1659c4",
+          "nearest_symbol": "ZwWaitForAlertByThreadId",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff4704ca73",
+          "module": "ntdll.dll",
+          "module_offset": "0x6ca73",
+          "nearest_symbol": "RtlWaitOnAddress",
+          "symbol_offset": "0x213"
+        },
+        {
+          "pc": "0x7fff4483e158",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0xde158",
+          "nearest_symbol": "WaitOnAddress",
+          "symbol_offset": "0x38"
+        },
+        {
+          "pc": "0x7ffe32e408e2",
+          "module": "Qt6Core.dll",
+          "module_offset": "0x2608e2",
+          "nearest_symbol": "QBasicMutex::lockInternal",
+          "symbol_offset": "0x42"
+        },
+        {
+          "pc": "0x7ffe32cd0017",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xf0017",
+          "nearest_symbol": "QMetaObject::disconnect",
+          "symbol_offset": "0x1c7"
+        },
+        {
+          "pc": "0x7ffe32cd112d",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xf112d",
+          "nearest_symbol": "QObject::disconnect",
+          "symbol_offset": "0x6ad"
+        },
+        {
+          "pc": "0x7ffe31d6e64d",
+          "module": "Qt6Widgets.dll",
+          "module_offset": "0xfe64d",
+          "nearest_symbol": "QPlainTextEdit::tr",
+          "symbol_offset": "0x65d"
+        },
+        {
+          "pc": "0x7ffe395ec2f1",
+          "module": "QtWidgets.pyd",
+          "module_offset": "0x2ac2f1",
+          "nearest_symbol": "PyInit_QtWidgets",
+          "symbol_offset": "0x28bd79"
+        },
+        {
+          "pc": "0x7ffe35923a4d",
+          "module": "python312.dll",
+          "module_offset": "0x23a4d",
+          "nearest_symbol": "PyEval_EvalFrameDefault",
+          "symbol_offset": "0xc8d"
+        },
+        {
+          "pc": "0x7ffe3592167c",
+          "module": "python312.dll",
+          "module_offset": "0x2167c",
+          "nearest_symbol": "PyFunction_Vectorcall",
+          "symbol_offset": "0x17c"
+        },
+        {
+          "pc": "0x7ffe3591a3da",
+          "module": "python312.dll",
+          "module_offset": "0x1a3da",
+          "nearest_symbol": "PyArg_CheckPositional",
+          "symbol_offset": "0x3aa"
+        },
+        {
+          "pc": "0x7ffe359ba729",
+          "module": "python312.dll",
+          "module_offset": "0xba729",
+          "nearest_symbol": "PyObject_Call",
+          "symbol_offset": "0x125"
+        },
+        {
+          "pc": "0x7ffe359bbe33",
+          "module": "python312.dll",
+          "module_offset": "0xbbe33",
+          "nearest_symbol": "PyObject_Call",
+          "symbol_offset": "0x9b"
+        },
+        {
+          "pc": "0x7ffed6d40a44",
+          "module": "pyside6.abi3.dll",
+          "module_offset": "0x10a44",
+          "nearest_symbol": "PySide::SignalManager::callPythonMetaMethod",
+          "symbol_offset": "0x324"
+        },
+        {
+          "pc": "0x7ffed6d40777",
+          "module": "pyside6.abi3.dll",
+          "module_offset": "0x10777",
+          "nearest_symbol": "PySide::SignalManager::callPythonMetaMethod",
+          "symbol_offset": "0x57"
+        },
+        {
+          "pc": "0x7ffed6d487d0",
+          "module": "pyside6.abi3.dll",
+          "module_offset": "0x187d0",
+          "nearest_symbol": "PySidePropertyBase::pyTypeObject",
+          "symbol_offset": "0x600"
+        },
+        {
+          "pc": "0x7ffed6d48a74",
+          "module": "pyside6.abi3.dll",
+          "module_offset": "0x18a74",
+          "nearest_symbol": "PySide::SignalManager::qt_metacall",
+          "symbol_offset": "0xb4"
+        },
+        {
+          "pc": "0x7ffe394c6782",
+          "module": "QtWidgets.pyd",
+          "module_offset": "0x186782",
+          "nearest_symbol": "PyInit_QtWidgets",
+          "symbol_offset": "0x16620a"
+        },
+        {
+          "pc": "0x7ffe32c92d11",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xb2d11",
+          "nearest_symbol": "QMetaObject::metacall",
+          "symbol_offset": "0x41"
+        },
+        {
+          "pc": "0x7ffe32cd3499",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xf3499",
+          "nearest_symbol": "QObject::event",
+          "symbol_offset": "0x189"
+        },
+        {
+          "pc": "0x7ffe31cc8405",
+          "module": "Qt6Widgets.dll",
+          "module_offset": "0x58405",
+          "nearest_symbol": "QWidget::event",
+          "symbol_offset": "0xea5"
+        },
+        {
+          "pc": "0x7ffe394b40b7",
+          "module": "QtWidgets.pyd",
+          "module_offset": "0x1740b7",
+          "nearest_symbol": "PyInit_QtWidgets",
+          "symbol_offset": "0x153b3f"
+        },
+        {
+          "pc": "0x7ffe31c82ff6",
+          "module": "Qt6Widgets.dll",
+          "module_offset": "0x12ff6",
+          "nearest_symbol": "QApplicationPrivate::notify_helper",
+          "symbol_offset": "0x156"
+        },
+        {
+          "pc": "0x7ffe31c81fde",
+          "module": "Qt6Widgets.dll",
+          "module_offset": "0x11fde",
+          "nearest_symbol": "QApplication::notify",
+          "symbol_offset": "0x161e"
+        },
+        {
+          "pc": "0x7ffe3967a61f",
+          "module": "QtWidgets.pyd",
+          "module_offset": "0x33a61f",
+          "nearest_symbol": "PyInit_QtWidgets",
+          "symbol_offset": "0x31a0a7"
+        },
+        {
+          "pc": "0x7ffe32c86021",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xa6021",
+          "nearest_symbol": "QCoreApplication::notifyInternal2",
+          "symbol_offset": "0x101"
+        },
+        {
+          "pc": "0x7ffe32c888e9",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xa88e9",
+          "nearest_symbol": "QCoreApplicationPrivate::sendPostedEvents",
+          "symbol_offset": "0x249"
+        },
+        {
+          "pc": "0x7ffe32e2c0be",
+          "module": "Qt6Core.dll",
+          "module_offset": "0x24c0be",
+          "nearest_symbol": "QEventDispatcherWin32::processEvents",
+          "symbol_offset": "0x9e"
+        },
+        {
+          "pc": "0x7ffeed9f77e2",
+          "module": "qoffscreen.dll",
+          "module_offset": "0x77e2",
+          "nearest_symbol": "qt_plugin_query_metadata_v2",
+          "symbol_offset": "0x6512"
+        },
+        {
+          "pc": "0x7ffe32c8c764",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xac764",
+          "nearest_symbol": "QEventLoop::exec",
+          "symbol_offset": "0x1d4"
+        },
+        {
+          "pc": "0x7ffe3c84c876",
+          "module": "QtCore.pyd",
+          "module_offset": "0x17c876",
+          "nearest_symbol": "PyInit_QtCore",
+          "symbol_offset": "0x13be1e"
+        },
+        {
+          "pc": "0x7ffe35960950",
+          "module": "python312.dll",
+          "module_offset": "0x60950",
+          "nearest_symbol": "PyArg_ParseTupleAndKeywords",
+          "symbol_offset": "0x7a8"
+        },
+        {
+          "pc": "0x7ffe359ba6ba",
+          "module": "python312.dll",
+          "module_offset": "0xba6ba",
+          "nearest_symbol": "PyObject_Call",
+          "symbol_offset": "0xb6"
+        },
+        {
+          "pc": "0x7ffe3592721f",
+          "module": "python312.dll",
+          "module_offset": "0x2721f",
+          "nearest_symbol": "PyEval_EvalFrameDefault",
+          "symbol_offset": "0x445f"
+        },
+        {
+          "pc": "0x7ffe3592167c",
+          "module": "python312.dll",
+          "module_offset": "0x2167c",
+          "nearest_symbol": "PyFunction_Vectorcall",
+          "symbol_offset": "0x17c"
+        },
+        {
+          "pc": "0x7ffe35958f37",
+          "module": "python312.dll",
+          "module_offset": "0x58f37",
+          "nearest_symbol": "PyObject_FastCallDictTstate",
+          "symbol_offset": "0xeb"
+        },
+        {
+          "pc": "0x7ffe35a59fc3",
+          "module": "python312.dll",
+          "module_offset": "0x159fc3",
+          "nearest_symbol": "PyObject_Call_Prepend",
+          "symbol_offset": "0x7f"
+        },
+        {
+          "pc": "0x7ffe35a59eee",
+          "module": "python312.dll",
+          "module_offset": "0x159eee",
+          "nearest_symbol": "PyCell_Set",
+          "symbol_offset": "0x81e"
+        },
+        {
+          "pc": "0x7ffe359226fe",
+          "module": "python312.dll",
+          "module_offset": "0x226fe",
+          "nearest_symbol": "PyObject_Vectorcall",
+          "symbol_offset": "0x5de"
+        },
+        {
+          "pc": "0x7ffe35922159",
+          "module": "python312.dll",
+          "module_offset": "0x22159",
+          "nearest_symbol": "PyObject_Vectorcall",
+          "symbol_offset": "0x39"
+        },
+        {
+          "pc": "0x7ffe35923686",
+          "module": "python312.dll",
+          "module_offset": "0x23686",
+          "nearest_symbol": "PyEval_EvalFrameDefault",
+          "symbol_offset": "0x8c6"
+        },
+        {
+          "pc": "0x7ffe3592167c",
+          "module": "python312.dll",
+          "module_offset": "0x2167c",
+          "nearest_symbol": "PyFunction_Vectorcall",
+          "symbol_offset": "0x17c"
+        },
+        {
+          "pc": "0x7ffe35958f37",
+          "module": "python312.dll",
+          "module_offset": "0x58f37",
+          "nearest_symbol": "PyObject_FastCallDictTstate",
+          "symbol_offset": "0xeb"
+        },
+        {
+          "pc": "0x7ffe35a59fc3",
+          "module": "python312.dll",
+          "module_offset": "0x159fc3",
+          "nearest_symbol": "PyObject_Call_Prepend",
+          "symbol_offset": "0x7f"
+        },
+        {
+          "pc": "0x7ffe35a59eee",
+          "module": "python312.dll",
+          "module_offset": "0x159eee",
+          "nearest_symbol": "PyCell_Set",
+          "symbol_offset": "0x81e"
+        },
+        {
+          "pc": "0x7ffe359ba6ba",
+          "module": "python312.dll",
+          "module_offset": "0xba6ba",
+          "nearest_symbol": "PyObject_Call",
+          "symbol_offset": "0xb6"
+        },
+        {
+          "pc": "0x7ffe3592721f",
+          "module": "python312.dll",
+          "module_offset": "0x2721f",
+          "nearest_symbol": "PyEval_EvalFrameDefault",
+          "symbol_offset": "0x445f"
+        },
+        {
+          "pc": "0x7ffe3592167c",
+          "module": "python312.dll",
+          "module_offset": "0x2167c",
+          "nearest_symbol": "PyFunction_Vectorcall",
+          "symbol_offset": "0x17c"
+        },
+        {
+          "pc": "0x7ffe35958f37",
+          "module": "python312.dll",
+          "module_offset": "0x58f37",
+          "nearest_symbol": "PyObject_FastCallDictTstate",
+          "symbol_offset": "0xeb"
+        },
+        {
+          "pc": "0x7ffe35a59fc3",
+          "module": "python312.dll",
+          "module_offset": "0x159fc3",
+          "nearest_symbol": "PyObject_Call_Prepend",
+          "symbol_offset": "0x7f"
+        },
+        {
+          "pc": "0x7ffe35a59eee",
+          "module": "python312.dll",
+          "module_offset": "0x159eee",
+          "nearest_symbol": "PyCell_Set",
+          "symbol_offset": "0x81e"
+        },
+        {
+          "pc": "0x7ffe359226fe",
+          "module": "python312.dll",
+          "module_offset": "0x226fe",
+          "nearest_symbol": "PyObject_Vectorcall",
+          "symbol_offset": "0x5de"
+        },
+        {
+          "pc": "0x7ffe35922159",
+          "module": "python312.dll",
+          "module_offset": "0x22159",
+          "nearest_symbol": "PyObject_Vectorcall",
+          "symbol_offset": "0x39"
+        },
+        {
+          "pc": "0x7ffe35923686",
+          "module": "python312.dll",
+          "module_offset": "0x23686",
+          "nearest_symbol": "PyEval_EvalFrameDefault",
+          "symbol_offset": "0x8c6"
+        },
+        {
+          "pc": "0x7ffe3592167c",
+          "module": "python312.dll",
+          "module_offset": "0x2167c",
+          "nearest_symbol": "PyFunction_Vectorcall",
+          "symbol_offset": "0x17c"
+        },
+        {
+          "pc": "0x7ffe35958f37",
+          "module": "python312.dll",
+          "module_offset": "0x58f37",
+          "nearest_symbol": "PyObject_FastCallDictTstate",
+          "symbol_offset": "0xeb"
+        },
+        {
+          "pc": "0x7ffe35a59fc3",
+          "module": "python312.dll",
+          "module_offset": "0x159fc3",
+          "nearest_symbol": "PyObject_Call_Prepend",
+          "symbol_offset": "0x7f"
+        },
+        {
+          "pc": "0x7ffe35a59eee",
+          "module": "python312.dll",
+          "module_offset": "0x159eee",
+          "nearest_symbol": "PyCell_Set",
+          "symbol_offset": "0x81e"
+        },
+        {
+          "pc": "0x7ffe359226fe",
+          "module": "python312.dll",
+          "module_offset": "0x226fe",
+          "nearest_symbol": "PyObject_Vectorcall",
+          "symbol_offset": "0x5de"
+        },
+        {
+          "pc": "0x7ffe35922159",
+          "module": "python312.dll",
+          "module_offset": "0x22159",
+          "nearest_symbol": "PyObject_Vectorcall",
+          "symbol_offset": "0x39"
+        },
+        {
+          "pc": "0x7ffe35923686",
+          "module": "python312.dll",
+          "module_offset": "0x23686",
+          "nearest_symbol": "PyEval_EvalFrameDefault",
+          "symbol_offset": "0x8c6"
+        },
+        {
+          "pc": "0x7ffe3592167c",
+          "module": "python312.dll",
+          "module_offset": "0x2167c",
+          "nearest_symbol": "PyFunction_Vectorcall",
+          "symbol_offset": "0x17c"
+        },
+        {
+          "pc": "0x7ffe35958f37",
+          "module": "python312.dll",
+          "module_offset": "0x58f37",
+          "nearest_symbol": "PyObject_FastCallDictTstate",
+          "symbol_offset": "0xeb"
+        }
+      ]
+    },
+    {
+      "tid": 24768,
+      "hex_tid": "0x60c0",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 28240,
+      "hex_tid": "0x6e50",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 35352,
+      "hex_tid": "0x8a18",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 19224,
+      "hex_tid": "0x4b18",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 15252,
+      "hex_tid": "0x3b94",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 23216,
+      "hex_tid": "0x5ab0",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 46640,
+      "hex_tid": "0xb630",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 39428,
+      "hex_tid": "0x9a04",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 18612,
+      "hex_tid": "0x48b4",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 40248,
+      "hex_tid": "0x9d38",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 28620,
+      "hex_tid": "0x6fcc",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 37468,
+      "hex_tid": "0x925c",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 41380,
+      "hex_tid": "0xa1a4",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 4868,
+      "hex_tid": "0x1304",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 10500,
+      "hex_tid": "0x2904",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 44908,
+      "hex_tid": "0xaf6c",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 47864,
+      "hex_tid": "0xbaf8",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 32648,
+      "hex_tid": "0x7f88",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 20924,
+      "hex_tid": "0x51bc",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 35492,
+      "hex_tid": "0x8aa4",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 38724,
+      "hex_tid": "0x9744",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 18828,
+      "hex_tid": "0x498c",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 16460,
+      "hex_tid": "0x404c",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff44782773",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22773",
+          "nearest_symbol": "WaitForMultipleObjectsEx",
+          "symbol_offset": "0x123"
+        },
+        {
+          "pc": "0x7fff44782641",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x22641",
+          "nearest_symbol": "WaitForMultipleObjects",
+          "symbol_offset": "0x11"
+        },
+        {
+          "pc": "0x7ffe306d5bf3",
+          "module": "libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+          "module_offset": "0x255bf3",
+          "nearest_symbol": "scipy_openblas_get_parallel_64_",
+          "symbol_offset": "0x513"
+        }
+      ]
+    },
+    {
+      "tid": 11888,
+      "hex_tid": "0x2e70",
+      "frames": [
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff471428a4",
+          "module": "ntdll.dll",
+          "module_offset": "0x1628a4",
+          "nearest_symbol": "ZwWaitForMultipleObjects",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff409f0006",
+          "module": "WINMM.dll",
+          "module_offset": "0x10006",
+          "nearest_symbol": "joySetThreshold",
+          "symbol_offset": "0x156"
+        },
+        {
+          "pc": "0x7fff4530dda7",
+          "module": "KERNEL32.DLL",
+          "module_offset": "0x2dda7",
+          "nearest_symbol": "BaseThreadInitThunk",
+          "symbol_offset": "0x17"
+        },
+        {
+          "pc": "0x7fff4705ee4c",
+          "module": "ntdll.dll",
+          "module_offset": "0x7ee4c",
+          "nearest_symbol": "RtlUserThreadStart",
+          "symbol_offset": "0x2c"
+        }
+      ]
+    },
+    {
+      "tid": 44912,
+      "hex_tid": "0xaf70",
+      "frames": [
+        {
+          "pc": "0x7fff47145a24",
+          "module": "ntdll.dll",
+          "module_offset": "0x165a24",
+          "nearest_symbol": "NtWaitForWorkViaWorkerFactory",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff47145a24",
+          "module": "ntdll.dll",
+          "module_offset": "0x165a24",
+          "nearest_symbol": "NtWaitForWorkViaWorkerFactory",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff47004d0e",
+          "module": "ntdll.dll",
+          "module_offset": "0x24d0e",
+          "nearest_symbol": "TpCallbackMayRunLong",
+          "symbol_offset": "0x1a0e"
+        },
+        {
+          "pc": "0x7fff4530dda7",
+          "module": "KERNEL32.DLL",
+          "module_offset": "0x2dda7",
+          "nearest_symbol": "BaseThreadInitThunk",
+          "symbol_offset": "0x17"
+        },
+        {
+          "pc": "0x7fff4705ee4c",
+          "module": "ntdll.dll",
+          "module_offset": "0x7ee4c",
+          "nearest_symbol": "RtlUserThreadStart",
+          "symbol_offset": "0x2c"
+        }
+      ]
+    },
+    {
+      "tid": 35812,
+      "hex_tid": "0x8be4",
+      "frames": [
+        {
+          "pc": "0x7fff47145a24",
+          "module": "ntdll.dll",
+          "module_offset": "0x165a24",
+          "nearest_symbol": "NtWaitForWorkViaWorkerFactory",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff47145a24",
+          "module": "ntdll.dll",
+          "module_offset": "0x165a24",
+          "nearest_symbol": "NtWaitForWorkViaWorkerFactory",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff47004d0e",
+          "module": "ntdll.dll",
+          "module_offset": "0x24d0e",
+          "nearest_symbol": "TpCallbackMayRunLong",
+          "symbol_offset": "0x1a0e"
+        },
+        {
+          "pc": "0x7fff4530dda7",
+          "module": "KERNEL32.DLL",
+          "module_offset": "0x2dda7",
+          "nearest_symbol": "BaseThreadInitThunk",
+          "symbol_offset": "0x17"
+        },
+        {
+          "pc": "0x7fff4705ee4c",
+          "module": "ntdll.dll",
+          "module_offset": "0x7ee4c",
+          "nearest_symbol": "RtlUserThreadStart",
+          "symbol_offset": "0x2c"
+        }
+      ]
+    },
+    {
+      "tid": 43492,
+      "hex_tid": "0xa9e4",
+      "frames": [
+        {
+          "pc": "0x7fff47141dd4",
+          "module": "ntdll.dll",
+          "module_offset": "0x161dd4",
+          "nearest_symbol": "NtWaitForSingleObject",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff47141dd4",
+          "module": "ntdll.dll",
+          "module_offset": "0x161dd4",
+          "nearest_symbol": "NtWaitForSingleObject",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff4477be9f",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x1be9f",
+          "nearest_symbol": "WaitForSingleObjectEx",
+          "symbol_offset": "0xaf"
+        },
+        {
+          "pc": "0x7ffe35a61082",
+          "module": "python312.dll",
+          "module_offset": "0x161082",
+          "nearest_symbol": "Py_hashtable_new_full",
+          "symbol_offset": "0x224a"
+        },
+        {
+          "pc": "0x7ffe3594c42a",
+          "module": "python312.dll",
+          "module_offset": "0x4c42a",
+          "nearest_symbol": "PyEval_SaveThread",
+          "symbol_offset": "0x2da"
+        },
+        {
+          "pc": "0x7ffe3594bdf3",
+          "module": "python312.dll",
+          "module_offset": "0x4bdf3",
+          "nearest_symbol": "PyEval_RestoreThread",
+          "symbol_offset": "0x17"
+        },
+        {
+          "pc": "0x7ffe35a5e091",
+          "module": "python312.dll",
+          "module_offset": "0x15e091",
+          "nearest_symbol": "PyGILState_Ensure",
+          "symbol_offset": "0x55"
+        },
+        {
+          "pc": "0x7ffed8ce2c2a",
+          "module": "shiboken6.abi3.dll",
+          "module_offset": "0x12c2a",
+          "nearest_symbol": "Sbk_GetPyOverride",
+          "symbol_offset": "0x7a"
+        },
+        {
+          "pc": "0x7ffe3c7507ea",
+          "module": "QtCore.pyd",
+          "module_offset": "0x807ea",
+          "nearest_symbol": "PyInit_QtCore",
+          "symbol_offset": "0x3fd92"
+        },
+        {
+          "pc": "0x7ffe32ccb0c5",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xeb0c5",
+          "nearest_symbol": "QObject::~QObject",
+          "symbol_offset": "0x4f5"
+        },
+        {
+          "pc": "0x7ffe3c7c5ae0",
+          "module": "QtCore.pyd",
+          "module_offset": "0xf5ae0",
+          "nearest_symbol": "PyInit_QtCore",
+          "symbol_offset": "0xb5088"
+        },
+        {
+          "pc": "0x7ffe32cd33b5",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xf33b5",
+          "nearest_symbol": "QObject::event",
+          "symbol_offset": "0xa5"
+        },
+        {
+          "pc": "0x7ffe3c7c8180",
+          "module": "QtCore.pyd",
+          "module_offset": "0xf8180",
+          "nearest_symbol": "PyInit_QtCore",
+          "symbol_offset": "0xb7728"
+        },
+        {
+          "pc": "0x7ffe31c82ff6",
+          "module": "Qt6Widgets.dll",
+          "module_offset": "0x12ff6",
+          "nearest_symbol": "QApplicationPrivate::notify_helper",
+          "symbol_offset": "0x156"
+        },
+        {
+          "pc": "0x7ffe31c81fde",
+          "module": "Qt6Widgets.dll",
+          "module_offset": "0x11fde",
+          "nearest_symbol": "QApplication::notify",
+          "symbol_offset": "0x161e"
+        },
+        {
+          "pc": "0x7ffe3967a61f",
+          "module": "QtWidgets.pyd",
+          "module_offset": "0x33a61f",
+          "nearest_symbol": "PyInit_QtWidgets",
+          "symbol_offset": "0x31a0a7"
+        },
+        {
+          "pc": "0x7ffe32c86021",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xa6021",
+          "nearest_symbol": "QCoreApplication::notifyInternal2",
+          "symbol_offset": "0x101"
+        },
+        {
+          "pc": "0x7ffe32c888e9",
+          "module": "Qt6Core.dll",
+          "module_offset": "0xa88e9",
+          "nearest_symbol": "QCoreApplicationPrivate::sendPostedEvents",
+          "symbol_offset": "0x249"
+        },
+        {
+          "pc": "0x7ffe32e3a4cb",
+          "module": "Qt6Core.dll",
+          "module_offset": "0x25a4cb",
+          "nearest_symbol": "QThread::start",
+          "symbol_offset": "0x62b"
+        },
+        {
+          "pc": "0x7fff4530dda7",
+          "module": "KERNEL32.DLL",
+          "module_offset": "0x2dda7",
+          "nearest_symbol": "BaseThreadInitThunk",
+          "symbol_offset": "0x17"
+        },
+        {
+          "pc": "0x7fff4705ee4c",
+          "module": "ntdll.dll",
+          "module_offset": "0x7ee4c",
+          "nearest_symbol": "RtlUserThreadStart",
+          "symbol_offset": "0x2c"
+        }
+      ]
+    },
+    {
+      "tid": 20036,
+      "hex_tid": "0x4e44",
+      "frames": [
+        {
+          "pc": "0x7fff47141dd4",
+          "module": "ntdll.dll",
+          "module_offset": "0x161dd4",
+          "nearest_symbol": "NtWaitForSingleObject",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff47141dd4",
+          "module": "ntdll.dll",
+          "module_offset": "0x161dd4",
+          "nearest_symbol": "NtWaitForSingleObject",
+          "symbol_offset": "0x14"
+        },
+        {
+          "pc": "0x7fff4477be9f",
+          "module": "KERNELBASE.dll",
+          "module_offset": "0x1be9f",
+          "nearest_symbol": "WaitForSingleObjectEx",
+          "symbol_offset": "0xaf"
+        },
+        {
+          "pc": "0x7ffe38d318ab",
+          "module": "etree.cp312-win_amd64.pyd",
+          "module_offset": "0x2218ab",
+          "nearest_symbol": "PyInit_etree",
+          "symbol_offset": "0x11a8fb"
+        },
+        {
+          "pc": "0x7fff44695af0",
+          "module": "ucrtbase.dll",
+          "module_offset": "0x95af0",
+          "nearest_symbol": "initialize_wide_environment",
+          "symbol_offset": "0x40"
+        },
+        {
+          "pc": "0x7fff4530dda7",
+          "module": "KERNEL32.DLL",
+          "module_offset": "0x2dda7",
+          "nearest_symbol": "BaseThreadInitThunk",
+          "symbol_offset": "0x17"
+        },
+        {
+          "pc": "0x7fff4705ee4c",
+          "module": "ntdll.dll",
+          "module_offset": "0x7ee4c",
+          "nearest_symbol": "RtlUserThreadStart",
+          "symbol_offset": "0x2c"
+        }
+      ]
+    }
+  ]
+}

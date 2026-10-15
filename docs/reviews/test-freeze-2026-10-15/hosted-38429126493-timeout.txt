@@ -1,0 +1,62 @@
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0509057Z Timeout (0:01:00)!
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0512414Z Thread 0x000022d0 (most recent call first):
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0512862Z   <no Python frame>
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0513016Z 
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0513103Z Thread 0x0000026c (most recent call first):
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0514265Z   File "D:\a\Simplicitor\Simplicitor\simplicitor\app\widgets\create_screen.py", line 687 in _set_coverage
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0514910Z   File "D:\a\Simplicitor\Simplicitor\simplicitor\app\widgets\create_screen.py", line 1070 in show_candidate
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0515533Z   File "D:\a\Simplicitor\Simplicitor\simplicitor\app\main_window.py", line 342 in _on_candidate_ready
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0516150Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pytestqt\qt_compat.py", line 160 in exec
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0516583Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pytestqt\wait_signal.py", line 58 in wait
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0516973Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pytestqt\qtbot.py", line 503 in wait
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0517452Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pytestqt\qtbot.py", line 600 in waitUntil
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0517955Z   File "D:\a\Simplicitor\Simplicitor\tests\test_main_window_extraction.py", line 209 in test_rerun_invalidates_old_candidate_and_late_cancel_cannot_restore_it
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0518461Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\python.py", line 167 in pytest_pyfunc_call
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0518880Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0519272Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0519658Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0520047Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\python.py", line 1707 in runtest
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0520456Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\runner.py", line 184 in pytest_runtest_call
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0521201Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0521589Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0521967Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0522341Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\runner.py", line 250 in <lambda>
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0523635Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\runner.py", line 361 in from_call
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0524037Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\runner.py", line 249 in call_and_report
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0524446Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\runner.py", line 139 in runtestprotocol
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0524883Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\runner.py", line 118 in pytest_runtest_protocol
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0525300Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0525801Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0526184Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0526591Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\main.py", line 408 in pytest_runtestloop
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0526994Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0527454Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0527835Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0528204Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\main.py", line 384 in _main
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0528579Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\main.py", line 330 in wrap_session
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0528985Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\main.py", line 377 in pytest_cmdline_main
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0529389Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0529780Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0530160Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0530552Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\config\__init__.py", line 229 in _main
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0530974Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\config\__init__.py", line 253 in _console_main
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0531386Z   File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\pytest\__main__.py", line 9 in <module>
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0531665Z   File "<frozen runpy>", line 88 in _run_code
+tests	UNKNOWN STEP	2026-10-13T16:19:02.0531860Z   File "<frozen runpy>", line 198 in _run_module_as_main
+tests	UNKNOWN STEP	2026-10-13T16:31:40.8113852Z ##[error]The operation was canceled.
+tests	UNKNOWN STEP	2026-10-13T16:31:40.9368076Z Post job cleanup.
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2252369Z [command]"C:\Program Files\Git\bin\git.exe" version
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2445415Z git version 2.55.0.windows.5
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2488117Z Temporarily overriding HOME='D:\a\_temp\1298bff0-71d9-48e4-8209-5f347bb5d7a2' before making global git config changes
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2489173Z Adding repository directory to the temporary git global config as a safe directory
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2496001Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\Simplicitor\Simplicitor
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2724733Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+tests	UNKNOWN STEP	2026-10-13T16:31:41.2996794Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+tests	UNKNOWN STEP	2026-10-13T16:31:41.6835316Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests	UNKNOWN STEP	2026-10-13T16:31:41.7014404Z http.https://github.com/.extraheader
+tests	UNKNOWN STEP	2026-10-13T16:31:41.7050814Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+tests	UNKNOWN STEP	2026-10-13T16:31:41.7277543Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+tests	UNKNOWN STEP	2026-10-13T16:31:42.0991736Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests	UNKNOWN STEP	2026-10-13T16:31:42.1193635Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+tests	UNKNOWN STEP	2026-10-13T16:31:42.4676939Z Cleaning up orphan processes
+tests	UNKNOWN STEP	2026-10-13T16:31:42.5344406Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
