@@ -123,12 +123,24 @@ B1, recorded from read-only inspection on 2026-10-08:
 
 CPU/OS facts came from registry reads and memory from the Windows API; CIM queries were unavailable. Prior metadata discovery is not a quality test. [Architecture](superpowers/specs/2026-10-08-document-architecture-design.md#model-requests) owns request settings. Hardware is benchmark context, not a product eligibility check.
 
+## Worker teardown verification
+
+The [test-freeze investigation](https://github.com/alexnosx/Simplicitor/blob/d9bd573/docs/reviews/2026-10-15-test-freeze-investigation.md) reproduced a native Qt connection-mutex/GIL lock cycle during worker destruction. The fix on `fix/worker-teardown`, implementation commit `3a4e843`, returns all five childless one-shot workers to the GUI thread before their thread-ending signal. EditWorker and ExtractionWorker retain `finished`; GenerateWorker, TemplateGenerateWorker and the disabled ManipulateWorker emit their terminal result after the move. Discovery, GUI result slots, engines, cancellation, epochs and saving are unchanged.
+
+Verification on 2026-10-15:
+
+- All 15 new destruction-thread cases failed before the fix at the expected background-deletion assertion, then passed. They cover all five workers, success/failure, cancellation and generation early-return/retry paths; assert childlessness at the move and ownership before the terminal signal; and use a DirectConnection destruction observer.
+- The focused worker suite passed 65 tests in 3.58 seconds. The full isolated suite passed **1,312 tests in 87.23 seconds**, the original 1,297 plus 15 new cases. The existing pytest cache-permission warning remains.
+- The unchanged investigation driver, used locally with tracing disabled and no prototype monkeypatch, completed **200 cycles / 800 cases in 189.47 seconds**, exit 0, with **no timeout or dump**, on implementation commit `3a4e843`. It repeated the two extraction cases, the complete extraction/save case and the real document-open/stale-result case.
+
+The local result and complete log remain in `.venv/worker-teardown-acceptance/targets-200/`. Investigation tooling is not part of the fix branch's commits. The branch awaits Claude's review and Alex's merge decision; this is local source verification, not installed-Windows or release qualification.
+
 ## Open decisions
 
 - Exact Windows warning/detection and tested unsigned artifact behavior.
 
 ## Next step
 
-v2.3.1 is published and verified. The separate full-suite hang investigation noted in the [2.3.1 plan](superpowers/plans/2026-10-14-release-2.3.1.md#known-full-suite-risk-cause-not-established) has not started.
+v2.3.1 is published and verified. The worker teardown fix is verified on `fix/worker-teardown`; next is Claude's review and Alex's merge decision. It has not been merged.
 
 Input from Claude's review: in the app, ask to discard after the new file is picked, so cancelling the file picker keeps the current work.
