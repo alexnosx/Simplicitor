@@ -1,26 +1,22 @@
 # simplicitor/app/widgets/status_bar.py
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QComboBox, QPushButton, QButtonGroup
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QPushButton, QButtonGroup
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QFont, QIcon
 
 from app.config.defaults import (
     APP_NAME, APP_FONT_FAMILY, FONT_SIZE_HEADING_PT, FONT_SIZE_BODY_PT,
     BORDER_COLOR, BODY_TEXT_COLOR, WHITE, SUCCESS_COLOR, ERROR_COLOR, PRIMARY_ACCENT_COLOR,
 )
+from app.config.styles import header_styles
 from app.utils.file_utils import resource_path
 from app.version import __version__
 
 
 class TopBar(QWidget):
-    """Top navigation bar.
+    """Two-row brand/navigation header; local model selection lives in Settings.
 
-    Shows app title, Ollama connectivity indicator, model selector dropdown,
-    and settings gear button. Starts in disconnected state (red dot, no models).
-    Phase 2 wires in OllamaWorker to call set_connected / set_disconnected.
-
-    Signals:
-        settings_requested: emitted when the gear button is clicked.
-        model_changed: emitted with the newly selected model name.
+    The hidden combo retains discovery and model-change ownership. Navigation
+    emits the existing mode/settings signals and starts disconnected.
     """
 
     settings_requested = Signal()
@@ -36,32 +32,52 @@ class TopBar(QWidget):
     # ── Build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 4, 16, 4)
-        layout.setSpacing(8)
-
-        # Title font: semibold, 12pt (≈16px at 96 DPI)
-        title_font = QFont(APP_FONT_FAMILY, 12)
-        title_font.setWeight(QFont.Weight.DemiBold)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         body_font = QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT)
-
-        # Optional 16x16 app icon to the left of the title
-        icon_path = resource_path("assets/icons/simplicitor_16.png")
-        if icon_path.exists():
-            icon_label = QLabel()
-            pixmap = QPixmap(str(icon_path))
-            icon_label.setPixmap(pixmap.scaled(16, 16))
-            icon_label.setFixedSize(16, 16)
-            layout.addWidget(icon_label)
-            layout.addSpacing(4)
-
+        self._brand_row = QWidget()
+        self._brand_row.setObjectName("azureBrandRow")
+        brand = QHBoxLayout(self._brand_row)
+        brand.setContentsMargins(24, 14, 24, 14)
+        brand.setSpacing(12)
+        self._brand_icon = QLabel()
+        self._brand_icon.setPixmap(QIcon(str(resource_path(
+            "assets/icons/simplicitor.ico"))).pixmap(40, 40))
+        self._brand_icon.setFixedSize(40, 40)
+        brand.addWidget(self._brand_icon)
+        self._branding = QWidget()
+        branding = QVBoxLayout(self._branding)
+        branding.setContentsMargins(0, 0, 0, 0)
+        branding.setSpacing(2)
+        name = QHBoxLayout()
+        name.setSpacing(10)
+        title_font = QFont(APP_FONT_FAMILY, 17)
+        title_font.setWeight(QFont.Weight.DemiBold)
         self._title_label = QLabel(APP_NAME)
         self._title_label.setFont(title_font)
         self._version_label = QLabel(__version__)
         self._version_label.setFont(body_font)
-        self._version_label.setStyleSheet("color: #6B7280;")
+        name.addWidget(self._title_label)
+        name.addWidget(self._version_label)
+        name.addStretch()
+        branding.addLayout(name)
+        self._powered_label = QLabel("Powered by your local LLM")
+        self._powered_label.setFont(body_font)
+        branding.addWidget(self._powered_label)
+        brand.addWidget(self._branding)
+        brand.addStretch()
+        self._tagline_label = QLabel("Your documents. Your computer. Your control.")
+        self._tagline_label.setFont(body_font)
+        brand.addWidget(self._tagline_label)
+        layout.addWidget(self._brand_row)
+        self._navigation_row = QWidget()
+        self._navigation_row.setObjectName("azureNavigationRow")
+        navigation = QHBoxLayout(self._navigation_row)
+        navigation.setContentsMargins(24, 6, 24, 6)
+        navigation.setSpacing(8)
+        layout.addWidget(self._navigation_row)
 
-        # Connection indicator dot
         self._status_dot = QLabel("●")
         self._status_dot.setFont(body_font)
         self._status_dot.setFixedWidth(16)
@@ -78,15 +94,13 @@ class TopBar(QWidget):
         self._model_combo.currentTextChanged.connect(self.model_changed)
         self._model_combo.hide()  # Selection is presented in Settings.
 
-        # Settings gear
+        # Settings owns the visible model selector
         self._settings_btn = QPushButton("Settings")
         self._settings_btn.setMinimumSize(82, 36)
         self._settings_btn.setFont(body_font)
         self._settings_btn.setToolTip("Settings")
         self._settings_btn.clicked.connect(self.settings_requested)
 
-        layout.addWidget(self._title_label)
-        layout.addWidget(self._version_label)
         self._create_mode_btn = QPushButton("Create new")
         self._edit_mode_btn = QPushButton("Edit document")
         self._mode_group = QButtonGroup(self)
@@ -99,27 +113,15 @@ class TopBar(QWidget):
         self._create_mode_btn.setChecked(True)
         self._create_mode_btn.clicked.connect(lambda: self.mode_changed.emit("create"))
         self._edit_mode_btn.clicked.connect(lambda: self.mode_changed.emit("edit"))
-        layout.addSpacing(16)
-        layout.addWidget(self._create_mode_btn)
-        layout.addWidget(self._edit_mode_btn)
-        layout.addStretch()
-        layout.addWidget(self._status_dot)
-        layout.addWidget(self._status_text)
-        layout.addSpacing(4)
-        layout.addWidget(self._settings_btn)
+        navigation.addWidget(self._create_mode_btn)
+        navigation.addWidget(self._edit_mode_btn)
+        navigation.addStretch()
+        navigation.addWidget(self._status_dot)
+        navigation.addWidget(self._status_text)
+        navigation.addWidget(self._settings_btn)
 
     def _apply_styles(self) -> None:
-        self.setStyleSheet(
-            f"TopBar {{ background-color: {WHITE}; border-bottom: 1px solid {BORDER_COLOR}; }}"
-            f"QComboBox {{ color: {BODY_TEXT_COLOR}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: 4px; padding: 2px 8px; background: {WHITE}; }}"
-            f"QComboBox:disabled {{ color: #9CA3AF; }}"
-            f"QPushButton {{ border: none; background: transparent; color: {BODY_TEXT_COLOR}; "
-            "padding: 4px 12px; }"
-            f"QPushButton:hover {{ background-color: {BORDER_COLOR}; border-radius: 4px; }}"
-            f"QPushButton:checked {{ background-color: #EFF6FF; color: {PRIMARY_ACCENT_COLOR}; "
-            f"border-radius: 6px; }}"
-        )
+        self.setStyleSheet(header_styles())
 
     # ── Public API ────────────────────────────────────────────────────────────
 

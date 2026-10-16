@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from PySide6.QtCore import QThread, QTimer, Qt, Signal, Slot
-from PySide6.QtGui import QCloseEvent, QIcon
-from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
+from PySide6.QtGui import QCloseEvent, QFontMetrics, QIcon
+from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QHBoxLayout, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
 
 from app.config.defaults import (
     APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
@@ -100,7 +100,6 @@ class MainWindow(QMainWindow):
 
         # Top bar
         self._top_bar = TopBar()
-        self._top_bar.setFixedHeight(48)
         root_layout.addWidget(self._top_bar)
 
         # Non-blocking selected-model recommendation.
@@ -118,9 +117,17 @@ class MainWindow(QMainWindow):
         self._modes.addWidget(self._create_screen)
         self._modes.addWidget(self._edit_page)
         root_layout.addWidget(self._modes, stretch=1)
-        footer = QLabel("Your documents and the AI processing stay on your computer.")
-        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        footer.setContentsMargins(0, 8, 0, 8)
+        footer = QWidget()
+        footer.setObjectName("azureFooter")
+        footer_layout = QHBoxLayout(footer)
+        footer_layout.setContentsMargins(24, 8, 24, 8)
+        self._footer_privacy = QLabel("Your documents and the AI processing stay on your computer.")
+        self._footer_privacy.setWordWrap(True)
+        self._footer_model = QLabel()
+        self._footer_model.setTextFormat(Qt.TextFormat.PlainText)
+        self._footer_model.setMaximumWidth(220)
+        footer_layout.addWidget(self._footer_privacy, 1)
+        footer_layout.addWidget(self._footer_model)
         root_layout.addWidget(footer)
         if self._cleanup_error:
             self._create_screen.show_status("Some old temporary jobs could not be removed. "
@@ -219,6 +226,12 @@ class MainWindow(QMainWindow):
 
     # ── Slots ─────────────────────────────────────────────────────────────────
 
+    def _update_footer_model(self) -> None:
+        """Display the selected model without changing discovery or selection."""
+        self._footer_model.setText(QFontMetrics(self._footer_model.font()).elidedText(
+            self._current_model, Qt.TextElideMode.ElideRight, 220))
+        self._footer_model.setToolTip(self._current_model)
+
     def _on_model_changed(self, model: str) -> None:
         """Store the currently selected model name when the user changes the dropdown.
 
@@ -226,6 +239,7 @@ class MainWindow(QMainWindow):
             model: The newly selected Ollama model name.
         """
         self._current_model = model
+        self._update_footer_model()
         self._banner_dismissed_for = ""
         self._capability_banner.hide_banner()
         self._create_screen.set_model(model)
@@ -276,6 +290,7 @@ class MainWindow(QMainWindow):
         self._create_screen.set_ollama_connected(False)
         self._create_screen.set_model("")
         self._current_model = ""
+        self._update_footer_model()
         self._edit_page.set_model_ready(False)
         self._capability_banner.hide_banner()
 

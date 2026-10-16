@@ -689,6 +689,7 @@ tests/
         test_validation.py
     __init__.py
     conftest.py
+    test_azure_appearance.py
     test_backup_service.py
     test_build_script.py
     test_cli.py
@@ -863,6 +864,8 @@ requirements.txt
 ### simplicitor/app/config/styles.py
 
 - def input_styles() -> str: Keep editable text readable and show blue focus, hover and selection states.
+- def workspace_styles() -> str: Shared flat cards and readable controls; backgrounds target containers only.
+- def header_styles() -> str: Style the brand and navigation separately without painting label strips.
 
 ### simplicitor/app/generators/__init__.py
 
@@ -1000,7 +1003,7 @@ requirements.txt
 
 ### simplicitor/app/widgets/status_bar.py
 
-- class TopBar(QWidget): Top navigation bar.
+- class TopBar(QWidget): Two-row brand/navigation header; local model selection lives in Settings.
 
 ### simplicitor/app/widgets/step_indicator.py
 
@@ -1888,6 +1891,15 @@ requirements.txt
 - def test_format_errors_includes_count(manifest)
 - def test_format_errors_mentions_problem(manifest)
 
+### tests/test_azure_appearance.py
+
+- def test_azure_name_and_subtitle_form_one_brand_block(qtbot, qapp)
+- def test_header_navigation_has_its_own_row_and_fits(qtbot, qapp, width)
+- def test_shared_azure_palette_and_scoped_styles()
+- def test_main_window_uses_header_size_hint(window, qapp)
+- def test_footer_tracks_selected_model_without_extra_selection_signals(window, qapp)
+- def test_footer_model_is_literal_and_empty_without_a_selection(window)
+
 ### tests/test_backup_service.py
 
 - def test_backup_creates_file_in_backup_dir(tmp_path)
@@ -2513,7 +2525,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 149 lines
+- docs/PROJECT_STATUS.md: md, 150 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)

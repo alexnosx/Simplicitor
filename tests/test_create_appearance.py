@@ -25,13 +25,13 @@ def test_body_borders_dropdown_and_focus_styles(qtbot, isolated_profile):
     from app.config.defaults import FONT_SIZE_BODY_PT, BORDER_COLOR, PRIMARY_ACCENT_COLOR
     screen = _screen(qtbot, isolated_profile)
     assert FONT_SIZE_BODY_PT >= 11
-    assert BORDER_COLOR == "#9CA8B7"
+    assert BORDER_COLOR == "#C2CEDD"
     style = screen.styleSheet()
     assert "font-size: 11pt" in style
     assert "QComboBox:focus" in style and PRIMARY_ACCENT_COLOR in style
     assert "QComboBox QAbstractItemView::item:hover" in style
     assert "QComboBox QAbstractItemView::item:selected" in style
-    assert "#E6F0FF" in style and "#DBEAFE" in style
+    assert "#F2F7FF" in style and "#EAF2FF" in style
 
 
 def test_template_button_chosen_clear_and_busy_states(window):
