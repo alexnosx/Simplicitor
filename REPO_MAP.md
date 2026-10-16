@@ -89,6 +89,7 @@ docs/
         2026-10-12-c2-test-followup.json
         2026-10-12-c2-ui-followup.json
     design/
+        azure-desktop.html
         document-workspace.html
         edit-document.html
     evaluation/
@@ -147,6 +148,7 @@ docs/
             2026-10-12-release-2.2.0.md
             2026-10-13-release-2.3.0.md
             2026-10-14-release-2.3.1.md
+            2026-10-16-release-2.3.5.md
         specs/
             2026-05-29-phase-h-renderer-design.md
             2026-06-01-phase-i-prompt-builder-design.md
@@ -2496,7 +2498,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 147 lines
+- docs/PROJECT_STATUS.md: md, 149 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2517,6 +2519,7 @@ requirements.txt
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
 - docs/code-signing.md: md, 69 lines
+- docs/design/azure-desktop.html: html, 281 lines
 - docs/design/document-workspace.html: html, 346 lines
 - docs/design/edit-document.html: html, 479 lines
 - docs/evaluation/2.3.0-edit-model-check.json: json, 165 lines
@@ -2571,6 +2574,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
 - docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 565 lines
+- docs/superpowers/plans/2026-10-16-release-2.3.5.md: md, 237 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines

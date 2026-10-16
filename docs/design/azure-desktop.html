@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simplicitor Azure desktop visual reference</title>
+<style>body{margin:0;padding:16px;background:#eef2f7}#simplicitor-app-directions{max-width:1280px;margin:auto}</style>
+</head>
+<body>
+<!-- Azure desktop, approved by Alex on 2026-10-16. Visual reference only. The preview version is historical. Optional decorative line-icon slots need no external library; all actions retain text labels. -->
+<div id="simplicitor-app-directions" aria-label="Approved Azure desktop visual reference">
+  <section data-variant="Azure desktop" aria-label="Azure desktop app concept">
+    <div class="sa-app sa-azure">
+      <header class="sa-blue-header"><div class="sa-brand-group"><img src="data:image/png;base64,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" alt="" width="31" height="31"><div class="sa-brand-copy"><div class="sa-brand"><span>Simplicitor</span><span class="sa-version">2.3.2</span></div><span class="sa-powered">Powered by your local LLM</span></div></div><span class="sa-header-note">Your documents. Your computer. Your control.</span></header>
+      <div class="sa-desktop-toolbar"><nav aria-label="Workspace mode"><button class="sa-mode" type="button" data-mode="create" aria-pressed="true"><i data-lucide="file-plus-2" aria-hidden="true"></i>Create new</button><button class="sa-mode" type="button" data-mode="edit" aria-pressed="false"><i data-lucide="file-pen-line" aria-hidden="true"></i>Edit document</button></nav><div class="sa-toolbar-right"><span class="sa-ready"><span></span>Local AI ready</span><button class="sa-settings" type="button" data-settings><i data-lucide="settings-2" aria-hidden="true"></i>Settings</button></div></div>
+      <div class="sa-content" data-content></div>
+      <footer class="sa-statusbar"><span><i data-lucide="hard-drive" aria-hidden="true"></i> Documents and processing stay on your computer</span><span class="sa-model">qwen3:8b</span></footer>
+      <div class="sa-toast" role="status" hidden></div>
+    </div>
+  </section>
+
+</div>
+<template id="sa-workspace-template">
+  <section class="sa-create" data-page="create">
+    <div class="sa-page-heading"><div><h1>Create new</h1><p>What would you like to work on?</p></div><span class="sa-local-tag"><i data-lucide="shield-check" aria-hidden="true"></i>Local processing</span></div>
+    <div class="sa-routes" aria-label="Create options"><button type="button" class="sa-route" data-route="write" aria-pressed="true"><span class="sa-route-icon"><i data-lucide="file-pen" aria-hidden="true"></i></span><span><strong>Write a new document</strong><small>Word, PDF, PowerPoint or Excel, from a description.</small></span><span class="sa-route-check" aria-hidden="true">✓</span></button><button type="button" class="sa-route" data-route="pull" aria-pressed="false"><span class="sa-route-icon sa-route-excel"><i data-lucide="table-2" aria-hidden="true"></i></span><span><strong>Pull information into Excel</strong><small>Read your Word files or PDFs and make an Excel table.</small></span><span class="sa-route-check" aria-hidden="true">✓</span></button></div>
+    <div data-view="write">
+      <div class="sa-step-strip"><span class="sa-current"><b>1</b> Describe</span><span class="sa-step-line"></span><span><b>2</b> Save</span></div>
+      <div class="sa-write-layout"><section class="sa-panel sa-describe"><h2><span class="sa-number">1</span>Describe the document you need</h2><p class="sa-help">A few details give your local AI a better starting point.</p><label class="sa-sr-only">Describe the document you need<textarea class="sa-writing-prompt" placeholder="Describe the document you need.">Write a one-page project kickoff document. Include the goals, roles, timeline and next steps.</textarea></label><div class="sa-prompt-foot"><span>Only your description is used.</span><span>Word · PDF · Excel · PowerPoint</span></div></section>
+      <section class="sa-panel sa-output"><h2><span class="sa-number">2</span>Choose the output</h2><div class="sa-format-grid" aria-label="File type"><button class="sa-format" data-format="Word" type="button" aria-pressed="true"><span class="sa-file-icon sa-word">W</span><span>Word</span><small>.docx</small></button><button class="sa-format" data-format="PDF" type="button" aria-pressed="false"><span class="sa-file-icon sa-pdf">PDF</span><span>PDF</span><small>.pdf</small></button><button class="sa-format" data-format="Excel" type="button" aria-pressed="false"><span class="sa-file-icon sa-excel">X</span><span>Excel</span><small>.xlsx</small></button><button class="sa-format" data-format="PowerPoint" type="button" aria-pressed="false"><span class="sa-file-icon sa-powerpoint">P</span><span>PowerPoint</span><small>.pptx</small></button></div><div class="sa-template-area" hidden><button class="sa-template" type="button" data-template><i data-lucide="panels-top-left" aria-hidden="true"></i>Use a template</button><select class="sa-template-select" aria-label="Built-in template" hidden><option value="">Choose a built-in template</option>business_pitch</option><option>technical_overview</option></select><div class="sa-template-chosen" hidden><span></span><button type="button" data-clear-template>Clear</button></div></div><div class="sa-folder"><span>Save folder</span><button class="sa-folder-button" type="button" data-preview-note="The application opens its native folder picker here."><i data-lucide="folder" aria-hidden="true"></i><span>Documents / Simplicitor / Generated</span><i data-lucide="ellipsis" aria-hidden="true"></i></button></div></section></div>
+      <div class="sa-action-row"><span><i data-lucide="sparkles" aria-hidden="true"></i>Created with your local model</span><button class="sa-primary sa-create-action" type="button" data-preview-note="Visual concept only. No model is called and no document is created.">Create Word file <span aria-hidden="true">→</span></button></div>
+    </div>
+    <div data-view="pull" hidden>
+      <div class="sa-step-strip"><span class="sa-current"><b>1</b> Describe</span><span class="sa-step-line"></span><span><b>2</b> Choose columns</span><span class="sa-step-line"></span><span><b>3</b> Review and save</span></div>
+      <div class="sa-pull-layout"><section class="sa-panel"><h2><span class="sa-number">1</span>Describe the information you need</h2><p class="sa-help">Choose the fields you want in your Excel table.</p><label class="sa-sr-only">Describe the information you need<textarea class="sa-pulling-prompt">Extract the invoice number, customer name, gross total and due date.</textarea></label><p class="sa-bottom-help">You can review and change the columns before extraction.</p></section><section class="sa-panel"><h2><span class="sa-number">2</span>Add your source files</h2><div class="sa-drop-hint"><i data-lucide="files" aria-hidden="true"></i><span>Drop Word documents or text PDFs here.</span></div><div class="sa-source-row"><span class="sa-file-icon sa-word">W</span><span class="sa-source-name">Sample invoice.docx<small>Word document</small></span><span class="sa-file-ready">Ready</span><button type="button" class="sa-remove" aria-label="Remove Sample invoice.docx" data-remove-source>×</button></div><div class="sa-source-row"><span class="sa-file-icon sa-pdf">PDF</span><span class="sa-source-name">Sample summary.pdf<small>PDF document</small></span><span class="sa-file-partial">Partly read</span><button type="button" class="sa-remove" aria-label="Remove Sample summary.pdf" data-remove-source>×</button></div><button type="button" class="sa-secondary sa-browse" data-preview-note="This concept uses fictional files. The application opens a native file picker here."><i data-lucide="folder-open" aria-hidden="true"></i>Browse files</button><p class="sa-bottom-help">Each source file becomes one row in Excel.</p></section></div>
+      <div class="sa-reading-warning"><i data-lucide="triangle-alert" aria-hidden="true"></i><div><strong>Some information may be missing from the table. Check these problems before you use it:</strong><p>Sample summary.pdf · Page 2 has very little readable text.</p></div></div><div class="sa-action-row"><span>Source files are kept unchanged</span><button class="sa-primary" type="button" data-preview-note="The next step is the existing editable column table, followed by extraction and review.">Next: choose columns <span aria-hidden="true">→</span></button></div>
+    </div>
+  </section>
+  <section class="sa-edit" data-page="edit" hidden>
+    <div class="sa-page-heading"><div><h1>Edit your Word document</h1><p>Select a part, describe the change, then review it before saving a new file.</p></div></div>
+    <div class="sa-step-strip sa-edit-steps"><span><b>1</b> Open</span><span><b>2</b> Select</span><span><b>3</b> Describe</span><span class="sa-current"><b>4</b> Review</span><span><b>5</b> Save</span></div>
+    <div class="sa-working-file"><span class="sa-file-icon sa-word">W</span><div><strong>Sample agreement.docx</strong><span>Original in Documents / Examples. Your original will not be overwritten.</span></div><button class="sa-secondary" type="button" data-preview-note="The application picks the replacement file before asking to discard unsaved work.">Choose another file</button></div>
+    <section class="sa-panel sa-review-panel"><h2><span class="sa-number">4</span>Review the selected part</h2><div class="sa-comparison"><div><h3>Before</h3><div class="sa-document-sample"><span>PAYMENT TERMS</span><p>Invoices are payable within <del>30 days</del> of receipt.</p><p>The annual service fee is £48,000.</p></div></div><div><h3>After</h3><div class="sa-document-sample"><span>PAYMENT TERMS</span><p>Invoices are payable within <mark>45 days</mark> of receipt.</p><p>The annual service fee is £48,000.</p></div></div></div><p class="sa-review-help">Only the selected part is shown. Longer text can change page breaks.</p><div class="sa-review-actions"><button class="sa-primary" type="button" data-preview-note="In the application, Use this change leads to Save as a new file. This concept does not save anything.">Use this change <span aria-hidden="true">✓</span></button><button class="sa-template" type="button" data-preview-note="In the application, Try again keeps the description and requests another local proposal.">Try again</button><button class="sa-secondary" type="button" data-preview-note="In the application, Cancel returns to selection and keeps the selected range.">Cancel</button></div></section>
+    <div class="sa-unchanged-note"><i data-lucide="shield-check" aria-hidden="true"></i>Everything outside the selected part stays unchanged.</div>
+  </section>
+</template>
+<style>
+#simplicitor-app-directions{color-scheme:light dark;width:100%}
+#simplicitor-app-directions>section{min-height:860px}
+#simplicitor-app-directions .sa-app{--sa-bg:light-dark(#f1f4f8,#17222f);--sa-panel:light-dark(#fff,#222f3f);--sa-ink:light-dark(#183049,#edf4ff);--sa-muted:light-dark(#52667b,#b9cadf);--sa-line:light-dark(#c2cedd,#4a617a);--sa-accent:light-dark(#1762dc,#a4c5ff);--sa-selected:light-dark(#eaf2ff,#253f61);--sa-hover:light-dark(#f2f7ff,#2a4059);--sa-button:#1762dc;--sa-white:#fff;--sa-good:light-dark(#156343,#a2eac5);--sa-good-bg:light-dark(#e7f6ee,#193f32);--sa-warn:light-dark(#764b08,#ffe0a2);--sa-warn-bg:light-dark(#fff6de,#493a20);--sa-red:light-dark(#a82e3f,#ffd0d6);--sa-red-bg:light-dark(#ffe6e9,#542d36);--sa-shadow:0 2px 7px light-dark(#203c5d09,#0002);background:var(--sa-bg);color:var(--sa-ink);font:15px/1.5 "Segoe UI",Arial,sans-serif;min-height:815px;overflow-wrap:anywhere;position:relative;border-radius:11px;overflow:clip;border:1px solid var(--sa-line)}
+#simplicitor-app-directions .sa-app *{box-sizing:border-box}
+#simplicitor-app-directions .sa-app [hidden]{display:none!important}
+#simplicitor-app-directions button,#simplicitor-app-directions textarea,#simplicitor-app-directions select{font:inherit;cursor:inherit}
+#simplicitor-app-directions button{color:inherit}
+#simplicitor-app-directions button:focus-visible,#simplicitor-app-directions textarea:focus-visible,#simplicitor-app-directions select:focus-visible{outline:3px solid var(--sa-accent);outline-offset:3px}
+#simplicitor-app-directions button:disabled{opacity:.5;cursor:default}
+#simplicitor-app-directions .sa-app svg{width:17px;height:17px;flex:none}
+#simplicitor-app-directions .sa-brand{display:flex;align-items:center;gap:9px;font-size:21px;font-weight:600;letter-spacing:-.5px;white-space:nowrap}
+#simplicitor-app-directions .sa-brand img{flex:none;display:block}
+#simplicitor-app-directions .sa-version{font-size:12px;font-weight:400;letter-spacing:0;opacity:.75;padding-left:4px}
+#simplicitor-app-directions .sa-blue-header{background:#1457c6;color:#fff;display:flex;justify-content:space-between;gap:10px 20px;align-items:center;padding:17px 23px;min-height:69px;flex-wrap:wrap}
+
+#simplicitor-app-directions .sa-brand-group{display:flex;align-items:center;gap:10px}
+#simplicitor-app-directions .sa-brand-copy{display:flex;flex-direction:column;gap:1px}
+#simplicitor-app-directions .sa-powered{font-size:11px;font-weight:400;font-style:italic;color:#e0ecff;letter-spacing:0}
+#simplicitor-app-directions .sa-header-note{font-size:12px;color:#e0ecff}
+#simplicitor-app-directions .sa-desktop-toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;background:var(--sa-panel);border-bottom:1px solid var(--sa-line);padding:9px 23px}
+#simplicitor-app-directions nav{display:flex;gap:5px}
+#simplicitor-app-directions .sa-mode{background:transparent;border:1px solid transparent;border-radius:6px;display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:14px;min-height:42px;color:var(--sa-muted)}
+#simplicitor-app-directions .sa-mode[aria-pressed=true]{color:var(--sa-accent);background:var(--sa-selected);border-color:light-dark(#c5d9fa,#426087);font-weight:600}
+#simplicitor-app-directions .sa-mode:hover{background:var(--sa-hover);color:var(--sa-accent)}
+#simplicitor-app-directions .sa-toolbar-right{display:flex;align-items:center;gap:19px}
+#simplicitor-app-directions .sa-ready{color:var(--sa-good);display:flex;align-items:center;gap:7px;font-size:12px;white-space:nowrap}
+#simplicitor-app-directions .sa-ready>span{width:7px;height:7px;background:var(--sa-good);border-radius:50%}
+#simplicitor-app-directions .sa-settings{display:flex;align-items:center;gap:7px;min-height:38px;padding:7px 9px;border:0;background:transparent;font-size:12px;color:var(--sa-muted);border-radius:6px}
+#simplicitor-app-directions .sa-settings:hover{background:var(--sa-selected)}
+#simplicitor-app-directions .sa-content{padding:26px 27px 20px;flex:1;min-width:0}
+#simplicitor-app-directions .sa-page-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:22px}
+#simplicitor-app-directions h1{font-size:25px;line-height:1.25;font-weight:600;letter-spacing:-.7px;margin:0 0 7px}
+#simplicitor-app-directions .sa-page-heading p{font-size:14px;color:var(--sa-muted);margin:0}
+#simplicitor-app-directions .sa-local-tag{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--sa-good);background:var(--sa-good-bg);padding:6px 10px;border-radius:5px;white-space:nowrap}
+#simplicitor-app-directions .sa-local-tag svg{width:14px;height:14px}
+#simplicitor-app-directions .sa-routes{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+#simplicitor-app-directions .sa-route{background:var(--sa-panel);border:1px solid var(--sa-line);border-radius:8px;display:flex;gap:12px;text-align:left;align-items:center;padding:16px 13px;box-shadow:var(--sa-shadow);min-width:0}
+#simplicitor-app-directions .sa-route>span:nth-child(2){flex:1;min-width:0}
+#simplicitor-app-directions .sa-route strong{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
+#simplicitor-app-directions .sa-route small{display:block;color:var(--sa-muted);font-size:11px;line-height:1.5}
+#simplicitor-app-directions .sa-route[aria-pressed=true]{border-color:var(--sa-accent);background:var(--sa-selected);box-shadow:inset 0 0 0 1px var(--sa-accent)}
+#simplicitor-app-directions .sa-route:hover{border-color:var(--sa-accent)}
+#simplicitor-app-directions .sa-route-icon{display:grid;place-items:center;width:35px;height:39px;background:var(--sa-selected);color:var(--sa-accent);border-radius:6px;flex:none}
+#simplicitor-app-directions .sa-route-icon svg{width:22px;height:22px}
+#simplicitor-app-directions .sa-route-excel{background:var(--sa-good-bg);color:var(--sa-good)}
+#simplicitor-app-directions .sa-route-check{width:18px;height:18px;border:1px solid var(--sa-line);border-radius:50%;color:transparent;font-size:11px;display:grid;place-items:center;flex:none}
+#simplicitor-app-directions .sa-route[aria-pressed=true] .sa-route-check{color:#fff;background:var(--sa-button);border-color:var(--sa-button)}
+#simplicitor-app-directions .sa-step-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--sa-muted);margin:22px 0 17px}
+#simplicitor-app-directions .sa-step-strip>span:not(.sa-step-line){display:flex;align-items:center;gap:7px}
+#simplicitor-app-directions .sa-step-strip b{width:22px;height:22px;display:inline-grid;place-items:center;background:light-dark(#e2e9f2,#35485e);border-radius:50%;font-weight:400;font-size:11px}
+#simplicitor-app-directions .sa-step-strip .sa-current{color:var(--sa-accent);font-weight:600}
+#simplicitor-app-directions .sa-step-strip .sa-current b{color:#fff;background:var(--sa-button)}
+#simplicitor-app-directions .sa-step-line{width:35px;height:1px;background:var(--sa-line)}
+#simplicitor-app-directions .sa-write-layout{display:grid;grid-template-columns:1.65fr 1fr;gap:17px}
+#simplicitor-app-directions .sa-panel{background:var(--sa-panel);border:1px solid var(--sa-line);border-radius:8px;padding:21px;box-shadow:var(--sa-shadow);min-width:0}
+#simplicitor-app-directions .sa-panel h2{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600;line-height:1.4;margin:0 0 14px}
+#simplicitor-app-directions .sa-number{display:inline-grid;place-items:center;width:24px;height:24px;background:var(--sa-selected);color:var(--sa-accent);font-size:12px;font-weight:600;border-radius:6px;flex:none}
+#simplicitor-app-directions .sa-help{font-size:12px;color:var(--sa-muted);margin:0 0 13px}
+#simplicitor-app-directions textarea{display:block;width:100%;min-height:174px;resize:vertical;border:1px solid var(--sa-line);border-radius:6px;background:var(--sa-panel);color:var(--sa-ink);padding:14px;font-size:15px;line-height:1.65}
+#simplicitor-app-directions textarea:hover{border-color:var(--sa-accent)}
+#simplicitor-app-directions .sa-prompt-foot{font-size:11px;color:var(--sa-muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:14px}
+#simplicitor-app-directions .sa-format-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#simplicitor-app-directions .sa-format{position:relative;display:grid;grid-template-columns:26px 1fr;align-items:center;gap:0 7px;min-width:0;text-align:left;padding:10px 8px;border:1px solid var(--sa-line);border-radius:6px;background:var(--sa-panel)}
+#simplicitor-app-directions .sa-format>span:nth-child(2){font-size:14px;font-weight:600}
+#simplicitor-app-directions .sa-format small{grid-column:2;font-size:11px;color:var(--sa-muted)}
+#simplicitor-app-directions .sa-format[aria-pressed=true]{background:var(--sa-selected);border-color:var(--sa-accent);box-shadow:inset 0 0 0 1px var(--sa-accent)}
+#simplicitor-app-directions .sa-format:hover{border-color:var(--sa-accent);background:var(--sa-hover)}
+#simplicitor-app-directions .sa-file-icon{width:26px;height:30px;display:grid;place-items:center;font-size:13px;font-weight:600;border-radius:4px;grid-row:span 2;flex:none}
+#simplicitor-app-directions .sa-word{background:light-dark(#e4eeff,#243e64);color:light-dark(#1752b0,#bed8ff)}
+#simplicitor-app-directions .sa-pdf{background:light-dark(#ffe9eb,#522d39);color:light-dark(#b33149,#ffb3c0);font-size:11px}
+#simplicitor-app-directions .sa-excel{background:var(--sa-good-bg);color:var(--sa-good)}
+#simplicitor-app-directions .sa-powerpoint{background:light-dark(#ffeddf,#533929);color:light-dark(#ae4718,#ffc99e)}
+#simplicitor-app-directions .sa-folder{font-size:11px;color:var(--sa-muted);margin-top:19px}
+#simplicitor-app-directions .sa-folder>span{display:block;margin-bottom:7px}
+#simplicitor-app-directions .sa-folder-button{display:flex;align-items:center;gap:7px;min-height:40px;width:100%;text-align:left;border:1px solid var(--sa-line);background:var(--sa-panel);color:var(--sa-muted);border-radius:5px;padding:7px;font-size:11px}
+#simplicitor-app-directions .sa-folder-button>span{flex:1;overflow-wrap:anywhere}
+#simplicitor-app-directions .sa-folder-button>svg{width:14px;height:14px}
+#simplicitor-app-directions .sa-template-area{margin-top:14px}
+#simplicitor-app-directions .sa-template{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--sa-accent);border-radius:6px;background:var(--sa-selected);color:var(--sa-accent);padding:8px 12px;font-size:12px;min-height:38px}
+#simplicitor-app-directions .sa-template:hover{background:var(--sa-hover)}
+#simplicitor-app-directions .sa-template:active{background:light-dark(#c2d9ff,#3c5e86)}
+#simplicitor-app-directions .sa-template-select{width:100%;padding:8px;border:1px solid var(--sa-line);background:var(--sa-panel);color:var(--sa-ink);border-radius:5px;font-size:11px;margin-top:8px}
+#simplicitor-app-directions .sa-template-chosen{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:var(--sa-accent)}
+#simplicitor-app-directions .sa-template-chosen button{border:0;background:transparent;font-size:11px;text-decoration:underline;padding:5px}
+#simplicitor-app-directions .sa-action-row{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:19px}
+#simplicitor-app-directions .sa-action-row>span{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--sa-muted)}
+#simplicitor-app-directions .sa-action-row>span svg{width:15px;height:15px;color:var(--sa-accent)}
+#simplicitor-app-directions .sa-primary{display:inline-flex;align-items:center;justify-content:center;gap:18px;border:0;border-radius:6px;min-height:43px;padding:10px 20px;background:var(--sa-button);color:#fff;font-size:13px;font-weight:600}
+#simplicitor-app-directions .sa-primary:hover{background:#124fb8}
+#simplicitor-app-directions .sa-secondary{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;border:1px solid var(--sa-line);background:var(--sa-panel);border-radius:6px;color:var(--sa-muted);font-size:12px;padding:8px 12px}
+#simplicitor-app-directions .sa-secondary:hover{background:var(--sa-hover);color:var(--sa-accent);border-color:var(--sa-accent)}
+#simplicitor-app-directions .sa-statusbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:14px 27px;font-size:11px;color:var(--sa-muted);border-top:1px solid var(--sa-line);margin-top:auto;background:var(--sa-panel)}
+#simplicitor-app-directions .sa-statusbar>span:first-child{display:flex;align-items:center;gap:7px}
+#simplicitor-app-directions .sa-statusbar svg{width:14px;height:14px;color:var(--sa-accent)}
+#simplicitor-app-directions .sa-model{border-left:1px solid var(--sa-line);padding-left:15px}
+#simplicitor-app-directions .sa-azure{display:flex;flex-direction:column}
+#simplicitor-app-directions .sa-studio{--sa-bg:light-dark(#edf4fa,#172731);--sa-line:light-dark(#cad9e7,#4d6777);--sa-shadow:0 3px 14px light-dark(#244f7710,#0002);display:grid;grid-template-columns:170px minmax(0,1fr)}
+#simplicitor-app-directions .sa-sidebar{display:flex;flex-direction:column;border-right:1px solid var(--sa-line);background:var(--sa-panel);padding:25px 15px;gap:0}
+#simplicitor-app-directions .sa-sidebar .sa-brand{font-size:17px;gap:8px;letter-spacing:-.5px;align-items:center}
+#simplicitor-app-directions .sa-brand small{display:block;font-size:11px;color:var(--sa-muted);font-weight:400;letter-spacing:0;margin-top:3px}
+#simplicitor-app-directions .sa-sidebar-label{margin:43px 9px 12px;font-size:11px;letter-spacing:1px;color:var(--sa-muted)}
+#simplicitor-app-directions .sa-sidebar nav{display:flex;flex-direction:column;gap:7px}
+#simplicitor-app-directions .sa-sidebar .sa-mode{padding:11px 10px;gap:8px;font-size:13px;border-radius:9px}
+#simplicitor-app-directions .sa-sidebar .sa-mode[aria-pressed=true]{background:var(--sa-button);border-color:var(--sa-button);color:#fff}
+#simplicitor-app-directions .sa-sidebar-bottom{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding:35px 5px 0}
+#simplicitor-app-directions .sa-sidebar .sa-ready{font-size:11px}
+#simplicitor-app-directions .sa-sidebar-model{font-size:11px;color:var(--sa-muted);padding-left:14px}
+#simplicitor-app-directions .sa-sidebar .sa-settings{margin-top:13px;padding-left:0;gap:8px}
+#simplicitor-app-directions .sa-studio-main{display:flex;flex-direction:column;min-width:0}
+#simplicitor-app-directions .sa-studio-header{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:19px 27px;border-bottom:1px solid var(--sa-line);font-size:11px;letter-spacing:1px;color:var(--sa-muted);min-height:59px}
+#simplicitor-app-directions .sa-studio-header>span:last-child{display:flex;align-items:center;gap:6px;letter-spacing:0;color:var(--sa-good);font-size:11px}
+#simplicitor-app-directions .sa-studio-header svg{width:14px;height:14px}
+#simplicitor-app-directions .sa-studio .sa-content{padding:26px}
+#simplicitor-app-directions .sa-studio .sa-panel{border-radius:13px;padding:21px}
+#simplicitor-app-directions .sa-studio .sa-route{border-radius:11px;padding:13px 12px;gap:9px}
+#simplicitor-app-directions .sa-studio .sa-route strong{font-size:13px}
+#simplicitor-app-directions .sa-studio .sa-route small{font-size:11px}
+#simplicitor-app-directions .sa-studio .sa-route-icon{width:31px;height:34px}
+#simplicitor-app-directions .sa-studio .sa-route-check{width:15px;height:15px;font-size:11px}
+#simplicitor-app-directions .sa-studio .sa-write-layout{grid-template-columns:1fr;gap:14px}
+#simplicitor-app-directions .sa-studio .sa-describe{padding-bottom:15px}
+#simplicitor-app-directions .sa-studio textarea{min-height:119px;background:light-dark(#fbfdff,#243644)}
+#simplicitor-app-directions .sa-studio .sa-prompt-foot>span:last-child{display:none}
+#simplicitor-app-directions .sa-studio .sa-output{display:grid;grid-template-columns:1fr 1fr;gap:5px 21px}
+#simplicitor-app-directions .sa-studio .sa-output h2{grid-column:1/-1;margin-bottom:10px}
+#simplicitor-app-directions .sa-studio .sa-format-grid{gap:6px}
+#simplicitor-app-directions .sa-studio .sa-format{padding:6px;gap:0 5px;grid-template-columns:23px 1fr}
+#simplicitor-app-directions .sa-studio .sa-format>span:nth-child(2){font-size:12px}
+#simplicitor-app-directions .sa-studio .sa-format small{font-size:11px}
+#simplicitor-app-directions .sa-studio .sa-format .sa-file-icon{width:23px;height:27px;font-size:11px}
+#simplicitor-app-directions .sa-studio .sa-format .sa-pdf{font-size:8px}
+#simplicitor-app-directions .sa-studio .sa-folder{margin-top:0}
+#simplicitor-app-directions .sa-studio .sa-template-area{grid-column:1/-1;margin-top:7px}
+#simplicitor-app-directions .sa-studio .sa-action-row{margin-top:17px}
+#simplicitor-app-directions .sa-studio .sa-statusbar{background:transparent;font-size:11px;border-top:0;padding-top:0;padding-bottom:18px}
+#simplicitor-app-directions .sa-pull-layout{display:grid;grid-template-columns:1.05fr 1fr;gap:17px}
+#simplicitor-app-directions .sa-pull-layout textarea{min-height:155px}
+#simplicitor-app-directions .sa-bottom-help{font-size:11px;color:var(--sa-muted);margin:12px 0 0}
+#simplicitor-app-directions .sa-drop-hint{display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--sa-muted);padding:13px;background:var(--sa-hover);border:1px dashed var(--sa-line);border-radius:6px;margin-bottom:8px}
+#simplicitor-app-directions .sa-source-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--sa-line)}
+#simplicitor-app-directions .sa-source-name{font-size:11px;flex:1;min-width:0}
+#simplicitor-app-directions .sa-source-name small{display:block;font-size:11px;color:var(--sa-muted);margin-top:3px}
+#simplicitor-app-directions .sa-file-ready,#simplicitor-app-directions .sa-file-partial{font-size:11px;padding:3px 6px;border-radius:4px;white-space:nowrap}
+#simplicitor-app-directions .sa-file-ready{background:var(--sa-good-bg);color:var(--sa-good)}
+#simplicitor-app-directions .sa-file-partial{background:var(--sa-warn-bg);color:var(--sa-warn)}
+#simplicitor-app-directions .sa-remove{border:0;background:transparent;color:var(--sa-muted);font-size:18px;padding:1px 4px}
+#simplicitor-app-directions .sa-browse{margin-top:11px;font-size:11px;min-height:34px}
+#simplicitor-app-directions .sa-reading-warning{display:flex;align-items:flex-start;gap:10px;padding:13px 15px;background:var(--sa-warn-bg);color:var(--sa-warn);border:1px solid light-dark(#e3c986,#867342);border-radius:7px;margin-top:16px;font-size:11px}
+#simplicitor-app-directions .sa-reading-warning svg{width:16px;height:16px;margin-top:1px}
+#simplicitor-app-directions .sa-reading-warning strong{font-weight:600}
+#simplicitor-app-directions .sa-reading-warning p{font-size:11px;margin:5px 0 0}
+#simplicitor-app-directions .sa-edit-steps{gap:23px;margin-block:20px}
+#simplicitor-app-directions .sa-working-file{display:flex;align-items:center;gap:10px;background:var(--sa-panel);padding:13px 15px;border:1px solid var(--sa-line);border-radius:7px;margin-bottom:18px}
+#simplicitor-app-directions .sa-working-file>div{flex:1}
+#simplicitor-app-directions .sa-working-file strong{display:block;font-size:13px;font-weight:600}
+#simplicitor-app-directions .sa-working-file>div>span{display:block;font-size:11px;color:var(--sa-muted);margin-top:4px}
+#simplicitor-app-directions .sa-working-file button{font-size:11px}
+#simplicitor-app-directions .sa-comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#simplicitor-app-directions .sa-comparison h3{font-size:12px;font-weight:600;margin:0 0 9px;color:var(--sa-muted)}
+#simplicitor-app-directions .sa-document-sample{border:1px solid var(--sa-line);border-radius:6px;min-height:214px;padding:19px 17px;background:var(--sa-panel)}
+#simplicitor-app-directions .sa-document-sample>span{font-size:11px;color:var(--sa-muted);letter-spacing:1px}
+#simplicitor-app-directions .sa-document-sample p{font-size:14px;line-height:1.8;margin:17px 0}
+#simplicitor-app-directions del{background:var(--sa-red-bg);color:var(--sa-red);text-decoration-thickness:1px}
+#simplicitor-app-directions mark{background:var(--sa-good-bg);color:var(--sa-good);padding:1px 3px}
+#simplicitor-app-directions .sa-review-help{font-size:11px;color:var(--sa-muted);margin:16px 0}
+#simplicitor-app-directions .sa-review-actions{display:flex;gap:8px;flex-wrap:wrap}
+#simplicitor-app-directions .sa-unchanged-note{display:flex;gap:7px;align-items:center;font-size:11px;color:var(--sa-good);padding:16px 0 0}
+#simplicitor-app-directions .sa-toast{position:absolute;bottom:55px;left:25px;right:25px;padding:13px 16px;background:var(--sa-ink);color:var(--sa-panel);font-size:12px;border-radius:7px;box-shadow:0 4px 15px #0002;z-index:3}
+#simplicitor-app-directions .sa-sr-only{display:block;font-size:0;color:transparent}
+#simplicitor-app-directions .sa-sr-only textarea{font-size:15px;color:var(--sa-ink)}
+@media(max-width:800px){#simplicitor-app-directions .sa-studio{grid-template-columns:140px minmax(0,1fr)}#simplicitor-app-directions .sa-sidebar{padding-inline:10px}#simplicitor-app-directions .sa-sidebar .sa-brand{font-size:14px}#simplicitor-app-directions .sa-sidebar .sa-brand img{width:28px;height:28px}#simplicitor-app-directions .sa-studio .sa-route{padding:11px}#simplicitor-app-directions .sa-studio .sa-route-icon{display:none}#simplicitor-app-directions .sa-content,#simplicitor-app-directions .sa-studio .sa-content{padding:23px 20px}#simplicitor-app-directions .sa-page-heading .sa-local-tag{display:none}#simplicitor-app-directions .sa-azure .sa-write-layout{grid-template-columns:1.35fr 1fr}#simplicitor-app-directions .sa-panel{padding:17px}#simplicitor-app-directions .sa-format-grid{grid-template-columns:1fr}#simplicitor-app-directions .sa-studio .sa-format-grid{grid-template-columns:1fr 1fr}#simplicitor-app-directions .sa-header-note{font-size:11px}#simplicitor-app-directions .sa-working-file{flex-wrap:wrap}#simplicitor-app-directions .sa-pull-layout{grid-template-columns:1fr}}
+@media(max-width:600px){#simplicitor-app-directions>section{min-height:1240px}#simplicitor-app-directions .sa-app{min-height:1200px}#simplicitor-app-directions .sa-blue-header{padding:15px 17px;flex-wrap:wrap;gap:8px}#simplicitor-app-directions .sa-header-note{font-size:11px}#simplicitor-app-directions .sa-desktop-toolbar{padding:9px 12px;flex-wrap:wrap;gap:8px}#simplicitor-app-directions .sa-toolbar-right{justify-content:space-between;width:100%}#simplicitor-app-directions .sa-mode{padding:9px 10px;font-size:12px}#simplicitor-app-directions .sa-routes{grid-template-columns:1fr}#simplicitor-app-directions .sa-route{padding:13px}#simplicitor-app-directions .sa-write-layout,#simplicitor-app-directions .sa-azure .sa-write-layout{grid-template-columns:1fr}#simplicitor-app-directions .sa-format-grid{grid-template-columns:1fr 1fr}#simplicitor-app-directions .sa-action-row{align-items:flex-start;flex-direction:column}#simplicitor-app-directions .sa-action-row>.sa-primary{width:100%}#simplicitor-app-directions .sa-content,#simplicitor-app-directions .sa-studio .sa-content{padding:22px 15px}#simplicitor-app-directions .sa-studio{display:flex;flex-direction:column}#simplicitor-app-directions .sa-sidebar{padding:15px;gap:14px;border-right:0;border-bottom:1px solid var(--sa-line)}#simplicitor-app-directions .sa-sidebar .sa-brand{font-size:19px}#simplicitor-app-directions .sa-sidebar nav{flex-direction:row;flex-wrap:wrap}#simplicitor-app-directions .sa-sidebar-label{display:none}#simplicitor-app-directions .sa-sidebar-bottom{margin:0;padding:0;flex-direction:row;align-items:center;flex-wrap:wrap;gap:15px}#simplicitor-app-directions .sa-sidebar-model{padding:0}#simplicitor-app-directions .sa-sidebar .sa-settings{margin:0;padding:5px}#simplicitor-app-directions .sa-studio-header{padding:12px 15px;gap:6px}#simplicitor-app-directions .sa-studio .sa-output{grid-template-columns:1fr}#simplicitor-app-directions .sa-studio .sa-output h2{grid-column:auto}#simplicitor-app-directions .sa-studio .sa-folder{margin-top:10px}#simplicitor-app-directions .sa-studio .sa-template-area{grid-column:auto}#simplicitor-app-directions .sa-comparison{grid-template-columns:1fr}#simplicitor-app-directions .sa-document-sample{min-height:175px}#simplicitor-app-directions .sa-working-file button{width:100%}#simplicitor-app-directions .sa-step-strip{gap:10px;font-size:11px}#simplicitor-app-directions .sa-step-line{width:15px}#simplicitor-app-directions .sa-route small{font-size:11px}#simplicitor-app-directions .sa-reading-warning{font-size:11px}#simplicitor-app-directions .sa-review-actions>.sa-primary{width:100%}}
+@media(pointer:coarse){#simplicitor-app-directions button{min-height:44px}#simplicitor-app-directions textarea,#simplicitor-app-directions select{font-size:16px}}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('simplicitor-app-directions');
+  const template = document.getElementById('sa-workspace-template');
+  const apps = Array.from(root.querySelectorAll('.sa-app'));
+  apps.forEach(app => {
+    app.querySelector('[data-content]').appendChild(template.content.cloneNode(true));
+    const note = app.querySelector('.sa-toast');
+    function showNote(message) {
+      note.textContent = message;
+      note.hidden = false;
+    }
+    function setMode(mode) {
+      app.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+      app.querySelectorAll('[data-page]').forEach(page => { page.hidden = page.dataset.page !== mode; });
+      note.hidden = true;
+    }
+    app.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
+    app.querySelectorAll('[data-route]').forEach(button => button.addEventListener('click', () => {
+      app.querySelectorAll('[data-route]').forEach(route => route.setAttribute('aria-pressed', String(route === button)));
+      app.querySelectorAll('[data-view]').forEach(view => { view.hidden = view.dataset.view !== button.dataset.route; });
+      note.hidden = true;
+    }));
+    const templateArea = app.querySelector('.sa-template-area');
+    const templateSelect = app.querySelector('.sa-template-select');
+    const templateChosen = app.querySelector('.sa-template-chosen');
+    const templateButton = app.querySelector('[data-template]');
+    function clearTemplate() {
+      templateSelect.value = '';
+      templateSelect.hidden = true;
+      templateChosen.hidden = true;
+      templateButton.hidden = false;
+    }
+    app.querySelectorAll('[data-format]').forEach(button => button.addEventListener('click', () => {
+      app.querySelectorAll('[data-format]').forEach(format => format.setAttribute('aria-pressed', String(format === button)));
+      templateArea.hidden = button.dataset.format !== 'PowerPoint';
+      if (templateArea.hidden) clearTemplate();
+      app.querySelector('.sa-create-action').textContent = `Create ${button.dataset.format} file →`;
+      note.hidden = true;
+    }));
+    templateButton.addEventListener('click', () => { templateSelect.hidden = !templateSelect.hidden; });
+    templateSelect.addEventListener('change', () => {
+      if (!templateSelect.value) return;
+      templateChosen.querySelector('span').textContent = 'Template: ' + templateSelect.value;
+      templateChosen.hidden = false;
+      templateSelect.hidden = true;
+      templateButton.hidden = true;
+    });
+    app.querySelector('[data-clear-template]').addEventListener('click', clearTemplate);
+    app.querySelectorAll('[data-preview-note]').forEach(button => button.addEventListener('click', () => showNote(button.dataset.previewNote)));
+    app.querySelector('[data-settings]').addEventListener('click', () => showNote('Settings keeps the existing model and folder choices. This is a visual concept; no settings are changed.'));
+    app.querySelectorAll('[data-remove-source]').forEach(button => button.addEventListener('click', () => showNote('This is a synthetic reading-state example. No file is attached or removed.')));
+    setMode('create');
+  });
+  if (globalThis.lucide) lucide.createIcons({ attrs: { width: 17, height: 17 } });
+})();
+</script>
+
+</body>
+</html>
