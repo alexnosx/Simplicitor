@@ -116,6 +116,8 @@ class EditWorker(QObject):
         candidate = build_candidate(opened, first, last, proposal)
         before = reading_view.paragraphs(opened.data, first, last - first + 1)
         after = reading_view.paragraphs(candidate.data, first, candidate.after_count)
+        candidate = reading_view.with_review_deletions(
+            candidate, before, after, tuple(p.source for p in proposal.paragraphs))
         if self._cancel.is_set():
             raise EditCancelled()
         self.proposed.emit(candidate, before, after)

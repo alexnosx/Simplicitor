@@ -1,9 +1,12 @@
 """EditWorker runs the real open/propose/save route and emits one terminal signal."""
 import json
+import threading
 
 import pytest
+from PySide6.QtCore import QThread, Qt
 
 from app.workers.edit_worker import EditSetup, EditWorker
+from editing import reading_view
 from editing.package import open_document
 from tests.editing.docx_builder import build_docx, p
 
@@ -103,3 +106,65 @@ def test_unreadable_destination_reaches_the_save_outcome(qtbot, source, tmp_path
     saver = EditWorker("save", EditSetup(candidate=candidate, destination=tmp_path / "x.docx"))
     message, outcome = _run(qtbot, saver, saver.failed)
     assert outcome == "destination" and message.startswith("The file you chose cannot be read")
+
+
+def test_proposal_includes_removed_text_without_changing_the_saved_content(qtbot, source):
+    opened = open_document(source)
+    worker = EditWorker("propose", EditSetup(opened=opened, first=0, last=1,
+                                             instruction="Keep only the final paragraph.",
+                                             model="synthetic"), Client("Keep this."))
+    candidate, before, after = _run(qtbot, worker, worker.proposed)
+    assert candidate.before_deletions == (((0, 15),), ())
+    assert candidate.removed_paragraphs == 1
+    assert [p.text for p in before] == ["Pay in 30 days.", "Keep this."]
+    assert [p.text for p in after] == ["Keep this."]
+    assert source.read_bytes() == opened.data
+
+
+def test_review_comparison_runs_on_the_edit_worker_thread(qtbot, qapp, source, monkeypatch):
+    observed_threads = []
+    original = reading_view.review_deletions
+
+    def observe(*args):
+        observed_threads.append(threading.get_ident())
+        return original(*args)
+
+    monkeypatch.setattr(reading_view, "review_deletions", observe)
+    worker = EditWorker("propose", EditSetup(opened=open_document(source), first=0, last=0,
+                                             instruction="Use 45 days.", model="synthetic"), Client())
+    thread = QThread()
+    worker.moveToThread(thread)
+    thread.started.connect(worker.run)
+    worker.finished.connect(thread.quit, Qt.ConnectionType.DirectConnection)
+    thread.finished.connect(worker.deleteLater)
+    results, errors = [], []
+    worker.proposed.connect(lambda *args: results.append(args), Qt.ConnectionType.DirectConnection)
+    worker.failed.connect(lambda *args: errors.append(args), Qt.ConnectionType.DirectConnection)
+    thread.start()
+    qtbot.waitUntil(lambda: thread.wait(0), timeout=5000)
+    assert not errors and len(results) == 1
+    assert len(observed_threads) == 1
+    assert observed_threads[0] != threading.get_ident()
+    assert results[0][0].before_deletions == (((7, 9),),)
+
+
+@pytest.mark.parametrize("first", [0, 1])
+def test_duplicate_paragraph_removal_matches_the_source_whose_formatting_is_retained(
+        qtbot, tmp_path, first):
+    path = tmp_path / "repeated.docx"
+    body = p("Outside.") * first
+    body += p("Same.", rpr="<w:b/>") + p("Same.", rpr="<w:i/>") + p("Tail.")
+    path.write_bytes(build_docx(body))
+
+    class RepeatedClient:
+        def generate(self, *args, **kwargs):
+            return json.dumps({"paragraphs": ["Same.", "Tail."]})
+
+    worker = EditWorker("propose", EditSetup(opened=open_document(path), first=first,
+                                             last=first + 2, instruction="Remove one copy.",
+                                             model="synthetic"), RepeatedClient())
+    candidate, before, after = _run(qtbot, worker, worker.proposed)
+    assert before[0].spans[0].bold and before[1].spans[0].italic
+    assert after[0].spans[0].bold and not after[0].spans[0].italic
+    assert candidate.before_deletions == ((), ((0, 5),), ())
+    assert candidate.removed_paragraphs == 1

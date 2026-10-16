@@ -1,13 +1,15 @@
 """Limited display of a Word document: style, effective bold/italic, lists, tables, headers."""
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from difflib import SequenceMatcher
 import io
+import re
 
 from docx import Document
 from docx.oxml.ns import qn
 from docx.text.hyperlink import Hyperlink
 from docx.text.paragraph import Paragraph
 
-from editing.models import OpenedDocument
+from editing.models import EditCandidate, OpenedDocument
 
 _ON = {"true", "1", "on"}
 
@@ -34,6 +36,74 @@ class DisplayBlock:
     @property
     def text(self) -> str:
         return "".join(s.text for s in self.spans)
+
+
+@dataclass(frozen=True)
+class DeletionReview:
+    """Display-only removed text ranges per Before paragraph and removed/merged count."""
+    ranges: tuple[tuple[tuple[int, int], ...], ...]
+    removed_paragraphs: int
+
+
+def review_deletions(before: list[str], after: list[str],
+                     sources: tuple[int, ...] | None = None) -> DeletionReview:
+    """Compare the whole selection, preserving words carried across paragraph boundaries.
+
+    Virtual spaces make a split or merge equivalent to an ordinary space for the word diff.
+    Paragraph matching counts removals separately; it does not judge the model's meaning.
+    Validated proposal sources disambiguate identical paragraphs with different formatting.
+    Ranges refer to the original strings, never to modified document bytes.
+    """
+    def tokens(paragraphs):
+        values, positions = [], []
+        for row, text in enumerate(paragraphs):
+            if row:
+                values.append(" ")
+                positions.append(None)
+            for match in re.finditer(r"\w+|\s+|[^\w\s]", text):
+                values.append(match.group())
+                positions.append((row, match.start(), match.end()))
+        return values, positions
+
+    ranges: list[list[tuple[int, int]]] = [[] for _ in before]
+    removed = 0
+    old_keys = list(enumerate(before)) if sources is not None else before
+    new_keys = list(zip(sources, after)) if sources is not None else after
+    paragraphs = SequenceMatcher(None, old_keys, new_keys, autojunk=False)
+    for operation, a1, a2, b1, b2 in paragraphs.get_opcodes():
+        if operation in ("equal", "insert"):
+            continue
+        removed += max(0, (a2 - a1) - (b2 - b1))
+        if operation == "delete":
+            for row in range(a1, a2):
+                if before[row]:
+                    ranges[row].append((0, len(before[row])))
+            continue
+        old, positions = tokens(before[a1:a2])
+        new, _ = tokens(after[b1:b2])
+        words = SequenceMatcher(None, old, new, autojunk=False)
+        for word_operation, first, last, _, _ in words.get_opcodes():
+            if word_operation not in ("delete", "replace"):
+                continue
+            for position in positions[first:last]:
+                if position is None:
+                    continue
+                row, start, end = position
+                row += a1
+                if ranges[row] and ranges[row][-1][1] == start:
+                    ranges[row][-1] = (ranges[row][-1][0], end)
+                else:
+                    ranges[row].append((start, end))
+    return DeletionReview(tuple(tuple(row) for row in ranges), removed)
+
+
+def with_review_deletions(candidate: EditCandidate, before: tuple[DisplayBlock, ...],
+                         after: tuple[DisplayBlock, ...],
+                         sources: tuple[int, ...] | None = None) -> EditCandidate:
+    """Attach display markers off the GUI thread, preserving the verified document bytes."""
+    deleted = review_deletions([b.text for b in before], [b.text for b in after], sources)
+    return replace(candidate, before_deletions=deleted.ranges,
+                   removed_paragraphs=deleted.removed_paragraphs)
 
 
 def _on_off(rpr, tag: str) -> bool | None:

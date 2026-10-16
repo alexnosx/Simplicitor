@@ -1120,6 +1120,9 @@ requirements.txt
 
 - class Span
 - class DisplayBlock: kind: paragraph, table, other, header or footer. index is the body paragraph index.
+- class DeletionReview: Display-only removed text ranges per Before paragraph and removed/merged count.
+- def review_deletions(before: list[str], after: list[str], sources: tuple[int, ...] | None=None) -> DeletionReview: Compare the whole selection, preserving words carried across paragraph boundaries.
+- def with_review_deletions(candidate: EditCandidate, before: tuple[DisplayBlock, ...], after: tuple[DisplayBlock, ...], sources: tuple[int, ...] | None=None) -> EditCandidate: Attach display markers off the GUI thread, preserving the verified document bytes.
 - def _on_off(rpr, tag: str) -> bool | None: Direct on/off value of w:<tag> in an rPr element, or None when it is not set.
 - def _chain(style, tag: str) -> bool | None: Nearest value in a style's basedOn chain (ordinary inheritance), or None.
 - def _effective(run, paragraph, defaults, tag: str) -> bool: Direct value wins; else paragraph-style XOR character-style value; else defaults.
@@ -1427,6 +1430,8 @@ requirements.txt
 - def test_word_fixture_view_has_headings_lists_table_and_read_only_reasons()
 - def test_review_blocks_come_from_candidate_bytes()
 - def test_nested_and_header_tables_are_shown_read_only(tmp_path)
+- def test_review_deletions_mark_only_original_text_missing_from_the_proposal(before, after, ranges, removed)
+- def test_review_deletions_do_not_mark_every_copy_of_a_repeated_paragraph()
 
 ### tests/editing/test_save.py
 
@@ -2014,6 +2019,13 @@ requirements.txt
 - def test_review_shows_before_after_highlight_and_track_changes_notice(screen, qtbot)
 - def test_try_again_keeps_description_and_increments_attempt(screen, qtbot)
 - def test_cancel_review_keeps_selection(screen, qtbot)
+- def _show_deletion_review(screen): Keep one selected paragraph after an insertion and drop the other, without a model.
+- def test_review_calls_out_a_removed_paragraph_and_keeps_the_proposal_unchanged(screen)
+- def test_before_marks_removed_words_red_without_losing_bold_or_italic(screen)
+- def test_review_of_a_small_replacement_has_no_removed_paragraph_notice(screen, qtbot)
+- def test_review_insertions_clear_old_deletion_markers_and_notice(screen)
+- def test_review_of_merged_paragraphs_keeps_their_retained_words_unmarked(screen)
+- def test_reset_clears_before_deletions_and_the_review_notice(screen)
 - def test_save_as_cancel_keeps_the_candidate(screen, qtbot, monkeypatch)
 - def test_save_outcomes_retry_destination_original_failed(screen, qtbot, outcome)
 - def test_saved_page_has_only_open_another_document(screen, qtbot)
@@ -2038,6 +2050,9 @@ requirements.txt
 - def test_long_selection_is_refused(qtbot, tmp_path)
 - def test_cancel_during_request_discards_the_reply(qtbot, source)
 - def test_unreadable_destination_reaches_the_save_outcome(qtbot, source, tmp_path, monkeypatch)
+- def test_proposal_includes_removed_text_without_changing_the_saved_content(qtbot, source)
+- def test_review_comparison_runs_on_the_edit_worker_thread(qtbot, qapp, source, monkeypatch)
+- def test_duplicate_paragraph_removal_matches_the_source_whose_formatting_is_retained(qtbot, tmp_path, first)
 
 ### tests/test_extraction_worker.py
 
@@ -2481,7 +2496,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 131 lines
+- CHANGELOG.md: md, 136 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
@@ -2583,9 +2598,9 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 169 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 171 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 85 lines
-- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 323 lines
+- docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 327 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines

@@ -63,6 +63,8 @@ EDIT_MAX_SELECTION_CHARS = 6000
 EDIT_MAX_INSTRUCTION_CHARS = 2000
 EDIT_EXTRA_OUTPUT_PARAGRAPHS = 20
 EDIT_TEMPERATURE = 0.3
+EDIT_REMOVED_BG_COLOR = "#FEE2E2"
+EDIT_REMOVED_TEXT_COLOR = "#991B1B"
 
 # ── PowerPoint layout indices (standard Blank template) ──────────────────────
 PPTX_LAYOUT_TITLE_SLIDE = 0       # "Title Slide" layout

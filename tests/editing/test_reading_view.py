@@ -98,3 +98,33 @@ def test_nested_and_header_tables_are_shown_read_only(tmp_path):
     assert "Nested visible text" in table.cells[0][0] and table.reason
     headers = [b.text for b in view if b.kind == "header"]
     assert any("Header table text" in h for h in headers) and "First page header" in headers
+
+
+@pytest.mark.parametrize("before, after, ranges, removed", [
+    (["Pay in 30 days."], ["Pay in 45 days."], (((7, 9),),), 0),
+    (["Alpha clause."], ["New Alpha clause."], ((),), 0),
+    (["Keep this.", "Drop this."], ["New introduction.", "Keep this."],
+     ((), ((0, 10),)), 1),
+    (["One.", "Two.", "Three."], ["One.", "Three."], ((), ((0, 4),), ()), 1),
+    (["Alpha.", "Beta."], ["Alpha. Beta."], ((), ()), 1),
+    (["Alpha. Beta."], ["Alpha.", "Beta."], ((),), 0),
+    (["Same."], ["Same."], ((),), 0),
+    (["Keep.", ""], ["Keep."], ((), ()), 1),
+    (["😀 Pay 30 days."], ["😀 Pay 45 days."], (((6, 8),),), 0),
+    (["A\t30\nB"], ["A\t45\nB"], (((2, 4),),), 0),
+    (["Old text."], ["New words."], (((0, 3), (4, 8)),), 0),
+])
+def test_review_deletions_mark_only_original_text_missing_from_the_proposal(
+        before, after, ranges, removed):
+    result = reading_view.review_deletions(before, after)
+    assert result.ranges == ranges
+    assert result.removed_paragraphs == removed
+
+
+def test_review_deletions_do_not_mark_every_copy_of_a_repeated_paragraph():
+    before = ["Same.", "Same.", "Tail."]
+    result = reading_view.review_deletions(before, ["Same.", "Tail."])
+    deleted = [text[start:end] for text, ranges in zip(before, result.ranges)
+               for start, end in ranges]
+    assert deleted == ["Same."]
+    assert result.removed_paragraphs == 1

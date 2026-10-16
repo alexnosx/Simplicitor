@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Show removed or replaced words in pale red with a strike-through in Word Review's Before pane, with a notice for original paragraphs removed or merged. Keep After's green highlights and the existing acceptance/Save As flow.
+- Prepare these display-only markers in the editing worker so long comparisons do not stall the window. Preserve candidate document bytes, original files, model settings and the editing/saving engines.
+
 ## v2.3.2, 2026-10-15
 
 Published as [v2.3.2](https://github.com/alexnosx/Simplicitor/releases/tag/v2.3.2) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.3.2.json](docs/releases/v2.3.2.json).

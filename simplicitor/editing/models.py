@@ -92,3 +92,6 @@ class EditCandidate:
     last: int
     after_count: int
     highlights: tuple[tuple[tuple[int, int], ...], ...]
+    # Display-only metadata, prepared by the worker; never written into the DOCX.
+    before_deletions: tuple[tuple[tuple[int, int], ...], ...] = ()
+    removed_paragraphs: int = 0

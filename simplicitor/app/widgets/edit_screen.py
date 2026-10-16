@@ -10,7 +10,8 @@ from PySide6.QtWidgets import (
 
 from app.config.defaults import (
     BODY_TEXT_COLOR, BORDER_COLOR, CHOICE_SELECTED_COLOR, EDIT_MAX_INSTRUCTION_CHARS,
-    EDIT_MAX_SELECTION_CHARS, FONT_SIZE_BODY_PT, PRIMARY_ACCENT_COLOR,
+    EDIT_MAX_SELECTION_CHARS, EDIT_REMOVED_BG_COLOR, EDIT_REMOVED_TEXT_COLOR,
+    FONT_SIZE_BODY_PT, PRIMARY_ACCENT_COLOR,
 )
 from app.config.styles import input_styles
 from app.widgets.step_indicator import StepIndicator
@@ -35,6 +36,7 @@ class DocumentModel(QAbstractListModel):
         super().__init__(parent)
         self.blocks = ()
         self.highlights = ()
+        self.deletions = ()
         self.selected = set()
 
     def rowCount(self, parent=QModelIndex()) -> int:
@@ -52,9 +54,10 @@ class DocumentModel(QAbstractListModel):
             return _reason(block)
         return None
 
-    def set_blocks(self, blocks, highlights=()) -> None:
+    def set_blocks(self, blocks, highlights=(), deletions=()) -> None:
         self.beginResetModel()
         self.blocks, self.highlights, self.selected = tuple(blocks), tuple(highlights), set()
+        self.deletions = tuple(deletions)
         self.endResetModel()
 
     def select_range(self, selection) -> None:
@@ -74,7 +77,7 @@ class DocumentDelegate(QStyledItemDelegate):
         return ""
 
     @staticmethod
-    def text_formats(block: DisplayBlock, highlights=()) -> list:
+    def text_formats(block: DisplayBlock, highlights=(), deletions=()) -> list:
         """Combine span formatting and Python-indexed highlights into Qt UTF-16 ranges."""
         text = block.text
         prefix = "• " if block.list_item else ""
@@ -85,7 +88,7 @@ class DocumentDelegate(QStyledItemDelegate):
             spans.append((offset, end, span))
             edges.update((offset, end))
             offset = end
-        for start, end in highlights:
+        for start, end in (*highlights, *deletions):
             edges.update((start, end))
         result = []
         points = sorted(edges)
@@ -99,6 +102,10 @@ class DocumentDelegate(QStyledItemDelegate):
                 fmt.setFontItalic(span.italic)
             if any(a <= start < b for a, b in highlights):
                 fmt.setBackground(QColor("#DCFCE7"))
+            if any(a <= start < b for a, b in deletions):
+                fmt.setBackground(QColor(EDIT_REMOVED_BG_COLOR))
+                fmt.setForeground(QColor(EDIT_REMOVED_TEXT_COLOR))
+                fmt.setFontStrikeOut(True)
             item = QTextLayout.FormatRange()
             item.start = len((prefix + text[:start]).encode("utf-16-le")) // 2
             item.length = len(text[start:end].encode("utf-16-le")) // 2
@@ -106,7 +113,7 @@ class DocumentDelegate(QStyledItemDelegate):
             result.append(item)
         return result
 
-    def make_layout(self, block: DisplayBlock, highlights, width: int) -> QTextLayout:
+    def make_layout(self, block: DisplayBlock, highlights, width: int, deletions=()) -> QTextLayout:
         font = QFont(self.parent().font())
         font.setPointSize(FONT_SIZE_BODY_PT + (max(1, 5 - block.heading) if block.heading else 0))
         if block.heading:
@@ -118,7 +125,7 @@ class DocumentDelegate(QStyledItemDelegate):
         option = QTextOption()
         option.setWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
         layout.setTextOption(option)
-        formats = self.text_formats(block, highlights)
+        formats = self.text_formats(block, highlights, deletions)
         # Headings are a controlled display size/weight, not the document's rich text.
         if block.heading:
             for item in formats:
@@ -136,7 +143,7 @@ class DocumentDelegate(QStyledItemDelegate):
         layout.endLayout()
         return layout
 
-    def _height(self, block, highlights, width) -> int:
+    def _height(self, block, highlights, width, deletions=()) -> int:
         label = 24 if self.row_label(block) else 0
         if block.kind == "table":
             columns = max((len(row) for row in block.cells), default=1)
@@ -145,19 +152,21 @@ class DocumentDelegate(QStyledItemDelegate):
             return label + 16 + sum(max((self.make_layout(
                 DisplayBlock("paragraph", spans=(Span(cell),)), (), cell_width).boundingRect().height()
                 + 16 for cell in row), default=32) for row in block.cells)
-        layout = self.make_layout(block, highlights, width - 32)
+        layout = self.make_layout(block, highlights, width - 32, deletions)
         return label + max(24, int(layout.boundingRect().height())) + 24
 
     def sizeHint(self, option, index) -> QSize:
         model = index.model()
         width = self.parent().viewport().width()
         highlights = model.highlights[index.row()] if index.row() < len(model.highlights) else ()
-        return QSize(width, self._height(model.blocks[index.row()], highlights, width))
+        deletions = model.deletions[index.row()] if index.row() < len(model.deletions) else ()
+        return QSize(width, self._height(model.blocks[index.row()], highlights, width, deletions))
 
     def paint(self, painter: QPainter, option, index) -> None:
         model, row = index.model(), index.row()
         block = model.blocks[row]
         highlights = model.highlights[row] if row < len(model.highlights) else ()
+        deletions = model.deletions[row] if row < len(model.deletions) else ()
         rect = option.rect.adjusted(4, 3, -4, -3)
         readonly = block.reason or block.kind != "paragraph"
         selected = block.index in model.selected and block.kind == "paragraph"
@@ -188,7 +197,8 @@ class DocumentDelegate(QStyledItemDelegate):
                     layout.draw(painter, QPointF(x + col * cell_width + 8, y + 8))
                 y += height
         else:
-            self.make_layout(block, highlights, rect.width() - 24).draw(painter, QPointF(x, y))
+            self.make_layout(block, highlights, rect.width() - 24, deletions).draw(
+                painter, QPointF(x, y))
         painter.restore()
 
 
@@ -212,8 +222,8 @@ class DocumentView(QListView):
         self.setStyleSheet(f"QListView {{ background: white; border: 1px solid {BORDER_COLOR}; }}"
                           f"QListView:focus {{ border: 1px solid {PRIMARY_ACCENT_COLOR}; }}")
 
-    def set_blocks(self, blocks, highlights=()) -> None:
-        self.model().set_blocks(blocks, highlights)
+    def set_blocks(self, blocks, highlights=(), deletions=()) -> None:
+        self.model().set_blocks(blocks, highlights, deletions)
 
     def activate_row(self, row: int, shift: bool = False) -> None:
         if not self.interactive or not 0 <= row < len(self.model().blocks):
@@ -432,6 +442,11 @@ class EditScreen(QWidget):
         describe.addWidget(scope, 2)
         describe.addWidget(instruction, 1)
         self._review_page, reviewing = self._card("4. Review the selected part")
+        self._deletion_notice = self._label("")
+        self._deletion_notice.setStyleSheet(
+            f"padding: 10px; background: {EDIT_REMOVED_BG_COLOR}; color: {EDIT_REMOVED_TEXT_COLOR};")
+        self._deletion_notice.hide()
+        reviewing.addWidget(self._deletion_notice)
         comparison = QHBoxLayout()
         self._before = DocumentView()
         self._after = DocumentView()
@@ -638,8 +653,18 @@ class EditScreen(QWidget):
     def show_proposal(self, candidate, before, after) -> None:
         """Display only the selected before/after blocks and verified change highlights."""
         self._candidate = candidate
-        self._before.set_blocks(before)
+        self._before.set_blocks(before, deletions=candidate.before_deletions)
         self._after.set_blocks(after, candidate.highlights)
+        notices = []
+        if candidate.removed_paragraphs:
+            count = candidate.removed_paragraphs
+            notices.append(f"{count} original paragraph{'s' if count != 1 else ''} removed or merged.")
+        if any(candidate.before_deletions):
+            notices.append("Removed or replaced text is red and crossed out in Before.")
+        elif candidate.removed_paragraphs:
+            notices.append("Check Before and After.")
+        self._deletion_notice.setText(" ".join(notices))
+        self._deletion_notice.setVisible(bool(notices))
         self._track_notice.setVisible(bool(self._opened and self._opened.track_changes_on))
         self._error.hide()
         self._show(self._review_page)
@@ -727,5 +752,7 @@ class EditScreen(QWidget):
         self._error.hide()
         self._close_status.hide()
         self._track_notice.hide()
+        self._deletion_notice.clear()
+        self._deletion_notice.hide()
         self._show(self._open_page)
         self.set_model_ready(self._model_ready)

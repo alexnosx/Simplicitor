@@ -195,8 +195,11 @@ def main(out: Path) -> None:
     edit._description.setPlainText("Change the payment period from 30 days to 45 days.")
     proposal = Proposal((ProposedParagraph(0, "Invoices are payable within 45 days of receipt."),))
     edited = build_candidate(opened, first, first, proposal)
-    edit.show_proposal(edited, reading_view.paragraphs(opened.data, first, 1),
-                       reading_view.paragraphs(edited.data, first, edited.after_count))
+    before = reading_view.paragraphs(opened.data, first, 1)
+    after = reading_view.paragraphs(edited.data, first, edited.after_count)
+    reviewed = reading_view.with_review_deletions(
+        edited, before, after, tuple(p.source for p in proposal.paragraphs))
+    edit.show_proposal(reviewed, before, after)
     shot("5c-edit-review.png")
     edit.show_saved(PROFILE / "service-outline (edited).docx")
     shot("5d-edit-saved.png")

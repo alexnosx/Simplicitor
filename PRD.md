@@ -55,7 +55,7 @@ Refuse password-protected, digitally signed and Word-protected documents. Refuse
 | Selection | At most 6,000 characters in a continuous whole-body-paragraph range. |
 | Description | At most 2,000 characters. |
 | D1: saved changes | One change per saved file. After saving, show the path, "The original is unchanged." and Open another document. Further changes require opening the saved file. |
-| D2: review | Show only the selected part before and after. Highlight changed or added words in light green in After; leave Before unchanged. Warn that longer text can change page breaks. |
+| D2: review | Show only the selected part before and after. Highlight changed or added words in light green in After. Show removed or replaced text in pale red with a strike-through in Before, and a clear notice when original paragraphs are removed or merged. These markers are display-only; the original stays unchanged. Warn that longer text can change page breaks. |
 | D3: Track Changes | Allow editing and show: "Track Changes is on in this document. This change is saved without revision marks." Do not create revision marks. |
 | D4: model gate | Each of qwen3:8b-q4_K_M and llama3.1:8b-instruct-q4_K_M must pass at least 11 of 12 fixed tasks with zero candidate verification failures. Confirm installed tag, digest and Q4_K_M identity. Run seed 0 with the approved prompts, tasks and mechanical checks; do not send checks to the model. |
 

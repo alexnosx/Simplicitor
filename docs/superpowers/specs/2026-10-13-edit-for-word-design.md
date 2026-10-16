@@ -10,10 +10,12 @@
 
 These three points change what the user sees beyond the approved mockup. Alex decided them on 2026-10-13; the rest of this design follows the decisions.
 
+D2 includes Alex's approved 2026-10-15 review amendment: make removed text and disappearing paragraphs visible before accepting a change. This follow-up is unreleased source; project status owns its verification and release state.
+
 | # | Question | Decision | Why |
 |---|---|---|---|
 | D1 | Can the user make several changes before saving? | No. One change per saved file; the Saved page stays as in the mockup. To change more, the user opens the new file. | Several unsaved changes in one session need a stacked patch and a combined review. One change per file keeps every check simple. |
-| D2 | Should "After" highlight the changed words? | Yes, light green on changed or added words; "Before" unchanged. | A four-paragraph change is hard to check by reading. The highlight comes from the same word comparison the patch already uses for formatting (see Patch). |
+| D2 | Should Review highlight changed and removed text? | After keeps light green on changed or added words. The 2026-10-15 amendment marks removed or replaced text red with a strike-through in Before, and calls out original paragraphs removed or merged. | Added text alone can hide a lost selected paragraph. After highlights still come from the patch's formatting comparison; Before markers are a separate display-only comparison. |
 | D3 | The document has Track Changes turned on. | Allow the edit and say so in Review: "Track Changes is on in this document. This change is saved without revision marks." | Writing real revision marks is a separate feature. Refusing would block common documents. |
 
 ## Scope
@@ -220,6 +222,8 @@ The candidate holds the new package bytes, its SHA-256, the before and after dis
 ## Review and save
 
 Review shows the selected paragraphs before and the output paragraphs after (mockup), each rendered with the reading view's limited display (style, bold, italic, list marker). Before comes from the original; After is built by the reading view from the verified candidate bytes, so it shows the formatting actually saved, with the D2 highlight on top. When relevant it shows the D3 notice. Use this change, Try again and Cancel follow the mockup. Try again keeps the description and increments the attempt number.
+
+The 2026-10-15 amendment adds Before markers without changing its original text. The worker first anchors unchanged paragraphs using the existing validated source mapping, so identical paragraphs with different formatting are distinguished, then compares word tokens across each changed section; virtual spaces at paragraph boundaries keep words carried through splits and merges unmarked. Deleted/replaced ranges use original Python character offsets, converted to Qt UTF-16 positions by the delegate. Paragraph-level differences also count removals/merges, including empty paragraphs. The worker attaches this display metadata to the candidate without changing its document bytes. The GUI shows the red strike-through and a notice above the comparison; the existing acceptance and Save As controls still allow intended deletions and merges. No model prompt, source alignment, patch formatting, verification, cancellation or save rule changes.
 
 Save As uses the native dialog (it asks before replacing an existing file), starting in the original's folder with `<name> (edited).docx`. When the dialog is accepted, the worker records the destination's state: absent, or present with its SHA-256. `save.save_candidate(candidate, destination, destination_state)`:
 

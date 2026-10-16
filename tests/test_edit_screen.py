@@ -43,6 +43,7 @@ def candidate_for(opened):
         ProposedParagraph(0, "Invoices are payable within 45 days of receipt."),)))
     before = reading_view.paragraphs(opened.data, 1, 1)
     after = reading_view.paragraphs(candidate.data, 1, candidate.after_count)
+    candidate = reading_view.with_review_deletions(candidate, before, after)
     return candidate, before, after
 
 
@@ -173,6 +174,103 @@ def test_cancel_review_keeps_selection(screen, qtbot):
     screen._cancel_review_btn.click()
     assert screen._selection == (1, 1) and screen._candidate is None
     assert screen._pages.currentWidget() is screen._select_page
+
+
+def _show_deletion_review(screen):
+    """Keep one selected paragraph after an insertion and drop the other, without a model."""
+    opened = screen._opened
+    screen.select_paragraph(1)
+    screen.select_paragraph(2, True)
+    screen._edit_part_btn.click()
+    screen._description.setPlainText("Rewrite the selected part.")
+    kept = opened.paragraphs[1].text
+    candidate = build_candidate(opened, 1, 2, Proposal((
+        ProposedParagraph(0, "A new introduction."), ProposedParagraph(0, kept))))
+    before = reading_view.paragraphs(opened.data, 1, 2)
+    after = reading_view.paragraphs(candidate.data, 1, candidate.after_count)
+    candidate = reading_view.with_review_deletions(candidate, before, after)
+    screen.show_proposal(candidate, before, after)
+    return candidate, before
+
+
+def test_review_calls_out_a_removed_paragraph_and_keeps_the_proposal_unchanged(screen):
+    candidate, before = _show_deletion_review(screen)
+    assert screen._deletion_notice.isVisible()
+    assert "1 original paragraph" in screen._deletion_notice.text()
+    assert "removed or merged" in screen._deletion_notice.text()
+    assert screen._before.model().deletions == ((), ((0, 28),))
+    assert screen._before.model().blocks == before
+    assert screen._after.model().highlights == candidate.highlights
+    assert screen._after.model().deletions == ()
+    assert screen._candidate is candidate
+    screen._use_btn.click()
+    assert screen._pages.currentWidget() is screen._save_page
+
+
+def test_before_marks_removed_words_red_without_losing_bold_or_italic(screen):
+    from PySide6.QtGui import QFont
+    block = reading_view.DisplayBlock("paragraph", list_item=True, spans=(
+        reading_view.Span("😀 Pay "), reading_view.Span("30", True, True),
+        reading_view.Span(" days.")))
+    formats = screen._before.itemDelegate().text_formats(block, (), ((6, 8),))
+    deleted = [item for item in formats if item.format.fontStrikeOut()]
+    assert len(deleted) == 1
+    item = deleted[0]
+    assert (item.start, item.length) == (9, 2)  # bullet and emoji use UTF-16 positions
+    assert item.format.fontWeight() == QFont.Weight.Bold
+    assert item.format.fontItalic()
+    color = item.format.foreground().color()
+    assert color.red() > color.green()
+    color = item.format.background().color()
+    assert color.red() > color.green()
+
+
+def test_review_of_a_small_replacement_has_no_removed_paragraph_notice(screen, qtbot):
+    _show_deletion_review(screen)
+    screen._cancel_review_btn.click()
+    review(screen, qtbot)
+    assert screen._before.model().deletions == (((28, 30),),)
+    assert screen._deletion_notice.isVisible()
+    assert "removed or replaced text" in screen._deletion_notice.text().lower()
+    assert "original paragraph" not in screen._deletion_notice.text()
+
+
+def test_review_insertions_clear_old_deletion_markers_and_notice(screen):
+    _show_deletion_review(screen)
+    screen._cancel_review_btn.click()
+    screen.select_paragraph(1)
+    screen._edit_part_btn.click()
+    opened = screen._opened
+    text = opened.paragraphs[1].text
+    candidate = build_candidate(opened, 1, 1, Proposal((
+        ProposedParagraph(0, "Please note: " + text),)))
+    before = reading_view.paragraphs(opened.data, 1, 1)
+    after = reading_view.paragraphs(candidate.data, 1, 1)
+    candidate = reading_view.with_review_deletions(candidate, before, after)
+    screen.show_proposal(candidate, before, after)
+    assert screen._before.model().deletions == ((),)
+    assert not screen._deletion_notice.isVisible()
+
+
+def test_review_of_merged_paragraphs_keeps_their_retained_words_unmarked(screen):
+    opened = screen._opened
+    text = " ".join(p.text for p in opened.paragraphs[1:3])
+    candidate = build_candidate(opened, 1, 2, Proposal((ProposedParagraph(0, text),)))
+    before = reading_view.paragraphs(opened.data, 1, 2)
+    after = reading_view.paragraphs(candidate.data, 1, 1)
+    candidate = reading_view.with_review_deletions(candidate, before, after)
+    screen.show_proposal(candidate, before, after)
+    assert screen._before.model().deletions == ((), ())
+    assert "1 original paragraph" in screen._deletion_notice.text()
+    screen._use_btn.click()
+    assert screen._pages.currentWidget() is screen._save_page
+
+
+def test_reset_clears_before_deletions_and_the_review_notice(screen):
+    _show_deletion_review(screen)
+    screen.reset()
+    assert screen._before.model().deletions == ()
+    assert not screen._deletion_notice.isVisible()
 
 
 def test_save_as_cancel_keeps_the_candidate(screen, qtbot, monkeypatch):

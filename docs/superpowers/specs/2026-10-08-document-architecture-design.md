@@ -60,6 +60,8 @@ The [implemented Edit for Word design](2026-10-13-edit-for-word-design.md) owns 
 
 EditScreen emits open, propose and save requests. MainWindow constructs EditSetup and runs one EditWorker action on a QThread. Results reach GUI-thread slots only while the sender and session still own the request. Save supplies only the candidate and accepted destination; the worker fingerprints the destination, stages and reads back output, rechecks source and destination, then replaces it. No destination read occurs on the GUI thread. Native Save As keeps overwrite confirmation enabled.
 
+The 2026-10-15 review amendment adds display-only Before deletion ranges and a removed/merged paragraph count to EditCandidate. EditWorker prepares these through reading_view before emitting the proposal, so comparison of long repetitive text stays off the GUI thread. EditScreen only paints the supplied markers. Candidate document bytes, model requests, the patch/verification engine and Save As are unchanged.
+
 Cancellation invalidates late open/proposal results; an accepted save finishes. Worker references are kept through non-blocking `wait(0)` teardown. Closing shows the wait on the visible screen. A failed accepted save withdraws the pending close, leaves the candidate/error on Save and resumes discovery; queued close callbacks recheck the close request. Ordinary non-closing save outcomes retain their existing retry/reset handling. Application diagnostics exclude document text, instructions, filenames, paths and replies. Acceptance values belong to the [PRD](../../../PRD.md#230-edit-for-word).
 
 ## Source reading and sectioning
