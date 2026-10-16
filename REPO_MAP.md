@@ -82,6 +82,7 @@ docs/
         2.3.0-word-check.json
         2.3.1-ci.json
         2.3.2-ci.json
+        2.5.0-ci.json
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
         2026-10-09-task6-ci.json
@@ -2597,6 +2598,7 @@ requirements.txt
 - docs/builds/2.3.0-word-check.json: json, 68 lines
 - docs/builds/2.3.1-ci.json: json, 144 lines
 - docs/builds/2.3.2-ci.json: json, 144 lines
+- docs/builds/2.5.0-ci.json: json, 151 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines
@@ -2661,7 +2663,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
 - docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 565 lines
-- docs/superpowers/plans/2026-10-16-release-2.5.0.md: md, 298 lines
+- docs/superpowers/plans/2026-10-16-release-2.5.0.md: md, 300 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
