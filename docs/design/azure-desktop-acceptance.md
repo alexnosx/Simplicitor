@@ -1,12 +1,12 @@
 # Azure desktop source acceptance evidence
 
-Status: Claude reviewed Tasks 1-4 at `a080209` and confirmed the code/tests, with 1,377 isolated tests passing. His three visual findings are corrected on `codex/2.5.0-azure-desktop`, as measured below. Claude's follow-up check and Alex's Qt and merge approval are pending. No merge, version bump, build, tag or release.
+Status: Claude confirmed the three visual fixes at `8e92c8c` and a passing isolated suite of 1,384 tests. The two further row/path layout corrections are implemented on `codex/2.5.0-azure-desktop`, as measured below. Alex's Qt and merge approval are pending. No merge, version bump, build, tag or release.
 
 The [approved plan](../superpowers/plans/2026-10-16-release-2.5.0.md) and its wording table govern this work. The [Azure reference](azure-desktop.html) remains unchanged. Product version is still **2.3.2**, read from version.py; Task 5 owns 2.5.0 preparation.
 
 ## Source identity and verification
 
-Original Task 4 capture baseline: `edd70da735c887acbbf05bab5460654f0944e97b` (Task 3), plus Task 4's presentation changes. The current follow-up captures use baseline `a0802097ea22221d9fadf288ba2c2177c1373bd0`, plus the three visual corrections below. Captures precede their documentation commit. Each `capture-metadata.json` therefore explicitly marks its source commit as a base and records SHA-256 for the capture script, main window, defaults/styles, version and all widget source files. Those fingerprints are checked against the committed files. The local matrix manifest records the final commit after commit/push; this avoids claiming the parent alone contains the captured changes.
+Original Task 4 capture baseline: `edd70da735c887acbbf05bab5460654f0944e97b` (Task 3), plus Task 4's presentation changes. The first visual follow-up used `a080209` plus the three corrections below. The current compact-row/path captures use baseline `8e92c8c419bfc0c2a3adace320d6f6944d3033ea` plus the two new layout changes. Captures precede their documentation commit. Each `capture-metadata.json` therefore explicitly marks its source commit as a base and records SHA-256 for the capture script, main window, defaults/styles, version and all widget source files. Those fingerprints are checked against the committed files. The local matrix manifest records the final commit after commit/push; this avoids claiming the parent alone contains the captured changes.
 
 | Task | Commit before Task 4 | Targeted result | Full isolated suite |
 |---|---|---|---|
@@ -16,6 +16,7 @@ Original Task 4 capture baseline: `edd70da735c887acbbf05bab5460654f0944e97b` (Ta
 | 3, Pull/Edit/dialogs | `edd70da` | 70 affected appearance/Edit checks passed after the four-row fix | 1,359 passed in 113.19 s |
 | 4, scale and reachability | This task | 118 passed | **1,377 passed in 118.37 s** |
 | Claude visual-review follow-up | After `a080209` | 7 final regressions passed | **1,384 passed in 156.67 s** |
+| Compact source rows and folder path | After `8e92c8c` | 125 passed, including 5 new regressions | **1,389 passed in 229.25 s** |
 
 Task 1's sandbox run had 1,340 passed and one existing hard-link failure: `test_save_as_refuses_existing_source_alias` was denied `os.link` (WinError 5) before its assertion. Alex's authorized unchanged rerun with hard-link permissions passed all 1,341. Both logs are retained. Subsequent full suites use that permitted local test environment directly; no test is changed, skipped or marked to avoid the restriction. Passing runs retain the existing pytest-cache permission warning.
 
@@ -23,7 +24,7 @@ The full command is `.venv/Scripts/python.exe -m pytest -q -o faulthandler_timeo
 
 ## Capture matrix
 
-The refreshed PNGs, contact sheets and measurement files are local source artifacts under `C:/Codex/Simplicitor/.venv/screens-2.5.0-followup/`. `matrix.json` indexes these six sets. Each folder includes `capture-metadata.json`, `label-background-checks.json` and `contact-sheet.jpg`. The original Task 4 captures remain under `.venv/screens-2.5.0/` for comparison.
+The refreshed PNGs, contact sheets and measurement files are local source artifacts under `C:/Codex/Simplicitor/.venv/screens-2.5.0-compact/`. `matrix.json` indexes these six sets. Each folder includes `capture-metadata.json`, `label-background-checks.json` and `contact-sheet.jpg`. Original Task 4 and first visual-follow-up captures remain under `.venv/screens-2.5.0/` and `.venv/screens-2.5.0-followup/` for comparison.
 
 | Folder | QT_SCALE_FACTOR | Logical window | Physical main-window PNG | Screenshots | Grey label samples |
 |---|---|---|---|---|---|
@@ -48,9 +49,9 @@ Important views in every folder:
 - `7-settings.png`, `7b-built-in-template.png`: the real owned dialogs. The picker contains only business_pitch and technical_overview, seeded using the existing default-template helper inside the isolated capture profile.
 - `8-disconnected.png`, `8b-create-error.png`, `8c-edit-no-model.png`, `8d-edit-busy.png`, `9b-edit-save.png`: remaining visible states and native-control affordances.
 
-Reproduce a set from source with the scale environment above, for example `.venv/Scripts/python.exe scripts/capture_screens.py .venv/screens-2.5.0-followup/1024x640-125 --size 1024x640`. `--state 4-review-and-save` captures that state plus its action view. Invalid sizes/states fail with a plain CLI error. Existing output-directory-only invocations remain valid.
+Reproduce a set from source with the scale environment above, for example `.venv/Scripts/python.exe scripts/capture_screens.py .venv/screens-2.5.0-compact/1024x640-125 --size 1024x640`. `--state 4-review-and-save` captures that state plus its action view. Invalid sizes/states fail with a plain CLI error. Existing output-directory-only invocations remain valid.
 
-## Claude's three visual findings
+## Claude's three visual findings, accepted at 8e92c8c
 
 The original action-reachability checks did not prove that the complete Describe cards fit or that a focused button's styled text rectangle was wide enough. New regressions use the application's 11 pt typography and inspect those bounds directly. Before the fixes, five cases failed: filled Write needed 410 pixels and ready Pull 400 pixels inside a 344-pixel viewport; the source note had 134 pixels for 211 pixels of text; focused mode text had 70 pixels for 74 pixels of text. The hover case already passed and remains covered.
 
@@ -72,6 +73,28 @@ At 1024x640, Describe still scrolls as allowed: empty Write has a 98-pixel range
 
 The seven final regression cases pass. The final full isolated suite passed **1,384 tests in 156.67 seconds**, with the existing pytest-cache permission warning and no freeze. Logs are `visual-followup-red.log`, `visual-followup-reading-red.log`, `visual-followup-folder-red.log`, `visual-followup-green.log` and `visual-followup-full-final.log` under the execution-log folder above. Earlier full runs passed 1,383 tests before the extra Reading case, then 1,384 before strengthening the full-folder-path case.
 
+## Compact source rows and single-line folder path
+
+Five failing checks preceded these changes: three file-state cases could not fit three complete rows in the existing list, and the folder path wrapped at both tested widths. Source rows now put the filename, unchanged status badge and Remove on one line. Compact row padding retains the 11 pt font and the existing progress bar. Only the Describe source list changes; the extraction progress list keeps its existing layout and behavior.
+
+The new ElidedLabel paints a middle-elided single line at its current width. Its QLabel text, accessible name and tooltip retain the full literal value. It is used for Describe filenames and the Write folder path; resizing does not shorten stored text. Change remains beside the path, and choosing another folder refreshes both the displayed text and full tooltip. No wording, requests, worker logic, settings fields or save rules change.
+
+All three desktop scale runs measured the same logical geometry:
+
+| State/control | Measured result at 1280x800 |
+|---|---|
+| Source list | Existing 128-pixel height retained |
+| Three files Reading | Three complete 38-pixel rows, including progress bars |
+| Three files Ready | Three complete 32-pixel rows |
+| Partly read plus two Ready files | Three complete 32-pixel rows; original badge wording retained |
+| Write folder | One 26-pixel-high label beside Change; 315 pixels of displayed text within 328 pixels |
+| Folder tooltip and accessible name | Full synthetic path retained exactly |
+| Write/Pull Describe, source-format hint, source note, focused modes | Earlier desktop fit and text-bound checks still pass |
+
+At 1024x640 the folder also stays on one line, with 246 pixels of text in 254 pixels; the full path remains available on hover. Describe still scrolls as allowed: empty Write has an 84-pixel range, Write with a template 130, Pull Reading 154 and Pull Ready 128. Three rows fit within the list itself; the smaller outer Describe viewport initially clips the third row, reachable by scrolling.
+
+The capture set uses three existing synthetic invoice fixtures. Its staged review also has three rows, preserving one UI sample row per attachment; this is not a model evaluation or a change to the extraction pipeline. All 192 captures were regenerated. Metadata now records complete row rectangles, actual visibility through ancestor viewports, state labels, and the displayed/full folder values. Tests additionally use long filenames, verify accessible names and middle eliding, and exercise Remove and subsequent folder selection. Targeted suite: **125 passed**. Full isolated suite: **1,389 passed in 229.25 seconds**, with the existing pytest-cache permission warning and no freeze. Final log: `compact-rows-path-full.log`; the initial five failures are in `compact-rows-path-red.log`.
+
 ## Layout checks and corrections
 
 - Exact approved header/copy, shared version and real ICO; modes and Settings stay on the white second row. The selected-model footer is literal, elides at 220 logical pixels and retains its full tooltip; disconnect clears it without another selection event.
@@ -90,4 +113,4 @@ Qt uses native font/layout metrics, flat bordered panels and Qt-drawn decorative
 
 This is synthetic offscreen Qt source evidence, not an installed-Windows qualification or Alex's native scaling walkthrough. No model evaluation, Office/COM check or build was run. Model prompts/settings, extraction, document patch/verification/save, settings schema, LICENSE and historical releases remain unchanged.
 
-Claude's original code/test review: **passed at a080209, with three visual corrections requested**. His check of these corrections: **pending**. Alex's source walkthrough, Qt approval and merge approval: **pending**. Stop here before merge and Task 5.
+Claude's original code/test review: **passed at a080209**. His check of the three visual corrections: **passed at 8e92c8c, with 1,384 isolated tests passed**. The two further row/path corrections are measured above. Alex's source walkthrough, Qt approval and merge approval: **pending**. Stop here before merge and Task 5.

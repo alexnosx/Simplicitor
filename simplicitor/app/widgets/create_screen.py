@@ -27,6 +27,7 @@ from app.config.defaults import (
 from app.config.settings import Settings
 from app.config.styles import workspace_styles
 from app.widgets.choice_button import ChoiceButton
+from app.widgets.elided_label import ElidedLabel
 from app.widgets.file_type_picker import FileTypePicker, file_mark
 from app.widgets.plain_labels import describe_anchor, describe_coverage, describe_issues
 from app.widgets.status_banner import StatusBanner
@@ -284,9 +285,7 @@ class CreateScreen(QWidget):
         save = QVBoxLayout(self._save_folder)
         save.setContentsMargins(0, 0, 0, 0)
         save.addWidget(QLabel("Save to"))
-        self._folder_label = QLabel(self._save_dir)
-        self._folder_label.setWordWrap(True)
-        self._folder_label.setTextFormat(Qt.TextFormat.PlainText)
+        self._folder_label = ElidedLabel(self._save_dir)
         self._change_folder_btn = QPushButton("Change")
         self._change_folder_btn.setProperty("link", True)
         self._change_folder_btn.clicked.connect(self._browse_save_dir)
@@ -567,26 +566,27 @@ class CreateScreen(QWidget):
                 holder = QWidget()
                 layout = QVBoxLayout(holder)
                 layout.setContentsMargins(2, 2, 2, 2)
-                layout.setSpacing(4)
+                layout.setSpacing(2 if view is self._source_list else 4)
                 top = QHBoxLayout()
-                label = QLabel(path.name)
+                label = (ElidedLabel(path.name) if view is self._source_list else QLabel(path.name))
                 label.setTextFormat(Qt.TextFormat.PlainText)
                 label.setStyleSheet(f"color: {BODY_TEXT_COLOR};")
-                label.setWordWrap(True)
+                label.setWordWrap(view is not self._source_list)
                 label.setMinimumWidth(0)
                 top.addWidget(label, 1)
+                status = QLabel()
+                status.setObjectName("fileState")
                 if view is self._source_list:
+                    top.addWidget(status, alignment=Qt.AlignmentFlag.AlignVCenter)
                     remove = QPushButton("Remove")
                     remove.setMinimumHeight(28)
+                    remove.setStyleSheet("padding: 2px 6px; min-height: 22px;")
                     remove.clicked.connect(lambda _checked=False, i=index: self._remove_index(i))
                     top.addWidget(remove)
                 layout.addLayout(top)
-                status = QLabel()
-                status.setObjectName("fileState")
                 detail = QLabel()
                 detail.setObjectName("fileProgress")
                 if view is self._source_list:
-                    layout.addWidget(status, alignment=Qt.AlignmentFlag.AlignLeft)
                     layout.addWidget(detail)
                 else:
                     # One compact active-file row leaves room for the column editor.

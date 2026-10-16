@@ -35,6 +35,7 @@ from app.config.defaults import (  # noqa: E402
 )
 import app.main_window as main_window  # noqa: E402
 from app.main_window import MainWindow  # noqa: E402
+from app.widgets.elided_label import ElidedLabel  # noqa: E402
 from extraction.models import Candidate, ColumnSpec, Issue, ReviewCell
 from extraction.source_readers import read_sources  # noqa: E402
 from editing import reading_view  # noqa: E402
@@ -183,6 +184,40 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
                                 "text_width": text_width, "focused": button.hasFocus(),
                                 "checked": button.isChecked()})
             measured["mode_button_contents"] = buttons
+        if surface is window and name in ("1-create-describe.png", "1b-write-template.png"):
+            folder = screen._folder_label
+            shown = folder.display_text()
+            assert not folder.wordWrap()
+            assert folder.toolTip() == folder.accessibleName() == folder.text()
+            assert folder.fontMetrics().horizontalAdvance(shown) <= folder.contentsRect().width()
+            measured["write_folder"] = {
+                "full_path": folder.text(), "shown_path": shown, "tooltip": folder.toolTip(),
+                "content_width": folder.contentsRect().width(),
+                "shown_width": folder.fontMetrics().horizontalAdvance(shown),
+                "height": folder.height(), "line_spacing": folder.fontMetrics().lineSpacing(),
+            }
+        if surface is window and name in (
+                "2a-files-reading.png", "2-create-with-files.png", "2b-files-partly-read.png"):
+            view = screen._source_list
+            rows = []
+            for index in range(view.count()):
+                item = view.item(index)
+                holder = view.itemWidget(item)
+                label = holder.findChild(ElidedLabel)
+                badge = holder.findChild(QLabel, "fileState")
+                rect = view.visualItemRect(item)
+                complete = (view.viewport().rect().contains(rect)
+                            and visible_rect(holder).size() == holder.size())
+                assert abs(label.geometry().center().y() - badge.geometry().center().y()) <= 1
+                assert label.accessibleName() == label.toolTip() == label.text()
+                rows.append({"row": index + 1, "rect": list(rect.getRect()),
+                             "fully_visible": complete, "state": badge.text(),
+                             "shown_name": label.display_text()})
+            measured["source_rows"] = {"list_height": view.height(), "rows": rows,
+                                       "fully_visible": sum(row["fully_visible"] for row in rows)}
+            if size == (1280, 800):
+                assert view.height() <= 128
+                assert measured["source_rows"]["fully_visible"] >= 3, "Fewer than three complete files"
         if surface is window and name in (
                 "1-create-describe.png", "1b-write-template.png", "2a-files-reading.png",
                 "2-create-with-files.png"):
@@ -240,7 +275,8 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
         screen.set_route("pull")
         fixtures = ROOT / "tests" / "extraction" / "fixtures"
         screen._prompt_edit.setPlainText("Invoice number, customer, total and due date")
-        screen.set_paths((fixtures / "invoice-01.docx", fixtures / "narrative-invoice-02.pdf"))
+        screen.set_paths((fixtures / "invoice-01.docx", fixtures / "narrative-invoice-02.pdf",
+                          fixtures / "narrative-invoice-03.docx"))
         screen.set_busy(True, action="inspect")
         screen.show_progress("Reading sources...")
         shot("2a-files-reading.png")
@@ -284,11 +320,12 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
         )
         cells = tuple(sorted(cells, key=lambda cell: cell.column))
         # Stage one saved row per selected file; these are UI samples, not model evaluation.
-        cells += tuple(replace(cell, row=3, evidence=tuple(dict(
-            entry, **{"Data cell": entry["Data cell"][:-1] + "3", "Record": "source-2",
-                      "File": documents[1].label, "Anchor": "source-2#page:1",
+        cells += tuple(replace(cell, row=index + 2, evidence=tuple(dict(
+            entry, **{"Data cell": entry["Data cell"][:-1] + str(index + 2),
+                      "Record": document.source_id, "File": document.label,
+                      "Anchor": document.units[0].anchor,
                       "Status": "verified", "Issue": ""}) for entry in cell.evidence))
-                       for cell in cells)
+                       for index, document in enumerate(documents[1:], 1) for cell in cells)
         screen.show_inspection(documents)
         candidate = Candidate("job", PROFILE / "candidate.xlsx", screen._paths,
                               (Issue("flagged_field", "source-1", "E2", "review"),

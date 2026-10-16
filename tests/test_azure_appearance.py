@@ -512,3 +512,78 @@ def test_top_bar_mode_text_fits_inside_styled_contents(capture_typography, qtbot
     assert content.width() >= button.fontMetrics().horizontalAdvance(button.text()), (
         f"{state}: text needs {button.fontMetrics().horizontalAdvance(button.text())}, "
         f"styled content width={content.width()}")
+
+
+@pytest.mark.parametrize("state", ["Reading", "Ready", "Partly read"])
+def test_three_source_rows_fit_with_inline_status_and_full_accessible_names(
+        capture_typography, window, qapp, monkeypatch, state):
+    from dataclasses import replace
+    from pathlib import Path
+    from PySide6.QtCore import QEvent
+    from PySide6.QtWidgets import QLabel, QPushButton
+    from extraction.models import Issue
+    from tests.test_create_screen import _document
+    monkeypatch.setattr(window, "_start_extraction", lambda *args, **kwargs: None)
+    window._on_ollama_connected(["synthetic"], "synthetic")
+    panel = window._create_screen
+    panel.set_route("pull")
+    paths = tuple(Path(f"source-{i}-" + "synthetic-long-name-" * 8 + ".docx") for i in range(3))
+    panel.set_paths(paths)
+    if state != "Reading":
+        documents = tuple(replace(_document(path), source_id=f"source-{i}", issues=(
+            Issue("skipped_text_box", f"source-{i}", f"source-{i}#", "unread"),
+        ) if state == "Partly read" else ()) for i, path in enumerate(paths))
+        panel.show_inspection(documents)
+    window.resize(1280, 800)
+    qapp.processEvents()
+    qapp.sendPostedEvents(None, QEvent.Type.LayoutRequest)
+    qapp.processEvents()
+    view = panel._source_list
+    assert view.height() <= 128
+    for index, path in enumerate(paths):
+        item = view.item(index)
+        rect = view.visualItemRect(item)
+        assert view.viewport().rect().contains(rect), (
+            f"{state}: row {index + 1}={rect}, viewport={view.viewport().rect()}")
+        holder = view.itemWidget(item)
+        name = next(label for label in holder.findChildren(QLabel) if label.text() == path.name)
+        badge = holder.findChild(QLabel, "fileState")
+        remove = next(button for button in holder.findChildren(QPushButton) if button.text() == "Remove")
+        assert badge.text() == state
+        assert abs(name.geometry().center().y() - badge.geometry().center().y()) <= 1
+        assert badge.geometry().right() < remove.geometry().left()
+        assert item.data(Qt.ItemDataRole.AccessibleTextRole) == path.name
+        assert name.accessibleName() == name.toolTip() == path.name
+        shown = name.display_text()
+        assert "\u2026" in shown and shown.startswith("source-") and shown.endswith(".docx")
+        assert name.fontMetrics().horizontalAdvance(shown) <= name.contentsRect().width()
+    if state == "Ready":
+        remove.click()
+        assert panel._paths == paths[:2]
+
+
+@pytest.mark.parametrize("width", [1024, 1280])
+def test_write_folder_is_one_line_middle_elided_with_full_tooltip(
+        capture_typography, window, qapp, monkeypatch, width):
+    from PySide6.QtWidgets import QFileDialog
+    panel = window._create_screen
+    path = "C:\\Users\\Example\\" + "Synthetic projects\\" * 8 + "Generated"
+    monkeypatch.setattr(QFileDialog, "getExistingDirectory", lambda *args: path)
+    panel._change_folder_btn.click()
+    panel.set_file_type("PowerPoint (.pptx)")
+    panel.set_template_loaded(True, "business_pitch")
+    window.resize(width, 800)
+    qapp.processEvents()
+    label = panel._folder_label
+    assert not label.wordWrap()
+    assert label.height() < 2 * label.fontMetrics().lineSpacing()
+    assert label.text() == label.toolTip() == label.accessibleName() == panel._save_dir == path
+    shown = label.display_text()
+    assert "\u2026" in shown and shown.startswith("C:\\") and shown.endswith("Generated")
+    assert label.fontMetrics().horizontalAdvance(shown) <= label.contentsRect().width()
+    assert label.geometry().right() < panel._change_folder_btn.geometry().left()
+    # A later folder choice must replace the tooltip and restore unabridged short text.
+    monkeypatch.setattr(QFileDialog, "getExistingDirectory", lambda *args: r"C:\Work")
+    panel._change_folder_btn.click()
+    qapp.processEvents()
+    assert label.display_text() == label.toolTip() == panel._save_dir == r"C:\Work"
