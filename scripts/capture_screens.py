@@ -23,7 +23,9 @@ sys.path.insert(0, str(ROOT / "simplicitor"))
 
 from PySide6.QtCore import QEvent, QPoint, QRect, QThread  # noqa: E402
 from PySide6.QtGui import QFont  # noqa: E402
-from PySide6.QtWidgets import QApplication, QFrame, QLabel, QScrollArea  # noqa: E402
+from PySide6.QtWidgets import (  # noqa: E402
+    QApplication, QFrame, QLabel, QScrollArea, QStyle, QStyleOptionButton,
+)
 
 from app.config.styles import input_styles  # noqa: E402
 from app.config.settings import Settings  # noqa: E402
@@ -101,7 +103,7 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
             break
         QThread.msleep(10)
     assert screen._connected
-    screen._folder_label.setText(r"Documents\Simplicitor\Generated")
+    screen._folder_label.setText(r"C:\Users\Example\Documents\Simplicitor\Generated")
     checks = []
 
     def visible_rect(widget, surface=window):
@@ -140,6 +142,9 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
             for area in areas:
                 area.verticalScrollBar().setValue(0)
         app.processEvents()
+        # Discovery and route changes post layouts after the first event pass.
+        app.sendPostedEvents(None, QEvent.Type.LayoutRequest)
+        app.processEvents()
         image = surface.grab()
         ratio = image.devicePixelRatio()
         if surface is window:
@@ -164,10 +169,53 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
                     "Grey card label background: " + label.text())
                 checked += 1
         assert image.save(str(out / name))
+        measured = {}
+        if surface is window:
+            buttons = []
+            for button in (window._top_bar._create_mode_btn, window._top_bar._edit_mode_btn):
+                option = QStyleOptionButton()
+                button.initStyleOption(option)
+                contents = button.style().subElementRect(
+                    QStyle.SubElement.SE_PushButtonContents, option, button)
+                text_width = button.fontMetrics().horizontalAdvance(button.text())
+                assert contents.width() >= text_width, "Mode button text is clipped"
+                buttons.append({"text": button.text(), "content_width": contents.width(),
+                                "text_width": text_width, "focused": button.hasFocus(),
+                                "checked": button.isChecked()})
+            measured["mode_button_contents"] = buttons
+        if surface is window and name in (
+                "1-create-describe.png", "1b-write-template.png", "2a-files-reading.png",
+                "2-create-with-files.png"):
+            scroll = screen._describe_scroll
+            measured["describe_layout"] = {
+                "vertical_scroll_maximum": scroll.verticalScrollBar().maximum(),
+                "horizontal_scroll_maximum": scroll.horizontalScrollBar().maximum(),
+                "viewport_size": list(scroll.viewport().size().toTuple()),
+                "body_size": list(scroll.widget().size().toTuple()),
+            }
+            if size == (1280, 800):
+                assert scroll.verticalScrollBar().maximum() == 0, (
+                    f"Describe needs scrolling: body={scroll.widget().size()}, "
+                    f"viewport={scroll.viewport().size()}, minimum={scroll.widget().minimumSizeHint()}")
+                assert scroll.horizontalScrollBar().maximum() == 0
+            if screen.route() == "pull":
+                note = screen._source_note
+                note_width = note.fontMetrics().horizontalAdvance(note.text())
+                hint = next(label for label in screen._source_card.findChildren(QLabel)
+                            if label.text() == "DOCX and PDFs with selectable text. "
+                            "Scanned PDFs are not supported.")
+                hint_visible = visible_rect(hint).size() == hint.size()
+                measured["describe_layout"].update({
+                    "source_note_width": note.width(), "source_note_text_width": note_width,
+                    "source_hint_fully_visible": hint_visible,
+                })
+                if size == (1280, 800):
+                    assert hint_visible, "Source format and scanned-PDF hint is clipped"
+                    assert note.width() >= note_width, "Source note wraps"
         checks.append({"image": name, "logical_size": [surface.width(), surface.height()],
                        "physical_size": [image.width(), image.height()], "device_pixel_ratio": ratio,
                        "card_labels_checked": checked, "clipped_labels_not_sampled": clipped,
-                       "grey_label_backgrounds": 0})
+                       "grey_label_backgrounds": 0, **measured})
         if surface is window and actions:
             for widget in actions:
                 reveal(widget)

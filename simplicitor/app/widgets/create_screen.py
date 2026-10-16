@@ -234,8 +234,8 @@ class CreateScreen(QWidget):
         self._prompt_label = QLabel("Description")
         column.addWidget(self._prompt_label)
         self._prompt_edit = QPlainTextEdit()
-        self._prompt_edit.setMinimumHeight(116)
-        self._prompt_edit.setMaximumHeight(180)
+        self._prompt_edit.setMinimumHeight(96)
+        self._prompt_edit.setMaximumHeight(140)
         column.addWidget(self._prompt_edit)
         self._writing_help = QLabel("Be specific about the content, sections and length.")
         column.addWidget(self._writing_help)
@@ -269,7 +269,6 @@ class CreateScreen(QWidget):
         self._template_btn.setProperty("secondary", True)
         self._template_btn.setProperty("chosen", False)
         self._template_btn.clicked.connect(self.template_requested)
-        output.addWidget(self._template_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._template_name = QLabel()
         self._template_name.setWordWrap(True)
         self._template_name.setTextFormat(Qt.TextFormat.PlainText)
@@ -277,6 +276,7 @@ class CreateScreen(QWidget):
         self._clear_template_btn.setProperty("link", True)
         self._clear_template_btn.clicked.connect(self._clear_template)
         selected = QHBoxLayout()
+        selected.addWidget(self._template_btn)
         selected.addWidget(self._template_name, 1)
         selected.addWidget(self._clear_template_btn)
         output.addLayout(selected)
@@ -290,8 +290,10 @@ class CreateScreen(QWidget):
         self._change_folder_btn = QPushButton("Change")
         self._change_folder_btn.setProperty("link", True)
         self._change_folder_btn.clicked.connect(self._browse_save_dir)
-        save.addWidget(self._folder_label)
-        save.addWidget(self._change_folder_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        folder_row = QHBoxLayout()
+        folder_row.addWidget(self._folder_label, 1)
+        folder_row.addWidget(self._change_folder_btn)
+        save.addLayout(folder_row)
         output.addWidget(self._save_folder)
         output.addStretch()
         self._primary_btn = QPushButton("Create file")
@@ -300,8 +302,8 @@ class CreateScreen(QWidget):
         self._describe_actions.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._describe_actions.addStretch()
         self._source_note = QLabel("Source files are kept unchanged")
-        self._source_note.setWordWrap(True)
-        self._describe_actions.addWidget(self._source_note)
+        self._source_note.setWordWrap(False)
+        self._describe_actions.addWidget(self._source_note, alignment=Qt.AlignmentFlag.AlignVCenter)
 
         self._source_card, sources = self._card()
         sources.addWidget(self._card_title("2. Add your source files"))
@@ -311,7 +313,8 @@ class CreateScreen(QWidget):
         self._source_list = QListWidget()
         # Row widgets own their spacing; the entry-point item padding would clip them.
         self._source_list.setStyleSheet("QListWidget::item { padding: 0; }")
-        self._source_list.setMaximumHeight(180)
+        self._source_list.setMinimumHeight(96)
+        self._source_list.setMaximumHeight(128)
         sources.addWidget(self._source_list)
         # Browse sits directly under the box it fills, as Edit's Browse .docx does.
         self._browse_btn = QPushButton("Browse files")
@@ -334,6 +337,11 @@ class CreateScreen(QWidget):
         self._coverage_view = self._source_coverage
         sources.addWidget(self._source_coverage)
         sources.addStretch()
+        # Describe shares its height with the two-row header and route choices.
+        # Keep the normal desktop cards complete; smaller windows can still scroll.
+        for card_layout in (column, output, sources):
+            card_layout.setContentsMargins(20, 10, 20, 10)
+            card_layout.setSpacing(6)
         row.addWidget(self._description_card, 65)
         row.addWidget(self._output_card, 35)
         row.addWidget(self._source_card, 35)

@@ -1931,6 +1931,10 @@ requirements.txt
 - def test_route_switch_starts_at_the_new_cards_without_losing_input(window, qapp)
 - def test_capture_cli_records_real_scaled_dimensions_and_one_state(tmp_path)
 - def test_capture_cli_full_minimum_set_keeps_review_actions_reachable(tmp_path)
+- def capture_typography(qapp): Match the application entry point's font and input style for layout checks.
+- def test_describe_cards_fit_without_scrolling_at_1280(capture_typography, window, qapp, monkeypatch, route, reading)
+- def test_source_unchanged_note_stays_on_one_line_at_1280(capture_typography, window, qapp)
+- def test_top_bar_mode_text_fits_inside_styled_contents(capture_typography, qtbot, qapp, state)
 
 ### tests/test_backup_service.py
 
@@ -2571,7 +2575,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 153 lines
+- docs/PROJECT_STATUS.md: md, 154 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2592,7 +2596,7 @@ requirements.txt
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
 - docs/code-signing.md: md, 69 lines
-- docs/design/azure-desktop-acceptance.md: md, 70 lines
+- docs/design/azure-desktop-acceptance.md: md, 93 lines
 - docs/design/azure-desktop.html: html, 281 lines
 - docs/design/document-workspace.html: html, 346 lines
 - docs/design/edit-document.html: html, 479 lines

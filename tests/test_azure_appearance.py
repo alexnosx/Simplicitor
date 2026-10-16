@@ -421,3 +421,94 @@ def test_capture_cli_full_minimum_set_keeps_review_actions_reachable(tmp_path):
     names = {entry["image"] for entry in data["screens"]}
     assert {"4-review-and-save-actions.png", "4b-highlighted-values-actions.png",
             "4c-reading-problems-actions.png", "9-edit-deletion-review-actions.png"} <= names
+
+
+@pytest.fixture
+def capture_typography(qapp):
+    """Match the application entry point's font and input style for layout checks."""
+    from PySide6.QtGui import QFont
+    from app.config.defaults import APP_FONT_FAMILY, FONT_SIZE_BODY_PT
+    from app.config.styles import input_styles
+    font, style = qapp.font(), qapp.styleSheet()
+    qapp.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
+    qapp.setStyleSheet(input_styles())
+    yield
+    qapp.setFont(font)
+    qapp.setStyleSheet(style)
+
+
+@pytest.mark.parametrize("route,reading", [("write", False), ("pull", False), ("pull", True)])
+def test_describe_cards_fit_without_scrolling_at_1280(
+        capture_typography, window, qapp, monkeypatch, route, reading):
+    from pathlib import Path
+    from PySide6.QtCore import QEvent
+    from PySide6.QtWidgets import QLabel
+    from tests.test_create_screen import _document
+    monkeypatch.setattr(window, "_start_extraction", lambda *args, **kwargs: None)
+    window._on_ollama_connected(["synthetic"], "synthetic")
+    panel = window._create_screen
+    panel._folder_label.setText(r"C:\Users\Example\Documents\Simplicitor\Generated")
+    panel.set_file_type("PowerPoint (.pptx)")
+    panel.set_template_loaded(True, "business_pitch")
+    panel.set_route(route)
+    panel._prompt_edit.setPlainText("Synthetic request")
+    if route == "pull":
+        paths = (Path("invoice-01.docx"), Path("narrative-invoice-02.pdf"))
+        panel.set_paths(paths)
+        if reading:
+            panel.set_busy(True, action="inspect")
+            panel.show_progress("Reading sources...")
+        else:
+            panel.show_inspection(tuple(_document(path) for path in paths))
+    window.resize(1280, 800)
+    qapp.processEvents()
+    qapp.sendPostedEvents(None, QEvent.Type.LayoutRequest)
+    qapp.processEvents()
+    scroll = panel._describe_scroll
+    assert scroll.verticalScrollBar().maximum() == 0, (
+        f"{route}: body={scroll.widget().size()}, viewport={scroll.viewport().size()}")
+    assert scroll.horizontalScrollBar().maximum() == 0
+    if route == "pull":
+        hint = next(label for label in panel._source_card.findChildren(QLabel) if label.text() ==
+                    "DOCX and PDFs with selectable text. Scanned PDFs are not supported.")
+        corner = hint.mapTo(scroll.viewport(), hint.rect().bottomRight())
+        assert scroll.viewport().rect().contains(corner)
+        assert hint.height() >= hint.heightForWidth(hint.width())
+
+
+def test_source_unchanged_note_stays_on_one_line_at_1280(capture_typography, window, qapp):
+    panel = window._create_screen
+    panel.set_route("pull")
+    window.resize(1280, 800)
+    qapp.processEvents()
+    note = panel._source_note
+    assert note.width() >= note.fontMetrics().horizontalAdvance(note.text())
+    assert note.height() < 2 * note.fontMetrics().lineSpacing()
+
+
+@pytest.mark.parametrize("state", ["focused", "focused_checked", "hover_checked"])
+def test_top_bar_mode_text_fits_inside_styled_contents(capture_typography, qtbot, qapp, state):
+    from PySide6.QtWidgets import QStyle, QStyleOptionButton
+    from app.widgets.status_bar import TopBar
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    bar.resize(1280, bar.sizeHint().height())
+    button = bar._create_mode_btn
+    if state == "focused":
+        bar._edit_mode_btn.setChecked(True)
+    if state.startswith("focused"):
+        button.setFocus()
+    else:
+        bar._settings_btn.setFocus()
+        qtbot.mouseMove(button, button.rect().center())
+    qapp.processEvents()
+    option = QStyleOptionButton()
+    button.initStyleOption(option)
+    assert button.isChecked() == (state != "focused")
+    assert bool(option.state & QStyle.StateFlag.State_HasFocus) == state.startswith("focused")
+    if state.startswith("hover"):
+        assert option.state & QStyle.StateFlag.State_MouseOver
+    content = button.style().subElementRect(QStyle.SubElement.SE_PushButtonContents, option, button)
+    assert content.width() >= button.fontMetrics().horizontalAdvance(button.text()), (
+        f"{state}: text needs {button.fontMetrics().horizontalAdvance(button.text())}, "
+        f"styled content width={content.width()}")
