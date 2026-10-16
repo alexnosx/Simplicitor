@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit, QProgressBar, QPushButton, QScrollArea, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,
 )
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 
 from app.config.defaults import (
     BORDER_COLOR, EXTRACTION_PROMPT_PLACEHOLDER, GENERATE_FILE_TYPES, MAX_PROMPT_CHARS,
@@ -21,9 +21,11 @@ from app.config.defaults import (
     PROMPT_COMPLEXITY_THRESHOLD_CHARS, PROMPT_PLACEHOLDERS, STYLING_KEYWORDS,
     EXTRACTION_SOURCE_FILTER, TEMPLATE_FILE_TYPE, EXTRACTION_FLAG_COLOR,
     EXTRACTION_VISIBLE_COLUMN_ROWS, EXTRACTION_PROGRESS_HEIGHT_PX,
+    APP_FONT_FAMILY, MUTED_TEXT_COLOR, SUCCESS_COLOR, SUCCESS_BG_COLOR,
+    WARNING_BG_COLOR, WARNING_TEXT_COLOR,
 )
 from app.config.settings import Settings
-from app.config.styles import input_styles
+from app.config.styles import workspace_styles
 from app.widgets.choice_button import ChoiceButton
 from app.widgets.file_type_picker import FileTypePicker, file_mark
 from app.widgets.plain_labels import describe_anchor, describe_coverage, describe_issues
@@ -86,45 +88,20 @@ class CreateScreen(QWidget):
         self._file_scroll_timer.timeout.connect(self._scroll_to_active_file)
         self.setAcceptDrops(True)
         self.setObjectName("createWorkspace")
-        self.setStyleSheet(
-            input_styles()
-            + f"QWidget#createWorkspace {{ font-size: {FONT_SIZE_BODY_PT}pt; "
-            f"color: {BODY_TEXT_COLOR}; }}"
-            f"QFrame#documentCard {{ background: white; border: 1px solid {BORDER_COLOR}; "
-            "border-radius: 4px; }"
-            f"QPushButton {{ background: white; color: {BODY_TEXT_COLOR}; "
-            f"border: 1px solid {BORDER_COLOR}; border-radius: 4px; padding: 8px 12px; }}"
-            "QPushButton:disabled { background: #F9FAFB; color: #9CA3AF; }"
-            f"QPushButton[primary='true'] {{ background: {PRIMARY_ACCENT_COLOR}; color: white; "
-            "border: none; border-radius: 4px; padding: 8px 14px; font-weight: 600; }"
-            "QPushButton[primary='true']:disabled { background: #E5E7EB; color: #747B87; }"
-            f"QPushButton[link='true'] {{ color: {PRIMARY_ACCENT_COLOR}; border: none; "
-            "background: transparent; text-align: left; padding: 3px 0; }"
-            f"QPushButton[secondary='true'] {{ background: {INFO_BANNER_BG_COLOR}; "
-            f"color: {PRIMARY_ACCENT_COLOR}; border: 1px solid {PRIMARY_ACCENT_COLOR}; "
-            "border-radius: 4px; padding: 8px 14px; font-weight: 600; }"
-            f"QPushButton[secondary='true']:hover {{ background: {CHOICE_SELECTED_COLOR}; }}"
-            f"QPushButton[secondary='true']:pressed {{ background: {SECONDARY_PRESSED_COLOR}; }}"
-            f"QPushButton[secondary='true'][chosen='true'] {{ "
-            f"background: {CHOICE_SELECTED_COLOR}; border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
-            "QPushButton[secondary='true']:disabled { color: #747B87; }"
-            f"QPushButton[route='true'] {{ background: white; border: 1px solid {BORDER_COLOR}; "
-            "border-radius: 4px; padding: 12px 16px; text-align: left; }"
-            f"QPushButton[route='true']:hover {{ background: {INFO_BANNER_BG_COLOR}; }}"
-            f"QPushButton[route='true']:checked {{ background: {INFO_BANNER_BG_COLOR}; "
-            f"border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
-            f"QProgressBar {{ border: none; background: #E2E7EE; }}"
+        self.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
+        self.setStyleSheet(workspace_styles() +
+            f"QProgressBar {{ border: none; background: {CHOICE_SELECTED_COLOR}; }}"
             f"QProgressBar::chunk {{ background: {PRIMARY_ACCENT_COLOR}; }}"
-            "QLabel[cardTitle='true'] { font-weight: 600; }"
-            "QPlainTextEdit#readingProblems { background: #FFF8E9; border: 1px solid #B88B40; }")
+            f"QPlainTextEdit#readingProblems {{ background: {WARNING_BG_COLOR}; "
+            f"border: 1px solid {WARNING_TEXT_COLOR}; }}")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 14, 20, 20)
+        layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
         heading = QHBoxLayout()
         title = QLabel("Create new")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
         self._caption = QLabel("What would you like to work on?")
-        self._caption.setStyleSheet("color: #626B78;")
+        self._caption.setStyleSheet(f"color: {MUTED_TEXT_COLOR};")
         heading.addWidget(title)
         heading.addWidget(self._caption)
         heading.addStretch()
@@ -170,6 +147,13 @@ class CreateScreen(QWidget):
         self._update_placeholder()
         self._refresh()
         self._update_details()
+        # Header metrics must include inherited 11 pt type and the styled padding.
+        self._columns_table.ensurePolished()
+        self._columns_table.horizontalHeader().ensurePolished()
+        self._columns_table.setMinimumHeight(
+            self._columns_table.horizontalHeader().sizeHint().height()
+            + EXTRACTION_VISIBLE_COLUMN_ROWS * self._columns_table.verticalHeader().defaultSectionSize()
+            + 2 * self._columns_table.frameWidth())
 
     def route(self) -> str:
         """Return the chosen operation independently of attached source files."""
@@ -252,7 +236,7 @@ class CreateScreen(QWidget):
         self._sources_note = QLabel("One row per file. You will confirm the columns, then review "
                                    "the table and its source text before saving.")
         self._sources_note.setWordWrap(True)
-        self._sources_note.setStyleSheet("background: #EFF6FF; padding: 10px;")
+        self._sources_note.setStyleSheet(f"background: {INFO_BANNER_BG_COLOR}; padding: 10px;")
         column.addWidget(self._sources_note)
         self._disconnected_label = QLabel(
             "Simplicitor cannot find your AI engine.\nPlease start Ollama and click Retry.")
@@ -302,6 +286,9 @@ class CreateScreen(QWidget):
         self._primary_btn.clicked.connect(self._primary_clicked)
         self._describe_actions.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self._describe_actions.addStretch()
+        self._source_note = QLabel("Source files are kept unchanged")
+        self._source_note.setWordWrap(True)
+        self._describe_actions.addWidget(self._source_note)
 
         self._source_card, sources = self._card()
         sources.addWidget(self._card_title("2. Add your source files"))
@@ -344,7 +331,8 @@ class CreateScreen(QWidget):
         self._saved_label = QLabel()
         self._saved_label.setTextFormat(Qt.TextFormat.PlainText)
         self._saved_label.setWordWrap(True)
-        self._saved_label.setStyleSheet("background: #F0F8F2; color: #237443; padding: 12px;")
+        self._saved_label.setStyleSheet(
+            f"background: {SUCCESS_BG_COLOR}; color: {SUCCESS_COLOR}; padding: 12px;")
         self._open_file_btn = QPushButton("Open file")
         self._open_file_btn.setProperty("primary", True)
         self._open_file_btn.clicked.connect(self._on_open_file)
@@ -609,9 +597,9 @@ class CreateScreen(QWidget):
                 status = holder.findChild(QLabel, "fileState")
                 status.setText(state)
                 status.setVisible(bool(state))
-                background, ink = (("#E8F0FF", "#1D4ED8") if state == "Reading" else
-                                   ("#FFF1D6", "#80530A") if state == "Partly read" else
-                                   ("#EAF6EF", "#21633C"))
+                background, ink = ((INFO_BANNER_BG_COLOR, PRIMARY_ACCENT_COLOR) if state == "Reading" else
+                                   (WARNING_BG_COLOR, WARNING_TEXT_COLOR) if state == "Partly read" else
+                                   (SUCCESS_BG_COLOR, SUCCESS_COLOR))
                 status.setStyleSheet(f"background: {background}; color: {ink}; padding: 1px 7px;")
                 detail = holder.findChild(QLabel, "fileProgress")
                 working = extracting and doc is not None and doc.source_id == active
@@ -788,6 +776,7 @@ class CreateScreen(QWidget):
         self._writing_help.setVisible(not pulling)
         self._file_type_picker.setEnabled(not (self._busy or self._generating))
         self._description_note.setVisible(not pulling)
+        self._source_note.setVisible(pulling)
         self._sources_note.setVisible(pulling)
         self._save_folder.setVisible(not pulling)
         self._reading_label.setVisible(self._inspecting)
@@ -820,13 +809,10 @@ class CreateScreen(QWidget):
 
     def _build_columns_page(self) -> QWidget:
         page, layout = self._card()
+        layout.setSpacing(8)
         layout.addWidget(self._card_title("3. Choose columns"))
         self._columns_table = QTableWidget(0, 3)
         self._columns_table.setHorizontalHeaderLabels(["Name", "Description", "Type"])
-        self._columns_table.setMinimumHeight(
-            self._columns_table.horizontalHeader().sizeHint().height()
-            + EXTRACTION_VISIBLE_COLUMN_ROWS * self._columns_table.verticalHeader().defaultSectionSize()
-            + 2 * self._columns_table.frameWidth())
         self._columns_table.setStyleSheet(
             f"QTableWidget::item:disabled:selected {{ background: {CHOICE_SELECTED_COLOR}; "
             f"color: {BODY_TEXT_COLOR}; }}")
@@ -905,7 +891,8 @@ class CreateScreen(QWidget):
         left.addWidget(self._card_title("4. Review your table"))
         self._review_note = QLabel("Highlighted values need a check before you save.")
         self._review_note.setWordWrap(True)
-        self._review_note.setStyleSheet("background: #FFF8E9; padding: 10px;")
+        self._review_note.setStyleSheet(
+            f"background: {WARNING_BG_COLOR}; color: {WARNING_TEXT_COLOR}; padding: 10px;")
         left.addWidget(self._review_note)
         self._grid = QTableWidget()
         self._grid.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)

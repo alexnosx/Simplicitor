@@ -16,6 +16,7 @@ from app.config.defaults import (
     APP_FONT_FAMILY, BACKGROUND_COLOR, ERROR_COLOR,
     FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
 )
+from app.config.styles import workspace_styles
 from app.services.file_manipulator import ManipulationError
 from templates_engine import config
 from templates_engine.manifest import Manifest, load_manifest
@@ -37,6 +38,7 @@ class TemplateDialog(QDialog):
 
     def __init__(self, templates_dir: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
         self._templates_dir = templates_dir
         self._templates: list[dict] = []
         self._manifest: Manifest | None = None
@@ -45,7 +47,8 @@ class TemplateDialog(QDialog):
         self.setWindowTitle("Create from a template")
         self.setMinimumSize(640, 520)
         self._build_ui()
-        self.setStyleSheet(f"QDialog {{ background-color: {BACKGROUND_COLOR}; }}")
+        self.setStyleSheet(workspace_styles() +
+            f"QDialog {{ background-color: {BACKGROUND_COLOR}; }}")
         self._refresh_templates()
 
     # -- fonts --
@@ -92,6 +95,7 @@ class TemplateDialog(QDialog):
         row = QHBoxLayout()
         row.addStretch()
         self._sel_next_btn = QPushButton("Next")
+        self._sel_next_btn.setProperty("primary", True)
         self._sel_next_btn.setFont(self._body_font())
         self._sel_next_btn.clicked.connect(self._on_select_next)
         row.addWidget(self._sel_next_btn)
@@ -118,6 +122,7 @@ class TemplateDialog(QDialog):
             lambda: self._stack.setCurrentWidget(self._selection_page)
         )
         self._confirm_next_btn = QPushButton("Next")
+        self._confirm_next_btn.setProperty("primary", True)
         self._confirm_next_btn.setFont(self._heading_font())
         self._confirm_next_btn.clicked.connect(self._on_confirm_next)
         row.addWidget(self._confirm_back_btn)

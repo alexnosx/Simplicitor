@@ -1,7 +1,7 @@
 """Numbered workflow steps, with state preserved until the route changes."""
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QWidget
 
-from app.config.defaults import PRIMARY_ACCENT_COLOR
+from app.config.defaults import PRIMARY_ACCENT_COLOR, MUTED_TEXT_COLOR, CHOICE_SELECTED_COLOR
 
 
 class StepIndicator(QWidget):
@@ -20,8 +20,8 @@ class StepIndicator(QWidget):
         self._current = 0
         self.setStyleSheet(
             f"QLabel[current='true'] {{ color: {PRIMARY_ACCENT_COLOR}; font-weight: 600; }}"
-            "QLabel[current='false'] { color: #626B78; }"
-            "QLabel[badge='true'] { background: #EDF0F4; border-radius: 11px; }"
+            f"QLabel[current='false'] {{ color: {MUTED_TEXT_COLOR}; }}"
+            f"QLabel[badge='true'] {{ background: {CHOICE_SELECTED_COLOR}; border-radius: 11px; }}"
             f"QLabel[badge='true'][current='true'] {{ background: {PRIMARY_ACCENT_COLOR}; "
             "color: white; }")
 

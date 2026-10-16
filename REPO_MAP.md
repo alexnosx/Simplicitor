@@ -1914,6 +1914,10 @@ requirements.txt
 - def test_footer_model_is_literal_and_empty_without_a_selection(window)
 - def test_write_layout_uses_approved_copy_and_one_common_action(qtbot, isolated_profile)
 - def test_new_file_choice_keeps_signals_and_routes_separate(window, tmp_path, monkeypatch)
+- def test_document_screens_use_shared_azure_styles(window, name)
+- def test_pull_ready_reading_and_partial_states_keep_words_and_shared_colours(window, tmp_path, monkeypatch)
+- def test_status_paths_are_literal_readable_and_dismissible(qtbot)
+- def test_owned_dialogs_share_controls_and_readable_type(qtbot, isolated_profile, kind)
 
 ### tests/test_backup_service.py
 
@@ -2554,7 +2558,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 151 lines
+- docs/PROJECT_STATUS.md: md, 152 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)

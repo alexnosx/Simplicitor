@@ -11,10 +11,8 @@ from app.config.defaults import (
     ERROR_COLOR,
     FONT_SIZE_BODY_PT,
     SUCCESS_COLOR,
-    WHITE,
+    WHITE, MUTED_TEXT_COLOR,
 )
-
-_MUTED_TEXT_COLOR = "#6B7280"
 
 
 class StatusBanner(QWidget):
@@ -54,16 +52,18 @@ class StatusBanner(QWidget):
         primary_font = QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT)
         primary_font.setWeight(QFont.Weight.DemiBold)
         self._primary_label.setFont(primary_font)
+        self._primary_label.setTextFormat(Qt.TextFormat.PlainText)
         self._primary_label.setWordWrap(True)
         self._primary_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
         text_layout.addWidget(self._primary_label)
 
         self._secondary_label = QLabel()
-        secondary_font = QFont(APP_FONT_FAMILY, 8)
+        secondary_font = QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT)
         self._secondary_label.setFont(secondary_font)
+        self._secondary_label.setTextFormat(Qt.TextFormat.PlainText)
         self._secondary_label.setWordWrap(True)
         self._secondary_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self._secondary_label.setStyleSheet(f"color: {_MUTED_TEXT_COLOR};")
+        self._secondary_label.setStyleSheet(f"color: {MUTED_TEXT_COLOR};")
         self._secondary_label.setVisible(False)
         text_layout.addWidget(self._secondary_label)
 
@@ -72,7 +72,7 @@ class StatusBanner(QWidget):
         self._dismiss_btn = QPushButton("\u2715")
         self._dismiss_btn.setObjectName("status_dismiss_btn")
         self._dismiss_btn.setFont(body_font)
-        self._dismiss_btn.setFixedSize(24, 24)
+        self._dismiss_btn.setFixedSize(36, 36)
         self._dismiss_btn.clicked.connect(self.hide)
         layout.addWidget(self._dismiss_btn)
 

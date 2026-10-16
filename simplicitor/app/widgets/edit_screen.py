@@ -11,9 +11,11 @@ from PySide6.QtWidgets import (
 from app.config.defaults import (
     BODY_TEXT_COLOR, BORDER_COLOR, CHOICE_SELECTED_COLOR, EDIT_MAX_INSTRUCTION_CHARS,
     EDIT_MAX_SELECTION_CHARS, EDIT_REMOVED_BG_COLOR, EDIT_REMOVED_TEXT_COLOR,
-    FONT_SIZE_BODY_PT, PRIMARY_ACCENT_COLOR,
+    FONT_SIZE_BODY_PT, PRIMARY_ACCENT_COLOR, APP_FONT_FAMILY,
+    INFO_BANNER_BG_COLOR, WARNING_BG_COLOR, WARNING_TEXT_COLOR, ERROR_BG_COLOR, ERROR_COLOR,
+    BACKGROUND_COLOR, MUTED_TEXT_COLOR,
 )
-from app.config.styles import input_styles
+from app.config.styles import workspace_styles
 from app.widgets.step_indicator import StepIndicator
 from editing.body_map import selection_problem
 from editing.reading_view import DisplayBlock
@@ -171,11 +173,11 @@ class DocumentDelegate(QStyledItemDelegate):
         readonly = block.reason or block.kind != "paragraph"
         selected = block.index in model.selected and block.kind == "paragraph"
         painter.save()
-        painter.fillRect(rect, QColor("#EDF0F4" if readonly else CHOICE_SELECTED_COLOR if selected else "white"))
+        painter.fillRect(rect, QColor(BACKGROUND_COLOR if readonly else CHOICE_SELECTED_COLOR if selected else "white"))
         if selected or readonly:
             painter.setPen(QColor(PRIMARY_ACCENT_COLOR if selected else BORDER_COLOR))
             painter.drawRect(rect.adjusted(0, 0, -1, -1))
-        painter.setPen(QColor("#586271" if readonly else BODY_TEXT_COLOR))
+        painter.setPen(QColor(MUTED_TEXT_COLOR if readonly else BODY_TEXT_COLOR))
         painter.setFont(self.parent().font())
         x, y = rect.left() + 12, rect.top() + 9
         label = self.row_label(block)
@@ -193,7 +195,7 @@ class DocumentDelegate(QStyledItemDelegate):
                 for col, layout in enumerate(layouts):
                     painter.setPen(QColor(BORDER_COLOR))
                     painter.drawRect(x + col * cell_width, y, cell_width, height)
-                    painter.setPen(QColor("#586271"))
+                    painter.setPen(QColor(MUTED_TEXT_COLOR))
                     layout.draw(painter, QPointF(x + col * cell_width + 8, y + 8))
                 y += height
         else:
@@ -301,20 +303,10 @@ class EditScreen(QWidget):
         self._attempt = 0
         self.setAcceptDrops(True)
         self.setObjectName("editWorkspace")
-        self.setStyleSheet(input_styles() +
-            f"QWidget#editWorkspace {{ color: {BODY_TEXT_COLOR}; font-size: {FONT_SIZE_BODY_PT}pt; }}"
-            f"QFrame#documentCard {{ background: white; border: 1px solid {BORDER_COLOR}; border-radius: 4px; }}"
-            f"QPushButton {{ background: white; border: 1px solid {BORDER_COLOR}; border-radius: 4px; padding: 8px 12px; }}"
-            "QPushButton:hover { background: #E6F0FF; } QPushButton:pressed { background: #BFDBFE; }"
-            f"QPushButton:focus {{ border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
-            "QPushButton:disabled { color: #747B87; background: #EDF0F4; }"
-            f"QPushButton[primary='true'] {{ background: {PRIMARY_ACCENT_COLOR}; color: white; font-weight: 600; }}"
-            "QPushButton[primary='true']:hover { background: #1D4ED8; }"
-            "QPushButton[primary='true']:disabled { background: #E5E7EB; color: #747B87; }"
-            "QPushButton[secondary='true'] { background: #EFF6FF; color: #1D4ED8; border-color: #2563EB; }"
-            "QLabel[cardTitle='true'] { font-size: 17px; font-weight: 600; }")
+        self.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
+        self.setStyleSheet(workspace_styles())
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 14, 20, 20)
+        layout.setContentsMargins(24, 20, 24, 20)
         title = QLabel("Edit your Word document")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
         layout.addWidget(title)
@@ -333,10 +325,10 @@ class EditScreen(QWidget):
         self._original_note = self._label("Your original will not be overwritten.")
         layout.addWidget(self._original_note)
         self._close_status = self._label("Waiting for local processing to stop before closing...")
-        self._close_status.setStyleSheet("padding: 10px; background: #EFF6FF; color: #1D4ED8;")
+        self._close_status.setStyleSheet(f"padding: 10px; background: {INFO_BANNER_BG_COLOR}; color: {PRIMARY_ACCENT_COLOR};")
         layout.addWidget(self._close_status)
         self._error = self._label("")
-        self._error.setStyleSheet("background: #FFF3F3; color: #9B2525; padding: 10px; border: 1px solid #BD7777;")
+        self._error.setStyleSheet(f"background: {ERROR_BG_COLOR}; color: {ERROR_COLOR}; padding: 10px; border: 1px solid {ERROR_COLOR};")
         layout.addWidget(self._error)
         self._pages = QStackedWidget()
         layout.addWidget(self._pages, 1)
@@ -393,7 +385,7 @@ class EditScreen(QWidget):
         self._reader.reason_shown.connect(self._show_selection_notice)
         reader_layout.addWidget(self._reader, 1)
         self._selection_notice = self._label("")
-        self._selection_notice.setStyleSheet("color: #1D4ED8; background: #EFF6FF; padding: 8px;")
+        self._selection_notice.setStyleSheet(f"color: {PRIMARY_ACCENT_COLOR}; background: {INFO_BANNER_BG_COLOR}; padding: 8px;")
         reader_layout.addWidget(self._selection_notice)
         self._selection_status = self._label("No paragraphs selected.")
         reader_layout.addWidget(self._selection_status)
@@ -420,7 +412,7 @@ class EditScreen(QWidget):
         scope_layout.addWidget(self._scope, 1)
         instruction, instruction_layout = self._card("3. Describe the change")
         self._no_model = self._label("No local model selected.\nOpen Settings and select a local model before asking for a change.")
-        self._no_model.setStyleSheet("padding: 12px; background: #FFF8E9; border: 1px solid #B88B40;")
+        self._no_model.setStyleSheet(f"padding: 12px; background: {WARNING_BG_COLOR}; border: 1px solid {WARNING_TEXT_COLOR};")
         self._settings_btn = self._button("Open Settings", self.settings_requested.emit, secondary=True)
         instruction_layout.addWidget(self._no_model)
         instruction_layout.addWidget(self._settings_btn, alignment=Qt.AlignmentFlag.AlignLeft)
@@ -435,7 +427,7 @@ class EditScreen(QWidget):
         instruction_layout.addWidget(self._propose_btn)
         instruction_layout.addWidget(self._back_btn)
         self._busy_label = self._label("The local AI is working...\nPreparing a proposal for the selected part.")
-        self._busy_label.setStyleSheet("padding: 12px; background: #EFF6FF;")
+        self._busy_label.setStyleSheet(f"padding: 12px; background: {INFO_BANNER_BG_COLOR};")
         self._cancel_btn = self._button("Cancel", self.cancel_requested.emit)
         instruction_layout.addWidget(self._busy_label)
         instruction_layout.addWidget(self._cancel_btn)

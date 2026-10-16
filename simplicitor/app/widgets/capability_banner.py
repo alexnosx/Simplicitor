@@ -48,6 +48,7 @@ class CapabilityBanner(QWidget):
         body_font = QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT)
         self._info_label = QLabel(_BANNER_TEXT)
         self._info_label.setFont(body_font)
+        self._info_label.setWordWrap(True)
         self._info_label.setObjectName("banner_label")
         self._info_label.setContentsMargins(8, 0, 8, 0)
         self._info_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
@@ -57,7 +58,7 @@ class CapabilityBanner(QWidget):
         self._dismiss_btn = QPushButton("✕")
         self._dismiss_btn.setObjectName("banner_dismiss_btn")
         self._dismiss_btn.setFont(body_font)
-        self._dismiss_btn.setFixedSize(24, 24)
+        self._dismiss_btn.setFixedSize(36, 36)
         layout.addWidget(self._dismiss_btn)
 
     def _apply_styles(self) -> None:

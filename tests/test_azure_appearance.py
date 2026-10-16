@@ -138,3 +138,70 @@ def test_new_file_choice_keeps_signals_and_routes_separate(window, tmp_path, mon
     panel.set_generating(True)
     panel._file_type_picker.button_for("Word (.docx)").click()
     assert panel.file_type() == "PDF (.pdf)"
+
+
+@pytest.mark.parametrize("name", ["_create_screen", "_edit_page"])
+def test_document_screens_use_shared_azure_styles(window, name):
+    from app.config.styles import workspace_styles
+    screen = getattr(window, name)
+    assert workspace_styles() in screen.styleSheet()
+    assert screen.font().pointSize() >= 11
+    assert "#FFF8E9" not in screen.styleSheet()
+
+
+def test_pull_ready_reading_and_partial_states_keep_words_and_shared_colours(
+        window, tmp_path, monkeypatch):
+    from dataclasses import replace
+    from docx import Document
+    from PySide6.QtWidgets import QLabel
+    from app.config.defaults import (
+        INFO_BANNER_BG_COLOR, SUCCESS_BG_COLOR, WARNING_BG_COLOR,
+    )
+    from extraction.models import Issue
+    from extraction.source_readers import read_sources
+    monkeypatch.setattr(window, "_start_extraction", lambda *args, **kwargs: None)
+    panel = window._create_screen
+    panel.set_route("pull")
+    path = tmp_path / ("long-synthetic-source-" * 4 + ".docx")
+    document = Document()
+    document.add_paragraph("Synthetic source text")
+    document.save(path)
+    panel.set_paths((path,))
+    state = panel._source_list.itemWidget(panel._source_list.item(0)).findChild(QLabel, "fileState")
+    assert state.text() == "Reading" and INFO_BANNER_BG_COLOR in state.styleSheet()
+    docs = read_sources((path,))
+    panel.show_inspection(docs)
+    assert state.text() == "Ready" and SUCCESS_BG_COLOR in state.styleSheet()
+    issue = Issue("skipped_text_box", docs[0].source_id, docs[0].source_id + "#", "unread")
+    panel.show_inspection((replace(docs[0], issues=(issue,)),))
+    assert state.text() == "Partly read" and WARNING_BG_COLOR in state.styleSheet()
+    assert panel._source_coverage.toPlainText().startswith(
+        "Some information may be missing from the table. Check these problems before you use it:")
+    assert "Source files are kept unchanged" in {
+        label.text() for label in panel.findChildren(QLabel)}
+
+
+def test_status_paths_are_literal_readable_and_dismissible(qtbot):
+    from app.widgets.status_banner import StatusBanner
+    banner = StatusBanner()
+    qtbot.addWidget(banner)
+    banner.show_message("Synthetic success", secondary="<b>synthetic</b>")
+    assert banner._secondary_label.textFormat() == Qt.TextFormat.PlainText
+    assert banner._secondary_label.font().pointSize() >= 11
+    banner._dismiss_btn.click()
+    assert not banner.isVisible()
+
+
+@pytest.mark.parametrize("kind", ["settings", "templates"])
+def test_owned_dialogs_share_controls_and_readable_type(qtbot, isolated_profile, kind):
+    from app.config.styles import workspace_styles
+    if kind == "settings":
+        from app.widgets.settings_dialog import SettingsDialog
+        dialog = SettingsDialog(isolated_profile, models=["synthetic"], current_model="synthetic")
+        assert dialog.selected_model() == "synthetic"
+    else:
+        from app.widgets.template_dialog import TemplateDialog
+        dialog = TemplateDialog(isolated_profile.templates_dir)
+    qtbot.addWidget(dialog)
+    assert workspace_styles() in dialog.styleSheet()
+    assert dialog.font().pointSize() >= 11

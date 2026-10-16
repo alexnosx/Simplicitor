@@ -61,6 +61,15 @@ def workspace_styles() -> str:
         f"border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
         f"QPushButton[link='true'] {{ color: {PRIMARY_ACCENT_COLOR}; background: transparent; "
         "border: none; text-align: left; padding: 2px 0; }"
+        f"QTableWidget {{ background: {WHITE}; color: {BODY_TEXT_COLOR}; "
+        f"border: 1px solid {BORDER_COLOR}; font-size: {FONT_SIZE_BODY_PT}pt; "
+        f"selection-background-color: {CHOICE_SELECTED_COLOR}; selection-color: {BODY_TEXT_COLOR}; }}"
+        "QTableWidget QComboBox { padding: 2px 6px; }"
+        f"QHeaderView::section {{ background: {BACKGROUND_COLOR}; color: {BODY_TEXT_COLOR}; "
+        f"padding: 4px; border: none; border-bottom: 1px solid {BORDER_COLOR}; }}"
+        f"QGroupBox {{ background: {WHITE}; border: 1px solid {BORDER_COLOR}; "
+        f"border-radius: {BORDER_RADIUS_PX}px; margin-top: 10px; padding-top: 10px; }}"
+        "QGroupBox::title { subcontrol-origin: margin; left: 10px; }"
     )
 
 

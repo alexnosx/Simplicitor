@@ -11,6 +11,7 @@ from app.config.defaults import (
     APP_FONT_FAMILY, FONT_SIZE_BODY_PT, FONT_SIZE_HEADING_PT,
     BORDER_COLOR, WHITE, BORDER_RADIUS_PX, BODY_TEXT_COLOR, BACKGROUND_COLOR,
 )
+from app.config.styles import workspace_styles
 from app.config.settings import Settings
 from app.version import __version__
 
@@ -25,6 +26,7 @@ class SettingsDialog(QDialog):
     def __init__(self, settings: Settings, parent=None, models: list[str] | None = None,
                  current_model: str = "") -> None:
         super().__init__(parent)
+        self.setFont(QFont(APP_FONT_FAMILY, FONT_SIZE_BODY_PT))
         self._settings = settings
         self._models = models or []
         self._current_model = current_model
@@ -107,6 +109,7 @@ class SettingsDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
+        buttons.button(QDialogButtonBox.StandardButton.Save).setProperty("primary", True)
         buttons.accepted.connect(self._on_save)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -123,18 +126,15 @@ class SettingsDialog(QDialog):
         row = QHBoxLayout()
         row.setSpacing(6)
         browse_btn = QPushButton("…")
-        browse_btn.setFixedSize(28, 28)
+        browse_btn.setFixedSize(36, 36)
         browse_btn.clicked.connect(lambda: self._browse(edit, dialog_title))
         row.addWidget(edit)
         row.addWidget(browse_btn)
         return row
 
     def _apply_styles(self) -> None:
-        self.setStyleSheet(
-            f"QDialog {{ background-color: {BACKGROUND_COLOR}; }}"
-            f"QLineEdit {{ background-color: {WHITE}; border: 1px solid {BORDER_COLOR}; "
-            f"border-radius: {BORDER_RADIUS_PX}px; padding: 4px 8px; color: {BODY_TEXT_COLOR}; }}"
-        )
+        self.setStyleSheet(workspace_styles() +
+            f"QDialog {{ background-color: {BACKGROUND_COLOR}; }}")
 
     def selected_model(self) -> str:
         """Return the dialog selection; the caller applies it only after Save."""

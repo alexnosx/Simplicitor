@@ -9,7 +9,7 @@ from PySide6.QtGui import QCloseEvent, QFontMetrics, QIcon
 from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QHBoxLayout, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
 
 from app.config.defaults import (
-    APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL,
+    APP_NAME, BACKGROUND_COLOR, OLLAMA_BASE_URL, MUTED_TEXT_COLOR, FONT_SIZE_BODY_PT,
     WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, EXTRACTION_MODEL_PARAM_THRESHOLD,
     WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
     FILE_TYPE_EXTENSIONS, TEMPLATE_FILE_TYPE,
@@ -119,6 +119,8 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(self._modes, stretch=1)
         footer = QWidget()
         footer.setObjectName("azureFooter")
+        footer.setStyleSheet(f"QWidget#azureFooter QLabel {{ color: {MUTED_TEXT_COLOR}; "
+                            f"font-size: {FONT_SIZE_BODY_PT}pt; background: transparent; }}")
         footer_layout = QHBoxLayout(footer)
         footer_layout.setContentsMargins(24, 8, 24, 8)
         self._footer_privacy = QLabel("Your documents and the AI processing stay on your computer.")
