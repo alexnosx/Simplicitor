@@ -1,6 +1,6 @@
 # Simplicitor product requirements
 
-Updated 2026-10-13 for 2.3.0 release preparation. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.3.0 plan](docs/superpowers/plans/2026-10-13-release-2.3.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
+Updated 2026-10-16 for 2.5.0 preparation: the Azure workspace and display-only Word review amendment. Extraction requirements and evaluation settings are unchanged from 2.0.0. This file owns requirements and acceptance values. [Architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md) owns implementation detail; [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), the [2.0.0 extraction plan](docs/superpowers/plans/2026-10-08-first-release-extraction.md), the [2.5.0 plan](docs/superpowers/plans/2026-10-16-release-2.5.0.md), and [project status](docs/PROJECT_STATUS.md) complete the review set.
 
 ## Purpose
 
@@ -12,25 +12,27 @@ This is the single workflow table. Other documents link here.
 
 | Workflow | Release scope |
 |---|---|
-| Prompt-only Create | Preserve Word, PDF, Excel and PowerPoint generation in 2.3.0. |
+| Prompt-only Create | Preserve Word, PDF, Excel and PowerPoint generation in 2.5.0. |
 | PowerPoint creation from built-in templates | Built-in picker only; preserve the generation engine. |
-| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.3.0, with one record per file. |
+| Create new from DOCX and text-layer PDF sources into XLSX | Introduced in 2.0.0; unchanged in 2.5.0, with one record per file. |
 | Invoice line items / one record per table row | After Edit for Word in 2.3.0, with its own design. |
 | Edit for Word (2.3.0) | Selected whole body paragraphs; tables, headers, footers, fields, links, pictures, comments and tracked changes read-only; Excel and PowerPoint later. Preservation contract below. |
 | XLSX-to-DOCX reporting | Post-first-release; blocked on the closed operation set below. |
 | Local OCR/vision for scanned PDFs | Separate post-first-release milestone. |
 
-The 2.3.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required by the application; the one-off Word compatibility check uses installed Word on Alex's PC. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work is added to the application. Sources for extraction are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create retains PDF output and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
+The 2.5.0 prerequisites are Windows and local Ollama with a local model. A GPU with 8 GB VRAM is recommended only and is not checked. Microsoft Office is not required by the application; the one-off Word compatibility check uses installed Word on Alex's PC. No COM, pywin32, Office helper process, OCR engine, or OCR packaging work is added to the application. Sources for extraction are DOCX and PDFs with a usable text layer only; source-based output remains XLSX only. Prompt-only Create retains PDF output and does not acquire a new approval pipeline. Source-based Word/PDF reports remain a later milestone.
 
 English is the target language. Other languages may work but are not tested or claimed.
 
 The published v1.2.1 safety release disabled legacy Edit at its UI and worker entry points, preserving Create/templates. The new Word editor uses an independent editing package; legacy editing remains disabled.
 
-## 2.3.0 UI
+## 2.5.0 UI
 
 Offer two modes: Create new (default) and Edit document. Edit document opens the selective Word editor described below. Show the shared product version in the window title, top bar and Settings.
 
-Create new starts with two options, each with a one-line explanation: **Write a new document** and **Pull information from documents into Excel**. The chosen option determines the request. Writing uses its description, file type and save folder, and never sends attached source files. PowerPoint offers the built-in templates business_pitch and technical_overview, with the chosen name and Clear. Pulling uses its request and DOCX/text-layer PDF attachments, always produces Excel, and advances through Choose columns, then Review and save. The user can edit, add, remove and confirm columns before extraction. Reports from source files remain unavailable.
+Create new starts with two options, each with a one-line explanation: **Write a new document** and **Pull information into Excel**. The chosen option determines the request. Writing uses its description, file type and save folder, and never sends attached source files. PowerPoint offers the built-in templates business_pitch and technical_overview, with the chosen name and Clear. Pulling uses its request and DOCX/text-layer PDF attachments, always produces Excel, and advances through Choose columns, then Review and save. The user can edit, add, remove and confirm columns before extraction. Reports from source files remain unavailable.
+
+The Azure presentation uses a blue brand row with the actual icon, name/version, **Powered by your local LLM** below the name and **Your documents. Your computer. Your control.** on the right. A second row holds modes, connection status and Settings. Write has four file-format choices. Keep save folders on one middle-elided line with the full path available in a tooltip. At 1280x800, Write and Pull Describe fit without scrolling and show three complete source rows; smaller windows may scroll while their actions remain reachable. Styling introduces no processing, cancellation, review or save rule.
 
 Each option retains its own inputs during switching. Leaving Pull clears columns, review and acknowledgement through setup_changed and discards the owned job. Block switching while any work runs and ignore late results for the other option. Mode switching and Settings also remain disabled during work. Use body text of at least 11 pt, darker borders and numbered boxes, with blue hover, choice and focus states. Source names, paths and evidence are plain text.
 
@@ -43,6 +45,8 @@ Read the selected model's parameter size from Ollama metadata (/api/show). Below
 Review the saved XLSX candidate in a read-only Qt grid. Highlight flagged Data cells; selecting any cell shows its value/proposal, quote, source anchor, and issue. Show coverage issues separately. Re-running replaces the job candidate and resets review and acknowledgement. No PDF preview is needed.
 
 ## 2.3.0 Edit for Word
+
+The editor introduced in 2.3.0 keeps its engine and preservation contract in 2.5.0. The D2 red Before markers and removed/merged-paragraph notice are a display-only review amendment for 2.5.0.
 
 Open one standard Word document (.docx), select a continuous range of whole body paragraphs, describe a change, review the selected part before and after, and save a new file. A selection cannot cross a table or a read-only paragraph. Tables, headers and footers are shown read-only. Paragraphs containing fields, links, pictures, form fields, tracked changes, comments, section breaks, unsupported constructs or non-collapsed inline bookmarks are read-only with a reason. The collapsed Word _GoBack bookmark is supported. The [technical design](docs/superpowers/specs/2026-10-13-edit-for-word-design.md) defines the exact editability and formatting rules.
 
@@ -134,7 +138,7 @@ Use the existing Nuitka/PySide6 foundation and one standalone payload. Retain th
 
 Preserve settings, templates, and user documents during repair, upgrades and uninstall. Investigate unsigned Windows blocks with default protection enabled; MSI packaging does not establish publisher trust. [Packaging procedures](docs/code-signing.md) retain historical release evidence; the [2.1.0 plan](docs/superpowers/plans/2026-10-09-release-2.1.0.md#testing-policy-alex-2026-10-09) owns the current testing policy.
 
-Run the isolated full local source suite after each task; synthetic temporary-file creation/deletion and mocked build tests are allowed. Never run installers, uninstallers, msiexec, Windows Sandbox, WiX, build.py or qualification on Alex's PC, or install tools/dependencies locally. Pushes run hosted source tests only. The 2.2.0 E1 milestone builds and qualifies the exact source commit by manual dispatch on GitHub. A passing E1 build prepares the release; E2 tagging/publication still require Alex's separate go. Earlier milestone checks remain historical evidence.
+Run the isolated full local source suite after each task; synthetic temporary-file creation/deletion and mocked build tests are allowed. Never run installers, uninstallers, msiexec, Windows Sandbox, WiX, build.py or qualification on Alex's PC, or install tools/dependencies locally. Pushes run hosted source tests only. The 2.5.0 Task 5 milestone builds and qualifies the exact source commit by manual dispatch on GitHub. A passing milestone prepares the release; Task 6 tagging/publication still require Alex's separate go. Earlier milestone checks remain historical evidence.
 
 ## Post-first-release requirements
 

@@ -4,13 +4,15 @@
 
 Windows desktop document work with local models.
 
+The blue workspace keeps creation and Word editing in two clear modes, with four file-format choices and review before saving edits. Your documents and the AI processing stay on your computer.
+
 English is the target language. Other languages may work but are not tested or claimed.
 
 ## Project direction
 
 [PRD.md](PRD.md) is the source for release scope, prerequisites, later milestones, and acceptance gates. [Project status](docs/PROJECT_STATUS.md) shows what exists and the decisions still open.
 
-The review set is the [document architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), [Edit for Word design](docs/superpowers/specs/2026-10-13-edit-for-word-design.md), and [2.3.0 implementation plan](docs/superpowers/plans/2026-10-13-release-2.3.0.md). Build procedures are in [packaging](docs/code-signing.md). Historical phase plans describe earlier versions.
+The review set is the [document architecture](docs/superpowers/specs/2026-10-08-document-architecture-design.md), [UI design](docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md), [Edit for Word design](docs/superpowers/specs/2026-10-13-edit-for-word-design.md), and [2.5.0 implementation plan](docs/superpowers/plans/2026-10-16-release-2.5.0.md). Build procedures are in [packaging](docs/code-signing.md). Historical phase plans describe earlier versions.
 
 ## Screenshot
 
@@ -41,7 +43,7 @@ dotnet tool restore
 .\.venv\Scripts\python.exe build.py
 ```
 
-Outputs in `dist`: `Simplicitor-2.3.2.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
+Outputs in `dist`: `Simplicitor-2.5.0.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
 
 ### Run from source without building
 
@@ -64,7 +66,7 @@ The try-it steps below use the current source checkout.
 
 Try one synthetic extraction:
 
-1. Keep **Create new** selected and choose **Pull information from documents into Excel**. In Source files, click **Browse files** and choose `tests\extraction\fixtures\invoice-01.docx`. This option always produces Excel.
+1. Keep **Create new** selected and choose **Pull information into Excel**. In **Add your source files**, click **Browse files** and choose `tests\extraction\fixtures\invoice-01.docx`. This option always produces Excel.
 2. Enter: `Extract the invoice number, customer name, gross total, and due date.`
 3. Click **Next: choose columns**. Edit the names/descriptions/types if needed. Keep identifiers as text. If a date column has ambiguous numeric dates, choose the day/month order in its details.
 4. Click **Extract to Excel** to confirm the columns and start extraction.
@@ -80,7 +82,7 @@ Files show Reading, Ready or Partly read. Check named reading problems before us
 1. Choose **Edit document**, then **Browse .docx** and open `tests\editing\fixtures\word-basic.docx`, or drop a Word file into the Open step.
 2. Select the paragraph beginning `Invoices are payable` and click **Edit this part**. To select a range, drag across the paragraphs, or click the first and Shift-click the last. Grey parts are read-only; hover or click to see why.
 3. Enter: `Change the payment period from 30 days to 45 days. Keep everything else as it is.` Click **Review change**.
-4. Compare **Before** and **After**. Changed words are highlighted in light green. Use **Try again** to keep the description and request another proposal, or **Cancel** to return to selection.
+4. Compare **Before** and **After**. Removed or replaced text is red and crossed out in Before; changed or added words are light green in After. A notice identifies original paragraphs removed or merged. Use **Try again** to keep the description and request another proposal, or **Cancel** to return to selection.
 5. Click **Use this change**, then **Save as a new file**. The suggested name is `word-basic (edited).docx` beside the original. Choose where to save; the original cannot be overwritten.
 6. Each saved file holds one change. To make another, use **Open another document** and open the saved copy.
 

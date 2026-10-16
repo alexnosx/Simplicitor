@@ -1,4 +1,4 @@
-# Simplicitor document workspace UI, 2.3.0
+# Simplicitor document workspace UI, 2.5.0
 
 [PRD.md](../../../PRD.md) owns scope, hardware recommendations, language, warning copy, record semantics, review/save rules and acceptance values. [Architecture](2026-10-08-document-architecture-design.md) owns technical detail; [project status](../../PROJECT_STATUS.md) records verification. The [Create mockup](../../design/document-workspace.html) and [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md) retain the built-in-only Create design. The [approved Edit mockup](../../design/edit-document.html), [Edit design](2026-10-13-edit-for-word-design.md) and [2.3.0 plan](../plans/2026-10-13-release-2.3.0.md) define the implemented Word editor.
 
@@ -12,15 +12,17 @@ The step indicator follows the active option: Write shows Describe and Save; Pul
 
 Use one /api/show parameter-size lookup for the selected model to show the PRD's dismissible, non-blocking warning when appropriate. Ignore stale results. Lookup must not freeze the UI or disable generation; no hardware checks are added. A missing local engine shows an explanation and Retry.
 
-## Azure desktop presentation (2.5.0 feature branch)
+## Azure desktop presentation (2.5.0)
 
-The [approved Azure reference](../../design/azure-desktop.html) and [2.5.0 wording table](../plans/2026-10-16-release-2.5.0.md#wording-decisions-for-alex) govern the refreshed presentation. Task 4 source evidence is in [Azure acceptance](../../design/azure-desktop-acceptance.md); Claude's review and Alex's Qt approval are required before merge.
+The [approved Azure reference](../../design/azure-desktop.html) and [2.5.0 wording table](../plans/2026-10-16-release-2.5.0.md#wording-decisions-for-alex) govern the refreshed presentation. Source evidence is in [Azure acceptance](../../design/azure-desktop-acceptance.md); Claude reviewed the implementation and final layout corrections at 0cd1742, and Alex approved the Qt result and fast-forward merge on 2026-10-16. The archived HTML retains its historical version; the app reads version.py.
 
 Use the shared Azure palette with a blue brand row, actual app icon, name/version, **Powered by your local LLM** directly under the name, and **Your documents. Your computer. Your control.** on the right. Keep a white navigation row below. The footer keeps **Your documents and the AI processing stay on your computer.** and displays the actual selected model as plain, elided text with its full tooltip, empty when none is selected.
 
 Create's Describe caption is **What would you like to work on?**, with **Local processing** as an informational pill. Keep later-step captions. Describe's card body can scroll while its shared primary action row remains outside the scroll area. Preserve **Only your description is used.** for Write and **Source files are kept unchanged** for Pull, without a new gate. Source-format and scanned-PDF warnings keep their existing exact wording.
 
 At 1024 x 640, columns and Excel/Word review use scrollable bodies with readable minimum view heights. Acknowledgement, Save to Excel and Word review actions remain reachable by mouse, focus and scrolling. Do not compress the grid or overlap controls to make everything fit. At 1280 x 800, extracting still shows four complete column rows. Keep at least 11 pt body/input text and native operating-system dialogs. Styling does not change processing, cancellation, closing or save rules.
+
+At 1280x800, both Write and Pull Describe fit without scrolling, including the complete source-format warning. Source filenames, Reading/Ready/Partly read badges and Remove share a line; three complete rows remain visible within the compact list. Filename elision retains the full accessible name and tooltip. Write's Save to folder stays on one middle-elided line with its full path as the tooltip and Change beside it. The mode buttons reserve constant border space so focused, checked and hovered labels remain fully visible.
 
 ## Describe
 
@@ -90,6 +92,6 @@ Closing cancels reading/proposals and waits for an accepted save without blockin
 
 ## Checks
 
-The [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#part-d-tasks-as-built) and [project status](../../PROJECT_STATUS.md#220-part-d-verification) record retained Create behavior. The [2.3.0 as-built record](../plans/2026-10-13-release-2.3.0.md#part-b-tasks-as-built) records the Edit selection, discard, review, worker, busy and close checks and its pre-merge corrections. scripts/capture_screens.py stages 16 synthetic 1280x800 views, including four Edit states, using shared app styles. The [model report](../../evaluation/2.3.0-edit-model-check.json) and [Word check](../../builds/2.3.0-word-check.json) record the separate Part C checks. Earlier [C2.7 evidence](../../builds/2.1.0-ui-ci.json) retains historical qualification. These checks do not establish every native UI interaction or a clean-machine walkthrough.
+The [2.2.0 plan](../plans/2026-10-12-release-2.2.0.md#part-d-tasks-as-built) and [project status](../../PROJECT_STATUS.md#220-part-d-verification) record retained Create behavior. The [2.3.0 as-built record](../plans/2026-10-13-release-2.3.0.md#part-b-tasks-as-built) records the Edit selection, discard, review, worker, busy and close checks and its pre-merge corrections. scripts/capture_screens.py stages 24 synthetic states and eight focused/scrolled action views per set, using shared app styles. The 2.5.0 acceptance matrix covers 1280x800 and 1024x640 at 1.0, 1.25 and 1.5 scale: 192 PNGs, including Excel acknowledgement/Save and Word deletion-review reachability. [Azure acceptance](../../design/azure-desktop-acceptance.md) records locations, measurements and source fingerprints. The [model report](../../evaluation/2.3.0-edit-model-check.json) and [Word check](../../builds/2.3.0-word-check.json) retain the separate engine checks; the presentation refresh does not rerun or alter them. Earlier [C2.7 evidence](../../builds/2.1.0-ui-ci.json) retains historical qualification. These checks do not establish every native UI interaction or a clean-machine walkthrough.
 
 Table-row extraction and Excel/PowerPoint editing remain later work under the PRD.

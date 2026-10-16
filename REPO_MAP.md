@@ -124,6 +124,7 @@ docs/
         v2.3.1.json
         v2.3.2-notes.md
         v2.3.2.json
+        v2.5.0-notes.md
     reviews/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
@@ -2565,12 +2566,12 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 136 lines
+- CHANGELOG.md: md, 141 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
-- PRD.md: md, 153 lines
-- README.md: md, 138 lines
+- PRD.md: md, 157 lines
+- README.md: md, 140 lines
 - SECURITY.md: md, 15 lines
 - assets/icons/simplicitor.ico: ico (binary)
 - assets/icons/simplicitor_128.png: png (binary)
@@ -2582,7 +2583,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 156 lines
+- docs/PROJECT_STATUS.md: md, 157 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2603,7 +2604,7 @@ requirements.txt
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
 - docs/code-signing.md: md, 69 lines
-- docs/design/azure-desktop-acceptance.md: md, 116 lines
+- docs/design/azure-desktop-acceptance.md: md, 122 lines
 - docs/design/azure-desktop.html: html, 281 lines
 - docs/design/document-workspace.html: html, 346 lines
 - docs/design/edit-document.html: html, 479 lines
@@ -2636,6 +2637,7 @@ requirements.txt
 - docs/releases/v2.3.1.json: json, 148 lines
 - docs/releases/v2.3.2-notes.md: md, 23 lines
 - docs/releases/v2.3.2.json: json, 148 lines
+- docs/releases/v2.5.0-notes.md: md, 26 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
@@ -2659,7 +2661,7 @@ requirements.txt
 - docs/superpowers/plans/2026-10-12-release-2.2.0.md: md, 4430 lines
 - docs/superpowers/plans/2026-10-13-release-2.3.0.md: md, 3738 lines
 - docs/superpowers/plans/2026-10-14-release-2.3.1.md: md, 565 lines
-- docs/superpowers/plans/2026-10-16-release-2.5.0.md: md, 292 lines
+- docs/superpowers/plans/2026-10-16-release-2.5.0.md: md, 298 lines
 - docs/superpowers/specs/2026-05-29-phase-h-renderer-design.md: md, 139 lines
 - docs/superpowers/specs/2026-06-01-phase-i-prompt-builder-design.md: md, 208 lines
 - docs/superpowers/specs/2026-06-02-phase-j-pipeline-design.md: md, 396 lines
@@ -2668,8 +2670,8 @@ requirements.txt
 - docs/superpowers/specs/2026-06-06-templates-folder-setting-design.md: md, 98 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
-- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 171 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 95 lines
+- docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 176 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 97 lines
 - docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 327 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines

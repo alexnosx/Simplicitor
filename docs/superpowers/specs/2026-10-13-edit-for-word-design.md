@@ -1,6 +1,6 @@
 # Simplicitor Edit for Word, 2.3.0 technical design
 
-**Status:** Implemented for the 2.3.0 release candidate on main, 2026-10-13, including amendments A1 to A3 and the approved Part B corrections. Parts A and B are complete; the Part C model gate and one-off Word check passed. Tagging and publication require Alex's separate go. See [project status](../../PROJECT_STATUS.md).
+**Status:** Implemented and published in 2.3.0, including amendments A1 to A3 and the approved Part B corrections; the Part C model gate and one-off Word check passed. The approved D2 display-only review amendment is included in 2.5.0 preparation, with the engine and preservation rules unchanged. 2.5.0 publication requires Alex's separate go. See [project status](../../PROJECT_STATUS.md).
 
 **Approved amendments (2026-10-13):** Alex approved A1 to A3 with the [2.3.0 implementation plan](../plans/2026-10-13-release-2.3.0.md#amendments-to-the-approved-design) at c0b7a91 (draft 4), after four [Codex reviews](../../reviews/2026-10-13-release-2.3.0-plan-codex.md). The Model request and Settings sections below incorporate the string reply, code-assigned sources and bookmark guard, no context, and the amended system prompt. Only line endings are normalized; draft 1's whitespace-trimming A4 was withdrawn. Selection, patch, verification, save and the UI are unchanged.
 
@@ -10,7 +10,7 @@
 
 These three points change what the user sees beyond the approved mockup. Alex decided them on 2026-10-13; the rest of this design follows the decisions.
 
-D2 includes Alex's approved 2026-10-15 review amendment: make removed text and disappearing paragraphs visible before accepting a change. This follow-up is unreleased source; project status owns its verification and release state.
+D2 includes Alex's approved 2026-10-15 review amendment: make removed text and disappearing paragraphs visible before accepting a change. This follow-up is included in 2.5.0 preparation; project status owns its verification and release state.
 
 | # | Question | Decision | Why |
 |---|---|---|---|

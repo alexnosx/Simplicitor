@@ -2,11 +2,11 @@
 
 Status: Alex approved the Qt result and fast-forward merge on 2026-10-16 at `0cd1742`, after Claude confirmed both row/path follow-ups and a full isolated run of 1,389 tests. Task 5 preparation is authorized; Task 6 publication still requires Alex's separate go.
 
-The [approved plan](../superpowers/plans/2026-10-16-release-2.5.0.md) and its wording table govern this work. The [Azure reference](azure-desktop.html) remains unchanged. Product version is still **2.3.2**, read from version.py; Task 5 owns 2.5.0 preparation.
+The [approved plan](../superpowers/plans/2026-10-16-release-2.5.0.md) and its wording table govern this work. The [Azure reference](azure-desktop.html) remains unchanged. The approved reference retains **2.3.2**. The refreshed Task 5 source captures read **2.5.0** from version.py; publication is still a separate gate.
 
 ## Source identity and verification
 
-Original Task 4 capture baseline: `edd70da735c887acbbf05bab5460654f0944e97b` (Task 3), plus Task 4's presentation changes. The first visual follow-up used `a080209` plus the three corrections below. The current compact-row/path captures use baseline `8e92c8c419bfc0c2a3adace320d6f6944d3033ea` plus the two new layout changes. Captures precede their documentation commit. Each `capture-metadata.json` therefore explicitly marks its source commit as a base and records SHA-256 for the capture script, main window, defaults/styles, version and all widget source files. Those fingerprints are checked against the committed files. The local matrix manifest records the final commit after commit/push; this avoids claiming the parent alone contains the captured changes.
+Original Task 4 capture baseline: `edd70da735c887acbbf05bab5460654f0944e97b` (Task 3), plus Task 4's presentation changes. The first visual follow-up used `a080209` plus the three corrections below. The approved compact-row/path captures use baseline `8e92c8c419bfc0c2a3adace320d6f6944d3033ea` plus the two new layout changes. Captures precede their documentation commit. Each `capture-metadata.json` therefore explicitly marks its source commit as a base and records SHA-256 for the capture script, main window, defaults/styles, version and all widget source files. Those fingerprints are checked against the committed files. The local matrix manifest records the final commit after commit/push; this avoids claiming the parent alone contains the captured changes.
 
 | Task | Commit before Task 4 | Targeted result | Full isolated suite |
 |---|---|---|---|
@@ -24,7 +24,7 @@ The full command is `.venv/Scripts/python.exe -m pytest -q -o faulthandler_timeo
 
 ## Capture matrix
 
-The refreshed PNGs, contact sheets and measurement files are local source artifacts under `C:/Codex/Simplicitor/.venv/screens-2.5.0-compact/`. `matrix.json` indexes these six sets. Each folder includes `capture-metadata.json`, `label-background-checks.json` and `contact-sheet.jpg`. Original Task 4 and first visual-follow-up captures remain under `.venv/screens-2.5.0/` and `.venv/screens-2.5.0-followup/` for comparison.
+The Task 5 refreshed PNGs, contact sheets and measurement files with version 2.5.0 are local source artifacts under `C:/Codex/Simplicitor/.venv/screens-2.5.0-preparation/`. The approved compact-row/path set remains under `.venv/screens-2.5.0-compact/`. `matrix.json` indexes these six sets. Each folder includes `capture-metadata.json`, `label-background-checks.json` and `contact-sheet.jpg`. Original Task 4 and first visual-follow-up captures remain under `.venv/screens-2.5.0/` and `.venv/screens-2.5.0-followup/` for comparison.
 
 | Folder | QT_SCALE_FACTOR | Logical window | Physical main-window PNG | Screenshots | Grey label samples |
 |---|---|---|---|---|---|
@@ -111,6 +111,12 @@ Codex inspected contact sheets and full-size Create, busy columns, combined/read
 
 Qt uses native font/layout metrics, flat bordered panels and Qt-drawn decorative file marks, rather than browser shadows or web icons. Native operating-system file dialogs retain their existing appearance and behavior. The accepted wording table intentionally retains several existing labels instead of the reference's illustrative copy. These are the planned differences, not missing workflow features.
 
-This is synthetic offscreen Qt source evidence, not an installed-Windows qualification or Alex's native scaling walkthrough. No model evaluation, Office/COM check or build was run. Model prompts/settings, extraction, document patch/verification/save, settings schema, LICENSE and historical releases remain unchanged.
+This is synthetic offscreen Qt source evidence, not an installed-Windows qualification or Alex's native scaling walkthrough. No model evaluation, Office/COM check or local build was run. Model prompts/settings, extraction, document patch/verification/save, settings schema, LICENSE and historical releases remain unchanged.
 
 Claude's original code/test review: **passed at a080209**. His check of the three visual corrections: **passed at 8e92c8c, with 1,384 isolated tests passed**. The two further row/path corrections are measured above. Alex's Qt and merge approval: **granted on 2026-10-16 at 0cd1742**. Claude confirmed both row/path changes and 1,389 passing isolated tests. This records Alex's approval without adding unreported native walkthrough results. Task 5 is authorized; Task 6 is not.
+
+## Task 5 version refresh
+
+Main was fast-forwarded to approval record `5eeca9f`, without a merge commit. The version-only code change to 2.5.0 passed the full isolated suite: **1,389 passed in 210.91 seconds**, with the existing pytest-cache permission warning and no freeze. The approved hard-link-permitted environment was used without changing or skipping tests.
+
+The six size/scale sets above were regenerated from that baseline plus version.py at 2.5.0. All 192 PNGs, six metadata source fingerprints and physical sizes were checked, with zero sampled grey label backgrounds. Codex inspected the refreshed desktop Pull view at 100% and 150%, the minimum-size contact sheet and the 125% Word deletion-review action view. Layout and gates retain the approved result. `docs/screenshot.png` is byte-identical to `1280x800-100/2-create-with-files.png`, SHA-256 `b9060e9aa903be5a3ffdf19d47744b75155d31465054daac378fddb0072e6a14`. The local matrix manifest records the committed source after the preparation commit. No model, engine, settings, LICENSE or capture-script change accompanies this version refresh. Hosted build qualification is recorded separately in project status.

@@ -1,10 +1,12 @@
-# Simplicitor document architecture, 2.3.0
+# Simplicitor document architecture, 2.5.0
 
-[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md) and [2.3.0 plan](../plans/2026-10-13-release-2.3.0.md) own signatures and checks. Updated 2026-10-13 for 2.3.0 release preparation after the Edit screen merge and Part C checks.
+[PRD.md](../../../PRD.md) owns requirements and acceptance values. [Project status](../../PROJECT_STATUS.md) owns current state and B1. [UI design](2026-10-08-document-workspace-ui-design.md) owns presentation; the [2.0.0 extraction plan](../plans/2026-10-08-first-release-extraction.md), [2.3.0 editing plan](../plans/2026-10-13-release-2.3.0.md) and [2.5.0 Azure plan](../plans/2026-10-16-release-2.5.0.md) own signatures and checks. Updated 2026-10-16 for 2.5.0 preparation. The refresh preserves model requests, document engines, settings schema and save contracts.
 
 ## Structure
 
 Keep Python/PySide6, existing generation/template workers, and independent plain-Python extraction and editing packages with their Qt worker adapters. MainWindow mounts CreateScreen and EditScreen; TopBar selects the mode and Settings. The screens emit work requests, while MainWindow owns frozen setup, worker wiring, cancellation and teardown. Legacy editing remains hidden and disabled.
+
+Azure presentation stays in the Qt layer: defaults.py owns shared values; styles.py supplies scoped header/workspace/input styles. TopBar has separate brand and navigation rows and reads the shared product version. MainWindow displays the existing selected model in the footer without changing discovery or selection. ChoiceButton and FileTypePicker retain the backend labels and existing type-change path. ElidedLabel paints one-line filenames/folders while retaining their full literal text, accessible names and tooltips. Scrollable card bodies keep actions reachable in smaller windows.
 
 CreateScreen chooses an explicit Write or Pull route. It keeps separate description/request buffers and retains the writing file type and source attachments independently. Write emits only type, folder and description; its extraction snapshot contains no paths. Pull always produces XLSX. Leaving Pull clears derived columns, candidate and acknowledgement through setup_changed, which MainWindow uses to discard the owned job. Busy work blocks switching; GUI receivers ignore results for the other route. Generation, grounding, review, save, cancellation and close algorithms are unchanged.
 
@@ -43,7 +45,10 @@ The core has no Qt dependency. Readers open sources read-only, close handles, an
 | simplicitor/extraction/jobs.py | Candidate folder, Save As copying, source-path refusal, and age-based cleanup. |
 | simplicitor/app/workers/extraction_worker.py | QObject adapter for core actions; forwards existing source IDs and progress counts to the GUI. |
 | simplicitor/app/widgets/create_screen.py | Explicit Write/Pull routes, retained inputs, columns, per-file states/progress, saved grid/evidence, native export request and Saved page. |
-| simplicitor/app/config/styles.py | Shared input, dropdown choice and focus styles for the app and deterministic captures. |
+| simplicitor/app/config/styles.py | Scoped Azure header/workspace/input styles, semantic states and focus styles for the app and deterministic captures. |
+| simplicitor/app/widgets/top_bar.py | Two-row brand/navigation header with shared version, mode requests, connection display and Settings. |
+| simplicitor/app/widgets/choice_button.py and file_type_picker.py | Native checkable choices retaining existing route and backend file-type behavior. |
+| simplicitor/app/widgets/elided_label.py | Single-line literal text with middle elision, full tooltip and accessible text. |
 | simplicitor/app/widgets/template_dialog.py | Built-in template selection and structure confirmation. |
 | simplicitor/app/widgets/step_indicator.py | Preserve the active step across prompt and source routes. |
 | simplicitor/app/widgets/plain_labels.py | Present source anchors, issues and coverage in plain language without interpreting rich text. |
@@ -60,7 +65,7 @@ The [implemented Edit for Word design](2026-10-13-edit-for-word-design.md) owns 
 
 EditScreen emits open, propose and save requests. MainWindow constructs EditSetup and runs one EditWorker action on a QThread. Results reach GUI-thread slots only while the sender and session still own the request. Save supplies only the candidate and accepted destination; the worker fingerprints the destination, stages and reads back output, rechecks source and destination, then replaces it. No destination read occurs on the GUI thread. Native Save As keeps overwrite confirmation enabled.
 
-The 2026-10-15 review amendment adds display-only Before deletion ranges and a removed/merged paragraph count to EditCandidate. EditWorker prepares these through reading_view before emitting the proposal, so comparison of long repetitive text stays off the GUI thread. EditScreen only paints the supplied markers. Candidate document bytes, model requests, the patch/verification engine and Save As are unchanged.
+The 2026-10-15 review amendment, included in 2.5.0, adds display-only Before deletion ranges and a removed/merged paragraph count to EditCandidate. EditWorker prepares these through reading_view before emitting the proposal, so comparison of long repetitive text stays off the GUI thread. EditScreen only paints the supplied markers. Candidate document bytes, model requests, the patch/verification engine and Save As are unchanged.
 
 Cancellation invalidates late open/proposal results; an accepted save finishes. Worker references are kept through non-blocking `wait(0)` teardown. Closing shows the wait on the visible screen. A failed accepted save withdraws the pending close, leaves the candidate/error on Save and resumes discovery; queued close callbacks recheck the close request. Ordinary non-closing save outcomes retain their existing retry/reset handling. Application diagnostics exclude document text, instructions, filenames, paths and replies. Acceptance values belong to the [PRD](../../../PRD.md#230-edit-for-word).
 
@@ -133,7 +138,7 @@ From 2.0.0 onward, extraction records one source-level Issue(sectioned_source, s
 
 ## Evaluation and release order
 
-The sequence below records the completed 2.0.0 extraction plan; its criteria remain unchanged in 2.2.0. E1 qualifies the exact 2.2.0 source/documentation commit with a hosted build, without a new model run. E2 tagging/publication needs Alex's separate go.
+The sequence below records the completed 2.0.0 extraction plan; its criteria remain unchanged in 2.5.0. Task 5 of the 2.5.0 plan qualifies its exact source/documentation commit with a hosted build, without a new model run. Task 6 tagging/publication needs Alex's separate go.
 
 Task 1 reads actual English DOCX/PDF fixtures and runs the single early stop gate. Labels are independently authored field expectations, not alternate source units. Score accuracy, unflagged errors, and review burden using shared grounding and Data-value projection.
 
@@ -155,7 +160,7 @@ The developer CLI retains its separate import_template tool and template-generat
 
 ## MSI packaging and hosted CI
 
-Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.3.0.0, read from app/version.py. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths. The MSI version is 2.3.0 and its derived upgrade probe is 2.3.1.
+Nuitka 4.2.2 compiles the standalone Python/PySide6 payload with product version 2.5.0.0, read from app/version.py. build.py generates a WiX fragment from the actual payload: one component per folder, stable path-derived IDs and UUID5 component GUIDs, HKCU registry key paths, all packaged files, and uninstall RemoveFolder entries. The authored packaging/simplicitor.wxs fixes the per-user Programs/Simplicitor directory and shortcuts, refuses the old NSIS registration, and schedules major-upgrade removal afterInstallInitialize for rollback. WiX 5.0.2 is pinned as a repo-local .NET tool on the hosted runner only. MSI validation suppresses only ICE91 for intentional per-user paths. The MSI version is 2.5.0 and its derived upgrade probe is 2.5.1.
 
 LICENSE and validated third_party notices are in the payload; the MSI and portable ZIP use that same payload. SHA256SUMS.json records payload and artifact hashes. The runner-only qualification checks NSIS refusal, install/registration/shortcuts, 20-second offscreen startup without Ollama, same-version repair, a synthetic major upgrade and settings-preserving uninstall. It does not establish native UI acceptance, SmartScreen reputation or a clean machine without developer runtimes.
 
