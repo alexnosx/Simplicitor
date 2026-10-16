@@ -1,11 +1,13 @@
 # Changelog
 
-## v2.5.0 (unreleased)
+## v2.5.0, 2026-10-17
+
+Published as [v2.5.0](https://github.com/alexnosx/Simplicitor/releases/tag/v2.5.0) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.5.0.json](docs/releases/v2.5.0.json).
 
 - Refresh the Windows workspace with a blue two-row header, the app icon, local-AI subtitle and selected-model footer, larger text and consistent focus, choice and status colours.
 - Make Write's Word, PDF, Excel and PowerPoint choices explicit. Keep independent Write/Pull inputs, built-in templates and every existing request, review and save gate.
 - Keep source filenames, reading states and Remove on one line, with three complete files visible at 1280x800. Show the save folder on one middle-elided line with the full path in its tooltip. Smaller windows retain scrollable content and reachable actions.
-- Refresh the README picture and prepare product/MSI 2.5.0, executable 2.5.0.0 and hosted upgrade probe 2.5.1. Publication requires Alex's separate go.
+- Refresh the README picture and set product/MSI 2.5.0, executable 2.5.0.0 and hosted upgrade probe 2.5.1. The approved tag workflow rebuilt, qualified and published commit `a1656b6`.
 
 - Show removed or replaced words in pale red with a strike-through in Word Review's Before pane, with a notice for original paragraphs removed or merged. Keep After's green highlights and the existing acceptance/Save As flow.
 - Prepare these display-only markers in the editing worker so long comparisons do not stall the window. Preserve candidate document bytes, original files, model settings and the editing/saving engines.
