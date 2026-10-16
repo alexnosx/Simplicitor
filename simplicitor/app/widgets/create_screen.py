@@ -106,6 +106,9 @@ class CreateScreen(QWidget):
         heading.addWidget(self._caption)
         heading.addStretch()
         self._local_label = QLabel("Local processing")
+        self._local_label.setObjectName("localProcessing")
+        self._local_label.setStyleSheet(f"background: {SUCCESS_BG_COLOR}; color: {SUCCESS_COLOR}; "
+                                       "padding: 5px 10px; border-radius: 12px;")
         heading.addWidget(self._local_label)
         options = QHBoxLayout()
         self._write_option = ChoiceButton("Write a new document",
@@ -178,6 +181,7 @@ class CreateScreen(QWidget):
         self._steps.set_current(0)
         self._caption.setText("What would you like to work on?")
         self._update_placeholder()
+        self._describe_scroll.verticalScrollBar().setValue(0)
         if route == "pull":
             if self._documents:
                 self.show_inspection(self._documents)
@@ -198,6 +202,15 @@ class CreateScreen(QWidget):
         label = QLabel(text)
         label.setProperty("cardTitle", True)
         return label
+
+    @staticmethod
+    def _scrollable(page: QWidget) -> QScrollArea:
+        """Keep card minimum sizes intact when the available workspace is shorter."""
+        scroll = QScrollArea()
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(page)
+        return scroll
 
     def _build_describe_page(self) -> QWidget:
         page = QWidget()
@@ -880,7 +893,7 @@ class CreateScreen(QWidget):
         bottom.addWidget(self._back_btn)
         bottom.addStretch()
         layout.addLayout(bottom)
-        return page
+        return self._scrollable(page)
 
     def _build_review_page(self) -> QWidget:
         page = QWidget()
@@ -895,12 +908,14 @@ class CreateScreen(QWidget):
             f"background: {WARNING_BG_COLOR}; color: {WARNING_TEXT_COLOR}; padding: 10px;")
         left.addWidget(self._review_note)
         self._grid = QTableWidget()
+        self._grid.setMinimumHeight(110)
         self._grid.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self._grid.currentCellChanged.connect(self._show_evidence)
         left.addWidget(self._grid, 1)
         self._coverage_view = QPlainTextEdit()
         self._coverage_view.setObjectName("readingProblems")
         self._coverage_view.setReadOnly(True)
+        self._coverage_view.setMinimumHeight(76)
         self._coverage_view.setMaximumHeight(100)
         self._coverage_view.hide()
         left.addWidget(self._coverage_view)
@@ -929,7 +944,7 @@ class CreateScreen(QWidget):
         splitter.setStretchFactor(1, 35)
         splitter.setSizes([650, 350])
         layout.addWidget(splitter)
-        return page
+        return self._scrollable(page)
 
     def _back_to_describe(self) -> None:
         self._pages.setCurrentWidget(self._describe_page)

@@ -5,7 +5,7 @@ from PySide6.QtCore import QAbstractListModel, QModelIndex, QPointF, QRectF, QSi
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QTextCharFormat, QTextLayout, QTextOption
 from PySide6.QtWidgets import (
     QAbstractItemView, QDialog, QFileDialog, QFrame, QHBoxLayout, QLabel, QListView,
-    QPlainTextEdit, QPushButton, QStackedWidget, QStyledItemDelegate, QVBoxLayout, QWidget,
+    QPlainTextEdit, QPushButton, QScrollArea, QStackedWidget, QStyledItemDelegate, QVBoxLayout, QWidget,
 )
 
 from app.config.defaults import (
@@ -442,6 +442,8 @@ class EditScreen(QWidget):
         comparison = QHBoxLayout()
         self._before = DocumentView()
         self._after = DocumentView()
+        self._before.setMinimumHeight(96)
+        self._after.setMinimumHeight(96)
         for title, view in (("Before", self._before), ("After", self._after)):
             view.interactive = False
             column = QVBoxLayout()
@@ -481,6 +483,11 @@ class EditScreen(QWidget):
         self._another_btn = self._button("Open another document", self._browse, secondary=True)
         saved.addWidget(self._another_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         saved.addStretch()
+        review_scroll = QScrollArea()
+        review_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        review_scroll.setWidgetResizable(True)
+        review_scroll.setWidget(self._review_page)
+        self._review_page = review_scroll
         for page in (self._open_page, self._select_page, self._describe_page, self._review_page,
                      self._save_page, self._saved_page):
             self._pages.addWidget(page)

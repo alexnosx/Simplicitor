@@ -12,11 +12,21 @@ The step indicator follows the active option: Write shows Describe and Save; Pul
 
 Use one /api/show parameter-size lookup for the selected model to show the PRD's dismissible, non-blocking warning when appropriate. Ignore stale results. Lookup must not freeze the UI or disable generation; no hardware checks are added. A missing local engine shows an explanation and Retry.
 
+## Azure desktop presentation (2.5.0 feature branch)
+
+The [approved Azure reference](../../design/azure-desktop.html) and [2.5.0 wording table](../plans/2026-10-16-release-2.5.0.md#wording-decisions-for-alex) govern the refreshed presentation. Task 4 source evidence is in [Azure acceptance](../../design/azure-desktop-acceptance.md); Claude's review and Alex's Qt approval are required before merge.
+
+Use the shared Azure palette with a blue brand row, actual app icon, name/version, **Powered by your local LLM** directly under the name, and **Your documents. Your computer. Your control.** on the right. Keep a white navigation row below. The footer keeps **Your documents and the AI processing stay on your computer.** and displays the actual selected model as plain, elided text with its full tooltip, empty when none is selected.
+
+Create's Describe caption is **What would you like to work on?**, with **Local processing** as an informational pill. Keep later-step captions. Describe's card body can scroll while its shared primary action row remains outside the scroll area. Preserve **Only your description is used.** for Write and **Source files are kept unchanged** for Pull, without a new gate. Source-format and scanned-PDF warnings keep their existing exact wording.
+
+At 1024 x 640, columns and Excel/Word review use scrollable bodies with readable minimum view heights. Acknowledgement, Save to Excel and Word review actions remain reachable by mouse, focus and scrolling. Do not compress the grid or overlap controls to make everything fit. At 1280 x 800, extracting still shows four complete column rows. Keep at least 11 pt body/input text and native operating-system dialogs. Styling does not change processing, cancellation, closing or save rules.
+
 ## Describe
 
-At the top, offer **Write a new document** ("Word, PDF, PowerPoint or Excel, from a description.") and **Pull information from documents into Excel** ("Read your Word files or PDFs and make an Excel table."). Show only the active option's inputs. The chosen option determines the request, independently of attached files.
+At the top, offer **Write a new document** ("Word, PDF, PowerPoint or Excel, from a description.") and **Pull information into Excel** ("Read your Word files or PDFs and make an Excel table."). Show only the active option's inputs. The chosen option determines the request, independently of attached files.
 
-Writing shows **1. Describe the document you need** and **2. Choose the output**. File-type choices are Word, PDF, Excel and PowerPoint, retaining backend identifiers internally. Use light blue for hovered/chosen dropdown items and a blue focus border. **Create file** sends only type, folder and description to the existing generator. PDF follows the Word response structure.
+Writing shows **1. Describe the document you need** and **2. Choose the output**. File-type choices are Word, PDF, Excel and PowerPoint, retaining backend identifiers internally. Use four checkable format buttons with names/extensions, light blue hover/chosen states and a blue focus border. **Create file** sends only type, folder and description to the existing generator. PDF follows the Word response structure.
 
 For PowerPoint, **Use a template** is a blue secondary button with hover, pressed and chosen states. The picker offers only business_pitch and technical_overview and keeps structure confirmation. After selection, show **Template: <name>** and **Clear**. A real file-type change away from PowerPoint clears the choice; switching to Pull and back retains it.
 

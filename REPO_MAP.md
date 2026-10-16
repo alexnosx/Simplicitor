@@ -89,6 +89,7 @@ docs/
         2026-10-12-c2-test-followup.json
         2026-10-12-c2-ui-followup.json
     design/
+        azure-desktop-acceptance.md
         azure-desktop.html
         document-workspace.html
         edit-document.html
@@ -797,7 +798,8 @@ requirements.txt
 ### scripts/capture_screens.py
 
 - def _offline_client(*args, **kwargs)
-- def main(out: Path) -> None
+- def parse_size(value: str) -> tuple[int, int]: Accept logical window dimensions at or above the application's minimum.
+- def main(out: Path, size: tuple[int, int]=(1280, 800), state: str | None=None) -> None
 
 ### scripts/evaluate_editing.py
 
@@ -1918,6 +1920,17 @@ requirements.txt
 - def test_pull_ready_reading_and_partial_states_keep_words_and_shared_colours(window, tmp_path, monkeypatch)
 - def test_status_paths_are_literal_readable_and_dismissible(qtbot)
 - def test_owned_dialogs_share_controls_and_readable_type(qtbot, isolated_profile, kind)
+- def _pull_review(window, tmp_path, kind): Stage saved-output UI data, without a model request or a save.
+- def _reach(widget, window, qapp): Prove the whole action is inside the window and its scroll viewports.
+- def test_pull_review_acknowledgement_and_save_are_reachable(window, qtbot, qapp, tmp_path, size, kind)
+- def test_edit_review_with_notice_and_actions_is_reachable(window, qapp, tmp_path, size)
+- def test_describe_and_columns_actions_are_reachable_at_minimum(window, qapp, route)
+- def test_busy_columns_do_not_overlap_the_controls_at_minimum(window, qapp, monkeypatch)
+- def test_capture_cli_rejects_unknown_size_and_state(tmp_path, option, value)
+- def test_local_processing_is_an_informational_pill(window)
+- def test_route_switch_starts_at_the_new_cards_without_losing_input(window, qapp)
+- def test_capture_cli_records_real_scaled_dimensions_and_one_state(tmp_path)
+- def test_capture_cli_full_minimum_set_keeps_review_actions_reachable(tmp_path)
 
 ### tests/test_backup_service.py
 
@@ -2558,7 +2571,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 152 lines
+- docs/PROJECT_STATUS.md: md, 153 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2579,6 +2592,7 @@ requirements.txt
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
 - docs/code-signing.md: md, 69 lines
+- docs/design/azure-desktop-acceptance.md: md, 70 lines
 - docs/design/azure-desktop.html: html, 281 lines
 - docs/design/document-workspace.html: html, 346 lines
 - docs/design/edit-document.html: html, 479 lines
@@ -2644,7 +2658,7 @@ requirements.txt
 - docs/superpowers/specs/2026-06-07-business-pitch-charts-design.md: md, 144 lines
 - docs/superpowers/specs/2026-06-07-business-pitch-watercolor-design.md: md, 156 lines
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 171 lines
-- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 85 lines
+- docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 95 lines
 - docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 327 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
