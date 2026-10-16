@@ -1,6 +1,6 @@
 # Azure desktop source acceptance evidence
 
-Status: Claude confirmed the three visual fixes at `8e92c8c` and a passing isolated suite of 1,384 tests. The two further row/path layout corrections are implemented on `codex/2.5.0-azure-desktop`, as measured below. Alex's Qt and merge approval are pending. No merge, version bump, build, tag or release.
+Status: Alex approved the Qt result and fast-forward merge on 2026-10-16 at `0cd1742`, after Claude confirmed both row/path follow-ups and a full isolated run of 1,389 tests. Task 5 preparation is authorized; Task 6 publication still requires Alex's separate go.
 
 The [approved plan](../superpowers/plans/2026-10-16-release-2.5.0.md) and its wording table govern this work. The [Azure reference](azure-desktop.html) remains unchanged. Product version is still **2.3.2**, read from version.py; Task 5 owns 2.5.0 preparation.
 
@@ -113,4 +113,4 @@ Qt uses native font/layout metrics, flat bordered panels and Qt-drawn decorative
 
 This is synthetic offscreen Qt source evidence, not an installed-Windows qualification or Alex's native scaling walkthrough. No model evaluation, Office/COM check or build was run. Model prompts/settings, extraction, document patch/verification/save, settings schema, LICENSE and historical releases remain unchanged.
 
-Claude's original code/test review: **passed at a080209**. His check of the three visual corrections: **passed at 8e92c8c, with 1,384 isolated tests passed**. The two further row/path corrections are measured above. Alex's source walkthrough, Qt approval and merge approval: **pending**. Stop here before merge and Task 5.
+Claude's original code/test review: **passed at a080209**. His check of the three visual corrections: **passed at 8e92c8c, with 1,384 isolated tests passed**. The two further row/path corrections are measured above. Alex's Qt and merge approval: **granted on 2026-10-16 at 0cd1742**. Claude confirmed both row/path changes and 1,389 passing isolated tests. This records Alex's approval without adding unreported native walkthrough results. Task 5 is authorized; Task 6 is not.
