@@ -59,12 +59,12 @@ def _screen(qtbot, isolated_profile):
 
 def test_without_sources_all_types_and_create_file_uses_chosen_folder(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
-    assert [screen._type_combo.itemText(i) for i in range(screen._type_combo.count())] == [
+    assert [button._title_label.text() for button in screen._file_type_picker._buttons.values()] == [
         "Word", "PDF", "Excel", "PowerPoint"]
     assert screen._primary_btn.text() == "Create file"
     screen._save_dir = str(tmp_path / "chosen")
     screen._prompt_edit.setPlainText("A one-page project summary")
-    screen._type_combo.setCurrentText("PDF")
+    screen.set_file_type("PDF (.pdf)")
     with qtbot.waitSignal(screen.generate_requested) as blocker:
         screen._primary_btn.click()
     assert blocker.args == ["PDF (.pdf)", str(tmp_path / "chosen"), "A one-page project summary"]
@@ -77,15 +77,14 @@ def test_sources_force_excel_and_wait_for_inspection(qtbot, isolated_profile, tm
     source.write_bytes(b"x")
     ignored = tmp_path / "notes.txt"
     ignored.write_bytes(b"x")
-    screen._type_combo.setCurrentText("Word")
+    screen.set_file_type("Word (.docx)")
     screen._prompt_edit.setPlainText("Invoice number and total")
     with qtbot.waitSignal(screen.inspect_requested):
         screen.set_paths((source, ignored))
     assert screen._source_list.count() == 1
     assert screen.file_type() == "Excel (.xlsx)"
-    word = screen._type_combo.findText("Word")
-    assert screen._type_combo.model().item(word).isEnabled()  # retained Write choice
-    assert not screen._type_combo.isVisible()
+    assert screen._file_type_picker.button_for("Word (.docx)").isEnabled()  # retained Write choice
+    assert not screen._file_type_picker.isVisible()
     assert screen._sources_note.isVisible()
     assert screen._primary_btn.text() == "Reading files..."
     assert not screen._primary_btn.isEnabled()  # still reading the files
@@ -114,8 +113,7 @@ def test_removing_all_sources_restores_every_type(qtbot, isolated_profile, tmp_p
     screen.set_paths((source,))
     screen.set_paths(())
     screen.set_route("write")
-    word = screen._type_combo.findText("Word")
-    assert screen._type_combo.model().item(word).isEnabled()
+    assert screen._file_type_picker.button_for("Word (.docx)").isEnabled()
     assert screen._primary_btn.text() == "Create file"
     assert screen._steps.current() == 0
 
@@ -148,7 +146,7 @@ def test_source_changes_are_ignored_while_busy(qtbot, isolated_profile, tmp_path
 def test_sources_do_not_overwrite_the_retained_write_type(qtbot, isolated_profile, tmp_path):
     screen = _screen(qtbot, isolated_profile)
     screen.set_route("pull")
-    screen._type_combo.setCurrentText("PowerPoint")
+    screen.set_file_type("PowerPoint (.pptx)")
     seen = []
     screen.file_type_changed.connect(seen.append)
     source = tmp_path / "invoice.docx"
@@ -186,7 +184,7 @@ def test_saved_prompt_page_and_start_another_preserve_folder(qtbot, isolated_pro
     screen = _screen(qtbot, isolated_profile)
     screen._save_dir = str(tmp_path / "chosen")
     screen._prompt_edit.setPlainText("A synthetic summary")
-    screen._type_combo.setCurrentText("PDF")
+    screen.set_file_type("PDF (.pdf)")
     screen.show_open_file_btn(str(tmp_path / "summary.pdf"))
     assert screen._pages.currentWidget() is screen._saved_page
     assert screen._steps.current() == 1

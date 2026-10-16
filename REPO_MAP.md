@@ -496,11 +496,13 @@ simplicitor/
         widgets/
             __init__.py
             capability_banner.py
+            choice_button.py
             create_screen.py
             drop_zone.py
             edit_panel.py
             edit_screen.py
             file_list.py
+            file_type_picker.py
             plain_labels.py
             settings_dialog.py
             status_banner.py
@@ -692,6 +694,7 @@ tests/
     test_azure_appearance.py
     test_backup_service.py
     test_build_script.py
+    test_choice_button.py
     test_cli.py
     test_create_appearance.py
     test_create_progress.py
@@ -702,6 +705,7 @@ tests/
     test_extraction_worker.py
     test_file_generator.py
     test_file_manipulator.py
+    test_file_type_picker.py
     test_file_utils.py
     test_gen_repo_map.py
     test_generate_worker.py
@@ -962,6 +966,10 @@ requirements.txt
 
 - class CapabilityBanner(QWidget): Dismissible recommendation for a selected model below 8B or of unknown size.
 
+### simplicitor/app/widgets/choice_button.py
+
+- class ChoiceButton(QPushButton): Present one checkable choice; decorative children never intercept input.
+
 ### simplicitor/app/widgets/create_screen.py
 
 - class CreateScreen(QWidget): Emit frozen work requests and display results supplied by GUI-thread slots.
@@ -986,6 +994,11 @@ requirements.txt
 ### simplicitor/app/widgets/file_list.py
 
 - class FileList(QListWidget): Displays uploaded files ordered most-recent-first.
+
+### simplicitor/app/widgets/file_type_picker.py
+
+- def file_mark(label: str) -> QIcon: Cache small, decorative format marks drawn with Qt, without external assets.
+- class FileTypePicker(QWidget): Own one selected backend label, emitting once only for a real change.
 
 ### simplicitor/app/widgets/plain_labels.py
 
@@ -1899,6 +1912,8 @@ requirements.txt
 - def test_main_window_uses_header_size_hint(window, qapp)
 - def test_footer_tracks_selected_model_without_extra_selection_signals(window, qapp)
 - def test_footer_model_is_literal_and_empty_without_a_selection(window)
+- def test_write_layout_uses_approved_copy_and_one_common_action(qtbot, isolated_profile)
+- def test_new_file_choice_keeps_signals_and_routes_separate(window, tmp_path, monkeypatch)
 
 ### tests/test_backup_service.py
 
@@ -1926,6 +1941,12 @@ requirements.txt
 - def test_incomplete_build_fails_without_a_portable_archive(payload, monkeypatch, missing)
 - def test_compiler_failure_is_propagated(payload, monkeypatch)
 - def test_missing_icon_fails_before_compilation(payload, monkeypatch)
+
+### tests/test_choice_button.py
+
+- def test_clicking_a_choice_region_emits_one_action(qtbot, qapp, region)
+- def test_choice_keeps_caption_wrapped_and_shows_its_selected_mark(qtbot)
+- def test_choices_show_light_hover_selection_and_focus(qtbot)
 
 ### tests/test_cli.py
 
@@ -2111,6 +2132,14 @@ requirements.txt
 - def test_apply_xlsx_creates_valid_xlsx(tmp_path)
 - def test_extract_pdf(tmp_path): PDF extraction returns text via pdfplumber (mocked for test environment).
 - def test_apply_pptx_creates_valid_pptx(tmp_path)
+
+### tests/test_file_type_picker.py
+
+- def make_picker(qtbot)
+- def test_four_file_choices_have_exact_labels_order_and_one_selection(qtbot)
+- def test_file_choice_emits_one_backend_label(qtbot)
+- def test_programmatic_choice_changes_once_and_rejects_unknown(qtbot)
+- def test_space_activates_a_format_choice(qtbot)
 
 ### tests/test_file_utils.py
 
@@ -2525,7 +2554,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 150 lines
+- docs/PROJECT_STATUS.md: md, 151 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)

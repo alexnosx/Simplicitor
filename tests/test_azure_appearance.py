@@ -94,3 +94,47 @@ def test_footer_model_is_literal_and_empty_without_a_selection(window):
     window._on_ollama_connected(["<b>local</b>"], "")
     assert window._footer_model.text() == "<b>local</b>"
     assert window._footer_model.textFormat() == Qt.TextFormat.PlainText
+
+
+def test_write_layout_uses_approved_copy_and_one_common_action(qtbot, isolated_profile):
+    from PySide6.QtWidgets import QLabel
+    from tests.test_create_screen import _screen
+    screen = _screen(qtbot, isolated_profile)
+    assert screen._caption.text() == "What would you like to work on?"
+    labels = {label.text() for label in screen.findChildren(QLabel)}
+    assert {"Local processing", "Only your description is used.",
+            "Be specific about the content, sections and length.", "File type"} <= labels
+    assert screen._pull_option._title_label.text() == "Pull information into Excel"
+    assert screen._describe_actions.indexOf(screen._primary_btn) == 0
+    assert screen._primary_btn.parentWidget() is screen._describe_page
+    screen.set_route("pull")
+    assert not screen._file_type_picker.isVisible()
+    screen.set_route("write")
+    assert screen._describe_actions.indexOf(screen._primary_btn) == 0
+
+
+def test_new_file_choice_keeps_signals_and_routes_separate(window, tmp_path, monkeypatch):
+    monkeypatch.setattr(window, "_on_generate_requested", lambda *args: None)
+    window._connect_create_screen()
+    monkeypatch.setattr(window, "_start_extraction", lambda *args, **kwargs: None)
+    panel = window._create_screen
+    window._on_ollama_connected(["synthetic"], "synthetic")
+    panel._prompt_edit.setPlainText("Synthetic summary")
+    chosen = []
+    panel.file_type_changed.connect(chosen.append)
+    panel._file_type_picker.button_for("PDF (.pdf)").click()
+    assert chosen == ["PDF (.pdf)"]
+    writes = []
+    panel.generate_requested.connect(lambda *args: writes.append(args))
+    panel._primary_btn.click()
+    assert writes == [("PDF (.pdf)", panel._save_dir, "Synthetic summary")]
+    panel.set_route("pull")
+    panel._prompt_edit.setPlainText("Synthetic fields")
+    panel.set_paths((tmp_path / "source.docx",))
+    panel.show_inspection(())
+    panel.set_route("write")
+    assert panel._prompt_edit.toPlainText() == "Synthetic summary"
+    assert panel.file_type() == "PDF (.pdf)"
+    panel.set_generating(True)
+    panel._file_type_picker.button_for("Word (.docx)").click()
+    assert panel.file_type() == "PDF (.pdf)"

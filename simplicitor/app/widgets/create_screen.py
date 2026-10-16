@@ -9,7 +9,7 @@ from PySide6.QtCore import QEvent, Qt, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
     QAbstractItemView, QButtonGroup, QCheckBox, QComboBox, QFileDialog, QFormLayout, QFrame, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QPlainTextEdit, QProgressBar, QPushButton, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
+    QPlainTextEdit, QProgressBar, QPushButton, QScrollArea, QSplitter, QStackedWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,
 )
 from PySide6.QtGui import QColor
@@ -24,6 +24,8 @@ from app.config.defaults import (
 )
 from app.config.settings import Settings
 from app.config.styles import input_styles
+from app.widgets.choice_button import ChoiceButton
+from app.widgets.file_type_picker import FileTypePicker, file_mark
 from app.widgets.plain_labels import describe_anchor, describe_coverage, describe_issues
 from app.widgets.status_banner import StatusBanner
 from app.widgets.step_indicator import StepIndicator
@@ -121,16 +123,18 @@ class CreateScreen(QWidget):
         heading = QHBoxLayout()
         title = QLabel("Create new")
         title.setStyleSheet("font-size: 22px; font-weight: 600;")
-        self._caption = QLabel("Describe what you need.")
+        self._caption = QLabel("What would you like to work on?")
         self._caption.setStyleSheet("color: #626B78;")
         heading.addWidget(title)
         heading.addWidget(self._caption)
         heading.addStretch()
+        self._local_label = QLabel("Local processing")
+        heading.addWidget(self._local_label)
         options = QHBoxLayout()
-        self._write_option = QPushButton("Write a new document\n"
-                                        "Word, PDF, PowerPoint or Excel, from a description.")
-        self._pull_option = QPushButton("Pull information from documents into Excel\n"
-                                       "Read your Word files or PDFs and make an Excel table.")
+        self._write_option = ChoiceButton("Write a new document",
+            "Word, PDF, PowerPoint or Excel, from a description.", file_mark("Word (.docx)"))
+        self._pull_option = ChoiceButton("Pull information into Excel",
+            "Read your Word files or PDFs and make an Excel table.", file_mark("Excel (.xlsx)"))
         self._route_buttons = QButtonGroup(self)
         for route, button in (("write", self._write_option), ("pull", self._pull_option)):
             button.setProperty("route", True)
@@ -162,7 +166,7 @@ class CreateScreen(QWidget):
         layout.addWidget(self._pages, stretch=1)
         layout.addLayout(footer)
         self._prompt_edit.textChanged.connect(self._setup_edited)
-        self._type_combo.currentTextChanged.connect(self._type_changed)
+        self._file_type_picker.changed.connect(self._type_changed)
         self._update_placeholder()
         self._refresh()
         self._update_details()
@@ -188,7 +192,7 @@ class CreateScreen(QWidget):
         self._pages.setCurrentWidget(self._describe_page)
         self._setup_edited()
         self._steps.set_current(0)
-        self._caption.setText("Describe what you need.")
+        self._caption.setText("What would you like to work on?")
         self._update_placeholder()
         if route == "pull":
             if self._documents:
@@ -213,9 +217,20 @@ class CreateScreen(QWidget):
 
     def _build_describe_page(self) -> QWidget:
         page = QWidget()
-        row = QHBoxLayout(page)
+        page_layout = QVBoxLayout(page)
+        page_layout.setContentsMargins(0, 0, 0, 0)
+        page_layout.setSpacing(12)
+        self._describe_scroll = QScrollArea()
+        self._describe_scroll.setWidgetResizable(True)
+        self._describe_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        body = QWidget()
+        row = QHBoxLayout(body)
         row.setContentsMargins(0, 0, 0, 0)
-        row.setSpacing(20)
+        row.setSpacing(16)
+        self._describe_scroll.setWidget(body)
+        page_layout.addWidget(self._describe_scroll, 1)
+        self._describe_actions = QHBoxLayout()
+        page_layout.addLayout(self._describe_actions)
         self._description_card, column = self._card()
         self._describe_title = self._card_title("1. Describe the document you need")
         column.addWidget(self._describe_title)
@@ -227,6 +242,8 @@ class CreateScreen(QWidget):
         column.addWidget(self._prompt_edit)
         self._writing_help = QLabel("Be specific about the content, sections and length.")
         column.addWidget(self._writing_help)
+        self._description_note = QLabel("Only your description is used.")
+        column.addWidget(self._description_note)
         self._tip_label = QLabel(
             "Tip: Your model works best with short, clear prompts. "
             "Consider simplifying your request for better results.")
@@ -244,17 +261,13 @@ class CreateScreen(QWidget):
         self._retry_btn.clicked.connect(self.retry_requested)
         column.addWidget(self._disconnected_label)
         column.addWidget(self._retry_btn, alignment=Qt.AlignmentFlag.AlignLeft)
-        self._pull_actions = QHBoxLayout()
-        column.addLayout(self._pull_actions)
         column.addStretch()
 
         self._output_card, output = self._card()
         output.addWidget(self._card_title("2. Choose the output"))
         output.addWidget(QLabel("File type"))
-        self._type_combo = QComboBox()
-        for label in GENERATE_FILE_TYPES:
-            self._type_combo.addItem(label.split(" (", 1)[0], label)
-        output.addWidget(self._type_combo)
+        self._file_type_picker = FileTypePicker()
+        output.addWidget(self._file_type_picker)
         self._template_btn = QPushButton("Use a template")
         self._template_btn.setProperty("secondary", True)
         self._template_btn.setProperty("chosen", False)
@@ -283,14 +296,12 @@ class CreateScreen(QWidget):
         save.addWidget(self._folder_label)
         save.addWidget(self._change_folder_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         output.addWidget(self._save_folder)
-        self._write_actions = QHBoxLayout()
-        output.addLayout(self._write_actions)
         output.addStretch()
         self._primary_btn = QPushButton("Create file")
         self._primary_btn.setProperty("primary", True)
         self._primary_btn.clicked.connect(self._primary_clicked)
-        self._write_actions.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
-        self._write_actions.addStretch()
+        self._describe_actions.addWidget(self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._describe_actions.addStretch()
 
         self._source_card, sources = self._card()
         sources.addWidget(self._card_title("2. Add your source files"))
@@ -365,7 +376,7 @@ class CreateScreen(QWidget):
         self._last_generated_path = ""
         self._pages.setCurrentWidget(self._describe_page)
         self._steps.set_current(0)
-        self._caption.setText("Describe what you need.")
+        self._caption.setText("What would you like to work on?")
         self.clear_status()
         self._refresh()
 
@@ -466,7 +477,7 @@ class CreateScreen(QWidget):
         self._refresh()
 
     def _type_changed(self, _display_name: str) -> None:
-        label = self._type_combo.currentData()
+        label = self._file_type_picker.file_type()
         self._update_placeholder()
         self.file_type_changed.emit(label)
         self._setup_edited()
@@ -479,11 +490,11 @@ class CreateScreen(QWidget):
 
     def file_type(self) -> str:
         """Return the existing backend type label, independently of display text."""
-        return EXCEL if self._route == "pull" else self._type_combo.currentData()
+        return EXCEL if self._route == "pull" else self._file_type_picker.file_type()
 
     def set_file_type(self, label: str) -> None:
         """Select a backend type while preserving the ordinary change signal."""
-        self._type_combo.setCurrentIndex(self._type_combo.findData(label))
+        self._file_type_picker.set_file_type(label)
 
     def set_model(self, model: str) -> None:
         """Use the selected local model for subsequent frozen requests."""
@@ -635,7 +646,7 @@ class CreateScreen(QWidget):
 
     def _setup_controls(self) -> tuple:
         return (self._write_option, self._pull_option,
-                self._prompt_edit, self._type_combo, self._source_list, self._browse_btn,
+                self._prompt_edit, self._file_type_picker, self._source_list, self._browse_btn,
                 self._change_folder_btn, self._template_btn, self._clear_template_btn,
                 self._retry_btn, self._read_again_btn,
                 self._primary_btn, self._open_file_btn, self._another_btn,
@@ -775,10 +786,8 @@ class CreateScreen(QWidget):
                                      else "1. Describe the document you need")
         self._prompt_label.setText("What should go in Excel?" if pulling else "Description")
         self._writing_help.setVisible(not pulling)
-        host = self._description_card if pulling else self._output_card
-        if self._primary_btn.parentWidget() is not host:
-            (self._pull_actions if pulling else self._write_actions).insertWidget(
-                0, self._primary_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._file_type_picker.setEnabled(not (self._busy or self._generating))
+        self._description_note.setVisible(not pulling)
         self._sources_note.setVisible(pulling)
         self._save_folder.setVisible(not pulling)
         self._reading_label.setVisible(self._inspecting)
@@ -938,7 +947,7 @@ class CreateScreen(QWidget):
     def _back_to_describe(self) -> None:
         self._pages.setCurrentWidget(self._describe_page)
         self._steps.set_current(0)
-        self._caption.setText("Describe what you need.")
+        self._caption.setText("What would you like to work on?")
 
     def _back_to_columns(self) -> None:
         self._ack_checkbox.setChecked(False)

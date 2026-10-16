@@ -10,12 +10,12 @@ def test_numbered_cards_show_only_the_chosen_inputs(qtbot, isolated_profile):
     screen = _screen(qtbot, isolated_profile)
     assert screen._describe_title.text() == "1. Describe the document you need"
     assert screen._output_card.isVisible() and not screen._source_card.isVisible()
-    assert screen._primary_btn.parentWidget() is screen._output_card
+    assert screen._primary_btn.parentWidget() is screen._describe_page
     screen.set_route("pull")
     assert screen._describe_title.text() == "1. Describe the information you need"
     assert not screen._output_card.isVisible() and screen._source_card.isVisible()
-    assert not screen._type_combo.isVisible()
-    assert screen._primary_btn.parentWidget() is screen._description_card
+    assert not screen._file_type_picker.isVisible()
+    assert screen._primary_btn.parentWidget() is screen._describe_page
     titles = {label.text() for label in screen.findChildren(QLabel)}
     assert {"2. Choose the output", "2. Add your source files", "3. Choose columns",
             "4. Review your table", "5. Where this value came from"} <= titles
@@ -83,7 +83,7 @@ def test_route_round_trip_keeps_the_action_at_the_left(qtbot, isolated_profile):
     screen = _screen(qtbot, isolated_profile)
     screen.set_route("pull")
     screen.set_route("write")
-    assert screen._write_actions.indexOf(screen._primary_btn) == 0
+    assert screen._describe_actions.indexOf(screen._primary_btn) == 0
 
 
 @pytest.mark.parametrize("check", ["height", "selection"])

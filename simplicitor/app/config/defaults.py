@@ -20,6 +20,8 @@ CHOICE_SELECTED_COLOR = "#EAF2FF"
 SECONDARY_PRESSED_COLOR = "#D6E6FF"
 INFO_BANNER_BG_COLOR = "#EAF2FF"
 WHITE = "#FFFFFF"
+FILE_MARK_COLORS = {"Word": "#1762DC", "PDF": "#A82E3F", "Excel": "#156343",
+                    "PowerPoint": "#C66916"}
 HOVER_ACCENT_COLOR = "#1D4ED8"    # darker blue for button hover
 BORDER_HOVER_COLOR = "#D1D5DB"    # darker grey for border hover
 

@@ -97,9 +97,9 @@ def test_create_screen_has_four_file_types(qtbot, tmp_path) -> None:
     panel = CreateScreen(settings)
     panel.set_model("qwen3:8b")
     qtbot.addWidget(panel)
-    assert panel._type_combo.count() == 4
-    assert panel._type_combo.itemText(1) == "PDF"
-    assert panel._type_combo.itemData(1) == "PDF (.pdf)"
+    assert len(panel._file_type_picker._buttons) == 4
+    assert panel._file_type_picker.button_for("PDF (.pdf)")._title_label.text() == "PDF"
+    assert panel._file_type_picker.button_for("PDF (.pdf)").accessibleName() == "PDF (.pdf)"
 
 
 def test_create_screen_prompt_empty_by_default(qtbot, tmp_path) -> None:
