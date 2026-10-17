@@ -83,6 +83,7 @@ docs/
         2.3.1-ci.json
         2.3.2-ci.json
         2.5.0-ci.json
+        2.5.1-ci.json
         2026-10-08-task5-ci.json
         2026-10-08-task5.json
         2026-10-09-task6-ci.json
@@ -2606,6 +2607,7 @@ requirements.txt
 - docs/builds/2.3.1-ci.json: json, 144 lines
 - docs/builds/2.3.2-ci.json: json, 144 lines
 - docs/builds/2.5.0-ci.json: json, 151 lines
+- docs/builds/2.5.1-ci.json: json, 154 lines
 - docs/builds/2026-10-08-task5-ci.json: json, 104 lines
 - docs/builds/2026-10-08-task5.json: json, 62 lines
 - docs/builds/2026-10-09-task6-ci.json: json, 124 lines

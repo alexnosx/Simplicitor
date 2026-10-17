@@ -1,0 +1,154 @@
+{
+  "verified_at": "2026-10-17T06:03:33.822148+00:00",
+  "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39005923868",
+  "source_commit": "3dc969cf7ae6f8df27fbd14d4b31a3c4a11549ef",
+  "conclusion": "success",
+  "workflow_event": "workflow_dispatch",
+  "publication": "skipped",
+  "msi_bytes": 61519667,
+  "upgrade_probe_msi_version": "2.5.2",
+  "artifact_bundle": {
+    "name": "Simplicitor-windows",
+    "id": 12091976156,
+    "bytes": 137133103,
+    "api_reported_sha256": "8071d2af87137acc5bc49e200372cad94ebec71dbf8559bf1d308c018ea07934",
+    "download_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39005923868/artifacts/12091976156"
+  },
+  "artifacts": [
+    {
+      "name": "SHA256SUMS.json",
+      "bytes": 66229,
+      "sha256": "d835029a116b9d2ed07d09b246ca3f59497a9a10e738c424feecb4209b2c651c"
+    },
+    {
+      "name": "Simplicitor-2.5.1.msi",
+      "bytes": 61519667,
+      "sha256": "a618a6a7ff334fece9725b2bb63903a3e8ebf11e8a8ce3b9bc86beff73b0b2fc"
+    },
+    {
+      "name": "Simplicitor-portable.zip",
+      "bytes": 76031677,
+      "sha256": "7e7c391d2ad72a2bcc5633594d913cf3450909a3d066ed7ffde091336a0eb492"
+    },
+    {
+      "name": "installer-qualification.json",
+      "bytes": 3157,
+      "sha256": "1394cf2fab43adaafbc587c2a45c887e2146bba7cd9fb9fb8079aacf500a9027"
+    }
+  ],
+  "qualification": {
+    "status": "passed",
+    "source_commit": "3dc969cf7ae6f8df27fbd14d4b31a3c4a11549ef",
+    "run_id": "39005923868",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39005923868",
+    "runner_os": "10.0.26100.0",
+    "runner_image": "20261007.264.1",
+    "msi_version": "2.5.1",
+    "executable_version": "2.5.1.0",
+    "upgrade_probe_msi_version": "2.5.2",
+    "checks": [
+      "No Simplicitor product before qualification",
+      "Intended MSI exists: Simplicitor-2.5.1.msi",
+      "Artifact hash matches: Simplicitor-2.5.1.msi",
+      "Artifact hash matches: Simplicitor-portable.zip",
+      "Ollama endpoint is unavailable",
+      "MSI refuses to install over Simplicitor 2.0.0",
+      "Refused install left no files",
+      "Refused install registered nothing",
+      "Silent MSI install succeeded",
+      "Install: exactly one Simplicitor product",
+      "Install: product version 2.5.1",
+      "Install: install location",
+      "Install: executable present",
+      "Install: executable version 2.5.1.0",
+      "Install: executable matches built payload",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: shortcut exists",
+      "Install: shortcut target",
+      "Install: app stays running for 20 seconds without Ollama",
+      "Repair target is inside the verified test installation",
+      "Same-version repair succeeded",
+      "Repair restored the removed file",
+      "Repair: exactly one Simplicitor product",
+      "Repair: product version 2.5.1",
+      "Repair: install location",
+      "Repair: executable present",
+      "Repair: executable version 2.5.1.0",
+      "Repair: executable matches built payload",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Repair: shortcut exists",
+      "Repair: shortcut target",
+      "Settings survive repair",
+      "Upgrade probe 2.5.2 is newer than 2.5.1",
+      "Upgrade probe package built",
+      "Upgrade probe package validated",
+      "Major upgrade to 2.5.2 succeeded",
+      "Upgrade: exactly one Simplicitor product",
+      "Upgrade: product version 2.5.2",
+      "Upgrade: install location",
+      "Upgrade: executable present",
+      "Upgrade: executable version 2.5.1.0",
+      "Upgrade: executable matches built payload",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade: shortcut exists",
+      "Upgrade: shortcut target",
+      "Upgrade replaced the previous ProductCode",
+      "Previous product no longer registered",
+      "Upgrade: app stays running for 20 seconds without Ollama",
+      "Settings survive upgrade",
+      "Silent uninstall succeeded",
+      "No Simplicitor product after uninstall",
+      "Install folder removed, including subfolders",
+      "Desktop shortcut removed",
+      "Start Menu shortcut removed",
+      "Settings survive uninstall"
+    ],
+    "artifacts": {
+      "Simplicitor-2.5.1.msi": "a618a6a7ff334fece9725b2bb63903a3e8ebf11e8a8ce3b9bc86beff73b0b2fc",
+      "Simplicitor-portable.zip": "7e7c391d2ad72a2bcc5633594d913cf3450909a3d066ed7ffde091336a0eb492"
+    },
+    "limitations": [
+      "Hosted-runner lifecycle check; not a native UI walkthrough or downloaded-file SmartScreen qualification."
+    ]
+  },
+  "verification": {
+    "downloaded_artifact_hashes": "MSI and portable ZIP byte streams in the downloaded outer GitHub artifact bundle match SHA256SUMS.json and the hosted qualification report. The outer bundle also matches GitHub's API-reported SHA-256.",
+    "workflow_jobs": {
+      "tests": "success",
+      "build": "success"
+    },
+    "local_suite": {
+      "passed": 1395,
+      "seconds": 248.98,
+      "warnings": [
+        "Existing pytest cache-permission warning."
+      ]
+    },
+    "hosted_source_suite": {
+      "passed": 1395,
+      "seconds": 424.62
+    },
+    "source_push_tests": {
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39005346447",
+      "source_commit": "3dc969cf7ae6f8df27fbd14d4b31a3c4a11549ef",
+      "conclusion": "success",
+      "passed": 1395,
+      "seconds": 448.16
+    },
+    "merge_source_tests": null,
+    "reviewed_header_source_tests": {
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/38999578223",
+      "source_commit": "753314b8e40658896d90733e9d2312c9f186f27c",
+      "conclusion": "success",
+      "passed": 1395,
+      "seconds": 457.86
+    },
+    "release_candidate": "The milestone built source_commit including Claude's reviewed header correction and the 2.5.1 version, screenshot and release preparation. The later evidence-record commit changes documentation only. Alex must check the S logo by starting this build's portable app before giving a separate publication go.",
+    "native_portable_logo_check": "Pending Alex; not performed by Codex."
+  },
+  "local_execution": "Isolated source tests, synthetic source captures and read-only artifact hashing only. The outer GitHub artifact bundle was downloaded; MSI and portable ZIP members were hashed as byte streams without writing, extracting or executing them. Only JSON metadata was read from the wrapper. No local build, installer, uninstaller, msiexec, Windows Sandbox, WiX or qualification script.",
+  "release_boundary": "2.5.1 preparation and the milestone are complete; 2.5.1 remains unreleased. Alex must check the S logo in the portable build. Tagging and publication require his separate go."
+}
