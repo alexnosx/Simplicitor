@@ -43,7 +43,7 @@ dotnet tool restore
 .\.venv\Scripts\python.exe build.py
 ```
 
-Outputs in `dist`: `Simplicitor-2.5.0.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
+Outputs in `dist`: `Simplicitor-2.5.1.msi`, `Simplicitor-portable.zip` and `SHA256SUMS.json`. The build creates the installer but does not run it. See [packaging](docs/code-signing.md) for details.
 
 ### Run from source without building
 
