@@ -16,8 +16,9 @@ def resource_path(relative: str) -> Path:
     """
     compiled = globals().get("__compiled__")
     if compiled is not None:
-        # Nuitka does not set sys.frozen. Resources accompany the standalone payload.
-        base = Path(compiled.containing_dir)
+        # Standalone data accompanies the executable. Nuitka's containing_dir
+        # points one level above that payload, and Nuitka does not set sys.frozen.
+        base = Path(sys.executable).parent
     elif getattr(sys, "frozen", False):
         base = Path(sys.executable).parent
     else:

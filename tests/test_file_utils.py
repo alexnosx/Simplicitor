@@ -4,15 +4,19 @@ import pytest
 from app.utils.file_utils import sanitize_filename, ensure_dir
 
 
-def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch):
+@pytest.mark.parametrize("folder", ["installed", "portable"])
+def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch, folder):
     from types import SimpleNamespace
     from app.utils import file_utils
-    payload = tmp_path / "portable" / "Simplicitor"
+    payload = tmp_path / folder / "Simplicitor"
     icon = payload / "assets" / "icons" / "simplicitor.ico"
     icon.parent.mkdir(parents=True)
     icon.write_bytes(b"icon")
-    monkeypatch.setattr(file_utils, "__compiled__", SimpleNamespace(containing_dir=str(payload)),
+    # Nuitka 4.2.2 standalone sets containing_dir to the parent of the binary directory.
+    monkeypatch.setattr(file_utils, "__compiled__", SimpleNamespace(containing_dir=str(payload.parent)),
                         raising=False)
+    monkeypatch.setattr(file_utils.sys, "executable", str(payload / "Simplicitor.exe"))
+    monkeypatch.setattr(file_utils.sys, "frozen", False, raising=False)
     monkeypatch.setattr(file_utils, "__file__", str(payload / "app/utils/file_utils.py"))
     monkeypatch.chdir(tmp_path)
     assert file_utils.resource_path("assets/icons/simplicitor.ico") == icon

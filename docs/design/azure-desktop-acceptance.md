@@ -120,3 +120,33 @@ Claude's original code/test review: **passed at a080209**. His check of the thre
 Main was fast-forwarded to approval record `5eeca9f`, without a merge commit. The version-only code change to 2.5.0 passed the full isolated suite: **1,389 passed in 210.91 seconds**, with the existing pytest-cache permission warning and no freeze. The approved hard-link-permitted environment was used without changing or skipping tests.
 
 The six size/scale sets above were regenerated from that baseline plus version.py at 2.5.0. All 192 PNGs, six metadata source fingerprints and physical sizes were checked, with zero sampled grey label backgrounds. Codex inspected the refreshed desktop Pull view at 100% and 150%, the minimum-size contact sheet and the 125% Word deletion-review action view. Layout and gates retain the approved result. `docs/screenshot.png` is byte-identical to `1280x800-100/2-create-with-files.png`, SHA-256 `b9060e9aa903be5a3ffdf19d47744b75155d31465054daac378fddb0072e6a14`. The local matrix manifest records the committed source after the preparation commit. No model, engine, settings, LICENSE or capture-script change accompanies this version refresh. Hosted build qualification is recorded separately in project status.
+
+## Post-release header correction, 2026-10-17
+
+The installed 2.5.0 header exposed a packaged-resource lookup error and three missing
+reference details. Nuitka 4.2.2's standalone `__compiled__.containing_dir` is the parent
+of the executable directory, rather than the bundled-data root. `resource_path` now
+resolves packaged assets beside `sys.executable`. Tests model that actual directory
+relationship for installed and portable layouts, including loading the real S icon
+from a synthetic payload with an unrelated working directory and no `sys.frozen` flag.
+
+The header now draws document-plus and document-pencil navigation icons using Qt,
+with muted, selected, hover and disabled colours, renders the subtitle in italic at
+11 pt, and keeps the mockup's pale blue selected outline. The constant two-pixel
+border and blue focus outline remain; strengthened geometry checks include both
+the icon and the complete label. Ten affected checks failed before the correction;
+the targeted suite passed 61 tests afterward. The full isolated suite passed
+**1,395 tests in 216.88 seconds**, with the existing pytest-cache permission warning
+and no freeze, using the hard-link-permitted environment without modifying or
+skipping tests.
+
+Fresh source captures are under `C:/Codex/Simplicitor/.venv/screens-header-fix/`, in
+`1280x800-100`, `1280x800-125`, `1280x800-150`, `1024x640-100`, `1024x640-125` and
+`1024x640-150`. Each set contains 32 synthetic screenshots and capture metadata with
+source fingerprints, expected physical dimensions and layout measurements. Create
+at 1280x800/100% and 1024x640/150%, and Edit Review at 1280x800/125%, were visually
+checked against the approved header. The complete matrix's existing layout checks
+passed, as did all **264** mode-button measurements with enough content width for
+the full text, a 20-pixel icon and four-pixel gap. These are source captures and
+simulated packaging tests, not a newly built
+or installed executable. No version, release artifact or tag is changed.

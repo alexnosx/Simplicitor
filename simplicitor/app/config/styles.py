@@ -1,7 +1,7 @@
 """Shared input styles for the application and its deterministic screen captures."""
 from app.config.defaults import (
     APP_FONT_FAMILY, BODY_TEXT_COLOR, BORDER_COLOR, BORDER_RADIUS_PX,
-    CHOICE_HOVER_COLOR, CHOICE_SELECTED_COLOR, DISABLED_COLOR, FONT_SIZE_BODY_PT,
+    CHOICE_HOVER_COLOR, CHOICE_SELECTED_COLOR, CHOICE_OUTLINE_COLOR, DISABLED_COLOR, FONT_SIZE_BODY_PT,
     PRIMARY_ACCENT_COLOR, WHITE, AZURE_HEADER_BG_COLOR, BACKGROUND_COLOR,
     INFO_BANNER_BG_COLOR, SECONDARY_PRESSED_COLOR, MUTED_TEXT_COLOR,
 )
@@ -85,7 +85,8 @@ def header_styles() -> str:
         "border: 2px solid transparent; "
         f"border-radius: {BORDER_RADIUS_PX}px; padding: 6px 14px; }}"
         f"QPushButton:hover {{ background: {CHOICE_HOVER_COLOR}; }}"
-        f"QPushButton:checked {{ background: {CHOICE_SELECTED_COLOR}; color: {PRIMARY_ACCENT_COLOR}; }}"
+        f"QPushButton:checked {{ background: {CHOICE_SELECTED_COLOR}; color: {PRIMARY_ACCENT_COLOR}; "
+        f"border-color: {CHOICE_OUTLINE_COLOR}; font-weight: 600; }}"
         f"QPushButton:focus {{ border: 2px solid {PRIMARY_ACCENT_COLOR}; }}"
         f"QPushButton:disabled {{ color: {MUTED_TEXT_COLOR}; }}"
     )

@@ -1,15 +1,60 @@
 # simplicitor/app/widgets/status_bar.py
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QPushButton, QButtonGroup
-from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import QPointF, QSize, Signal, Qt
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QPixmap
 
 from app.config.defaults import (
     APP_NAME, APP_FONT_FAMILY, FONT_SIZE_HEADING_PT, FONT_SIZE_BODY_PT,
     BORDER_COLOR, BODY_TEXT_COLOR, WHITE, SUCCESS_COLOR, ERROR_COLOR, PRIMARY_ACCENT_COLOR,
+    MUTED_TEXT_COLOR,
 )
 from app.config.styles import header_styles
 from app.utils.file_utils import resource_path
 from app.version import __version__
+
+
+def _mode_icon(edit: bool) -> QIcon:
+    """Draw the mockup's document-plus/document-pencil marks with Qt only."""
+    page = QPainterPath(QPointF(12, 22))
+    page.lineTo(6, 22)
+    page.quadTo(4, 22, 4, 20)
+    page.lineTo(4, 4)
+    page.quadTo(4, 2, 6, 2)
+    page.lineTo(14, 2)
+    page.lineTo(20, 8)
+    page.lineTo(20, 11)
+    page.moveTo(14, 2)
+    page.lineTo(14, 8)
+    page.lineTo(20, 8)
+    pencil = QPainterPath(QPointF(13, 20))
+    for x, y in ((14, 16), (19, 11), (22, 14), (17, 19), (13, 20)):
+        pencil.lineTo(x, y)
+    pencil.moveTo(17, 13)
+    pencil.lineTo(20, 16)
+    icon = QIcon()
+    for mode in (QIcon.Mode.Normal, QIcon.Mode.Active, QIcon.Mode.Disabled):
+        for state in (QIcon.State.Off, QIcon.State.On):
+            colour = PRIMARY_ACCENT_COLOR if (
+                mode != QIcon.Mode.Disabled and
+                (state == QIcon.State.On or mode == QIcon.Mode.Active)
+            ) else MUTED_TEXT_COLOR
+            pixmap = QPixmap(72, 72)
+            pixmap.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.scale(3, 3)
+            painter.setPen(QPen(QColor(colour), 1.6, Qt.PenStyle.SolidLine,
+                                Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+            painter.drawPath(page)
+            if edit:
+                painter.drawPath(pencil)
+            else:
+                painter.drawLine(QPointF(17, 14), QPointF(17, 22))
+                painter.drawLine(QPointF(13, 18), QPointF(21, 18))
+            painter.end()
+            pixmap.setDevicePixelRatio(3)
+            icon.addPixmap(pixmap, mode, state)
+    return icon
 
 
 class TopBar(QWidget):
@@ -63,7 +108,9 @@ class TopBar(QWidget):
         name.addStretch()
         branding.addLayout(name)
         self._powered_label = QLabel("Powered by your local LLM")
-        self._powered_label.setFont(body_font)
+        powered_font = QFont(body_font)
+        powered_font.setItalic(True)
+        self._powered_label.setFont(powered_font)
         branding.addWidget(self._powered_label)
         brand.addWidget(self._branding)
         brand.addStretch()
@@ -103,11 +150,14 @@ class TopBar(QWidget):
 
         self._create_mode_btn = QPushButton("Create new")
         self._edit_mode_btn = QPushButton("Edit document")
+        self._create_mode_btn.setIcon(_mode_icon(edit=False))
+        self._edit_mode_btn.setIcon(_mode_icon(edit=True))
         self._mode_group = QButtonGroup(self)
         self._mode_group.setExclusive(True)
         for button in (self._create_mode_btn, self._edit_mode_btn):
             button.setCheckable(True)
             button.setFont(body_font)
+            button.setIconSize(QSize(20, 20))
             button.setMinimumHeight(36)
             self._mode_group.addButton(button)
         self._create_mode_btn.setChecked(True)

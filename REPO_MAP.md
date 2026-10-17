@@ -1026,6 +1026,7 @@ requirements.txt
 
 ### simplicitor/app/widgets/status_bar.py
 
+- def _mode_icon(edit: bool) -> QIcon: Draw the mockup's document-plus/document-pencil marks with Qt only.
 - class TopBar(QWidget): Two-row brand/navigation header; local model selection lives in Settings.
 
 ### simplicitor/app/widgets/step_indicator.py
@@ -1917,6 +1918,10 @@ requirements.txt
 ### tests/test_azure_appearance.py
 
 - def test_azure_name_and_subtitle_form_one_brand_block(qtbot, qapp)
+- def test_header_logo_loads_from_standalone_payload(qtbot, tmp_path, monkeypatch)
+- def test_header_subtitle_is_italic_at_body_size(qtbot)
+- def test_header_mode_icons_have_selected_and_unselected_colours(qtbot, name)
+- def test_header_selected_mode_keeps_mockup_outline_and_constant_focus_space()
 - def test_header_navigation_has_its_own_row_and_fits(qtbot, qapp, width)
 - def test_shared_azure_palette_and_scoped_styles()
 - def test_main_window_uses_header_size_hint(window, qapp)
@@ -2174,7 +2179,7 @@ requirements.txt
 
 ### tests/test_file_utils.py
 
-- def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch)
+- def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch, folder)
 - def test_sanitize_removes_special_chars() -> None
 - def test_sanitize_replaces_spaces_with_underscores() -> None
 - def test_sanitize_truncates_to_max_length() -> None
@@ -2585,7 +2590,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 157 lines
+- docs/PROJECT_STATUS.md: md, 158 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2607,7 +2612,7 @@ requirements.txt
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
 - docs/code-signing.md: md, 69 lines
-- docs/design/azure-desktop-acceptance.md: md, 122 lines
+- docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines
 - docs/design/document-workspace.html: html, 346 lines
 - docs/design/edit-document.html: html, 479 lines

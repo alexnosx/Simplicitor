@@ -22,6 +22,66 @@ def test_azure_name_and_subtitle_form_one_brand_block(qtbot, qapp):
     assert powered.y() >= title.y() + bar._title_label.height()
 
 
+def test_header_logo_loads_from_standalone_payload(qtbot, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from app.utils import file_utils
+    from app.widgets.status_bar import TopBar
+    source_icon = file_utils.resource_path("assets/icons/simplicitor.ico")
+    payload = tmp_path / "Programs" / "Simplicitor"
+    icon = payload / "assets" / "icons" / "simplicitor.ico"
+    icon.parent.mkdir(parents=True)
+    icon.write_bytes(source_icon.read_bytes())
+    monkeypatch.setattr(file_utils, "__compiled__",
+                        SimpleNamespace(containing_dir=str(payload.parent)), raising=False)
+    monkeypatch.setattr(file_utils.sys, "executable", str(payload / "Simplicitor.exe"))
+    monkeypatch.setattr(file_utils.sys, "frozen", False, raising=False)
+    monkeypatch.setattr(file_utils, "__file__", str(payload / "app/utils/file_utils.py"))
+    monkeypatch.chdir(tmp_path)
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    assert not bar._brand_icon.pixmap().isNull()
+    assert file_utils.resource_path("assets/icons/simplicitor.ico") == icon
+
+
+def test_header_subtitle_is_italic_at_body_size(qtbot):
+    from app.config.defaults import FONT_SIZE_BODY_PT
+    from app.widgets.status_bar import TopBar
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    assert bar._powered_label.font().italic()
+    assert bar._powered_label.font().pointSize() >= FONT_SIZE_BODY_PT
+    assert not bar._title_label.font().italic()
+
+
+@pytest.mark.parametrize("name", ["_create_mode_btn", "_edit_mode_btn"])
+def test_header_mode_icons_have_selected_and_unselected_colours(qtbot, name):
+    from PySide6.QtGui import QColor, QIcon
+    from app.config.defaults import MUTED_TEXT_COLOR, PRIMARY_ACCENT_COLOR
+    from app.widgets.status_bar import TopBar
+    bar = TopBar()
+    qtbot.addWidget(bar)
+    icon = getattr(bar, name).icon()
+    assert not icon.isNull()
+    for state, colour in ((QIcon.State.Off, MUTED_TEXT_COLOR),
+                          (QIcon.State.On, PRIMARY_ACCENT_COLOR)):
+        image = icon.pixmap(24, 24, QIcon.Mode.Normal, state).toImage()
+        assert any(image.pixelColor(x, y) == QColor(colour)
+                   for x in range(image.width()) for y in range(image.height()))
+        assert image.hasAlphaChannel()
+    assert bar._create_mode_btn.icon().pixmap(24, 24).toImage() != (
+        bar._edit_mode_btn.icon().pixmap(24, 24).toImage())
+
+
+def test_header_selected_mode_keeps_mockup_outline_and_constant_focus_space():
+    from app.config.styles import header_styles
+    from app.config.defaults import PRIMARY_ACCENT_COLOR
+    style = header_styles()
+    selected = style.split("QPushButton:checked {", 1)[1].split("}", 1)[0]
+    assert "border-color: #C5D9FA" in selected
+    assert "border: 2px solid transparent" in style
+    assert f"QPushButton:focus {{ border: 2px solid {PRIMARY_ACCENT_COLOR}; }}" in style
+
+
 @pytest.mark.parametrize("width", [1024, 1280])
 def test_header_navigation_has_its_own_row_and_fits(qtbot, qapp, width):
     from app.widgets.status_bar import TopBar
@@ -509,7 +569,8 @@ def test_top_bar_mode_text_fits_inside_styled_contents(capture_typography, qtbot
     if state.startswith("hover"):
         assert option.state & QStyle.StateFlag.State_MouseOver
     content = button.style().subElementRect(QStyle.SubElement.SE_PushButtonContents, option, button)
-    assert content.width() >= button.fontMetrics().horizontalAdvance(button.text()), (
+    needed = button.fontMetrics().horizontalAdvance(button.text()) + button.iconSize().width() + 4
+    assert content.width() >= needed, (
         f"{state}: text needs {button.fontMetrics().horizontalAdvance(button.text())}, "
         f"styled content width={content.width()}")
 
