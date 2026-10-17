@@ -1,10 +1,12 @@
 # Changelog
 
-## v2.5.1 (unreleased)
+## v2.5.1, 2026-10-17
+
+Published as [v2.5.1](https://github.com/alexnosx/Simplicitor/releases/tag/v2.5.1) and verified as Latest with MSI, portable ZIP, checksums and the tagged release notes as its body. Verification: [docs/releases/v2.5.1.json](docs/releases/v2.5.1.json).
 
 - Fix the missing header logo in installed and portable builds by resolving bundled assets beside the executable.
 - Match the approved Azure header with document icons on Create new and Edit document, the italic local-LLM subtitle and the selected-mode outline, retaining full labels on focus.
-- Set product/MSI version 2.5.1, executable 2.5.1.0 and derived upgrade probe 2.5.2; refresh the README picture and prepare the release notes. Publication waits for Alex's portable-build logo check and separate go.
+- Set product/MSI version 2.5.1, executable 2.5.1.0 and derived upgrade probe 2.5.2; refresh the README picture and prepare the release notes. Alex confirmed the S logo and header in the milestone portable app before approving publication. The tag workflow rebuilt, qualified and published approved commit `8a6310e`.
 
 ## v2.5.0, 2026-10-17
 

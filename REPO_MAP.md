@@ -129,6 +129,7 @@ docs/
         v2.5.0-notes.md
         v2.5.0.json
         v2.5.1-notes.md
+        v2.5.1.json
     reviews/
         2026-10-09-release-2.1.0-codex-revision-2.md
         2026-10-09-release-2.1.0-codex.md
@@ -2575,7 +2576,7 @@ requirements.txt
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
-- CHANGELOG.md: md, 149 lines
+- CHANGELOG.md: md, 151 lines
 - CLAUDE.md: md, 1 lines
 - LICENSE: text, 21 lines
 - LICENSE_NOTICE.md: md, 11 lines
@@ -2651,6 +2652,7 @@ requirements.txt
 - docs/releases/v2.5.0-notes.md: md, 26 lines
 - docs/releases/v2.5.0.json: json, 148 lines
 - docs/releases/v2.5.1-notes.md: md, 25 lines
+- docs/releases/v2.5.1.json: json, 148 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex-revision-2.md: md, 107 lines
 - docs/reviews/2026-10-09-release-2.1.0-codex.md: md, 50 lines
 - docs/reviews/2026-10-12-release-2.2.0-codex-revision-2.md: md, 93 lines
