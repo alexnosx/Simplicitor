@@ -1,0 +1,106 @@
+name: Mac pilot source checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  source-tests:
+    if: >-
+      github.event.repository.private == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/macos-apple-silicon-pilot'
+    runs-on: macos-14
+    timeout-minutes: 15
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PILOT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify Mac host
+        shell: bash
+        run: |
+          test "$(uname -s)" = "Darwin"
+          test "$(uname -m)" = "arm64"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt -r requirements-build.txt
+
+      - name: Record source environment
+        shell: bash
+        run: |
+          python - <<'PY'
+          import importlib.metadata
+          import json
+          import os
+          import platform
+          import subprocess
+          import sys
+          import sysconfig
+          from pathlib import Path
+
+          from PySide6.QtCore import qVersion
+
+          assert platform.system() == "Darwin"
+          assert platform.machine() == "arm64"
+          assert sys.version_info[:2] == (3, 11)
+          source = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          assert source == os.environ["PILOT_HEAD_SHA"]
+          license_paths = (Path(sys.base_prefix) / "LICENSE.txt",
+                           Path(sysconfig.get_path("stdlib")) / "LICENSE.txt")
+          record = {
+              "source_commit": source,
+              "python": platform.python_version(),
+              "macos": platform.mac_ver()[0],
+              "architecture": platform.machine(),
+              "runner_image": os.environ.get("ImageVersion"),
+              "xcode": subprocess.check_output(["xcodebuild", "-version"], text=True).strip(),
+              "clang": subprocess.check_output(["clang", "--version"], text=True).strip(),
+              "qt": qVersion(),
+              "pyside6": importlib.metadata.version("PySide6"),
+              "nuitka": importlib.metadata.version("nuitka"),
+              "python_license_available": any(p.is_file() and p.stat().st_size > 0
+                                              for p in license_paths),
+          }
+          output = json.dumps(record, indent=2) + "\n"
+          (Path(os.environ["RUNNER_TEMP"]) / "macos-source-environment.json").write_text(
+              output, encoding="utf-8")
+          print(output)
+          PY
+
+      - name: Run Mac source tests
+        shell: bash
+        run: |
+          test_home="$RUNNER_TEMP/simplicitor-tests"
+          mkdir -p "$test_home/AppData/Roaming" "$test_home/AppData/Local"
+          env HOME="$test_home" USERPROFILE="$test_home" \
+            APPDATA="$test_home/AppData/Roaming" \
+            LOCALAPPDATA="$test_home/AppData/Local" \
+            python -m pytest -vv -o faulthandler_timeout=60 \
+              --basetemp "$RUNNER_TEMP/simplicitor-pytest" \
+              --junitxml="$RUNNER_TEMP/macos-source-tests.xml"
+
+      - name: Upload source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-source-baseline
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/macos-source-environment.json
+            ${{ runner.temp }}/macos-source-tests.xml
+          if-no-files-found: warn

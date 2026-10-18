@@ -60,6 +60,7 @@ for known defects; passing old tests does not negate reproduced behavior.
 .github/
     workflows/
         build.yml
+        macos-pilot.yml
 assets/
     icons/
         simplicitor.ico
@@ -722,6 +723,7 @@ tests/
     test_generators.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
+    test_macos_pilot_workflow.py
     test_main_window_edit.py
     test_main_window_extraction.py
     test_main_window_modes.py
@@ -2249,6 +2251,19 @@ requirements.txt
 - class TestConvenienceFunctions
 - class TestThinkingModelOutput: Regression tests for Qwen3/DeepSeek-R1 thinking model output.
 
+### tests/test_macos_pilot_workflow.py
+
+- def workflow(): Read event names literally, including YAML 1.1's special word `on`.
+- def test_only_pilot_pull_request_events_can_start_the_probe(workflow)
+- def test_probe_is_limited_to_the_public_same_repository_pilot_branch(workflow, guard)
+- def test_source_probe_is_bounded_and_uses_standard_arm64_python(workflow)
+- def test_platform_is_asserted_before_installing_existing_requirements(workflow)
+- def test_checkout_and_evidence_use_the_immutable_pull_request_head(workflow)
+- def test_source_suite_has_isolated_profiles_and_freeze_diagnostics(workflow)
+- def test_probe_records_versions_and_python_license_availability(workflow)
+- def test_source_evidence_is_retained_without_an_application_artifact(workflow)
+- def test_task_zero_cannot_package_publish_or_use_secrets(workflow)
+
 ### tests/test_main_window_edit.py
 
 - def window(qtbot, qapp, isolated_profile, tmp_path)
@@ -2574,6 +2589,7 @@ requirements.txt
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 106 lines
+- .github/workflows/macos-pilot.yml: yml, 106 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
