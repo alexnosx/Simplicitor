@@ -1,6 +1,6 @@
 {
   "pilot": true,
-  "phase": "task-0-source-baseline",
+  "phase": "task-3-source-validation",
   "plan": "docs/superpowers/plans/2026-10-18-macos-apple-silicon-pilot.md",
   "base_commit": "20e7962bbe0232d88ab8cb1154ee05a2126e67cf",
   "branch": "codex/macos-apple-silicon-pilot",
@@ -46,12 +46,11 @@
     "tests_modified_skipped_or_marked_for_rerun": false
   },
   "not_run": [
-    "Task 3 builder",
-    "packaging",
+    "real Mac app packaging/signing/archive",
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Claude/Alex review the Tasks 1-2 results and Task 3 installed-license blocker. Resuming Task 3 needs an approved notice-source or dependency decision; no packaging, label, merge or main push.",
+  "next_step": "Check Task 3 exact-head Mac source results, then stop for Claude review. Task 4 packaging requires separate approval; PR remains draft and unlabelled.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -335,92 +334,157 @@
         "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd"
       },
       "3": {
-        "status": "stopped: installed Mac distributions contain no discoverable license texts; no locator or builder implemented",
-        "reason": "The four installed distributions have no discoverable license-text files. No external license text was downloaded, copied from Windows or substituted.",
-        "probe_test_red_failed": 1,
-        "probe_test_green_passed": 14,
-        "packaging_run": false,
-        "windows_preflight_passed": 1438,
-        "windows_preflight_skipped": 2,
-        "windows_preflight_elapsed_seconds": 254.67,
-        "windows_notice_files_byte_identical": 258,
-        "source_commit": "d903a3d3341642cc54d8476206ac4064a8864e4d",
-        "macos": {
-          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180",
-          "conclusion": "failure",
-          "passed": 1431,
-          "failed": 9,
-          "errors": 0,
-          "elapsed_seconds": 305.76,
-          "reason": "Same nine installed-PySide6 notice-discovery failures; no document-engine or preservation failure.",
-          "captures": "Capture step and source-evidence upload passed."
-        },
-        "installed_qt_notice_inventory": {
-          "PySide6": {
-            "license_file_headers": [],
-            "installed_text_candidates": {},
-            "package_directory_present": true,
-            "registered_text_candidates": {},
-            "registered_file_count": 72,
-            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
-            "license_expression": null
+        "status": "implemented; Mac source validation pending",
+        "preflight_history": {
+          "status": "stopped: installed Mac distributions contain no discoverable license texts; no locator or builder implemented",
+          "reason": "The four installed distributions have no discoverable license-text files. No external license text was downloaded, copied from Windows or substituted.",
+          "probe_test_red_failed": 1,
+          "probe_test_green_passed": 14,
+          "packaging_run": false,
+          "windows_preflight_passed": 1438,
+          "windows_preflight_skipped": 2,
+          "windows_preflight_elapsed_seconds": 254.67,
+          "windows_notice_files_byte_identical": 258,
+          "source_commit": "d903a3d3341642cc54d8476206ac4064a8864e4d",
+          "macos": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180",
+            "conclusion": "failure",
+            "passed": 1431,
+            "failed": 9,
+            "errors": 0,
+            "elapsed_seconds": 305.76,
+            "reason": "Same nine installed-PySide6 notice-discovery failures; no document-engine or preservation failure.",
+            "captures": "Capture step and source-evidence upload passed."
           },
-          "PySide6_Essentials": {
-            "license_file_headers": [],
-            "installed_text_candidates": {},
-            "package_directory_present": true,
-            "registered_text_candidates": {},
-            "registered_file_count": 2894,
-            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
-            "license_expression": null
+          "installed_qt_notice_inventory": {
+            "PySide6": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 72,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            },
+            "PySide6_Essentials": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 2894,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            },
+            "PySide6_Addons": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 1656,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            },
+            "shiboken6": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 63,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            }
           },
-          "PySide6_Addons": {
-            "license_file_headers": [],
-            "installed_text_candidates": {},
-            "package_directory_present": true,
-            "registered_text_candidates": {},
-            "registered_file_count": 1656,
-            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
-            "license_expression": null
+          "environment": {
+            "python": "3.11.9",
+            "macos": "14.8.9",
+            "architecture": "arm64",
+            "qt": "6.11.2",
+            "pyside6": "6.11.2",
+            "nuitka": "4.2.2",
+            "python_license_available": true
           },
-          "shiboken6": {
-            "license_file_headers": [],
-            "installed_text_candidates": {},
-            "package_directory_present": true,
-            "registered_text_candidates": {},
-            "registered_file_count": 63,
-            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
-            "license_expression": null
+          "source_artifact": {
+            "id": 12149721470,
+            "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180/artifacts/12149721470",
+            "sha256": "867b9a4910cf573041a082d7fda75dbf4a33758439cdae3087aacb561563607d",
+            "download_verified": true,
+            "expires_at": "2026-11-01T20:28:49Z"
+          },
+          "stop_condition": "Alex required stopping if the installed Mac distributions genuinely contain no license texts. Both package/dist-info traversal and all registered entries yielded no license-text candidates; License-File headers are empty and License metadata contains identifiers only.",
+          "unimplemented": [
+            "Mac license locator and fake-layout regression",
+            "installed-Python license resolver",
+            "build_macos.py and its mocked tests"
+          ],
+          "windows_pr_source": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036181",
+            "conclusion": "success",
+            "passed": 1440,
+            "elapsed_seconds": 407.36,
+            "build_job": "skipped"
           }
         },
-        "environment": {
-          "python": "3.11.9",
-          "macos": "14.8.9",
-          "architecture": "arm64",
-          "qt": "6.11.2",
-          "pyside6": "6.11.2",
-          "nuitka": "4.2.2",
-          "python_license_available": true
-        },
-        "source_artifact": {
-          "id": 12149721470,
-          "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180/artifacts/12149721470",
-          "sha256": "867b9a4910cf573041a082d7fda75dbf4a33758439cdae3087aacb561563607d",
-          "download_verified": true,
-          "expires_at": "2026-11-01T20:28:49Z"
-        },
-        "stop_condition": "Alex required stopping if the installed Mac distributions genuinely contain no license texts. Both package/dist-info traversal and all registered entries yielded no license-text candidates; License-File headers are empty and License metadata contains identifiers only.",
-        "unimplemented": [
-          "Mac license locator and fake-layout regression",
-          "installed-Python license resolver",
-          "build_macos.py and its mocked tests"
-        ],
-        "windows_pr_source": {
-          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036181",
-          "conclusion": "success",
-          "passed": 1440,
-          "elapsed_seconds": 407.36,
-          "build_job": "skipped"
+        "implementation": {
+          "status": "local gates passed; exact-head Mac source checks pending",
+          "test_first": {
+            "notice_red_failed": 8,
+            "notice_red_existing_or_guard_passed": 8,
+            "builder_red_errors": 19,
+            "builder_red_reason": "module not yet present",
+            "absolute_symlink_red_failed": 1,
+            "targeted_passed": 34,
+            "targeted_skipped": 2,
+            "targeted_elapsed_seconds": 25.96
+          },
+          "windows_local": {
+            "passed": 1466,
+            "skipped": 4,
+            "elapsed_seconds": 274.81,
+            "collected": 1470,
+            "log": ".venv/mac-pilot-task3-resume/full-windows-final.log",
+            "environment": "Hard-link-permitted environment; unchanged isolated command and test-home redirects.",
+            "warnings": "One existing pytest-cache permission warning.",
+            "preliminary_before_absolute_link_check": {
+              "passed": 1465,
+              "skipped": 4,
+              "elapsed_seconds": 266.01
+            },
+            "capability_skips": "Two existing source-alias symlink checks and two new actual-symlink inventory cases; no skipped case is counted as passed."
+          },
+          "windows_notice_comparison": {
+            "file_count": 258,
+            "byte_identical": true,
+            "mismatches": [],
+            "inventory_sha256": "3e74805c7a7732665f41771674685c9426c05a93ea32ab47df8f6e381331e7fb"
+          },
+          "validate_notices_unchanged": true,
+          "qt_fallback_scope": [
+            "PySide6",
+            "PySide6_Essentials",
+            "PySide6_Addons",
+            "shiboken6"
+          ],
+          "qt_fallback": "Only absent installed license files use already-copied qt/pyside-setup/LICENSES entries from the checksum-verified 6.11.2 snapshot. The individual fallback package version must match too. Existing installed-license copying stays preferred; other missing packages still fail.",
+          "python_license_order": [
+            "sys.base_prefix/LICENSE.txt",
+            "sysconfig.get_path(\"stdlib\")/LICENSE.txt"
+          ],
+          "builder": "build_macos.py; existing Nuitka/PySide6 and Pillow only; Darwin arm64 guard before side effects; all compiler/archive/git subprocesses mocked in tests.",
+          "bundle_layout": {
+            "executable": "Simplicitor.app/Contents/MacOS/Simplicitor",
+            "runtime_data": "Contents/MacOS/{prompts,templates,templates_engine/builtin,assets,LICENSE,third_party}; internal relocation symlinks may point into Resources/Frameworks",
+            "icon": "largest actual ICO frame converted to PNG before Nuitka; Nuitka owns ICNS conversion/signing",
+            "symlinks": "relative internal targets only; escaping, absolute or broken targets fail before archive"
+          },
+          "outputs": [
+            "dist/macos-pilot/Simplicitor.app",
+            "dist/macos-pilot/Simplicitor-macos-arm64-pilot.zip",
+            "dist/macos-pilot/SHA256SUMS-macos-pilot.json"
+          ],
+          "work_directory": ".nuitka/macos-pilot",
+          "external_build_sign_archive_tools_run": false,
+          "packaging_run": false,
+          "macos": null
         }
       }
     }

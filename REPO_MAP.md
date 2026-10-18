@@ -726,6 +726,7 @@ tests/
     test_generators.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
+    test_macos_build.py
     test_macos_compatibility.py
     test_macos_pilot_workflow.py
     test_main_window_edit.py
@@ -759,6 +760,7 @@ README.md
 SECURITY.md
 build.bat
 build.py
+build_macos.py
 pytest.ini
 requirements-build.txt
 requirements-dev.txt
@@ -776,6 +778,17 @@ requirements.txt
 - def build_msi(payload: Path, version: str, output: Path) -> None: Compile the per-user MSI from the standalone payload with the pinned WiX tool.
 - def package_payload(payload: Path, artifacts: tuple[Path, ...]) -> None: Validate resources and archive exactly the payload supplied to the MSI.
 - def main() -> int: Compile the standalone payload, build its MSI, then package the same payload.
+
+### build_macos.py
+
+- def nuitka_command(output_dir: Path) -> list[str]: Describe the pinned-tool app build without writing files or running tools.
+- def write_icon() -> Path: Extract the largest original S image; Nuitka converts this PNG to ICNS.
+- def _sha256(path: Path) -> str
+- def bundle_inventory(app: Path) -> dict: Hash files and record relative symlinks that stay inside the portable app.
+- def _validate_bundle(app: Path) -> None
+- def _require_host() -> None
+- def build() -> tuple[Path, Path]: Assemble, sign through Nuitka, and archive a pilot; return ZIP and manifest.
+- def main() -> int: Refuse other hosts before any build side effect; report tool failures safely.
 
 ### resources/create_icon.py
 
@@ -805,7 +818,8 @@ requirements.txt
 
 - def _digest(path: Path) -> str
 - def _runtime_distributions(root: Path) -> list: Collect installed non-extra dependencies, conservatively including platform markers.
-- def _copy_licenses(dist, destination: Path) -> list[str]
+- def _copy_licenses(dist, destination: Path, allow_missing: bool=False) -> list[str]
+- def python_license_path() -> Path: Find the installed Python terms, preserving Windows' existing precedence.
 - def build_notices(root: Path, output: Path) -> None: Copy original license bytes for this build without deleting existing files.
 - def validate_notices(bundle: Path) -> None: Fail packaging when license notices are absent, empty, or changed in transit.
 
@@ -2270,6 +2284,20 @@ requirements.txt
 - class TestConvenienceFunctions
 - class TestThinkingModelOutput: Regression tests for Qwen3/DeepSeek-R1 thinking model output.
 
+### tests/test_macos_build.py
+
+- def mac(tmp_path, monkeypatch)
+- def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp_path, monkeypatch)
+- def test_unsupported_host_refuses_before_creating_output_or_tools(mac, monkeypatch, system, arch)
+- def test_icon_is_the_actual_largest_ico_image_without_changing_windows_artwork(mac)
+- def simulated_build(mac, monkeypatch)
+- def test_build_stages_data_before_signing_then_archives_without_mutating_bundle(mac, simulated_build)
+- def test_failed_external_step_or_absent_bundle_never_produces_manifest(mac, simulated_build, failure)
+- def test_missing_payload_input_fails_before_archiving(mac, simulated_build, missing)
+- def test_existing_output_is_not_deleted_or_overwritten(mac, simulated_build)
+- def test_inventory_keeps_internal_symlink_targets_and_rejects_escaping_links(mac, tmp_path, outside)
+- def test_inventory_rejects_absolute_symlink_even_if_it_points_inside_the_build(mac, tmp_path, monkeypatch)
+
 ### tests/test_macos_compatibility.py
 
 - def test_source_harness_font_override_is_windows_only(tmp_path, monkeypatch, platform, script, boundary)
@@ -2502,6 +2530,13 @@ requirements.txt
 
 ### tests/test_third_party_notices.py
 
+- def missing_installed_license(tmp_path, monkeypatch): Model the Mac wheels: package metadata exists but no installed license file.
+- def test_mac_qt_without_installed_license_references_verified_vendored_texts(tmp_path, missing_installed_license, name)
+- def test_non_qt_without_installed_license_still_fails(tmp_path, missing_installed_license)
+- def test_qt_fallback_cannot_hide_invalid_installed_notice_path(tmp_path, missing_installed_license)
+- def test_qt_fallback_requires_matching_package_version(tmp_path, missing_installed_license)
+- def test_python_license_resolver_uses_nonempty_installed_file(tmp_path, monkeypatch, location)
+- def test_python_license_resolver_rejects_missing_or_empty_files(tmp_path, monkeypatch)
 - def test_build_qt_version_matches_vendored_notice_snapshot()
 - def test_notice_bundle_contains_runtime_versions_and_full_qt_terms(tmp_path)
 - def test_missing_notice_payload_is_rejected_without_writing(tmp_path)
@@ -2667,7 +2702,7 @@ requirements.txt
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
-- docs/builds/macos-arm64-pilot-ci.json: json, 448 lines
+- docs/builds/macos-arm64-pilot-ci.json: json, 512 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines
