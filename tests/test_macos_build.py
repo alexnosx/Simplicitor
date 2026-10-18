@@ -22,6 +22,7 @@ def mac(tmp_path, monkeypatch):
 
 
 def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp_path, monkeypatch):
+    monkeypatch.setattr(mac.sys, "executable", "C:/hostedtoolcache/windows/Python/python.exe")
     def forbidden(*args, **kwargs):
         pytest.fail("command construction must not write files or run tools")
     monkeypatch.setattr(Path, "mkdir", forbidden)
@@ -44,9 +45,9 @@ def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp
                  f"--macos-app-icon={mac.WORK_DIR / 'simplicitor.png'}"):
         assert flag in command
     assert command[-1] == "main.py"
-    assert not any(any(term in flag.lower() for term in (
+    assert not any(any(term in flag.partition("=")[0].lower() for term in (
         "windows", "wix", "notar", "entitlement", "protected-resource", "download", "ollama"
-    )) for flag in command)
+    )) for flag in command if flag.startswith("--"))
     assert mac.PRODUCT_VERSION == __import__("app.version", fromlist=["__version__"]).__version__
 
 
@@ -190,7 +191,7 @@ def test_inventory_keeps_internal_symlink_targets_and_rejects_escaping_links(mac
     target.write_bytes(b"synthetic framework bytes")
     link = app / "current"
     try:
-        link.symlink_to("../target" if outside else "target")
+        link.symlink_to(Path("..") / "target" if outside else Path("target"))
     except OSError:
         pytest.skip("host cannot create a symlink; Mac source CI must exercise this check")
     if outside:

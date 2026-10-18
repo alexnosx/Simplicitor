@@ -50,7 +50,7 @@
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Claude review of Task 3. Task 4 packaging requires separate approval; the draft PR remains unmerged and unlabelled.",
+  "next_step": "Confirm corrected Task 3 test-head source checks, then stop for Claude review. Task 4 packaging requires separate approval; PR stays draft and unlabelled.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -334,7 +334,7 @@
         "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd"
       },
       "3": {
-        "status": "Task 3 complete: local and Mac source gates passed; no actual packaging",
+        "status": "Task 3 implemented; corrected-test-head CI pending",
         "preflight_history": {
           "status": "stopped: installed Mac distributions contain no discoverable license texts; no locator or builder implemented",
           "reason": "The four installed distributions have no discoverable license-text files. No external license text was downloaded, copied from Windows or substituted.",
@@ -425,7 +425,7 @@
           }
         },
         "implementation": {
-          "status": "passed exact-head Mac source checks; builder remains mocked, not packaged",
+          "status": "test portability fixes passed locally; corrected-head source checks pending",
           "test_first": {
             "notice_red_failed": 8,
             "notice_red_existing_or_guard_passed": 8,
@@ -434,14 +434,15 @@
             "absolute_symlink_red_failed": 1,
             "targeted_passed": 34,
             "targeted_skipped": 2,
-            "targeted_elapsed_seconds": 25.96
+            "targeted_elapsed_seconds": 33.36,
+            "hosted_windows_path_red_failed": 1
           },
           "windows_local": {
             "passed": 1466,
             "skipped": 4,
-            "elapsed_seconds": 274.81,
+            "elapsed_seconds": 237.51,
             "collected": 1470,
-            "log": ".venv/mac-pilot-task3-resume/full-windows-final.log",
+            "log": ".venv/mac-pilot-task3-resume/full-windows-portable.log",
             "environment": "Hard-link-permitted environment; unchanged isolated command and test-home redirects.",
             "warnings": "One existing pytest-cache permission warning.",
             "preliminary_before_absolute_link_check": {
@@ -449,7 +450,8 @@
               "skipped": 4,
               "elapsed_seconds": 266.01
             },
-            "capability_skips": "Two existing source-alias symlink checks and two new actual-symlink inventory cases; no skipped case is counted as passed."
+            "capability_skips": "Two existing source-alias symlink checks and two new actual-symlink inventory cases; no skipped case is counted as passed.",
+            "pre_portability_correction_elapsed_seconds": 274.81
           },
           "windows_notice_comparison": {
             "file_count": 258,
@@ -518,7 +520,30 @@
           },
           "source_commit": "846412e72b6b3a19c34d031f183952399910155e",
           "recorded_at_utc": "2026-10-18T20:56:47.669390+00:00",
-          "windows_pr_source_run": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048120"
+          "windows_pr_source_run": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048120",
+          "hosted_windows_test_portability": {
+            "first_failing_run": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048120",
+            "source_commit": "846412e72b6b3a19c34d031f183952399910155e",
+            "passed": 1468,
+            "failed": 2,
+            "elapsed_seconds": 436.82,
+            "build_job": "skipped",
+            "failed_test_ids": [
+              "tests/test_macos_build.py::test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing",
+              "tests/test_macos_build.py::test_inventory_keeps_internal_symlink_targets_and_rejects_escaping_links[True]"
+            ],
+            "causes": [
+              "The forbidden-word assertion scanned the hosted Python executable path containing windows, rather than only CLI option names.",
+              "The synthetic escaping symlink supplied POSIX ../target text instead of a native Path target on Windows."
+            ],
+            "corrections": [
+              "Force a hosted-style interpreter path in the regression; inspect only option names while retaining exact required-option/value assertions.",
+              "Create the synthetic symlink with Path(\"..\") / \"target\" so its spelling is native to each host."
+            ],
+            "production_code_changed": false,
+            "macos_recheck": null,
+            "windows_recheck": null
+          }
         }
       }
     }
