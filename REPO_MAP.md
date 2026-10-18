@@ -2645,7 +2645,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 162 lines
+- docs/PROJECT_STATUS.md: md, 163 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2667,7 +2667,7 @@ requirements.txt
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
-- docs/builds/macos-arm64-pilot-ci.json: json, 370 lines
+- docs/builds/macos-arm64-pilot-ci.json: json, 448 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines

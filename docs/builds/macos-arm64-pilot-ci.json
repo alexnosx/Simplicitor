@@ -51,7 +51,7 @@
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Check installed Qt registered-file inventory on the pilot branch; if no actual license texts exist, stop Task 3 and report as required. No packaging.",
+  "next_step": "Claude/Alex review the Tasks 1-2 results and Task 3 installed-license blocker. Resuming Task 3 needs an approved notice-source or dependency decision; no packaging, label, merge or main push.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -335,15 +335,93 @@
         "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd"
       },
       "3": {
-        "status": "preflight only; builder and notice locator not implemented",
-        "reason": "All four installed Qt package/dist-info directory scans found no license text. Check distribution-registered files beyond those directories and metadata before concluding genuine absence.",
+        "status": "stopped: installed Mac distributions contain no discoverable license texts; no locator or builder implemented",
+        "reason": "The four installed distributions have no discoverable license-text files. No external license text was downloaded, copied from Windows or substituted.",
         "probe_test_red_failed": 1,
         "probe_test_green_passed": 14,
         "packaging_run": false,
         "windows_preflight_passed": 1438,
         "windows_preflight_skipped": 2,
         "windows_preflight_elapsed_seconds": 254.67,
-        "windows_notice_files_byte_identical": 258
+        "windows_notice_files_byte_identical": 258,
+        "source_commit": "d903a3d3341642cc54d8476206ac4064a8864e4d",
+        "macos": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180",
+          "conclusion": "failure",
+          "passed": 1431,
+          "failed": 9,
+          "errors": 0,
+          "elapsed_seconds": 305.76,
+          "reason": "Same nine installed-PySide6 notice-discovery failures; no document-engine or preservation failure.",
+          "captures": "Capture step and source-evidence upload passed."
+        },
+        "installed_qt_notice_inventory": {
+          "PySide6": {
+            "license_file_headers": [],
+            "installed_text_candidates": {},
+            "package_directory_present": true,
+            "registered_text_candidates": {},
+            "registered_file_count": 72,
+            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+            "license_expression": null
+          },
+          "PySide6_Essentials": {
+            "license_file_headers": [],
+            "installed_text_candidates": {},
+            "package_directory_present": true,
+            "registered_text_candidates": {},
+            "registered_file_count": 2894,
+            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+            "license_expression": null
+          },
+          "PySide6_Addons": {
+            "license_file_headers": [],
+            "installed_text_candidates": {},
+            "package_directory_present": true,
+            "registered_text_candidates": {},
+            "registered_file_count": 1656,
+            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+            "license_expression": null
+          },
+          "shiboken6": {
+            "license_file_headers": [],
+            "installed_text_candidates": {},
+            "package_directory_present": true,
+            "registered_text_candidates": {},
+            "registered_file_count": 63,
+            "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+            "license_expression": null
+          }
+        },
+        "environment": {
+          "python": "3.11.9",
+          "macos": "14.8.9",
+          "architecture": "arm64",
+          "qt": "6.11.2",
+          "pyside6": "6.11.2",
+          "nuitka": "4.2.2",
+          "python_license_available": true
+        },
+        "source_artifact": {
+          "id": 12149721470,
+          "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180/artifacts/12149721470",
+          "sha256": "867b9a4910cf573041a082d7fda75dbf4a33758439cdae3087aacb561563607d",
+          "download_verified": true,
+          "expires_at": "2026-11-01T20:28:49Z"
+        },
+        "stop_condition": "Alex required stopping if the installed Mac distributions genuinely contain no license texts. Both package/dist-info traversal and all registered entries yielded no license-text candidates; License-File headers are empty and License metadata contains identifiers only.",
+        "unimplemented": [
+          "Mac license locator and fake-layout regression",
+          "installed-Python license resolver",
+          "build_macos.py and its mocked tests"
+        ],
+        "windows_pr_source": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036181",
+          "conclusion": "success",
+          "passed": 1440,
+          "elapsed_seconds": 407.36,
+          "build_job": "skipped"
+        }
       }
     }
   },
