@@ -133,8 +133,8 @@ def test_qt_probe_checks_registered_files_beyond_package_and_dist_info_roots(wor
     assert 'dist.metadata.get("License")' in command
 
 
-def test_task_zero_cannot_package_publish_or_use_secrets(workflow):
-    assert set(workflow["jobs"]) == {"source-tests"}
+def test_source_probe_cannot_package_publish_or_use_secrets(workflow):
+    assert set(workflow["jobs"]) == {"source-tests", "build"}
     content = WORKFLOW.read_text(encoding="utf-8")
     assert "secrets." not in content
     for step in workflow["jobs"]["source-tests"]["steps"]:
@@ -144,3 +144,86 @@ def test_task_zero_cannot_package_publish_or_use_secrets(workflow):
         for forbidden in ("python build.py", "build_macos.py", "qualify_", "gh release",
                           "workflow_dispatch", "pull_request_target"):
             assert forbidden not in step.get("run", "")
+
+
+def test_package_job_is_read_only_bounded_and_pinned_after_source_tests(workflow):
+    job = workflow["jobs"]["build"]
+    assert job["needs"] == "source-tests"
+    assert job["runs-on"] == "macos-14" and job["timeout-minutes"] == "120"
+    assert workflow["permissions"] == {"contents": "read"}
+    assert job["env"]["PILOT_HEAD_SHA"] == "${{ github.event.pull_request.head.sha }}"
+    checkout = next(s for s in job["steps"] if s.get("uses") == "actions/checkout@v4")
+    assert checkout["with"] == {"ref": "${{ github.event.pull_request.head.sha }}",
+                                "persist-credentials": "false"}
+    setup = next(s for s in job["steps"] if s.get("uses") == "actions/setup-python@v5")
+    assert setup["with"] == {"python-version": "3.11", "architecture": "arm64"}
+
+
+@pytest.mark.parametrize("action,label,actor,private,repo,branch,allowed", [
+    ("labeled", "mac-package", "alexnosx", False, True, True, True),
+    ("synchronize", "mac-package", "alexnosx", False, True, True, False),
+    ("opened", "mac-package", "alexnosx", False, True, True, False),
+    ("labeled", "other", "alexnosx", False, True, True, False),
+    ("labeled", "mac-package", "other", False, True, True, False),
+    ("labeled", "mac-package", "alexnosx", True, True, True, False),
+    ("labeled", "mac-package", "alexnosx", False, False, True, False),
+    ("labeled", "mac-package", "alexnosx", False, True, False, False),
+])
+def test_only_alex_adding_the_package_label_authorizes_a_package(
+        workflow, action, label, actor, private, repo, branch, allowed):
+    condition = " ".join(workflow["jobs"]["build"]["if"].split())
+    terms = condition.split(" && ")
+    expected = ["github.event.repository.private == false",
+                "github.event.pull_request.head.repo.full_name == github.repository",
+                "github.head_ref == 'codex/macos-apple-silicon-pilot'",
+                "github.event.action == 'labeled'", "github.event.label.name == 'mac-package'",
+                "github.actor == 'alexnosx'"]
+    assert set(terms) == set(expected) and len(terms) == 6
+    values = dict(zip(expected, [not private, repo, branch, action == "labeled",
+                                 label == "mac-package", actor == "alexnosx"]))
+    assert all(values[term] for term in terms) == allowed
+
+
+def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_outputs(workflow):
+    steps = workflow["jobs"]["build"]["steps"]
+    preflight = next(s for s in steps if s.get("name") == "Verify packaging host and offline runtime")
+    assert '"$(uname -s)" = "Darwin"' in preflight["run"]
+    assert '"$(uname -m)" = "arm64"' in preflight["run"]
+    assert '"$RUNNER_ENVIRONMENT" = "github-hosted"' in preflight["run"]
+    assert "assert_no_ollama" in preflight["run"]
+    build = next(s for s in steps if s.get("name") == "Build pilot")
+    qualify = next(s for s in steps if s.get("name") == "Qualify extracted pilot")
+    assert steps.index(preflight) < steps.index(build) < steps.index(qualify)
+    assert build["run"].strip() == "python build_macos.py"
+    assert "scripts/qualify_macos_pilot.py" in qualify["run"]
+    for argument in ("--bundle", "--manifest", "--report"):
+        assert argument in qualify["run"]
+    upload = next(s for s in steps if s.get("uses") == "actions/upload-artifact@v4")
+    assert steps.index(upload) > steps.index(qualify)
+    assert upload["with"]["retention-days"] == "14"
+    assert upload["with"]["if-no-files-found"] == "error"
+    assert upload.get("if", "success()") == "success()"
+    assert upload["with"]["path"].splitlines() == [
+        "dist/macos-pilot/Simplicitor-macos-arm64-pilot.zip",
+        "dist/macos-pilot/SHA256SUMS-macos-pilot.json",
+        "dist/macos-pilot/macos-pilot-qualification.json",
+        "dist/macos-pilot/MAC-PILOT-README.txt"]
+    content = "\n".join(s.get("run", "") for s in steps)
+    assert "packaging/macos/MAC-PILOT-README.txt" in content
+    for forbidden in ("python build.py", "brew install", "curl", "ollama pull", "gh release",
+                      "notarytool", "xattr", "workflow_dispatch"):
+        assert forbidden not in content
+
+
+@pytest.mark.parametrize("relative", ["docs/macos-pilot.md", "packaging/macos/MAC-PILOT-README.txt"])
+def test_both_instructions_cover_delivery_trust_folders_and_prior_model_results(relative):
+    text = " ".join((WORKFLOW.parents[2] / relative).read_text(encoding="utf-8").split())
+    for required in ("14 days", "GitHub sign-in", "outer", "unchanged pilot ZIP", "browser",
+                     "shasum -a 256", "Open Anyway", "ad-hoc", "not notarized",
+                     "~/Applications", "~/Simplicitor", "~/Library/Application Support/Simplicitor",
+                     "existing", "Ollama", "qwen3:8b-q4_K_M", "llama3.1:8b-instruct-q4_K_M",
+                     "Q4_K_M", "11/12", "272/280", "97.14%", "zero unflagged wrong",
+                     "262/280", "93.57%", "95%", "Windows", "not Mac qualification",
+                     "unchecked", "must-pass", "optional", "not checked", "model tag",
+                     "before", "after", "feedback", "annoyed", "wished"):
+        assert required in text, required

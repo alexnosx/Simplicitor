@@ -156,3 +156,71 @@ jobs:
             ${{ runner.temp }}/macos-source-tests.xml
             ${{ runner.temp }}/macos-captures/
           if-no-files-found: warn
+
+  # A label still present on synchronize is deliberately insufficient. Alex adds
+  # this label only after review and the free-artifact-capacity preflight.
+  build:
+    needs: source-tests
+    if: >-
+      github.event.repository.private == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/macos-apple-silicon-pilot' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'mac-package' &&
+      github.actor == 'alexnosx'
+    runs-on: macos-14
+    timeout-minutes: 120
+    env:
+      PILOT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt -r requirements-build.txt
+
+      - name: Verify packaging host and offline runtime
+        shell: bash
+        run: |
+          test "$(uname -s)" = "Darwin"
+          test "$(uname -m)" = "arm64"
+          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          test "$(sw_vers -productVersion | cut -d. -f1)" = "14"
+          test "$(git rev-parse HEAD)" = "$PILOT_HEAD_SHA"
+          python - <<'PY'
+          from scripts.qualify_macos_pilot import assert_no_ollama
+          assert_no_ollama()
+          PY
+
+      - name: Build pilot
+        run: python build_macos.py
+
+      - name: Qualify extracted pilot
+        run: >-
+          python scripts/qualify_macos_pilot.py
+          --bundle dist/macos-pilot/Simplicitor.app
+          --manifest dist/macos-pilot/SHA256SUMS-macos-pilot.json
+          --report dist/macos-pilot/macos-pilot-qualification.json
+
+      - name: Copy pilot instructions outside signed app
+        run: cp packaging/macos/MAC-PILOT-README.txt dist/macos-pilot/MAC-PILOT-README.txt
+
+      - name: Upload qualified pilot
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simplicitor-macos-arm64-pilot
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            dist/macos-pilot/Simplicitor-macos-arm64-pilot.zip
+            dist/macos-pilot/SHA256SUMS-macos-pilot.json
+            dist/macos-pilot/macos-pilot-qualification.json
+            dist/macos-pilot/MAC-PILOT-README.txt

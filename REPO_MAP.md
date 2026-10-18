@@ -178,8 +178,11 @@ docs/
     Simplicitor_UI_Fixes_Round2.md
     Simplicitor_UI_Polish_and_Icon.md
     code-signing.md
+    macos-pilot.md
     screenshot.png
 packaging/
+    macos/
+        MAC-PILOT-README.txt
     simplicitor.wxs
 resources/
     third_party/
@@ -476,6 +479,7 @@ scripts/
     gen_repo_map.py
     inspect_template.py
     make_edit_fixtures.ps1
+    qualify_macos_pilot.py
     qualify_windows_installer.ps1
 simplicitor/
     app/
@@ -729,6 +733,7 @@ tests/
     test_macos_build.py
     test_macos_compatibility.py
     test_macos_pilot_workflow.py
+    test_macos_qualification.py
     test_main_window_edit.py
     test_main_window_extraction.py
     test_main_window_modes.py
@@ -874,6 +879,21 @@ requirements.txt
 - def _type_label(ph_type) -> str
 - def inspect(pptx_path: Path) -> None
 - def main() -> None
+
+### scripts/qualify_macos_pilot.py
+
+- def _sha256(path: Path) -> str
+- def _require_host() -> Path
+- def assert_no_ollama() -> None: Refuse an available loopback endpoint; never install or contact a model.
+- def _command(args: list[str]) -> str
+- def _minimum(value: str) -> tuple[int, int, int]
+- def _plist_and_modes(app: Path, version: str) -> None
+- def _resources(app: Path) -> None
+- def _mach_o(app: Path) -> list[dict]
+- def _signature(app: Path) -> str
+- def _launch(executable: Path, home: Path, cwd: Path) -> None
+- def qualify(bundle: Path, manifest: Path, report: Path) -> None: Check the shipped archive on a guarded runner; write a named-check report on failure.
+- def main() -> int: Parse the three artifact paths; return nonzero without exposing tool output.
 
 ### simplicitor/__init__.py
 
@@ -2323,7 +2343,28 @@ requirements.txt
 - def test_mac_source_captures_run_only_after_the_environment_preflight(workflow)
 - def test_mac_evidence_inspects_installed_qt_notices_without_downloading_text(workflow)
 - def test_qt_probe_checks_registered_files_beyond_package_and_dist_info_roots(workflow)
-- def test_task_zero_cannot_package_publish_or_use_secrets(workflow)
+- def test_source_probe_cannot_package_publish_or_use_secrets(workflow)
+- def test_package_job_is_read_only_bounded_and_pinned_after_source_tests(workflow)
+- def test_only_alex_adding_the_package_label_authorizes_a_package(workflow, action, label, actor, private, repo, branch, allowed)
+- def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_outputs(workflow)
+- def test_both_instructions_cover_delivery_trust_folders_and_prior_model_results(relative)
+
+### tests/test_macos_qualification.py
+
+- def pilot(tmp_path, monkeypatch)
+- def run(pilot)
+- def test_host_guard_precedes_any_staging_or_process(pilot, monkeypatch, system, arch, github)
+- def test_success_qualifies_extracted_copy_twice_without_ollama_and_records_limits(pilot)
+- def test_manifest_archive_and_bundle_mismatches_fail_closed(pilot, mutation, check)
+- def test_missing_required_payload_is_rejected_even_if_inventory_matches(pilot, missing)
+- def test_invalid_plist_or_missing_finder_icon_is_rejected(pilot, key, value)
+- def test_every_macho_requires_arm64_and_known_macos_14_compatible_minimum(pilot, setting, value)
+- def test_legacy_macos_deployment_command_is_accepted(pilot)
+- def test_invalid_or_non_adhoc_signature_blocks_launch(pilot, setting, value)
+- def test_early_exit_and_changes_to_preserved_bytes_fail(pilot, setting, check)
+- def test_existing_ollama_endpoint_blocks_qualification(pilot, monkeypatch)
+- def test_notice_validation_remains_strict(pilot, monkeypatch)
+- def test_runner_temp_must_be_outside_checkout(pilot, monkeypatch)
 
 ### tests/test_main_window_edit.py
 
@@ -2659,7 +2700,7 @@ requirements.txt
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 106 lines
-- .github/workflows/macos-pilot.yml: yml, 158 lines
+- .github/workflows/macos-pilot.yml: yml, 226 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
@@ -2680,7 +2721,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 163 lines
+- docs/PROJECT_STATUS.md: md, 164 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2723,6 +2764,7 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-review-policy.md: md, 29 lines
 - docs/evaluation/2026-10-09-sectioned-review-verification.json: json, 39 lines
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
+- docs/macos-pilot.md: md, 134 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/releases/v2.0.0-notes.md: md, 26 lines
@@ -2777,6 +2819,7 @@ requirements.txt
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 176 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 97 lines
 - docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 327 lines
+- packaging/macos/MAC-PILOT-README.txt: txt, 113 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
