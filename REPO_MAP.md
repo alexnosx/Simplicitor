@@ -501,6 +501,7 @@ simplicitor/
             ollama_client.py
         utils/
             __init__.py
+            desktop.py
             file_utils.py
             logging_setup.py
         widgets/
@@ -711,6 +712,7 @@ tests/
     test_create_progress.py
     test_create_routes.py
     test_create_screen.py
+    test_desktop.py
     test_edit_screen.py
     test_edit_worker.py
     test_extraction_worker.py
@@ -955,6 +957,10 @@ requirements.txt
 ### simplicitor/app/utils/__init__.py
 
 (no top-level definitions)
+
+### simplicitor/app/utils/desktop.py
+
+- def open_local_path(path: str | Path) -> bool: Return whether the desktop service accepted a readable local target.
 
 ### simplicitor/app/utils/file_utils.py
 
@@ -1779,6 +1785,7 @@ requirements.txt
 - def test_list_library_entry_has_required_keys(tmp_path)
 - def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path)
 - def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch)
+- def test_darwin_data_root_is_application_support_not_legacy_home(tmp_path, monkeypatch, appdata)
 
 ### tests/templates_engine/test_llm.py
 
@@ -2077,6 +2084,14 @@ requirements.txt
 - def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
 - def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path)
 - def test_browse_sits_directly_under_the_source_box(qtbot, isolated_profile)
+
+### tests/test_desktop.py
+
+- def test_open_local_path_round_trips_unicode_and_spaces(tmp_path, monkeypatch, directory)
+- def test_open_local_path_does_not_request_missing_or_unreadable_targets(tmp_path, monkeypatch)
+- def test_open_local_path_reports_desktop_refusal_without_logging_path(tmp_path, monkeypatch, caplog, raises)
+- def test_create_open_action_uses_local_helper_and_retains_visible_failure(qtbot, tmp_path, monkeypatch, accepted)
+- def test_settings_open_logs_uses_local_helper_and_warns_on_refusal(qtbot, tmp_path, monkeypatch, accepted)
 
 ### tests/test_edit_screen.py
 
@@ -2431,6 +2446,8 @@ requirements.txt
 - def test_templates_dir_is_string(tmp_path: Path) -> None
 - def test_reset_restores_templates_dir(tmp_path: Path) -> None
 - def test_old_settings_json_gains_templates_dir(tmp_path: Path) -> None
+- def test_platform_working_defaults_and_saved_custom_paths(tmp_path, monkeypatch, platform, root)
+- def test_platform_font_is_selected_without_a_font_database(monkeypatch, platform, font)
 
 ### tests/test_status_banner.py
 
@@ -2611,7 +2628,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 160 lines
+- docs/PROJECT_STATUS.md: md, 161 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2633,7 +2650,7 @@ requirements.txt
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
-- docs/builds/macos-arm64-pilot-ci.json: json, 272 lines
+- docs/builds/macos-arm64-pilot-ci.json: json, 285 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines

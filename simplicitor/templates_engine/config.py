@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -32,12 +33,15 @@ def get_builtin_root() -> Path:
 def get_app_data_dir() -> Path:
     """Return the per-user Simplicitor data root. No side effects.
 
+    Darwin uses ``~/Library/Application Support/Simplicitor``. Elsewhere use
     ``%APPDATA%\\Simplicitor`` when APPDATA is set, otherwise ``~/.simplicitor``.
     Settings (settings.json) live directly in this directory (see main.py).
     Template resolution is unified on ``Settings.templates_dir``; the old
     ``templates/`` subfolder here is retired (the CLI prints a notice if
     templates are still found in it).
     """
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / _APP_NAME
     appdata = os.environ.get("APPDATA")
     if appdata:
         return Path(appdata) / _APP_NAME

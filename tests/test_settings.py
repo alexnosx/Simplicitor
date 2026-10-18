@@ -1,5 +1,7 @@
 # tests/test_settings.py
 from pathlib import Path
+import runpy
+import sys
 import pytest
 from app.config.settings import Settings
 
@@ -98,3 +100,29 @@ def test_old_settings_json_gains_templates_dir(tmp_path: Path) -> None:
     )
     s = Settings(tmp_path)
     assert "Templates" in s.templates_dir
+
+
+@pytest.mark.parametrize("platform,root", [("darwin", ""), ("win32", "Documents")])
+def test_platform_working_defaults_and_saved_custom_paths(tmp_path, monkeypatch, platform, root):
+    monkeypatch.setattr(sys, "platform", platform)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path / "home"))
+    config = tmp_path / "config"
+    config.mkdir()
+    settings = Settings(config)
+    for key, folder in (("generated", "Generated"), ("uploads", "Uploads"),
+                        ("backups", "Backups"), ("logs", "Logs"), ("templates", "Templates")):
+        assert Path(getattr(settings, key + "_dir")) == tmp_path / "home" / root / "Simplicitor" / folder
+    settings.set("generated_dir", str(tmp_path / "custom"))
+    settings.set("custom_key", "retained")
+    settings.save()
+    reloaded = Settings(config)
+    assert reloaded.generated_dir == str(tmp_path / "custom")
+    assert reloaded.get("custom_key") == "retained"
+
+
+@pytest.mark.parametrize("platform,font", [("darwin", "Helvetica Neue"), ("win32", "Segoe UI")])
+def test_platform_font_is_selected_without_a_font_database(monkeypatch, platform, font):
+    monkeypatch.setattr(sys, "platform", platform)
+    values = runpy.run_path(str(Path(__file__).parents[1] / "simplicitor/app/config/defaults.py"))
+    assert values["APP_FONT_FAMILY"] == font
+    assert values["FONT_SIZE_BODY_PT"] >= 11

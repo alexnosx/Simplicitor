@@ -53,7 +53,7 @@
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Claude reviews the first Mac baseline; Alex must give go before Task 1.",
+  "next_step": "Task 1 hosted source checks, then Tasks 2-3; stop for Claude after Task 3. No packaging.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -248,7 +248,20 @@
     "compatibility_repairs_applied": false,
     "limits": "First source baseline only. UI cases blocked by fixture setup were not exercised. No native launch, model, build, bundle, signature or packaging acceptance."
   },
-  "source_validation": null,
+  "source_validation": {
+    "tasks": {
+      "1": {
+        "targeted_passed": 64,
+        "red_failed": 13,
+        "red_existing_passed": 51,
+        "windows_local_passed": 1421,
+        "windows_local_elapsed_seconds": 252.41,
+        "full_suite_environment": "Hard-link-permitted environment; unchanged command and isolated profile, following the recorded Task 0 sandbox denial.",
+        "macos": null,
+        "windows_pr_source": null
+      }
+    }
+  },
   "package_validation": null,
   "recorded_at_utc": "2026-10-18T19:22:09.406835+00:00",
   "windows_pr_source": {
