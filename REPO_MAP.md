@@ -2294,6 +2294,7 @@ requirements.txt
 - def test_source_evidence_is_retained_without_an_application_artifact(workflow)
 - def test_mac_source_captures_run_only_after_the_environment_preflight(workflow)
 - def test_mac_evidence_inspects_installed_qt_notices_without_downloading_text(workflow)
+- def test_qt_probe_checks_registered_files_beyond_package_and_dist_info_roots(workflow)
 - def test_task_zero_cannot_package_publish_or_use_secrets(workflow)
 
 ### tests/test_main_window_edit.py
@@ -2623,7 +2624,7 @@ requirements.txt
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 106 lines
-- .github/workflows/macos-pilot.yml: yml, 145 lines
+- .github/workflows/macos-pilot.yml: yml, 158 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
@@ -2666,7 +2667,7 @@ requirements.txt
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
-- docs/builds/macos-arm64-pilot-ci.json: json, 321 lines
+- docs/builds/macos-arm64-pilot-ci.json: json, 370 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines

@@ -46,14 +46,12 @@
     "tests_modified_skipped_or_marked_for_rerun": false
   },
   "not_run": [
-    "Task 1",
-    "Task 2",
-    "Task 3",
+    "Task 3 builder",
     "packaging",
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Report Task 2 Mac UI/capture/notice results, then Task 3 if installed notice texts exist. Stop for Claude after Task 3; no packaging.",
+  "next_step": "Check installed Qt registered-file inventory on the pilot branch; if no actual license texts exist, stop Task 3 and report as required. No packaging.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -291,10 +289,61 @@
         "windows_local_skipped": 2,
         "windows_local_elapsed_seconds": 250.45,
         "capability_skips": "Windows symlink creation unavailable for both routes; recorded as skipped, not passed. Hard-link and case-alias conformance ran.",
-        "macos": null,
-        "windows_pr_source": null,
-        "captures": "Hosted Mac only, five required states at 1280x800 and 1024x640; pending.",
-        "notice_diagnostic": "Installed Qt metadata/package license candidates only. No downloads, copied Windows terms, packaging or notice-copier change."
+        "macos": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39162142328",
+          "conclusion": "failure",
+          "passed": 1430,
+          "failed": 9,
+          "errors": 0,
+          "elapsed_seconds": 225.23,
+          "previously_blocked_ui_passed": 111,
+          "editing_passed": 160,
+          "extraction_passed": 258,
+          "compatibility_passed": 15,
+          "remaining_cause": "Nine installed PySide6 notice-discovery failures only; no engine/preservation failure."
+        },
+        "windows_pr_source": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39162142090",
+          "conclusion": "success",
+          "passed": 1439,
+          "elapsed_seconds": 454.12,
+          "build_job": "skipped"
+        },
+        "captures": {
+          "states": [
+            "1-create-describe",
+            "2-create-with-files",
+            "3-choose-columns",
+            "4-review-and-save",
+            "5c-edit-review"
+          ],
+          "sizes": [
+            "1280x800",
+            "1024x640"
+          ],
+          "png_count": 14,
+          "metadata_count": 10,
+          "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd",
+          "automated_checks": "All capture processes and bounds/reachability checks passed.",
+          "visual_review": "All ten main captures checked: header/S and content visible; small windows scroll, with review action captures supplied. Source-only offscreen QA, not native pilot acceptance.",
+          "artifact_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39162142328/artifacts/12149247051",
+          "artifact_sha256": "bf24a3236966307bf4942add960f2548ef4d8395b87c49ac71eaaec21278f374",
+          "local_evidence": ".venv/mac-pilot-task2/source-evidence/",
+          "retention_days": 14
+        },
+        "notice_diagnostic": "Installed Qt metadata/package license candidates only. No downloads, copied Windows terms, packaging or notice-copier change.",
+        "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd"
+      },
+      "3": {
+        "status": "preflight only; builder and notice locator not implemented",
+        "reason": "All four installed Qt package/dist-info directory scans found no license text. Check distribution-registered files beyond those directories and metadata before concluding genuine absence.",
+        "probe_test_red_failed": 1,
+        "probe_test_green_passed": 14,
+        "packaging_run": false,
+        "windows_preflight_passed": 1438,
+        "windows_preflight_skipped": 2,
+        "windows_preflight_elapsed_seconds": 254.67,
+        "windows_notice_files_byte_identical": 258
       }
     }
   },

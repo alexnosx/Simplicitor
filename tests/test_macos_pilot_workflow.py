@@ -124,6 +124,15 @@ def test_mac_evidence_inspects_installed_qt_notices_without_downloading_text(wor
     assert "https://" not in command
 
 
+def test_qt_probe_checks_registered_files_beyond_package_and_dist_info_roots(workflow):
+    command = next(s["run"] for s in workflow["jobs"]["source-tests"]["steps"]
+                   if s.get("id") == "environment")
+    assert "for entry in dist.files or ()" in command
+    assert "dist.locate_file(entry)" in command
+    assert '"registered_text_candidates"' in command
+    assert 'dist.metadata.get("License")' in command
+
+
 def test_task_zero_cannot_package_publish_or_use_secrets(workflow):
     assert set(workflow["jobs"]) == {"source-tests"}
     content = WORKFLOW.read_text(encoding="utf-8")
