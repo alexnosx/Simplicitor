@@ -50,7 +50,7 @@
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Check Task 3 exact-head Mac source results, then stop for Claude review. Task 4 packaging requires separate approval; PR remains draft and unlabelled.",
+  "next_step": "Claude review of Task 3. Task 4 packaging requires separate approval; the draft PR remains unmerged and unlabelled.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -334,7 +334,7 @@
         "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd"
       },
       "3": {
-        "status": "implemented; Mac source validation pending",
+        "status": "Task 3 complete: local and Mac source gates passed; no actual packaging",
         "preflight_history": {
           "status": "stopped: installed Mac distributions contain no discoverable license texts; no locator or builder implemented",
           "reason": "The four installed distributions have no discoverable license-text files. No external license text was downloaded, copied from Windows or substituted.",
@@ -425,7 +425,7 @@
           }
         },
         "implementation": {
-          "status": "local gates passed; exact-head Mac source checks pending",
+          "status": "passed exact-head Mac source checks; builder remains mocked, not packaged",
           "test_first": {
             "notice_red_failed": 8,
             "notice_red_existing_or_guard_passed": 8,
@@ -484,7 +484,41 @@
           "work_directory": ".nuitka/macos-pilot",
           "external_build_sign_archive_tools_run": false,
           "packaging_run": false,
-          "macos": null
+          "macos": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048165",
+            "conclusion": "success",
+            "passed": 1470,
+            "failed": 0,
+            "errors": 0,
+            "skipped": 0,
+            "elapsed_seconds": 308.81,
+            "previously_blocked_ui_passed": 111,
+            "editing_passed": 160,
+            "extraction_passed": 258,
+            "builder_cases_passed": 20,
+            "notice_cases_passed": 16,
+            "notice_failures": 0,
+            "warnings": "Six existing record_property/xunit compatibility warnings.",
+            "environment": {
+              "python": "3.11.9",
+              "macos": "14.8.9",
+              "architecture": "arm64",
+              "qt": "6.11.2",
+              "pyside6": "6.11.2",
+              "nuitka": "4.2.2"
+            },
+            "captures": "Five states at both sizes and all automated capture checks passed; 14 source-only PNGs. No UI code changed in Task 3.",
+            "source_artifact": {
+              "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048165/artifacts/12149788901",
+              "sha256": "bdb830b434e1d203e598e9557f585454badabbba18b5809f431fca7db695663a",
+              "digest_verified": true,
+              "retention_days": 14,
+              "expires_at": "2026-11-01T20:55:21Z"
+            }
+          },
+          "source_commit": "846412e72b6b3a19c34d031f183952399910155e",
+          "recorded_at_utc": "2026-10-18T20:56:47.669390+00:00",
+          "windows_pr_source_run": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048120"
         }
       }
     }
