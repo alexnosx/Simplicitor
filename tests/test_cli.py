@@ -7,9 +7,21 @@ pytest) and extended for the Settings.templates_dir unification.
 import argparse
 import json
 from pathlib import Path
+import sys
 from unittest.mock import patch
 
+import pytest
+
 from cli import _cmd_generate, _cmd_list_templates, _templates_root, _warn_if_legacy_root
+from templates_engine.config import get_app_data_dir
+
+
+@pytest.fixture(autouse=True)
+def cli_profile(tmp_path, monkeypatch):
+    """Isolate both native home conventions before CLI settings are resolved."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path / "home"))
+    monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
 
 
 def test_generate_requires_out_when_not_dry_run(capsys):
@@ -24,12 +36,13 @@ def test_generate_requires_out_when_not_dry_run(capsys):
 def test_templates_root_falls_back_to_documents_default(tmp_path, monkeypatch):
     """No settings.json: the documented default Documents\\Simplicitor\\Templates."""
     monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))  # empty config dir
-    assert _templates_root() == Path.home() / "Documents" / "Simplicitor" / "Templates"
+    base = Path.home() if sys.platform == "darwin" else Path.home() / "Documents"
+    assert _templates_root() == base / "Simplicitor" / "Templates"
 
 
 def test_templates_root_reads_persisted_settings(tmp_path, monkeypatch):
     """The CLI resolves the same settings.json the app writes."""
-    cfg = tmp_path / "Roaming" / "Simplicitor"
+    cfg = get_app_data_dir()
     cfg.mkdir(parents=True)
     (cfg / "settings.json").write_text(
         json.dumps({"templates_dir": str(tmp_path / "MyTemplates")}), encoding="utf-8"
@@ -68,7 +81,7 @@ def _make_stub_template(folder: Path) -> None:
 def test_legacy_root_notice_names_both_paths(tmp_path, monkeypatch, capsys):
     """Templates left in the retired APPDATA root produce a notice naming both paths."""
     monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
-    legacy = tmp_path / "Roaming" / "Simplicitor" / "templates"
+    legacy = get_app_data_dir() / "templates"
     _make_stub_template(legacy / "old_template")
     active = tmp_path / "Active"
 

@@ -726,6 +726,7 @@ tests/
     test_generators.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
+    test_macos_compatibility.py
     test_macos_pilot_workflow.py
     test_main_window_edit.py
     test_main_window_extraction.py
@@ -2000,6 +2001,7 @@ requirements.txt
 
 ### tests/test_cli.py
 
+- def cli_profile(tmp_path, monkeypatch): Isolate both native home conventions before CLI settings are resolved.
 - def test_generate_requires_out_when_not_dry_run(capsys): --out is required when not in dry-run mode; omitting it prints an error and returns 1.
 - def test_templates_root_falls_back_to_documents_default(tmp_path, monkeypatch): No settings.json: the documented default Documents\Simplicitor\Templates.
 - def test_templates_root_reads_persisted_settings(tmp_path, monkeypatch): The CLI resolves the same settings.json the app writes.
@@ -2201,6 +2203,7 @@ requirements.txt
 
 ### tests/test_file_utils.py
 
+- def test_mac_app_resources_keep_the_actual_s_from_an_unrelated_directory(tmp_path, monkeypatch)
 - def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch, folder)
 - def test_sanitize_removes_special_chars() -> None
 - def test_sanitize_replaces_spaces_with_underscores() -> None
@@ -2267,6 +2270,17 @@ requirements.txt
 - class TestConvenienceFunctions
 - class TestThinkingModelOutput: Regression tests for Qwen3/DeepSeek-R1 thinking model output.
 
+### tests/test_macos_compatibility.py
+
+- def test_source_harness_font_override_is_windows_only(tmp_path, monkeypatch, platform, script, boundary)
+- def test_capture_isolates_darwin_home_before_importing_settings(tmp_path, monkeypatch)
+- def test_isolated_profile_sets_home_under_darwin_semantics(tmp_path, monkeypatch, request)
+- def _candidate(tmp_path, route)
+- def _save(candidate, destination, route)
+- def test_filesystem_aliases_cannot_overwrite_originals(tmp_path, record_property, route, kind)
+- def test_unicode_save_and_denied_write_preserve_sources(tmp_path, monkeypatch, route)
+- def test_denied_document_open_has_a_visible_error_and_preserves_bytes(tmp_path, monkeypatch)
+
 ### tests/test_macos_pilot_workflow.py
 
 - def workflow(): Read event names literally, including YAML 1.1's special word `on`.
@@ -2278,6 +2292,8 @@ requirements.txt
 - def test_source_suite_has_isolated_profiles_and_freeze_diagnostics(workflow)
 - def test_probe_records_versions_and_python_license_availability(workflow)
 - def test_source_evidence_is_retained_without_an_application_artifact(workflow)
+- def test_mac_source_captures_run_only_after_the_environment_preflight(workflow)
+- def test_mac_evidence_inspects_installed_qt_notices_without_downloading_text(workflow)
 - def test_task_zero_cannot_package_publish_or_use_secrets(workflow)
 
 ### tests/test_main_window_edit.py
@@ -2607,7 +2623,7 @@ requirements.txt
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 106 lines
-- .github/workflows/macos-pilot.yml: yml, 106 lines
+- .github/workflows/macos-pilot.yml: yml, 145 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
@@ -2628,7 +2644,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 161 lines
+- docs/PROJECT_STATUS.md: md, 162 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2650,7 +2666,7 @@ requirements.txt
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
-- docs/builds/macos-arm64-pilot-ci.json: json, 285 lines
+- docs/builds/macos-arm64-pilot-ci.json: json, 321 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines

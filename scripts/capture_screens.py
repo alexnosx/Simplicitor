@@ -13,12 +13,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / ".venv" / "screens-profile"
+if sys.platform == "darwin":
+    os.environ["HOME"] = str(PROFILE)
 for name, path in (("USERPROFILE", PROFILE), ("APPDATA", PROFILE / "AppData" / "Roaming"),
                    ("LOCALAPPDATA", PROFILE / "AppData" / "Local")):
     path.mkdir(parents=True, exist_ok=True)
     os.environ[name] = str(path)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
+if sys.platform == "win32":
+    os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
 sys.path.insert(0, str(ROOT / "simplicitor"))
 
 from PySide6.QtCore import QEvent, QPoint, QRect, QThread  # noqa: E402
@@ -42,6 +45,7 @@ from editing import reading_view  # noqa: E402
 from editing.models import Proposal, ProposedParagraph  # noqa: E402
 from editing.package import open_document  # noqa: E402
 from editing.patch import build_candidate  # noqa: E402
+from templates_engine.config import get_app_data_dir  # noqa: E402
 
 # Synthetic discovery and staged screens are deterministic and send no network requests.
 # The real local-Ollama extraction walkthrough is a separate integration check.
@@ -91,7 +95,7 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
     # Match the existing application entry point, including its input styles.
     app.setStyleSheet(input_styles())
 
-    config = PROFILE / "AppData" / "Roaming" / "Simplicitor"
+    config = get_app_data_dir()
     config.mkdir(parents=True, exist_ok=True)
     window = MainWindow(Settings(config))
     window.resize(*size)
@@ -104,7 +108,8 @@ def main(out: Path, size: tuple[int, int] = (1280, 800), state: str | None = Non
             break
         QThread.msleep(10)
     assert screen._connected
-    screen._folder_label.setText(r"C:\Users\Example\Documents\Simplicitor\Generated")
+    screen._folder_label.setText("/Users/Example/Simplicitor/Generated" if sys.platform == "darwin"
+                                else r"C:\Users\Example\Documents\Simplicitor\Generated")
     checks = []
 
     def visible_rect(widget, surface=window):

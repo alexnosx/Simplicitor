@@ -53,7 +53,7 @@
     "native trial",
     "model evaluation"
   ],
-  "next_step": "Task 1 hosted source checks, then Tasks 2-3; stop for Claude after Task 3. No packaging.",
+  "next_step": "Report Task 2 Mac UI/capture/notice results, then Task 3 if installed notice texts exist. Stop for Claude after Task 3; no packaging.",
   "baseline_probe": {
     "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
     "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
@@ -257,8 +257,44 @@
         "windows_local_passed": 1421,
         "windows_local_elapsed_seconds": 252.41,
         "full_suite_environment": "Hard-link-permitted environment; unchanged command and isolated profile, following the recorded Task 0 sandbox denial.",
+        "macos": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39161095120",
+          "conclusion": "failure",
+          "passed": 1298,
+          "failed": 12,
+          "errors": 111,
+          "elapsed_seconds": 353.24,
+          "editing_passed": 160,
+          "extraction_passed": 258,
+          "causes": [
+            "9 known PySide6 notice failures",
+            "111 known HOME fixture errors",
+            "3 CLI tests assuming Windows configuration/working paths"
+          ]
+        },
+        "windows_pr_source": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39161095136",
+          "conclusion": "success",
+          "passed": 1421,
+          "elapsed_seconds": 366.41,
+          "build_job": "skipped"
+        },
+        "source_commit": "ced70ffb8cb5e1f3a5d7357738adfe31f9754ff1"
+      },
+      "2": {
+        "targeted_passed": 44,
+        "targeted_skipped": 2,
+        "red_harness_failed": 4,
+        "red_existing_conformance_passed": 21,
+        "red_workflow_failed": 3,
+        "windows_local_passed": 1437,
+        "windows_local_skipped": 2,
+        "windows_local_elapsed_seconds": 250.45,
+        "capability_skips": "Windows symlink creation unavailable for both routes; recorded as skipped, not passed. Hard-link and case-alias conformance ran.",
         "macos": null,
-        "windows_pr_source": null
+        "windows_pr_source": null,
+        "captures": "Hosted Mac only, five required states at 1280x800 and 1024x640; pending.",
+        "notice_diagnostic": "Installed Qt metadata/package license candidates only. No downloads, copied Windows terms, packaging or notice-copier change."
       }
     }
   },

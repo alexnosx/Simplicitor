@@ -97,7 +97,31 @@ def test_source_evidence_is_retained_without_an_application_artifact(workflow):
     assert upload["with"]["name"] == "macos-source-baseline"
     paths = upload["with"]["path"].splitlines()
     assert paths == ["${{ runner.temp }}/macos-source-environment.json",
-                     "${{ runner.temp }}/macos-source-tests.xml"]
+                     "${{ runner.temp }}/macos-source-tests.xml",
+                     "${{ runner.temp }}/macos-captures/"]
+
+
+def test_mac_source_captures_run_only_after_the_environment_preflight(workflow):
+    steps = workflow["jobs"]["source-tests"]["steps"]
+    preflight = next(s for s in steps if s.get("name") == "Record source environment")
+    capture = next(s for s in steps if s.get("name") == "Capture Mac source screens")
+    assert preflight["id"] == "environment"
+    assert capture["if"] == "!cancelled() && steps.environment.outcome == 'success'"
+    assert steps.index(capture) > next(i for i, s in enumerate(steps) if s.get("name") == "Run Mac source tests")
+    for value in ("1280x800", "1024x640", "1-create-describe", "2-create-with-files",
+                  "3-choose-columns", "4-review-and-save", "5c-edit-review"):
+        assert value in capture["run"]
+    assert "scripts/capture_screens.py" in capture["run"]
+
+
+def test_mac_evidence_inspects_installed_qt_notices_without_downloading_text(workflow):
+    command = next(s["run"] for s in workflow["jobs"]["source-tests"]["steps"]
+                   if s.get("name") == "Record source environment")
+    for name in ("PySide6", "PySide6_Essentials", "PySide6_Addons", "shiboken6", "qt_notice_probe"):
+        assert name in command
+    assert 'dist.metadata.get_all("License-File")' in command
+    assert 'dist.locate_file("")' in command
+    assert "https://" not in command
 
 
 def test_task_zero_cannot_package_publish_or_use_secrets(workflow):

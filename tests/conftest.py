@@ -1,9 +1,11 @@
 import os
+import sys
 # Use offscreen rendering so widget tests run without a display (CI, headless Windows)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 # Windows-specific: the offscreen platform reads fonts from QT_QPA_FONTDIR via
 # FreeType. Without it, PDF text layers are empty in tests.
-os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
+if sys.platform == "win32":
+    os.environ.setdefault("QT_QPA_FONTDIR", os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"))
 
 import gc
 
@@ -91,6 +93,8 @@ def auto_show_widgets(qtbot, monkeypatch):
 def isolated_profile(tmp_path, monkeypatch):
     """Point every per-user folder at tmp_path before Settings or MainWindow exist."""
     home = tmp_path / "home"
+    if sys.platform == "darwin":
+        monkeypatch.setenv("HOME", str(home))
     for name, path in (("USERPROFILE", home), ("APPDATA", home / "AppData" / "Roaming"),
                        ("LOCALAPPDATA", home / "AppData" / "Local")):
         path.mkdir(parents=True, exist_ok=True)
