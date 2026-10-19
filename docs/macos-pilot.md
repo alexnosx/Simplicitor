@@ -1,14 +1,14 @@
 # Apple silicon Mac pilot
 
 This is a private pilot, not a public Mac release. It needs an Apple silicon Mac
-with macOS 14 or later, existing local Ollama running, and an existing installed
+with macOS 15 or later, existing local Ollama running, and an existing installed
 model. No Python, Xcode, Office, package manager or new model is required.
 The Windows release is unchanged. Hosted checks do not prove native Mac acceptance.
 
 ## Before Alex authorizes a package
 
 Claude reviews the qualification and packaging code first. Alex then checks the
-current public-repository standard `macos-14` arm64 runner is still free and checks
+current public-repository standard `macos-15` arm64 packaging runner is still free and checks
 the account's Actions artifact storage/billing page for free capacity for the
 14-day pilot artifact. If capacity is unavailable or unclear, stop, with no paid
 fallback. This check has not been performed for a package yet. See
@@ -49,7 +49,8 @@ with Finder and move `Simplicitor.app` to your own `~/Applications` folder.
 
 The app is **ad-hoc signed and not notarized**. It has no Apple-verified publisher
 identity. Double-click it in Finder and record the actual message. Expected
-unnotarized-app messages are:
+unnotarized-app messages vary; the older wording below is included for reference,
+not support for macOS 14:
 
 - macOS 14: "'Simplicitor' cannot be opened because Apple cannot check it for malicious software."
 - macOS 15: "Apple could not verify 'Simplicitor' is free of malware that may harm your Mac or compromise your privacy."

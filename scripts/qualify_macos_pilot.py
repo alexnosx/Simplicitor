@@ -78,7 +78,7 @@ def _plist_and_modes(app: Path, version: str) -> None:
     expected = {"CFBundleName": "Simplicitor", "CFBundleDisplayName": "Simplicitor",
                 "CFBundleIdentifier": "com.simplicitor.pilot", "CFBundleVersion": version,
                 "CFBundleShortVersionString": version, "CFBundleExecutable": "Simplicitor",
-                "CFBundlePackageType": "APPL", "LSMinimumSystemVersion": "14.0"}
+                "CFBundlePackageType": "APPL", "LSMinimumSystemVersion": "15.0"}
     if any(info.get(key) != value for key, value in expected.items()):
         raise ValueError("Unexpected app plist identity, version or minimum OS")
     icon = info.get("CFBundleIconFile", "")
@@ -109,6 +109,8 @@ def _resources(app: Path) -> None:
 
 def _mach_o(app: Path, records: list[dict], offenders: list[dict]) -> None:
     # Populate the report as we scan, including minima from rejected and passing slices.
+    declared = plistlib.loads((app / "Contents/Info.plist").read_bytes())["LSMinimumSystemVersion"]
+    app_minimum = _minimum(declared)
     for path in sorted(app.rglob("*")):
         if path.is_symlink() or not path.is_file():
             continue
@@ -153,8 +155,8 @@ def _mach_o(app: Path, records: list[dict], offenders: list[dict]) -> None:
                 except ValueError:
                     offend(arch, "Unknown deployment minimum", field, match[1])
                     continue
-                if minimum > (14, 0, 0):
-                    offend(arch, "Requires later than macOS 14.0", field, match[1])
+                if minimum > app_minimum:
+                    offend(arch, f"Requires later than macOS {declared}", field, match[1])
             if len(versions) != 1:
                 offend(arch, "Deployment minimum is unknown or ambiguous")
             minima[arch] = versions[0] if len(versions) == 1 else versions
@@ -230,7 +232,7 @@ def qualify(bundle: Path, manifest: Path, report: Path) -> None:
         if (not re.fullmatch(r"[0-9a-f]{40}", source)
                 or source != record["source_commit"] or source != data.get("source_commit")
                 or data.get("pilot") is not True or data.get("architecture") != "arm64"
-                or data.get("version") != PRODUCT_VERSION or data.get("minimum_macos") != "14.0"
+                or data.get("version") != PRODUCT_VERSION or data.get("minimum_macos") != "15.0"
                 or data.get("signing") != "ad-hoc" or data.get("notarized") is not False
                 or data.get("artifacts") != {archive.name: _sha256(archive)}):
             raise ValueError("Archive or manifest does not match this pilot source")

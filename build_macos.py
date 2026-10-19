@@ -39,7 +39,7 @@ def nuitka_command(output_dir: Path) -> list[str]:
         "--macos-app-name=Simplicitor", "--output-folder-name=Simplicitor",
         "--output-filename=Simplicitor", "--macos-signed-app-name=com.simplicitor.pilot",
         "--macos-sign-identity=ad-hoc", f"--macos-app-version={PRODUCT_VERSION}",
-        "--macos-app-macos-min-version=14.0", "--macos-app-mode=gui",
+        "--macos-app-macos-min-version=15.0", "--macos-app-mode=gui",
         "--macos-app-console-mode=disable", f"--macos-app-icon={WORK_DIR / 'simplicitor.icns'}",
         "--include-data-dir=prompts=prompts", "--include-data-dir=templates=templates",
         "--include-data-dir=templates_engine/builtin=templates_engine/builtin",
@@ -144,7 +144,7 @@ def build() -> tuple[Path, Path]:
         raise ValueError("Mac archive was not created")
     record = {
         "pilot": True, "version": PRODUCT_VERSION, "source_commit": source,
-        "architecture": "arm64", "minimum_macos": "14.0",
+        "architecture": "arm64", "minimum_macos": "15.0",
         "runtime_versions": {"python": platform.python_version(), "qt": qVersion(),
                              "nuitka": metadata.version("Nuitka")},
         "signing": "ad-hoc", "notarized": False,

@@ -2360,8 +2360,9 @@ requirements.txt
 - def test_manifest_archive_and_bundle_mismatches_fail_closed(pilot, mutation, check)
 - def test_missing_required_payload_is_rejected_even_if_inventory_matches(pilot, missing)
 - def test_invalid_plist_or_missing_finder_icon_is_rejected(pilot, key, value)
-- def test_every_macho_requires_arm64_and_known_macos_14_compatible_minimum(pilot, setting, value)
+- def test_every_macho_requires_arm64_and_known_app_compatible_minimum(pilot, setting, value)
 - def test_legacy_macos_deployment_command_is_accepted(pilot)
+- def test_macho_uses_the_plist_minimum_instead_of_a_fixed_limit(pilot, declared, actual, field, passes)
 - def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(pilot)
 - def test_invalid_or_non_adhoc_signature_blocks_launch(pilot, setting, value)
 - def test_early_exit_and_changes_to_preserved_bytes_fail(pilot, setting, check)
@@ -2767,7 +2768,7 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-review-policy.md: md, 29 lines
 - docs/evaluation/2026-10-09-sectioned-review-verification.json: json, 39 lines
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
-- docs/macos-pilot.md: md, 141 lines
+- docs/macos-pilot.md: md, 142 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/releases/v2.0.0-notes.md: md, 26 lines

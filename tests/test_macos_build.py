@@ -33,7 +33,7 @@ def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp
                  "--macos-app-name=Simplicitor", "--output-folder-name=Simplicitor",
                  "--output-filename=Simplicitor", "--macos-target-arch=arm64",
                  "--macos-signed-app-name=com.simplicitor.pilot",
-                 "--macos-sign-identity=ad-hoc", "--macos-app-macos-min-version=14.0",
+                 "--macos-sign-identity=ad-hoc", "--macos-app-macos-min-version=15.0",
                  "--macos-app-console-mode=disable", "--macos-app-mode=gui", "--jobs=2",
                  f"--macos-app-version={mac.PRODUCT_VERSION}",
                  f"--output-dir={tmp_path / 'compiler'}",
@@ -182,7 +182,7 @@ def test_build_stages_data_before_signing_then_archives_without_mutating_bundle(
     assert manifest["pilot"] is True and manifest["notarized"] is False
     assert manifest["version"] == mac.PRODUCT_VERSION
     assert manifest["source_commit"] == "a" * 40
-    assert manifest["architecture"] == "arm64" and manifest["minimum_macos"] == "14.0"
+    assert manifest["architecture"] == "arm64" and manifest["minimum_macos"] == "15.0"
     assert manifest["signing"] == "ad-hoc"
     assert set(manifest["runtime_versions"]) == {"python", "qt", "nuitka"}
     assert manifest["artifacts"] == {zip_path.name: hashlib.sha256(zip_path.read_bytes()).hexdigest()}

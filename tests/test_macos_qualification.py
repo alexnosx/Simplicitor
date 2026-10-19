@@ -43,7 +43,7 @@ def pilot(tmp_path, monkeypatch):
     info = {"CFBundleName": "Simplicitor", "CFBundleDisplayName": "Simplicitor",
             "CFBundleIdentifier": "com.simplicitor.pilot", "CFBundleVersion": "2.5.1",
             "CFBundleShortVersionString": "2.5.1", "CFBundleExecutable": "Simplicitor",
-            "CFBundlePackageType": "APPL", "LSMinimumSystemVersion": "14.0",
+            "CFBundlePackageType": "APPL", "LSMinimumSystemVersion": "15.0",
             "CFBundleIconFile": "app.icns"}
     (app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
     notice = payload / "third_party"
@@ -53,7 +53,7 @@ def pilot(tmp_path, monkeypatch):
     archive.write_bytes(b"mock native ZIP, never extracted by real tools")
     manifest = app.parent / "SHA256SUMS-macos-pilot.json"
     record = {"pilot": True, "source_commit": "a" * 40, "version": "2.5.1",
-              "architecture": "arm64", "minimum_macos": "14.0", "signing": "ad-hoc",
+              "architecture": "arm64", "minimum_macos": "15.0", "signing": "ad-hoc",
               "notarized": False, "runtime_versions": {"python": "3.11.9", "qt": "6.11.2",
                                                        "nuitka": "4.2.2"},
               "artifacts": {archive.name: hashlib.sha256(archive.read_bytes()).hexdigest()},
@@ -208,7 +208,7 @@ def test_missing_required_payload_is_rejected_even_if_inventory_matches(pilot, m
 
 @pytest.mark.parametrize("key,value", [("CFBundleIdentifier", "wrong"),
                                       ("CFBundleVersion", "0.0.0"),
-                                      ("LSMinimumSystemVersion", "15.0"),
+                                      ("LSMinimumSystemVersion", "14.0"),
                                       ("CFBundleIconFile", "missing.icns")])
 def test_invalid_plist_or_missing_finder_icon_is_rejected(pilot, key, value):
     pilot.info[key] = value
@@ -221,10 +221,10 @@ def test_invalid_plist_or_missing_finder_icon_is_rejected(pilot, key, value):
 
 
 @pytest.mark.parametrize("setting,value", [("architectures", "x86_64"),
-    ("load_commands", "cmd LC_BUILD_VERSION\n platform 1\n minos 15.0\n"),
+    ("load_commands", "cmd LC_BUILD_VERSION\n platform 1\n minos 15.1\n"),
     ("load_commands", "cmd LC_BUILD_VERSION\n platform 2\n minos 11.0\n"),
     ("load_commands", "cmd LC_UUID\n uuid synthetic\n")])
-def test_every_macho_requires_arm64_and_known_macos_14_compatible_minimum(pilot, setting, value):
+def test_every_macho_requires_arm64_and_known_app_compatible_minimum(pilot, setting, value):
     pilot.mode[setting] = value
     with pytest.raises(ValueError):
         run(pilot)
@@ -236,6 +236,33 @@ def test_legacy_macos_deployment_command_is_accepted(pilot):
     assert run(pilot)["result"] == "passed"
 
 
+@pytest.mark.parametrize("declared,actual,field,passes", [
+    ("15.0", "15.0", "minos", True),
+    ("15.0", "14.0", "minos", True),
+    ("15.0", "15.1", "minos", False),
+    ("15.0", "15.1", "version", False),
+    ("16.0", "15.1", "minos", True),
+])
+def test_macho_uses_the_plist_minimum_instead_of_a_fixed_limit(
+        pilot, declared, actual, field, passes):
+    pilot.info["LSMinimumSystemVersion"] = declared
+    (pilot.app / "Contents/Info.plist").write_bytes(plistlib.dumps(pilot.info))
+    command = "LC_BUILD_VERSION\n platform 1" if field == "minos" else "LC_VERSION_MIN_MACOSX"
+    pilot.mode["load_commands"] = f"cmd {command}\n {field} {actual}\n"
+    records, offenders = [], []
+    if passes:
+        pilot.q._mach_o(pilot.app, records, offenders)
+        assert not offenders
+    else:
+        with pytest.raises(ValueError, match=f"later than macOS {declared}"):
+            pilot.q._mach_o(pilot.app, records, offenders)
+        assert len(offenders) == 4
+        assert all(item["minimum"] == actual and item["minimum_field"] == field
+                   for item in offenders)
+    assert len(records) == 2
+    assert all(set(item["deployment_minima"].values()) == {actual} for item in records)
+
+
 def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(pilot):
     passing = pilot.app / "Contents/MacOS/z-passing.so"
     passing.write_bytes((pilot.app / "Contents/MacOS/Simplicitor").read_bytes())
@@ -243,8 +270,8 @@ def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(
     pilot.manifest.write_text(json.dumps(pilot.record))
     pilot.mode["load_commands"] = "cmd LC_BUILD_VERSION\n platform 1\n minos 14.0\n"
     pilot.mode["binary_load_commands"] = {
-        ("Simplicitor", "arm64"): "cmd LC_BUILD_VERSION\n platform 1\n minos 15.0\n",
-        ("dependency.so", "x86_64"): "cmd LC_VERSION_MIN_MACOSX\n version 14.1\n",
+        ("Simplicitor", "arm64"): "cmd LC_BUILD_VERSION\n platform 1\n minos 16.0\n",
+        ("dependency.so", "x86_64"): "cmd LC_VERSION_MIN_MACOSX\n version 15.1\n",
         ("dependency.so", "arm64"): "cmd LC_BUILD_VERSION\n platform 1\n minos 15.2.1\n",
     }
     with pytest.raises(ValueError) as failure:
@@ -253,14 +280,14 @@ def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(
     assert report["checks"]["mach_o"]["result"] == "failed"
     expected = [
         {"path": "Contents/MacOS/Simplicitor", "architecture": "arm64",
-         "minimum_field": "minos", "minimum": "15.0",
-         "reason": "Requires later than macOS 14.0"},
+         "minimum_field": "minos", "minimum": "16.0",
+         "reason": "Requires later than macOS 15.0"},
         {"path": "Contents/MacOS/dependency.so", "architecture": "x86_64",
-         "minimum_field": "version", "minimum": "14.1",
-         "reason": "Requires later than macOS 14.0"},
+         "minimum_field": "version", "minimum": "15.1",
+         "reason": "Requires later than macOS 15.0"},
         {"path": "Contents/MacOS/dependency.so", "architecture": "arm64",
          "minimum_field": "minos", "minimum": "15.2.1",
-         "reason": "Requires later than macOS 14.0"},
+         "reason": "Requires later than macOS 15.0"},
     ]
     order = lambda item: (item["path"], item["architecture"])
     assert sorted(report["mach_o_offenders"], key=order) == sorted(expected, key=order)
@@ -269,8 +296,8 @@ def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(
             assert offender[field] in str(failure.value)
             assert offender[field] in report["checks"]["mach_o"]["reason"]
     assert {item["path"]: item["deployment_minima"] for item in report["mach_o"]} == {
-        "Contents/MacOS/Simplicitor": {"x86_64": "14.0", "arm64": "15.0"},
-        "Contents/MacOS/dependency.so": {"x86_64": "14.1", "arm64": "15.2.1"},
+        "Contents/MacOS/Simplicitor": {"x86_64": "14.0", "arm64": "16.0"},
+        "Contents/MacOS/dependency.so": {"x86_64": "15.1", "arm64": "15.2.1"},
         "Contents/MacOS/z-passing.so": {"x86_64": "14.0", "arm64": "14.0"},
     }
     assert report["checks"]["signature"]["result"] == "not checked"

@@ -149,7 +149,7 @@ def test_source_probe_cannot_package_publish_or_use_secrets(workflow):
 def test_package_job_is_read_only_bounded_and_pinned_after_source_tests(workflow):
     job = workflow["jobs"]["build"]
     assert job["needs"] == "source-tests"
-    assert job["runs-on"] == "macos-14" and job["timeout-minutes"] == "120"
+    assert job["runs-on"] == "macos-15" and job["timeout-minutes"] == "120"
     assert workflow["permissions"] == {"contents": "read"}
     assert job["env"]["PILOT_HEAD_SHA"] == "${{ github.event.pull_request.head.sha }}"
     checkout = next(s for s in job["steps"] if s.get("uses") == "actions/checkout@v4")
@@ -190,6 +190,7 @@ def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_output
     assert '"$(uname -s)" = "Darwin"' in preflight["run"]
     assert '"$(uname -m)" = "arm64"' in preflight["run"]
     assert '"$RUNNER_ENVIRONMENT" = "github-hosted"' in preflight["run"]
+    assert '"$(sw_vers -productVersion | cut -d. -f1)" = "15"' in preflight["run"]
     assert "assert_no_ollama" in preflight["run"]
     build = next(s for s in steps if s.get("name") == "Build pilot")
     qualify = next(s for s in steps if s.get("name") == "Qualify extracted pilot")
@@ -236,6 +237,7 @@ def test_qualification_report_upload_survives_failure_without_shipping_app_or_zi
 def test_both_instructions_cover_delivery_trust_folders_and_prior_model_results(relative):
     text = " ".join((WORKFLOW.parents[2] / relative).read_text(encoding="utf-8").split())
     for required in ("14 days", "GitHub sign-in", "outer", "unchanged pilot ZIP", "browser",
+                     "macOS 15 or later",
                      "shasum -a 256", "Open Anyway", "ad-hoc", "not notarized",
                      "~/Applications", "~/Simplicitor", "~/Library/Application Support/Simplicitor",
                      "existing", "Ollama", "qwen3:8b-q4_K_M", "llama3.1:8b-instruct-q4_K_M",

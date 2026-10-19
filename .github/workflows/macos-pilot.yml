@@ -168,7 +168,7 @@ jobs:
       github.event.action == 'labeled' &&
       github.event.label.name == 'mac-package' &&
       github.actor == 'alexnosx'
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 120
     env:
       PILOT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -193,7 +193,7 @@ jobs:
           test "$(uname -s)" = "Darwin"
           test "$(uname -m)" = "arm64"
           test "$RUNNER_ENVIRONMENT" = "github-hosted"
-          test "$(sw_vers -productVersion | cut -d. -f1)" = "14"
+          test "$(sw_vers -productVersion | cut -d. -f1)" = "15"
           test "$(git rev-parse HEAD)" = "$PILOT_HEAD_SHA"
           python - <<'PY'
           from scripts.qualify_macos_pilot import assert_no_ollama

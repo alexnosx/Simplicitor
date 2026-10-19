@@ -1,6 +1,6 @@
 SIMPLICITOR: APPLE SILICON MAC PILOT
 
-Private pilot, not a public Mac release. Needs Apple silicon, macOS 14 or later,
+Private pilot, not a public Mac release. Needs Apple silicon, macOS 15 or later,
 existing local Ollama running and your own existing installed model. No Python,
 Xcode, package manager, Office or new model is required.
 
@@ -30,8 +30,8 @@ own ~/Applications folder.
 FIRST LAUNCH
 
 This app is ad-hoc signed and not notarized. Apple has not verified its publisher.
-Double-click it in Finder and record the actual message. Expected unnotarized-app
-messages are:
+Double-click it in Finder and record the actual message. Unnotarized-app messages
+vary; the older wording is included for reference, not support for macOS 14:
   macOS 14: "'Simplicitor' cannot be opened because Apple cannot check it for malicious software."
   macOS 15: "Apple could not verify 'Simplicitor' is free of malware that may harm your Mac or compromise your privacy."
 If blocked as unnotarized
