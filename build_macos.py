@@ -4,7 +4,7 @@
 Nuitka assembles and ad-hoc signs Simplicitor.app. Data is accessible beside the executable
 in Contents/MacOS: prompts/, templates/, templates_engine/builtin/, assets/, LICENSE
 and third_party/, using internal symlinks where Nuitka relocates data for signing.
-Contents/Resources holds Nuitka's converted application icon.
+Contents/Resources holds the native application icon prepared with Apple's iconutil.
 The signed app is moved intact to dist/macos-pilot and archived with native ditto.
 Nothing inside the app is written after Nuitka returns.
 """
@@ -40,7 +40,7 @@ def nuitka_command(output_dir: Path) -> list[str]:
         "--output-filename=Simplicitor", "--macos-signed-app-name=com.simplicitor.pilot",
         "--macos-sign-identity=ad-hoc", f"--macos-app-version={PRODUCT_VERSION}",
         "--macos-app-macos-min-version=14.0", "--macos-app-mode=gui",
-        "--macos-app-console-mode=disable", f"--macos-app-icon={WORK_DIR / 'simplicitor.png'}",
+        "--macos-app-console-mode=disable", f"--macos-app-icon={WORK_DIR / 'simplicitor.icns'}",
         "--include-data-dir=prompts=prompts", "--include-data-dir=templates=templates",
         "--include-data-dir=templates_engine/builtin=templates_engine/builtin",
         f"--include-data-dir={ROOT / 'assets'}=assets",
@@ -51,11 +51,23 @@ def nuitka_command(output_dir: Path) -> list[str]:
 
 
 def write_icon() -> Path:
-    """Extract the largest original S image; Nuitka converts this PNG to ICNS."""
-    target = WORK_DIR / "simplicitor.png"
+    """Resize the largest original S into an iconset; use native iconutil for ICNS."""
+    iconset = WORK_DIR / "simplicitor.iconset"
+    iconset.mkdir()
+    target = WORK_DIR / "simplicitor.icns"
     with Image.open(ROOT / "assets/icons/simplicitor.ico") as image:
         size = max(image.ico.sizes(), key=lambda s: s[0] * s[1])
-        image.ico.getimage(size).save(target, format="PNG")
+        largest = image.ico.getimage(size).convert("RGBA")
+        for logical_size in (16, 32, 128, 256, 512):
+            for scale in (1, 2):
+                pixels = logical_size * scale
+                suffix = "@2x" if scale == 2 else ""
+                name = f"icon_{logical_size}x{logical_size}{suffix}.png"
+                largest.resize((pixels, pixels), Image.Resampling.LANCZOS).save(
+                    iconset / name, format="PNG")
+    subprocess.run(["iconutil", "-c", "icns", "-o", str(target), str(iconset)], check=True)
+    if not target.is_file() or target.read_bytes()[:4] != b"icns":
+        raise ValueError("Native icon conversion did not produce an ICNS file")
     return target
 
 

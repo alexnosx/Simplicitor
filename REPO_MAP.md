@@ -787,7 +787,7 @@ requirements.txt
 ### build_macos.py
 
 - def nuitka_command(output_dir: Path) -> list[str]: Describe the pinned-tool app build without writing files or running tools.
-- def write_icon() -> Path: Extract the largest original S image; Nuitka converts this PNG to ICNS.
+- def write_icon() -> Path: Resize the largest original S into an iconset; use native iconutil for ICNS.
 - def _sha256(path: Path) -> str
 - def bundle_inventory(app: Path) -> dict: Hash files and record relative symlinks that stay inside the portable app.
 - def _validate_bundle(app: Path) -> None
@@ -2309,7 +2309,8 @@ requirements.txt
 - def mac(tmp_path, monkeypatch)
 - def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp_path, monkeypatch)
 - def test_unsupported_host_refuses_before_creating_output_or_tools(mac, monkeypatch, system, arch)
-- def test_icon_is_the_actual_largest_ico_image_without_changing_windows_artwork(mac)
+- def test_icon_is_the_actual_largest_ico_image_without_changing_windows_artwork(mac, monkeypatch)
+- def test_icon_conversion_requires_a_native_icns_result(mac, monkeypatch, result)
 - def simulated_build(mac, monkeypatch)
 - def test_build_stages_data_before_signing_then_archives_without_mutating_bundle(mac, simulated_build)
 - def test_failed_external_step_or_absent_bundle_never_produces_manifest(mac, simulated_build, failure)
@@ -2764,7 +2765,7 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-review-policy.md: md, 29 lines
 - docs/evaluation/2026-10-09-sectioned-review-verification.json: json, 39 lines
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
-- docs/macos-pilot.md: md, 134 lines
+- docs/macos-pilot.md: md, 141 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/releases/v2.0.0-notes.md: md, 26 lines
@@ -2819,7 +2820,7 @@ requirements.txt
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 176 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 97 lines
 - docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 327 lines
-- packaging/macos/MAC-PILOT-README.txt: txt, 113 lines
+- packaging/macos/MAC-PILOT-README.txt: txt, 118 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines

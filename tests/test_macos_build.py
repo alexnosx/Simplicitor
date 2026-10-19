@@ -42,9 +42,11 @@ def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp
                  f"--include-data-dir={mac.ROOT / 'assets'}=assets",
                  f"--include-data-files={mac.ROOT / 'LICENSE'}=LICENSE",
                  f"--include-data-dir={mac.WORK_DIR / 'third_party'}=third_party",
-                 f"--macos-app-icon={mac.WORK_DIR / 'simplicitor.png'}"):
+                 f"--macos-app-icon={mac.WORK_DIR / 'simplicitor.icns'}"):
         assert flag in command
     assert command[-1] == "main.py"
+    assert not any(flag.startswith("--macos-app-icon=") and flag.endswith(".png")
+                   for flag in command)
     assert not any(any(term in flag.partition("=")[0].lower() for term in (
         "windows", "wix", "notar", "entitlement", "protected-resource", "download", "ollama"
     )) for flag in command if flag.startswith("--"))
@@ -61,16 +63,51 @@ def test_unsupported_host_refuses_before_creating_output_or_tools(mac, monkeypat
     assert not mac.DIST_DIR.exists() and not mac.WORK_DIR.exists()
 
 
-def test_icon_is_the_actual_largest_ico_image_without_changing_windows_artwork(mac):
+def test_icon_is_the_actual_largest_ico_image_without_changing_windows_artwork(mac, monkeypatch):
     before = (mac.ROOT / "assets/icons/simplicitor.ico").read_bytes()
     mac.WORK_DIR.mkdir(parents=True)
+    calls = []
+    expected_sizes = {"icon_16x16.png": 16, "icon_16x16@2x.png": 32,
+                      "icon_32x32.png": 32, "icon_32x32@2x.png": 64,
+                      "icon_128x128.png": 128, "icon_128x128@2x.png": 256,
+                      "icon_256x256.png": 256, "icon_256x256@2x.png": 512,
+                      "icon_512x512.png": 512, "icon_512x512@2x.png": 1024}
+
+    def convert(command, **kwargs):
+        calls.append(command)
+        folder = mac.WORK_DIR / "simplicitor.iconset"
+        assert command == ["iconutil", "-c", "icns", "-o",
+                           str(mac.WORK_DIR / "simplicitor.icns"), str(folder)]
+        assert kwargs == {"check": True}
+        assert {p.name for p in folder.iterdir()} == set(expected_sizes)
+        with Image.open(mac.ROOT / "assets/icons/simplicitor.ico") as original:
+            size = max(original.ico.sizes(), key=lambda s: s[0] * s[1])
+            largest = original.ico.getimage(size).convert("RGBA")
+        for name, pixels in expected_sizes.items():
+            with Image.open(folder / name) as png:
+                assert png.format == "PNG" and png.size == (pixels, pixels)
+                expected = largest.resize((pixels, pixels), Image.Resampling.LANCZOS)
+                assert png.convert("RGBA").tobytes() == expected.tobytes()
+        Path(command[command.index("-o") + 1]).write_bytes(b"icns mocked native icon; never run")
+
+    monkeypatch.setattr(mac.subprocess, "run", convert)
     icon = mac.write_icon()
-    with Image.open(mac.ROOT / "assets/icons/simplicitor.ico") as original, Image.open(icon) as png:
-        size = max(original.ico.sizes(), key=lambda s: s[0] * s[1])
-        expected = original.ico.getimage(size).convert("RGBA")
-        assert png.size == size
-        assert png.convert("RGBA").tobytes() == expected.tobytes()
+    assert icon == mac.WORK_DIR / "simplicitor.icns"
+    assert icon.read_bytes().startswith(b"icns") and len(calls) == 1
     assert (mac.ROOT / "assets/icons/simplicitor.ico").read_bytes() == before
+
+
+@pytest.mark.parametrize("result", [None, b"not an ICNS file"])
+def test_icon_conversion_requires_a_native_icns_result(mac, monkeypatch, result):
+    mac.WORK_DIR.mkdir(parents=True)
+
+    def convert(command, **kwargs):
+        if result is not None:
+            Path(command[command.index("-o") + 1]).write_bytes(result)
+
+    monkeypatch.setattr(mac.subprocess, "run", convert)
+    with pytest.raises(ValueError, match="ICNS"):
+        mac.write_icon()
 
 
 @pytest.fixture
@@ -85,8 +122,12 @@ def simulated_build(mac, monkeypatch):
 
     def run(command, **kwargs):
         calls.append((command, kwargs))
-        if command[:3] == [mac.sys.executable, "-m", "nuitka"]:
-            assert (mac.WORK_DIR / "simplicitor.png").is_file()
+        if command[0] == "iconutil":
+            if mode["failure"] == "iconutil":
+                raise subprocess.CalledProcessError(6, command)
+            Path(command[command.index("-o") + 1]).write_bytes(b"icns mocked native icon; never run")
+        elif command[:3] == [mac.sys.executable, "-m", "nuitka"]:
+            assert (mac.WORK_DIR / "simplicitor.icns").read_bytes().startswith(b"icns")
             mac.validate_notices(mac.WORK_DIR / "third_party")
             if mode["failure"] == "compiler":
                 raise subprocess.CalledProcessError(7, command)
@@ -130,12 +171,13 @@ def test_build_stages_data_before_signing_then_archives_without_mutating_bundle(
     app = mac.DIST_DIR / "Simplicitor.app"
     assert zip_path.name == "Simplicitor-macos-arm64-pilot.zip"
     assert manifest_path.name == "SHA256SUMS-macos-pilot.json"
-    assert len(calls) == 2  # Signing is Nuitka's final step, never a post-build tool call.
-    assert calls[0][1]["cwd"] == mac.ROOT / "simplicitor"
-    assert calls[0][1]["env"]["MACOSX_DEPLOYMENT_TARGET"] == "14.0"
-    assert calls[1][0] == ["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent",
+    assert len(calls) == 3  # Icon first; signing remains Nuitka's final step before archive.
+    assert calls[0][0][0] == "iconutil"
+    assert calls[1][1]["cwd"] == mac.ROOT / "simplicitor"
+    assert calls[1][1]["env"]["MACOSX_DEPLOYMENT_TARGET"] == "14.0"
+    assert calls[2][0] == ["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent",
                             str(app), str(zip_path)]
-    assert calls[0][1]["check"] and calls[1][1]["check"]
+    assert all(options["check"] for _, options in calls)
     manifest = json.loads(manifest_path.read_text())
     assert manifest["pilot"] is True and manifest["notarized"] is False
     assert manifest["version"] == mac.PRODUCT_VERSION
@@ -152,12 +194,14 @@ def test_build_stages_data_before_signing_then_archives_without_mutating_bundle(
     assert "SHA256SUMS-macos-pilot.json" not in manifest["bundle"]["files"]
 
 
-@pytest.mark.parametrize("failure", ["compiler", "no_bundle", "archive"])
+@pytest.mark.parametrize("failure", ["iconutil", "compiler", "no_bundle", "archive"])
 def test_failed_external_step_or_absent_bundle_never_produces_manifest(mac, simulated_build, failure):
     calls, mode = simulated_build
     mode["failure"] = failure
     assert mac.main() == 1
     assert not (mac.DIST_DIR / "SHA256SUMS-macos-pilot.json").exists()
+    if failure == "iconutil":
+        assert len(calls) == 1 and calls[0][0][0] == "iconutil"
     if failure != "archive":
         assert not any(command[0] == "ditto" for command, _ in calls)
 
