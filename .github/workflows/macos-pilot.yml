@@ -213,6 +213,15 @@ jobs:
       - name: Copy pilot instructions outside signed app
         run: cp packaging/macos/MAC-PILOT-README.txt dist/macos-pilot/MAC-PILOT-README.txt
 
+      - name: Upload qualification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-pilot-qualification
+          retention-days: 14
+          if-no-files-found: warn
+          path: dist/macos-pilot/macos-pilot-qualification.json
+
       - name: Upload qualified pilot
         uses: actions/upload-artifact@v4
         with:

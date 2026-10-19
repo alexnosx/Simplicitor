@@ -198,7 +198,7 @@ def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_output
     assert "scripts/qualify_macos_pilot.py" in qualify["run"]
     for argument in ("--bundle", "--manifest", "--report"):
         assert argument in qualify["run"]
-    upload = next(s for s in steps if s.get("uses") == "actions/upload-artifact@v4")
+    upload = next(s for s in steps if s.get("name") == "Upload qualified pilot")
     assert steps.index(upload) > steps.index(qualify)
     assert upload["with"]["retention-days"] == "14"
     assert upload["with"]["if-no-files-found"] == "error"
@@ -213,6 +213,23 @@ def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_output
     for forbidden in ("python build.py", "brew install", "curl", "ollama pull", "gh release",
                       "notarytool", "xattr", "workflow_dispatch"):
         assert forbidden not in content
+
+
+def test_qualification_report_upload_survives_failure_without_shipping_app_or_zip(workflow):
+    steps = workflow["jobs"]["build"]["steps"]
+    reports = [s for s in steps if s.get("uses") == "actions/upload-artifact@v4"
+               and s.get("if") == "always()"]
+    assert len(reports) == 1
+    upload = reports[0]
+    assert upload["with"]["name"] == "macos-pilot-qualification"
+    assert upload["with"]["retention-days"] == "14"
+    assert upload["with"]["if-no-files-found"] == "warn"
+    assert upload["with"]["path"].splitlines() == [
+        "dist/macos-pilot/macos-pilot-qualification.json"]
+    qualify = next(s for s in steps if s.get("name") == "Qualify extracted pilot")
+    assert steps.index(upload) > steps.index(qualify)
+    pilot = next(s for s in steps if s.get("name") == "Upload qualified pilot")
+    assert pilot.get("if", "success()") == "success()"
 
 
 @pytest.mark.parametrize("relative", ["docs/macos-pilot.md", "packaging/macos/MAC-PILOT-README.txt"])

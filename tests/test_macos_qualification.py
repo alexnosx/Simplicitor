@@ -85,8 +85,10 @@ def pilot(tmp_path, monkeypatch):
         elif args[0] == "lipo":
             output = mode.get("architectures", "x86_64 arm64")
         elif args[0] == "otool":
-            output = mode.get("load_commands", "Load command 1\n cmd LC_BUILD_VERSION\n"
-                              " cmdsize 32\n platform 1\n minos 11.0\n sdk 15.0\n")
+            output = mode.get("binary_load_commands", {}).get(
+                (Path(args[-1]).name, args[2]),
+                mode.get("load_commands", "Load command 1\n cmd LC_BUILD_VERSION\n"
+                         " cmdsize 32\n platform 1\n minos 11.0\n sdk 15.0\n"))
         elif args[:2] == ["codesign", "--verify"]:
             if mode.get("bad_signature"):
                 raise subprocess.CalledProcessError(1, args)
@@ -232,6 +234,47 @@ def test_every_macho_requires_arm64_and_known_macos_14_compatible_minimum(pilot,
 def test_legacy_macos_deployment_command_is_accepted(pilot):
     pilot.mode["load_commands"] = "cmd LC_VERSION_MIN_MACOSX\n cmdsize 16\n version 10.15\n sdk 14.0\n"
     assert run(pilot)["result"] == "passed"
+
+
+def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(pilot):
+    passing = pilot.app / "Contents/MacOS/z-passing.so"
+    passing.write_bytes((pilot.app / "Contents/MacOS/Simplicitor").read_bytes())
+    pilot.record["bundle"] = pilot.q.bundle_inventory(pilot.app)
+    pilot.manifest.write_text(json.dumps(pilot.record))
+    pilot.mode["load_commands"] = "cmd LC_BUILD_VERSION\n platform 1\n minos 14.0\n"
+    pilot.mode["binary_load_commands"] = {
+        ("Simplicitor", "arm64"): "cmd LC_BUILD_VERSION\n platform 1\n minos 15.0\n",
+        ("dependency.so", "x86_64"): "cmd LC_VERSION_MIN_MACOSX\n version 14.1\n",
+        ("dependency.so", "arm64"): "cmd LC_BUILD_VERSION\n platform 1\n minos 15.2.1\n",
+    }
+    with pytest.raises(ValueError) as failure:
+        run(pilot)
+    report = json.loads(pilot.report.read_text())
+    assert report["checks"]["mach_o"]["result"] == "failed"
+    expected = [
+        {"path": "Contents/MacOS/Simplicitor", "architecture": "arm64",
+         "minimum_field": "minos", "minimum": "15.0",
+         "reason": "Requires later than macOS 14.0"},
+        {"path": "Contents/MacOS/dependency.so", "architecture": "x86_64",
+         "minimum_field": "version", "minimum": "14.1",
+         "reason": "Requires later than macOS 14.0"},
+        {"path": "Contents/MacOS/dependency.so", "architecture": "arm64",
+         "minimum_field": "minos", "minimum": "15.2.1",
+         "reason": "Requires later than macOS 14.0"},
+    ]
+    order = lambda item: (item["path"], item["architecture"])
+    assert sorted(report["mach_o_offenders"], key=order) == sorted(expected, key=order)
+    for offender in report["mach_o_offenders"]:
+        for field in ("path", "architecture", "minimum"):
+            assert offender[field] in str(failure.value)
+            assert offender[field] in report["checks"]["mach_o"]["reason"]
+    assert {item["path"]: item["deployment_minima"] for item in report["mach_o"]} == {
+        "Contents/MacOS/Simplicitor": {"x86_64": "14.0", "arm64": "15.0"},
+        "Contents/MacOS/dependency.so": {"x86_64": "14.1", "arm64": "15.2.1"},
+        "Contents/MacOS/z-passing.so": {"x86_64": "14.0", "arm64": "14.0"},
+    }
+    assert report["checks"]["signature"]["result"] == "not checked"
+    assert not pilot.launches
 
 
 @pytest.mark.parametrize("setting,value", [("bad_signature", True),

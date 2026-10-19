@@ -889,7 +889,7 @@ requirements.txt
 - def _minimum(value: str) -> tuple[int, int, int]
 - def _plist_and_modes(app: Path, version: str) -> None
 - def _resources(app: Path) -> None
-- def _mach_o(app: Path) -> list[dict]
+- def _mach_o(app: Path, records: list[dict], offenders: list[dict]) -> None
 - def _signature(app: Path) -> str
 - def _launch(executable: Path, home: Path, cwd: Path) -> None
 - def qualify(bundle: Path, manifest: Path, report: Path) -> None: Check the shipped archive on a guarded runner; write a named-check report on failure.
@@ -2348,6 +2348,7 @@ requirements.txt
 - def test_package_job_is_read_only_bounded_and_pinned_after_source_tests(workflow)
 - def test_only_alex_adding_the_package_label_authorizes_a_package(workflow, action, label, actor, private, repo, branch, allowed)
 - def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_outputs(workflow)
+- def test_qualification_report_upload_survives_failure_without_shipping_app_or_zip(workflow)
 - def test_both_instructions_cover_delivery_trust_folders_and_prior_model_results(relative)
 
 ### tests/test_macos_qualification.py
@@ -2361,6 +2362,7 @@ requirements.txt
 - def test_invalid_plist_or_missing_finder_icon_is_rejected(pilot, key, value)
 - def test_every_macho_requires_arm64_and_known_macos_14_compatible_minimum(pilot, setting, value)
 - def test_legacy_macos_deployment_command_is_accepted(pilot)
+- def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(pilot)
 - def test_invalid_or_non_adhoc_signature_blocks_launch(pilot, setting, value)
 - def test_early_exit_and_changes_to_preserved_bytes_fail(pilot, setting, check)
 - def test_existing_ollama_endpoint_blocks_qualification(pilot, monkeypatch)
@@ -2701,7 +2703,7 @@ requirements.txt
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 106 lines
-- .github/workflows/macos-pilot.yml: yml, 226 lines
+- .github/workflows/macos-pilot.yml: yml, 235 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines

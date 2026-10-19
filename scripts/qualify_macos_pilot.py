@@ -107,8 +107,8 @@ def _resources(app: Path) -> None:
     validate_notices(payload / "third_party")
 
 
-def _mach_o(app: Path) -> list[dict]:
-    records = []
+def _mach_o(app: Path, records: list[dict], offenders: list[dict]) -> None:
+    # Populate the report as we scan, including minima from rejected and passing slices.
     for path in sorted(app.rglob("*")):
         if path.is_symlink() or not path.is_file():
             continue
@@ -116,34 +116,58 @@ def _mach_o(app: Path) -> list[dict]:
             magic = stream.read(4)
         if magic not in MACH_MAGICS:
             continue
+        relative = path.relative_to(app).as_posix()
         architectures = _command(["lipo", "-archs", str(path)]).split()
-        if "arm64" not in architectures:
-            raise ValueError("A bundled Mach-O lacks arm64")
         minima = {}
+        records.append({"path": relative, "architectures": architectures,
+                        "deployment_minima": minima})
+
+        def offend(arch, reason, field=None, value=None):
+            offenders.append({"path": relative, "architecture": arch,
+                              "minimum_field": field, "minimum": value, "reason": reason})
+
+        if "arm64" not in architectures:
+            offend(" ".join(architectures) or "unknown", "Missing arm64")
         for arch in architectures:
             output = _command(["otool", "-arch", arch, "-l", str(path)])
             versions = []
             for block in re.split(r"(?m)^\s*cmd ", output)[1:]:
                 if block.startswith("LC_BUILD_VERSION\n"):
+                    field = "minos"
                     platform_match = re.search(r"(?m)^\s*platform (\S+)\s*$", block)
-                    if not platform_match or platform_match[1] not in ("1", "MACOS"):
-                        raise ValueError("A bundled Mach-O targets another platform")
                     match = re.search(r"(?m)^\s*minos (\S+)\s*$", block)
+                    if not platform_match or platform_match[1] not in ("1", "MACOS"):
+                        offend(arch, "Targets another or unknown platform", field,
+                               match[1] if match else None)
                 elif block.startswith("LC_VERSION_MIN_MACOSX\n"):
+                    field = "version"
                     match = re.search(r"(?m)^\s*version (\S+)\s*$", block)
                 else:
                     continue
-                if not match or _minimum(match[1]) > (14, 0, 0):
-                    raise ValueError("A bundled Mach-O requires later than macOS 14.0")
+                if not match:
+                    offend(arch, "Unknown deployment minimum", field)
+                    continue
                 versions.append(match[1])
+                try:
+                    minimum = _minimum(match[1])
+                except ValueError:
+                    offend(arch, "Unknown deployment minimum", field, match[1])
+                    continue
+                if minimum > (14, 0, 0):
+                    offend(arch, "Requires later than macOS 14.0", field, match[1])
             if len(versions) != 1:
-                raise ValueError("A bundled Mach-O deployment minimum is unknown or ambiguous")
-            minima[arch] = versions[0]
-        records.append({"path": path.relative_to(app).as_posix(), "architectures": architectures,
-                        "deployment_minima": minima})
+                offend(arch, "Deployment minimum is unknown or ambiguous")
+            minima[arch] = versions[0] if len(versions) == 1 else versions
     if not any(item["path"] == "Contents/MacOS/Simplicitor" for item in records):
-        raise ValueError("Main executable is not a Mach-O")
-    return records
+        offenders.append({"path": "Contents/MacOS/Simplicitor", "architecture": "unknown",
+                          "minimum_field": None, "minimum": None,
+                          "reason": "Main executable is not a Mach-O"})
+    if offenders:
+        details = "; ".join(
+            f"{item['path']} [{item['architecture']}] "
+            f"{item['minimum_field'] or 'minimum'}={item['minimum'] or 'unknown'}: "
+            f"{item['reason']}" for item in offenders)
+        raise ValueError(f"Bundled Mach-O checks failed: {details}")
 
 
 def _signature(app: Path) -> str:
@@ -230,7 +254,8 @@ def qualify(bundle: Path, manifest: Path, report: Path) -> None:
             check("inventory_and_links", lambda: None)
             check("plist_and_modes", lambda: _plist_and_modes(app, data["version"]))
             check("resources_and_notices", lambda: _resources(app))
-            record["mach_o"] = check("mach_o", lambda: _mach_o(app))
+            record["mach_o"], record["mach_o_offenders"] = [], []
+            check("mach_o", lambda: _mach_o(app, record["mach_o"], record["mach_o_offenders"]))
             record["signature"] = check("signature", lambda: _signature(app))
             check("no_ollama", assert_no_ollama)
             home, cwd = stage / "home", stage / "unrelated working folder"
