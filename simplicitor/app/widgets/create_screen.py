@@ -1,6 +1,5 @@
 """One Create workspace for prompt generation and read-only source extraction."""
 import logging
-import os
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -26,6 +25,7 @@ from app.config.defaults import (
 )
 from app.config.settings import Settings
 from app.config.styles import workspace_styles
+from app.utils.desktop import open_local_path
 from app.widgets.choice_button import ChoiceButton
 from app.widgets.elided_label import ElidedLabel
 from app.widgets.file_type_picker import FileTypePicker, file_mark
@@ -739,12 +739,8 @@ class CreateScreen(QWidget):
         self._caption.setText("Your file is ready.")
 
     def _on_open_file(self) -> None:
-        if self._last_generated_path:
-            try:
-                os.startfile(self._last_generated_path)
-            except OSError as exc:
-                logger.error("Could not open saved file (%s)", type(exc).__name__)
-                self.show_status("Could not open the saved file. Open it from its folder.", True)
+        if self._last_generated_path and not open_local_path(self._last_generated_path):
+            self.show_status("Could not open the saved file. Open it from its folder.", True)
 
     def _browse_save_dir(self) -> None:
         chosen = QFileDialog.getExistingDirectory(self, "Save to folder", self._save_dir)

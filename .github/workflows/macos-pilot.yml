@@ -1,0 +1,235 @@
+name: Mac pilot source checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  source-tests:
+    if: >-
+      github.event.repository.private == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/macos-apple-silicon-pilot'
+    runs-on: macos-14
+    timeout-minutes: 15
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PILOT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify Mac host
+        shell: bash
+        run: |
+          test "$(uname -s)" = "Darwin"
+          test "$(uname -m)" = "arm64"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt -r requirements-build.txt
+
+      - name: Record source environment
+        id: environment
+        shell: bash
+        run: |
+          python - <<'PY'
+          import importlib.metadata
+          import json
+          import os
+          import platform
+          import re
+          import subprocess
+          import sys
+          import sysconfig
+          from pathlib import Path
+
+          from PySide6.QtCore import qVersion
+
+          assert platform.system() == "Darwin"
+          assert platform.machine() == "arm64"
+          assert sys.version_info[:2] == (3, 11)
+          source = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          assert source == os.environ["PILOT_HEAD_SHA"]
+          license_paths = (Path(sys.base_prefix) / "LICENSE.txt",
+                           Path(sysconfig.get_path("stdlib")) / "LICENSE.txt")
+          qt_notice_probe = {}
+          notice_name = re.compile(
+              r"licen[cs]e|copying|copyright|notice|^(?:a?gpl|lgpl|bsd|mit|apache|mpl|epl)(?:[-_.]|$)", re.I)
+          for name, package in (("PySide6", "PySide6"), ("PySide6_Essentials", "PySide6"),
+                                ("PySide6_Addons", "PySide6"), ("shiboken6", "shiboken6")):
+              dist = importlib.metadata.distribution(name)
+              installed = Path(dist.locate_file(""))
+              roots = [installed / package]
+              normalized = name.replace("_", "-").casefold()
+              roots.extend(p for p in installed.glob("*.dist-info")
+                           if p.name.split("-", 1)[0].replace("_", "-").casefold() == normalized)
+              found = {}
+              for folder in roots:
+                  for path in folder.rglob("*"):
+                      relative = path.relative_to(installed)
+                      if (path.is_file() and any(notice_name.search(p) for p in relative.parts)
+                              and path.suffix.lower() not in (
+                                  ".py", ".pyc", ".pyd", ".dll", ".so", ".dylib",
+                                  ".a", ".o", ".h", ".c", ".cpp")):
+                          found[relative.as_posix()] = path.stat().st_size
+              qt_notice_probe[name] = {
+                  "license_file_headers": dist.metadata.get_all("License-File") or [],
+                  "installed_text_candidates": found,
+                  "package_directory_present": (installed / package).is_dir(),
+              }
+              registered = {}
+              for entry in dist.files or ():
+                  path = Path(dist.locate_file(entry))
+                  if (any(notice_name.search(p) for p in entry.parts) and path.is_file()
+                          and path.suffix.lower() not in (
+                              ".py", ".pyc", ".pyd", ".dll", ".so", ".dylib",
+                              ".a", ".o", ".h", ".c", ".cpp")):
+                      registered[str(entry)] = path.stat().st_size
+              qt_notice_probe[name]["registered_text_candidates"] = registered
+              qt_notice_probe[name]["registered_file_count"] = len(dist.files or ())
+              qt_notice_probe[name]["license_metadata"] = dist.metadata.get("License")
+              qt_notice_probe[name]["license_expression"] = dist.metadata.get("License-Expression")
+          record = {
+              "source_commit": source,
+              "python": platform.python_version(),
+              "macos": platform.mac_ver()[0],
+              "architecture": platform.machine(),
+              "runner_image": os.environ.get("ImageVersion"),
+              "xcode": subprocess.check_output(["xcodebuild", "-version"], text=True).strip(),
+              "clang": subprocess.check_output(["clang", "--version"], text=True).strip(),
+              "qt": qVersion(),
+              "pyside6": importlib.metadata.version("PySide6"),
+              "nuitka": importlib.metadata.version("nuitka"),
+              "python_license_available": any(p.is_file() and p.stat().st_size > 0
+                                              for p in license_paths),
+              "qt_notice_probe": qt_notice_probe,
+          }
+          output = json.dumps(record, indent=2) + "\n"
+          (Path(os.environ["RUNNER_TEMP"]) / "macos-source-environment.json").write_text(
+              output, encoding="utf-8")
+          print(output)
+          PY
+
+      - name: Run Mac source tests
+        shell: bash
+        run: |
+          test_home="$RUNNER_TEMP/simplicitor-tests"
+          mkdir -p "$test_home/AppData/Roaming" "$test_home/AppData/Local"
+          env HOME="$test_home" USERPROFILE="$test_home" \
+            APPDATA="$test_home/AppData/Roaming" \
+            LOCALAPPDATA="$test_home/AppData/Local" \
+            python -m pytest -vv -o faulthandler_timeout=60 \
+              --basetemp "$RUNNER_TEMP/simplicitor-pytest" \
+              --junitxml="$RUNNER_TEMP/macos-source-tests.xml"
+
+      - name: Capture Mac source screens
+        if: "!cancelled() && steps.environment.outcome == 'success'"
+        shell: bash
+        run: |
+          for size in 1280x800 1024x640; do
+            for state in 1-create-describe 2-create-with-files 3-choose-columns 4-review-and-save 5c-edit-review; do
+              python scripts/capture_screens.py "$RUNNER_TEMP/macos-captures/$size/$state" \
+                --size "$size" --state "$state"
+            done
+          done
+
+      - name: Upload source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-source-baseline
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/macos-source-environment.json
+            ${{ runner.temp }}/macos-source-tests.xml
+            ${{ runner.temp }}/macos-captures/
+          if-no-files-found: warn
+
+  # A label still present on synchronize is deliberately insufficient. Alex adds
+  # this label only after review and the free-artifact-capacity preflight.
+  build:
+    needs: source-tests
+    if: >-
+      github.event.repository.private == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/macos-apple-silicon-pilot' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'mac-package' &&
+      github.actor == 'alexnosx'
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      PILOT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt -r requirements-build.txt
+
+      - name: Verify packaging host and offline runtime
+        shell: bash
+        run: |
+          test "$(uname -s)" = "Darwin"
+          test "$(uname -m)" = "arm64"
+          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          test "$(sw_vers -productVersion | cut -d. -f1)" = "15"
+          test "$(git rev-parse HEAD)" = "$PILOT_HEAD_SHA"
+          python - <<'PY'
+          from scripts.qualify_macos_pilot import assert_no_ollama
+          assert_no_ollama()
+          PY
+
+      - name: Build pilot
+        run: python build_macos.py
+
+      - name: Qualify extracted pilot
+        run: >-
+          python scripts/qualify_macos_pilot.py
+          --bundle dist/macos-pilot/Simplicitor.app
+          --manifest dist/macos-pilot/SHA256SUMS-macos-pilot.json
+          --report dist/macos-pilot/macos-pilot-qualification.json
+
+      - name: Copy pilot instructions outside signed app
+        run: cp packaging/macos/MAC-PILOT-README.txt dist/macos-pilot/MAC-PILOT-README.txt
+
+      - name: Upload qualification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-pilot-qualification
+          retention-days: 14
+          if-no-files-found: warn
+          path: dist/macos-pilot/macos-pilot-qualification.json
+
+      - name: Upload qualified pilot
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simplicitor-macos-arm64-pilot
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            dist/macos-pilot/Simplicitor-macos-arm64-pilot.zip
+            dist/macos-pilot/SHA256SUMS-macos-pilot.json
+            dist/macos-pilot/macos-pilot-qualification.json
+            dist/macos-pilot/MAC-PILOT-README.txt

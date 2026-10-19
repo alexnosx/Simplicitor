@@ -7,6 +7,7 @@ import re
 import shutil
 import ssl
 import sys
+import sysconfig
 
 
 def _digest(path: Path) -> str:
@@ -40,7 +41,7 @@ def _runtime_distributions(root: Path) -> list:
     return [found[name] for name in sorted(found)]
 
 
-def _copy_licenses(dist, destination: Path) -> list[str]:
+def _copy_licenses(dist, destination: Path, allow_missing: bool = False) -> list[str]:
     files = []
     for entry in dist.files or ():
         # Include licenses held in a licenses/ directory and separately named notices.
@@ -56,9 +57,18 @@ def _copy_licenses(dist, destination: Path) -> list[str]:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
         files.append(target.as_posix())
-    if not files:
+    if not files and not allow_missing:
         raise ValueError(f"Missing license texts for notices: {dist.metadata['Name']}")
     return files
+
+
+def python_license_path() -> Path:
+    """Find the installed Python terms, preserving Windows' existing precedence."""
+    for path in (Path(sys.base_prefix) / "LICENSE.txt",
+                 Path(sysconfig.get_path("stdlib")) / "LICENSE.txt"):
+        if path.is_file() and path.stat().st_size > 0:
+            return path
+    raise ValueError("Missing or empty installed Python license")
 
 
 def build_notices(root: Path, output: Path) -> None:
@@ -74,10 +84,20 @@ def build_notices(root: Path, output: Path) -> None:
     packages = []
     for dist in _runtime_distributions(root):
         name = re.sub(r"[-_.]+", "-", dist.metadata["Name"]).lower()
-        files = _copy_licenses(dist, output / "python" / name)
+        qt_package = name in {"pyside6", "pyside6-essentials", "pyside6-addons", "shiboken6"}
+        files = _copy_licenses(dist, output / "python" / name, allow_missing=qt_package)
+        if not files:
+            # Some Mac Qt wheels omit even the commercial-license stub. Reference
+            # the matching upstream terms already checksum-verified and copied above.
+            if dist.version != snapshot["qt_version"]:
+                raise ValueError("Qt notice snapshot version differs from installed package")
+            files = sorted(str(output / "qt" / entry["file"]) for entry in snapshot["files"]
+                           if entry["file"].startswith("pyside-setup/LICENSES/"))
+            if not files:
+                raise ValueError("Missing verified upstream PySide license texts")
         packages.append({"name": dist.metadata["Name"], "version": dist.version,
                          "license_files": [Path(p).relative_to(output).as_posix() for p in files]})
-    python_license = Path(sys.base_prefix) / "LICENSE.txt"
+    python_license = python_license_path()
     (output / "python-runtime").mkdir(exist_ok=True)
     shutil.copyfile(python_license, output / "python-runtime/LICENSE.txt")
     nuitka = metadata.distribution("Nuitka")

@@ -4,6 +4,22 @@ import pytest
 from app.utils.file_utils import sanitize_filename, ensure_dir
 
 
+def test_mac_app_resources_keep_the_actual_s_from_an_unrelated_directory(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from app.utils import file_utils
+    binary = tmp_path / "Pilot É 100%/Simplicitor.app/Contents/MacOS/Simplicitor"
+    icon = binary.parent / "assets/icons/simplicitor.ico"
+    icon.parent.mkdir(parents=True)
+    original = Path(__file__).parents[1] / "assets/icons/simplicitor.ico"
+    icon.write_bytes(original.read_bytes())
+    monkeypatch.setattr(file_utils, "__compiled__", SimpleNamespace(containing_dir=str(binary.parent.parent)),
+                        raising=False)
+    monkeypatch.setattr(file_utils.sys, "executable", str(binary))
+    monkeypatch.chdir(tmp_path)
+    assert file_utils.resource_path("assets/icons/simplicitor.ico") == icon
+    assert icon.read_bytes() == original.read_bytes()
+
+
 @pytest.mark.parametrize("folder", ["installed", "portable"])
 def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch, folder):
     from types import SimpleNamespace

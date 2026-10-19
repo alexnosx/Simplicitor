@@ -389,10 +389,28 @@ def test_list_library_entry_has_required_keys(tmp_path):
 # ── get_app_data_dir (shared config-dir resolver) ─────────────────────────────
 
 def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path):
+    import sys
+    monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
     assert get_app_data_dir() == tmp_path / "Roaming" / "Simplicitor"
 
 
 def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch):
+    import sys
+    monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.delenv("APPDATA", raising=False)
     assert get_app_data_dir() == Path.home() / ".simplicitor"
+
+
+@pytest.mark.parametrize("appdata", [False, True])
+def test_darwin_data_root_is_application_support_not_legacy_home(tmp_path, monkeypatch, appdata):
+    import sys
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path / "home"))
+    if appdata:
+        monkeypatch.setenv("APPDATA", str(tmp_path / "ignored-roaming"))
+    else:
+        monkeypatch.delenv("APPDATA", raising=False)
+    result = get_app_data_dir()
+    assert result == tmp_path / "home/Library/Application Support/Simplicitor"
+    assert result != tmp_path / "home/.simplicitor"

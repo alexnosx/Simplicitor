@@ -1,4 +1,5 @@
 # simplicitor/app/config/defaults.py
+import sys
 
 # ── Colors ────────────────────────────────────────────────────────────────────
 AZURE_HEADER_BG_COLOR = "#1457C6"
@@ -27,7 +28,7 @@ HOVER_ACCENT_COLOR = "#1D4ED8"    # darker blue for button hover
 BORDER_HOVER_COLOR = "#D1D5DB"    # darker grey for border hover
 
 # ── Typography ────────────────────────────────────────────────────────────────
-APP_FONT_FAMILY = "Segoe UI"
+APP_FONT_FAMILY = "Helvetica Neue" if sys.platform == "darwin" else "Segoe UI"
 FONT_SIZE_BODY_PT = 11
 FONT_SIZE_HEADING_PT = 11
 

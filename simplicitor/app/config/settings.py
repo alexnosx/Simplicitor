@@ -1,6 +1,7 @@
 # simplicitor/app/config/settings.py
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +17,7 @@ class Settings:
 
     Manages five directory paths: generated_dir, uploads_dir, backups_dir,
     logs_dir, and templates_dir. All default to subfolders under
-    ~/Documents/Simplicitor/ on first run.
+    ~/Simplicitor/ on Darwin and ~/Documents/Simplicitor/ elsewhere on first run.
     """
 
     def __init__(self, config_dir: Path) -> None:
@@ -28,7 +29,10 @@ class Settings:
     # ── Private ───────────────────────────────────────────────────────────────
 
     def _default_data(self) -> dict[str, Any]:
-        base = Path.home() / "Documents" / APP_DATA_SUBDIR
+        base = Path.home()
+        if sys.platform != "darwin":
+            base /= "Documents"
+        base /= APP_DATA_SUBDIR
         return {
             "generated_dir": str(base / "Generated"),
             "uploads_dir": str(base / "Uploads"),

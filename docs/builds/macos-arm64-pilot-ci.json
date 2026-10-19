@@ -1,0 +1,1934 @@
+{
+  "pilot": true,
+  "phase": "task-4-package-validation",
+  "plan": "docs/superpowers/plans/2026-10-18-macos-apple-silicon-pilot.md",
+  "base_commit": "20e7962bbe0232d88ab8cb1154ee05a2126e67cf",
+  "branch": "codex/macos-apple-silicon-pilot",
+  "pull_request": {
+    "url": "https://github.com/alexnosx/Simplicitor/pull/1",
+    "draft": true,
+    "labels": [
+      "mac-package"
+    ]
+  },
+  "pilot_user": {
+    "reported_shared_memory_gb": 64,
+    "chip": null,
+    "macos_version": null,
+    "note": "64 GB shared RAM and macOS 15 or newer reported by Alex; exact hardware and native macOS version remain unmeasured. Native acceptance has not run.",
+    "reported_macos": "15 or newer, confirmed by Alex"
+  },
+  "local_validation": {
+    "python": "3.12.14",
+    "workflow_contracts": {
+      "red": "11 setup errors: workflow absent",
+      "passed": 11,
+      "elapsed_seconds": 1.53
+    },
+    "isolated_command": ".venv/Scripts/python.exe -m pytest -q --basetemp .venv/pytest-tmp",
+    "profile_isolation": [
+      "USERPROFILE",
+      "APPDATA",
+      "LOCALAPPDATA under .venv/test-home"
+    ],
+    "sandbox_run": {
+      "passed": 1405,
+      "failed": 1,
+      "elapsed_seconds": 228.09,
+      "test": "tests/extraction/test_jobs.py::test_save_as_refuses_existing_source_alias",
+      "reason": "os.link WinError 5 before assertion",
+      "log": ".venv/mac-pilot-task0/windows-suite-sandbox.log"
+    },
+    "single_unchanged_permitted_rerun": {
+      "passed": 1406,
+      "failed": 0,
+      "elapsed_seconds": 207.36,
+      "warnings": "One existing pytest-cache permission warning",
+      "log": ".venv/mac-pilot-task0/windows-suite-permitted.log"
+    },
+    "tests_modified_skipped_or_marked_for_rerun": false
+  },
+  "not_run": [
+    "native Cocoa/Gatekeeper acceptance",
+    "native trial",
+    "real-model evaluation",
+    "Office acceptance"
+  ],
+  "next_step": "Alex delivers the qualified unchanged pilot ZIP for the colleague native trial. Record must-pass/optional results and feedback separately. No merge or public Mac release is authorized.",
+  "baseline_probe": {
+    "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286",
+    "conclusion": "failure",
+    "job": "source-tests",
+    "runner_label": "macos-14",
+    "environment": {
+      "source_commit": "ede01832d848eba5701b4fe20244582c57b9d88d",
+      "python": "3.11.9",
+      "macos": "14.8.9",
+      "architecture": "arm64",
+      "runner_image": "20260831.0302.1",
+      "xcode": "Xcode 15.4\nBuild version 15F31d",
+      "clang": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin23.6.0\nThread model: posix",
+      "qt": "6.11.2",
+      "pyside6": "6.11.2",
+      "nuitka": "4.2.2",
+      "python_license_available": true
+    },
+    "suite": {
+      "collected": 1406,
+      "passed": 1286,
+      "failed": 9,
+      "errors": 111,
+      "elapsed_seconds": 283.71,
+      "exit_code": 1
+    },
+    "workflow_contract_cases_passed": 11,
+    "failures": {
+      "count": 9,
+      "reason": "All nine reach the same notice guard: Missing license texts for notices: PySide6. The installed Mac distribution metadata does not yield a matching license entry to the current copier; this does not establish that upstream license texts do not exist.",
+      "test_ids": [
+        "tests/test_build_script.py::test_build_produces_matching_portable_payload_and_msi",
+        "tests/test_build_script.py::test_local_build_without_dotnet_skips_msi_only",
+        "tests/test_build_script.py::test_compiler_failure_is_propagated",
+        "tests/test_packaged_license.py::test_missing_application_license_fails_before_archiving",
+        "tests/test_packaged_license.py::test_empty_or_stale_application_license_fails_before_archiving[]",
+        "tests/test_packaged_license.py::test_empty_or_stale_application_license_fails_before_archiving[stale noncommercial license]",
+        "tests/test_third_party_notices.py::test_notice_bundle_contains_runtime_versions_and_full_qt_terms",
+        "tests/test_third_party_notices.py::test_notice_payload_is_preserved_in_portable_archive",
+        "tests/test_third_party_notices.py::test_changed_notice_payload_is_rejected"
+      ]
+    },
+    "setup_errors": {
+      "count": 111,
+      "reason": "isolated_profile changes USERPROFILE, APPDATA and LOCALAPPDATA but not HOME. On Darwin, Path.home() uses the outer isolated HOME; Settings working folders are outside the per-test fixture home and its startswith assertion fails before test bodies run.",
+      "by_file": {
+        "tests/test_azure_appearance.py": 3,
+        "tests/test_create_appearance.py": 4,
+        "tests/test_create_progress.py": 3,
+        "tests/test_create_routes.py": 6,
+        "tests/test_create_screen.py": 63,
+        "tests/test_main_window_edit.py": 14,
+        "tests/test_main_window_modes.py": 16,
+        "tests/test_main_window_template.py": 1,
+        "tests/test_widgets.py": 1
+      },
+      "test_ids": [
+        "tests/test_azure_appearance.py::test_write_layout_uses_approved_copy_and_one_common_action",
+        "tests/test_azure_appearance.py::test_owned_dialogs_share_controls_and_readable_type[settings]",
+        "tests/test_azure_appearance.py::test_owned_dialogs_share_controls_and_readable_type[templates]",
+        "tests/test_create_appearance.py::test_numbered_cards_show_only_the_chosen_inputs",
+        "tests/test_create_appearance.py::test_body_borders_dropdown_and_focus_styles",
+        "tests/test_create_appearance.py::test_clicking_active_option_keeps_its_selected_state",
+        "tests/test_create_appearance.py::test_route_round_trip_keeps_the_action_at_the_left",
+        "tests/test_create_progress.py::test_rows_reading_ready_and_partly_read_are_per_attachment",
+        "tests/test_create_progress.py::test_proposal_and_save_show_busy_action_without_changing_gates",
+        "tests/test_create_progress.py::test_progress_uses_source_ids_not_duplicate_names",
+        "tests/test_create_routes.py::test_routes_keep_independent_inputs_and_write_never_sends_sources",
+        "tests/test_create_routes.py::test_pull_without_sources_cannot_generate",
+        "tests/test_create_routes.py::test_switching_is_blocked_for_every_kind_of_work[busy]",
+        "tests/test_create_routes.py::test_switching_is_blocked_for_every_kind_of_work[generating]",
+        "tests/test_create_routes.py::test_switching_is_blocked_for_every_kind_of_work[reading]",
+        "tests/test_create_routes.py::test_reading_problems_survive_a_round_trip",
+        "tests/test_create_screen.py::test_step_indicator_keeps_state_and_layout",
+        "tests/test_create_screen.py::test_without_sources_all_types_and_create_file_uses_chosen_folder",
+        "tests/test_create_screen.py::test_sources_force_excel_and_wait_for_inspection",
+        "tests/test_create_screen.py::test_same_named_files_stay_separate",
+        "tests/test_create_screen.py::test_removing_all_sources_restores_every_type",
+        "tests/test_create_screen.py::test_busy_freezes_setup_and_reports",
+        "tests/test_create_screen.py::test_show_status_accepts_secondary_and_tooltip",
+        "tests/test_create_screen.py::test_source_changes_are_ignored_while_busy",
+        "tests/test_create_screen.py::test_sources_do_not_overwrite_the_retained_write_type",
+        "tests/test_create_screen.py::test_failed_inspection_ends_reading_and_keeps_setup",
+        "tests/test_create_screen.py::test_cancel_is_outside_the_frozen_setup",
+        "tests/test_create_screen.py::test_saved_prompt_page_and_start_another_preserve_folder",
+        "tests/test_create_screen.py::test_source_route_hides_save_folder_and_saved_reset_clears_sources",
+        "tests/test_create_screen.py::test_extract_before_reading_finishes_waits_and_resumes",
+        "tests/test_create_screen.py::test_columns_page_navigation_and_confirmation",
+        "tests/test_create_screen.py::test_review_uses_plain_words_and_resets_acknowledgement",
+        "tests/test_create_screen.py::test_review_acknowledgement_labels_and_export_gate[True-False-I have checked the highlighted values]",
+        "tests/test_create_screen.py::test_review_acknowledgement_labels_and_export_gate[False-True-I have checked the reading problems]",
+        "tests/test_create_screen.py::test_review_acknowledgement_labels_and_export_gate[True-True-I have checked the highlighted values and reading problems]",
+        "tests/test_create_screen.py::test_review_acknowledgement_labels_and_export_gate[False-False-]",
+        "tests/test_create_screen.py::test_failure_lists_plain_coverage",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[12500.00-decimal-12500.00]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[12.5000-decimal-12.5000]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[-2.50-decimal--2.50]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[123.100000000000000-decimal-123.100000000000000]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[9999999999999.9000-decimal-9999999999999.9000]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[0.00000000000000001-decimal-1E-17]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[12500-integer-12500]",
+        "tests/test_create_screen.py::test_review_uses_saved_number_format_and_file_without_record[000452-text-000452]",
+        "tests/test_create_screen.py::test_source_picker_preserves_duplicate_attachments_without_copying",
+        "tests/test_create_screen.py::test_source_filename_is_drawn_once_and_remains_accessible",
+        "tests/test_create_screen.py::test_columns_add_edit_remove_and_freeze_before_extract",
+        "tests/test_create_screen.py::test_numeric_defaults_overrides_and_conditional_date_order",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[1-.]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[--.]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[+-.]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[e-.]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[$-.]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[,-1]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[,-+]",
+        "tests/test_create_screen.py::test_invalid_numeric_separators_cannot_confirm_or_start_extraction[,- ]",
+        "tests/test_create_screen.py::test_supported_numeric_separator_overrides_preserve_values[,-.-1,234.50]",
+        "tests/test_create_screen.py::test_supported_numeric_separator_overrides_preserve_values[.-,-1.234,50]",
+        "tests/test_create_screen.py::test_supported_numeric_separator_overrides_preserve_values[ -,-1 234,50]",
+        "tests/test_create_screen.py::test_supported_numeric_separator_overrides_preserve_values['-.-1'234.50]",
+        "tests/test_create_screen.py::test_supported_numeric_separator_overrides_preserve_values[-.-1234.50]",
+        "tests/test_create_screen.py::test_many_coverage_issues_stay_scrollable_and_keep_controls_accessible",
+        "tests/test_create_screen.py::test_failure_retains_editable_setup_and_disconnection_gates_model_calls",
+        "tests/test_create_screen.py::test_saved_grid_literal_flags_evidence_acknowledgement_and_rerun_reset",
+        "tests/test_create_screen.py::test_setup_changes_clear_confirmation_and_review[request]",
+        "tests/test_create_screen.py::test_setup_changes_clear_confirmation_and_review[column]",
+        "tests/test_create_screen.py::test_setup_changes_clear_confirmation_and_review[sources]",
+        "tests/test_create_screen.py::test_busy_setup_is_frozen_and_save_can_finish_without_cancel",
+        "tests/test_create_screen.py::test_source_drop_accepts_only_local_supported_files",
+        "tests/test_create_screen.py::test_source_drop_is_rejected_outside_describe[_saved_page]",
+        "tests/test_create_screen.py::test_source_drop_is_rejected_outside_describe[_columns_page]",
+        "tests/test_create_screen.py::test_source_drop_is_rejected_outside_describe[_review_page]",
+        "tests/test_create_screen.py::test_source_remove_buttons_fit_with_application_list_padding",
+        "tests/test_create_screen.py::test_failed_column_proposal_offers_manual_columns",
+        "tests/test_create_screen.py::test_absent_saved_value_is_not_reported_as_found",
+        "tests/test_create_screen.py::test_prompt_hint_follows_sources_then_file_type",
+        "tests/test_create_screen.py::test_reading_problems_start_with_a_truthful_heading",
+        "tests/test_create_screen.py::test_browse_sits_directly_under_the_source_box",
+        "tests/test_main_window_edit.py::test_propose_sends_selection_description_attempt_and_styles",
+        "tests/test_main_window_edit.py::test_save_starts_the_worker_without_reading_the_destination",
+        "tests/test_main_window_edit.py::test_retry_and_destination_reopen_save_as_after_worker_settles[retry]",
+        "tests/test_main_window_edit.py::test_retry_and_destination_reopen_save_as_after_worker_settles[destination]",
+        "tests/test_main_window_edit.py::test_switching_to_create_with_work_asks_first",
+        "tests/test_main_window_edit.py::test_busy_disables_modes_settings_and_choose_another_file",
+        "tests/test_main_window_edit.py::test_late_proposal_after_cancel_is_ignored",
+        "tests/test_main_window_edit.py::test_late_result_after_opening_another_document_is_ignored",
+        "tests/test_main_window_edit.py::test_late_result_after_switching_to_create_is_ignored",
+        "tests/test_main_window_edit.py::test_close_waits_for_an_accepted_save",
+        "tests/test_main_window_edit.py::test_failed_accepted_save_aborts_close_and_shows_the_save_failure[retry]",
+        "tests/test_main_window_edit.py::test_failed_accepted_save_aborts_close_and_shows_the_save_failure[destination]",
+        "tests/test_main_window_edit.py::test_failed_accepted_save_aborts_close_and_shows_the_save_failure[original]",
+        "tests/test_main_window_edit.py::test_failed_accepted_save_aborts_close_and_shows_the_save_failure[failed]",
+        "tests/test_main_window_modes.py::test_two_modes_switch_and_return",
+        "tests/test_main_window_modes.py::test_generation_starts_exactly_one_request",
+        "tests/test_main_window_modes.py::test_proposal_waits_for_inspection",
+        "tests/test_main_window_modes.py::test_busy_blocks_mode_switch",
+        "tests/test_main_window_modes.py::test_step_labels_fit_at_screenshot_size",
+        "tests/test_main_window_modes.py::test_idle_cancel_is_a_compact_button",
+        "tests/test_main_window_modes.py::test_mode_text_has_room_for_button_padding[create]",
+        "tests/test_main_window_modes.py::test_mode_text_has_room_for_button_padding[edit]",
+        "tests/test_main_window_modes.py::test_card_label_background_is_not_the_central_grey[_describe_page]",
+        "tests/test_main_window_modes.py::test_card_label_background_is_not_the_central_grey[_columns_page]",
+        "tests/test_main_window_modes.py::test_card_label_background_is_not_the_central_grey[_review_page]",
+        "tests/test_main_window_modes.py::test_card_label_background_is_not_the_central_grey[_saved_page]",
+        "tests/test_main_window_modes.py::test_settings_changes_model_only_on_save[True]",
+        "tests/test_main_window_modes.py::test_settings_changes_model_only_on_save[False]",
+        "tests/test_main_window_modes.py::test_pending_extract_survives_the_inspection_thread[False]",
+        "tests/test_main_window_modes.py::test_pending_extract_survives_the_inspection_thread[True]",
+        "tests/test_main_window_template.py::test_generation_logs_have_no_file_name",
+        "tests/test_widgets.py::test_top_bar_switches_between_two_modes"
+      ]
+    },
+    "core_engine_cases": {
+      "editing_passed": 160,
+      "extraction_passed": 258,
+      "failed": 0,
+      "errors": 0
+    },
+    "source_evidence": {
+      "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157730286/artifacts/12147856170",
+      "name": "macos-source-baseline",
+      "size_bytes": 38532,
+      "github_reported_digest": "sha256:5da5cb5af7bef7310e9b0e16a5cbf6a5226d391034b4ba254bd06287f078b7ad",
+      "retention_days": 14,
+      "expires_at": "2026-11-01T19:18:12Z",
+      "contents": [
+        "macos-source-environment.json",
+        "macos-source-tests.xml"
+      ],
+      "downloaded_or_extracted_locally": false
+    },
+    "rerun": false,
+    "compatibility_repairs_applied": false,
+    "limits": "First source baseline only. UI cases blocked by fixture setup were not exercised. No native launch, model, build, bundle, signature or packaging acceptance."
+  },
+  "source_validation": {
+    "tasks": {
+      "1": {
+        "targeted_passed": 64,
+        "red_failed": 13,
+        "red_existing_passed": 51,
+        "windows_local_passed": 1421,
+        "windows_local_elapsed_seconds": 252.41,
+        "full_suite_environment": "Hard-link-permitted environment; unchanged command and isolated profile, following the recorded Task 0 sandbox denial.",
+        "macos": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39161095120",
+          "conclusion": "failure",
+          "passed": 1298,
+          "failed": 12,
+          "errors": 111,
+          "elapsed_seconds": 353.24,
+          "editing_passed": 160,
+          "extraction_passed": 258,
+          "causes": [
+            "9 known PySide6 notice failures",
+            "111 known HOME fixture errors",
+            "3 CLI tests assuming Windows configuration/working paths"
+          ]
+        },
+        "windows_pr_source": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39161095136",
+          "conclusion": "success",
+          "passed": 1421,
+          "elapsed_seconds": 366.41,
+          "build_job": "skipped"
+        },
+        "source_commit": "ced70ffb8cb5e1f3a5d7357738adfe31f9754ff1"
+      },
+      "2": {
+        "targeted_passed": 44,
+        "targeted_skipped": 2,
+        "red_harness_failed": 4,
+        "red_existing_conformance_passed": 21,
+        "red_workflow_failed": 3,
+        "windows_local_passed": 1437,
+        "windows_local_skipped": 2,
+        "windows_local_elapsed_seconds": 250.45,
+        "capability_skips": "Windows symlink creation unavailable for both routes; recorded as skipped, not passed. Hard-link and case-alias conformance ran.",
+        "macos": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39162142328",
+          "conclusion": "failure",
+          "passed": 1430,
+          "failed": 9,
+          "errors": 0,
+          "elapsed_seconds": 225.23,
+          "previously_blocked_ui_passed": 111,
+          "editing_passed": 160,
+          "extraction_passed": 258,
+          "compatibility_passed": 15,
+          "remaining_cause": "Nine installed PySide6 notice-discovery failures only; no engine/preservation failure."
+        },
+        "windows_pr_source": {
+          "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39162142090",
+          "conclusion": "success",
+          "passed": 1439,
+          "elapsed_seconds": 454.12,
+          "build_job": "skipped"
+        },
+        "captures": {
+          "states": [
+            "1-create-describe",
+            "2-create-with-files",
+            "3-choose-columns",
+            "4-review-and-save",
+            "5c-edit-review"
+          ],
+          "sizes": [
+            "1280x800",
+            "1024x640"
+          ],
+          "png_count": 14,
+          "metadata_count": 10,
+          "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd",
+          "automated_checks": "All capture processes and bounds/reachability checks passed.",
+          "visual_review": "All ten main captures checked: header/S and content visible; small windows scroll, with review action captures supplied. Source-only offscreen QA, not native pilot acceptance.",
+          "artifact_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39162142328/artifacts/12149247051",
+          "artifact_sha256": "bf24a3236966307bf4942add960f2548ef4d8395b87c49ac71eaaec21278f374",
+          "local_evidence": ".venv/mac-pilot-task2/source-evidence/",
+          "retention_days": 14
+        },
+        "notice_diagnostic": "Installed Qt metadata/package license candidates only. No downloads, copied Windows terms, packaging or notice-copier change.",
+        "source_commit": "82a76e63cd3670403913418c24aa90d1cd331ebd"
+      },
+      "3": {
+        "status": "Task 3 complete: local and exact-head Mac/Windows source checks passed; no real packaging",
+        "preflight_history": {
+          "status": "stopped: installed Mac distributions contain no discoverable license texts; no locator or builder implemented",
+          "reason": "The four installed distributions have no discoverable license-text files. No external license text was downloaded, copied from Windows or substituted.",
+          "probe_test_red_failed": 1,
+          "probe_test_green_passed": 14,
+          "packaging_run": false,
+          "windows_preflight_passed": 1438,
+          "windows_preflight_skipped": 2,
+          "windows_preflight_elapsed_seconds": 254.67,
+          "windows_notice_files_byte_identical": 258,
+          "source_commit": "d903a3d3341642cc54d8476206ac4064a8864e4d",
+          "macos": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180",
+            "conclusion": "failure",
+            "passed": 1431,
+            "failed": 9,
+            "errors": 0,
+            "elapsed_seconds": 305.76,
+            "reason": "Same nine installed-PySide6 notice-discovery failures; no document-engine or preservation failure.",
+            "captures": "Capture step and source-evidence upload passed."
+          },
+          "installed_qt_notice_inventory": {
+            "PySide6": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 72,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            },
+            "PySide6_Essentials": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 2894,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            },
+            "PySide6_Addons": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 1656,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            },
+            "shiboken6": {
+              "license_file_headers": [],
+              "installed_text_candidates": {},
+              "package_directory_present": true,
+              "registered_text_candidates": {},
+              "registered_file_count": 63,
+              "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+              "license_expression": null
+            }
+          },
+          "environment": {
+            "python": "3.11.9",
+            "macos": "14.8.9",
+            "architecture": "arm64",
+            "qt": "6.11.2",
+            "pyside6": "6.11.2",
+            "nuitka": "4.2.2",
+            "python_license_available": true
+          },
+          "source_artifact": {
+            "id": 12149721470,
+            "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036180/artifacts/12149721470",
+            "sha256": "867b9a4910cf573041a082d7fda75dbf4a33758439cdae3087aacb561563607d",
+            "download_verified": true,
+            "expires_at": "2026-11-01T20:28:49Z"
+          },
+          "stop_condition": "Alex required stopping if the installed Mac distributions genuinely contain no license texts. Both package/dist-info traversal and all registered entries yielded no license-text candidates; License-File headers are empty and License metadata contains identifiers only.",
+          "unimplemented": [
+            "Mac license locator and fake-layout regression",
+            "installed-Python license resolver",
+            "build_macos.py and its mocked tests"
+          ],
+          "windows_pr_source": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39163036181",
+            "conclusion": "success",
+            "passed": 1440,
+            "elapsed_seconds": 407.36,
+            "build_job": "skipped"
+          }
+        },
+        "implementation": {
+          "status": "passed local and exact-head Mac/Windows source checks; no real packaging",
+          "test_first": {
+            "notice_red_failed": 8,
+            "notice_red_existing_or_guard_passed": 8,
+            "builder_red_errors": 19,
+            "builder_red_reason": "module not yet present",
+            "absolute_symlink_red_failed": 1,
+            "targeted_passed": 34,
+            "targeted_skipped": 2,
+            "targeted_elapsed_seconds": 33.36,
+            "hosted_windows_path_red_failed": 1
+          },
+          "windows_local": {
+            "passed": 1466,
+            "skipped": 4,
+            "elapsed_seconds": 237.51,
+            "collected": 1470,
+            "log": ".venv/mac-pilot-task3-resume/full-windows-portable.log",
+            "environment": "Hard-link-permitted environment; unchanged isolated command and test-home redirects.",
+            "warnings": "One existing pytest-cache permission warning.",
+            "preliminary_before_absolute_link_check": {
+              "passed": 1465,
+              "skipped": 4,
+              "elapsed_seconds": 266.01
+            },
+            "capability_skips": "Two existing source-alias symlink checks and two new actual-symlink inventory cases; no skipped case is counted as passed.",
+            "pre_portability_correction_elapsed_seconds": 274.81
+          },
+          "windows_notice_comparison": {
+            "file_count": 258,
+            "byte_identical": true,
+            "mismatches": [],
+            "inventory_sha256": "3e74805c7a7732665f41771674685c9426c05a93ea32ab47df8f6e381331e7fb"
+          },
+          "validate_notices_unchanged": true,
+          "qt_fallback_scope": [
+            "PySide6",
+            "PySide6_Essentials",
+            "PySide6_Addons",
+            "shiboken6"
+          ],
+          "qt_fallback": "Only absent installed license files use already-copied qt/pyside-setup/LICENSES entries from the checksum-verified 6.11.2 snapshot. The individual fallback package version must match too. Existing installed-license copying stays preferred; other missing packages still fail.",
+          "python_license_order": [
+            "sys.base_prefix/LICENSE.txt",
+            "sysconfig.get_path(\"stdlib\")/LICENSE.txt"
+          ],
+          "builder": "build_macos.py; existing Nuitka/PySide6 and Pillow only; Darwin arm64 guard before side effects; all compiler/archive/git subprocesses mocked in tests.",
+          "bundle_layout": {
+            "executable": "Simplicitor.app/Contents/MacOS/Simplicitor",
+            "runtime_data": "Contents/MacOS/{prompts,templates,templates_engine/builtin,assets,LICENSE,third_party}; internal relocation symlinks may point into Resources/Frameworks",
+            "icon": "largest actual ICO frame converted to PNG before Nuitka; Nuitka owns ICNS conversion/signing",
+            "symlinks": "relative internal targets only; escaping, absolute or broken targets fail before archive"
+          },
+          "outputs": [
+            "dist/macos-pilot/Simplicitor.app",
+            "dist/macos-pilot/Simplicitor-macos-arm64-pilot.zip",
+            "dist/macos-pilot/SHA256SUMS-macos-pilot.json"
+          ],
+          "work_directory": ".nuitka/macos-pilot",
+          "external_build_sign_archive_tools_run": false,
+          "packaging_run": false,
+          "macos": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39166213831",
+            "conclusion": "success",
+            "passed": 1470,
+            "failed": 0,
+            "errors": 0,
+            "skipped": 0,
+            "elapsed_seconds": 359.09,
+            "previously_blocked_ui_passed": 111,
+            "editing_passed": 160,
+            "extraction_passed": 258,
+            "builder_cases_passed": 20,
+            "notice_cases_passed": 16,
+            "notice_failures": 0,
+            "warnings": "Six existing record_property/xunit compatibility warnings.",
+            "environment": {
+              "python": "3.11.9",
+              "macos": "14.8.9",
+              "architecture": "arm64",
+              "qt": "6.11.2",
+              "pyside6": "6.11.2",
+              "nuitka": "4.2.2"
+            },
+            "captures": "Five states at both sizes and all automated capture checks passed; 14 source-only PNGs. No UI code changed in Task 3.",
+            "source_artifact": {
+              "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39166213831/artifacts/12151012048",
+              "sha256": "2bb0b6c7cfeed4ebd63f6ed71a56f5ef02f169216bad9dfd4c44929c4fa3b262",
+              "digest_verified": true,
+              "retention_days": 14,
+              "expires_at": "2026-11-01T21:11:53Z"
+            }
+          },
+          "source_commit": "1f753e838315c4ee3d53c595a5914c547813397b",
+          "recorded_at_utc": "2026-10-18T21:14:38.689954+00:00",
+          "windows_pr_source_run": "https://github.com/alexnosx/Simplicitor/actions/runs/39166213799",
+          "hosted_windows_test_portability": {
+            "first_failing_run": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048120",
+            "source_commit": "846412e72b6b3a19c34d031f183952399910155e",
+            "passed": 1468,
+            "failed": 2,
+            "elapsed_seconds": 436.82,
+            "build_job": "skipped",
+            "failed_test_ids": [
+              "tests/test_macos_build.py::test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing",
+              "tests/test_macos_build.py::test_inventory_keeps_internal_symlink_targets_and_rejects_escaping_links[True]"
+            ],
+            "causes": [
+              "The forbidden-word assertion scanned the hosted Python executable path containing windows, rather than only CLI option names.",
+              "The synthetic escaping symlink supplied POSIX ../target text instead of a native Path target on Windows."
+            ],
+            "corrections": [
+              "Force a hosted-style interpreter path in the regression; inspect only option names while retaining exact required-option/value assertions.",
+              "Create the synthetic symlink with Path(\"..\") / \"target\" so its spelling is native to each host."
+            ],
+            "production_code_changed": false,
+            "macos_recheck": "https://github.com/alexnosx/Simplicitor/actions/runs/39166213831",
+            "windows_recheck": "https://github.com/alexnosx/Simplicitor/actions/runs/39166213799",
+            "status": "resolved; both exact-head source jobs pass"
+          },
+          "previous_mac_source_pass": {
+            "source_commit": "846412e72b6b3a19c34d031f183952399910155e",
+            "result": {
+              "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048165",
+              "conclusion": "success",
+              "passed": 1470,
+              "failed": 0,
+              "errors": 0,
+              "skipped": 0,
+              "elapsed_seconds": 308.81,
+              "previously_blocked_ui_passed": 111,
+              "editing_passed": 160,
+              "extraction_passed": 258,
+              "builder_cases_passed": 20,
+              "notice_cases_passed": 16,
+              "notice_failures": 0,
+              "warnings": "Six existing record_property/xunit compatibility warnings.",
+              "environment": {
+                "python": "3.11.9",
+                "macos": "14.8.9",
+                "architecture": "arm64",
+                "qt": "6.11.2",
+                "pyside6": "6.11.2",
+                "nuitka": "4.2.2"
+              },
+              "captures": "Five states at both sizes and all automated capture checks passed; 14 source-only PNGs. No UI code changed in Task 3.",
+              "source_artifact": {
+                "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39165048165/artifacts/12149788901",
+                "sha256": "bdb830b434e1d203e598e9557f585454badabbba18b5809f431fca7db695663a",
+                "digest_verified": true,
+                "retention_days": 14,
+                "expires_at": "2026-11-01T20:55:21Z"
+              }
+            }
+          },
+          "windows_pr_source": {
+            "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39166213799",
+            "conclusion": "success",
+            "passed": 1470,
+            "failed": 0,
+            "errors": 0,
+            "skipped": 0,
+            "elapsed_seconds": 466.39,
+            "build_job": "skipped",
+            "source_commit": "1f753e838315c4ee3d53c595a5914c547813397b"
+          }
+        }
+      }
+    }
+  },
+  "package_validation": {
+    "source_commit": "6c26e09bb6e5e8baee3ea11d32c9d99158f783e5",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39217444310",
+    "run_id": 39217444310,
+    "run_attempt": 1,
+    "conclusion": "success",
+    "label_event": {
+      "actor": "alexnosx",
+      "created_at": "2026-10-19T07:39:56Z",
+      "event": "labeled",
+      "id": 33621127421,
+      "head_sha": "6c26e09bb6e5e8baee3ea11d32c9d99158f783e5"
+    },
+    "actor": "alexnosx",
+    "triggering_actor": "alexnosx",
+    "packaging_runner": {
+      "label": "macos-15",
+      "standard_runner": true,
+      "public_repository": true,
+      "larger_or_paid_runner_used": false,
+      "reference": "https://docs.github.com/en/actions/reference/runners/github-hosted-runners",
+      "verified_on": "2026-10-19",
+      "macos": "15.7.9",
+      "architecture": "arm64",
+      "image": "20260907.0337.1"
+    },
+    "minimum_macos": "15.0",
+    "compiler_deployment_target": "14.0",
+    "local_windows_validation": {
+      "python": "3.12.14",
+      "red": {
+        "failed": 11,
+        "passed": 1
+      },
+      "focused": {
+        "passed": 84,
+        "skipped": 2,
+        "elapsed_seconds": 28.95
+      },
+      "full": {
+        "passed": 1518,
+        "skipped": 4,
+        "failed": 0,
+        "elapsed_seconds": 279.52
+      },
+      "isolation": "USERPROFILE, APPDATA and LOCALAPPDATA under .venv/test-home; --basetemp .venv/pytest-tmp",
+      "environment": "Approved hard-link-permitted local source-test run; existing symlink-capability skips and pytest-cache permission warning."
+    },
+    "pre_label_source_checks": {
+      "macos": {
+        "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39216407196",
+        "head_sha": "6c26e09bb6e5e8baee3ea11d32c9d99158f783e5",
+        "runner_label": "macos-14",
+        "conclusion": "success",
+        "passed": 1522,
+        "failed": 0,
+        "errors": 0,
+        "elapsed_seconds": 374.46,
+        "captures": "passed",
+        "build_job": "skipped"
+      },
+      "windows": {
+        "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39216407197",
+        "head_sha": "6c26e09bb6e5e8baee3ea11d32c9d99158f783e5",
+        "conclusion": "success",
+        "passed": 1522,
+        "failed": 0,
+        "errors": 0,
+        "elapsed_seconds": 428.82,
+        "build_job": "skipped",
+        "checkout_mode": "Existing default pull-request merge ref; Windows workflow unchanged."
+      }
+    },
+    "label_run_source_checks": {
+      "runner_label": "macos-14",
+      "conclusion": "success",
+      "passed": 1522,
+      "failed": 0,
+      "errors": 0,
+      "elapsed_seconds": 347.78,
+      "captures": "passed"
+    },
+    "artifact": {
+      "id": 12169889468,
+      "name": "Simplicitor-macos-arm64-pilot",
+      "url": "https://github.com/alexnosx/Simplicitor/actions/runs/39217444310/artifacts/12169889468",
+      "retention_days": 14,
+      "expires_at": "2026-11-02T07:53:51Z",
+      "outer_size_bytes": 74056828,
+      "outer_sha256": "391b81800acc60289598ee94c8ca1ba81a335a4e00c22bbc7085d7d0f11f5004",
+      "github_digest": "sha256:391b81800acc60289598ee94c8ca1ba81a335a4e00c22bbc7085d7d0f11f5004"
+    },
+    "outputs": {
+      "Simplicitor-macos-arm64-pilot.zip": {
+        "sha256": "e5f6c022ea43043859ba74eeddc9525dbc1b1d6704b95ebd9d349e8fe2ce4f01",
+        "size_bytes": 74702060
+      },
+      "macos-pilot-qualification.json": {
+        "sha256": "d1715ba356c309528df3b6deb9b3aaefec32bd436f81171e21cfcc2057b3dea8",
+        "size_bytes": 23515
+      },
+      "SHA256SUMS-macos-pilot.json": {
+        "sha256": "dab45e2f5372645285ca92a008140681d58f32a7d7605a25d35d7c9330d7dedb",
+        "size_bytes": 82896
+      },
+      "MAC-PILOT-README.txt": {
+        "sha256": "56ce8b5a643fd1a9388ab2f5cd3002d30a8f9d74b0897e18da208782d7517410",
+        "size_bytes": 6729
+      }
+    },
+    "verification": {
+      "outer_digest_matches_github": true,
+      "pilot_hash_matches_manifest": true,
+      "report_hashes_match_download": true,
+      "all_qualification_checks_passed": true,
+      "inner_zip_or_app_opened_extracted_or_run_locally": false
+    },
+    "qualification_report": {
+      "pilot": true,
+      "result": "passed",
+      "notarized": false,
+      "source_commit": "6c26e09bb6e5e8baee3ea11d32c9d99158f783e5",
+      "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39217444310",
+      "runner_image": "20260907.0337.1",
+      "macos": "15.7.9",
+      "architecture": "arm64",
+      "python": "3.11.9",
+      "limits": {
+        "native_cocoa": "not checked",
+        "gatekeeper": "not checked",
+        "real_model": "not checked",
+        "office": "not checked"
+      },
+      "checks": {
+        "archive_and_manifest": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "inventory_and_links": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "plist_and_modes": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "resources_and_notices": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "mach_o": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "signature": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "no_ollama": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "launch_1": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "launch_2": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "settings_and_sentinel": {
+          "result": "passed",
+          "reason": "Check completed"
+        },
+        "bundle_unchanged": {
+          "result": "passed",
+          "reason": "Check completed"
+        }
+      },
+      "sha256": {
+        "Simplicitor-macos-arm64-pilot.zip": "e5f6c022ea43043859ba74eeddc9525dbc1b1d6704b95ebd9d349e8fe2ce4f01",
+        "SHA256SUMS-macos-pilot.json": "dab45e2f5372645285ca92a008140681d58f32a7d7605a25d35d7c9330d7dedb"
+      },
+      "version": "2.5.1",
+      "minimum_macos": "15.0",
+      "archive_size_bytes": 74702060,
+      "runtime_versions": {
+        "python": "3.11.9",
+        "qt": "6.11.2",
+        "nuitka": "4.2.2"
+      },
+      "mach_o": [
+        {
+          "path": "Contents/MacOS/PIL/_avif.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PIL/_imaging.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PIL/_imagingcms.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PIL/_imagingft.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PIL/_webp.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/QtCore.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "15.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/QtGui.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "15.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/QtWidgets.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "15.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/iconengines/libqsvgicon.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqgif.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqicns.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqico.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqjpeg.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqmacheif.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqmacjp2.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqpdf.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqsvg.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqtga.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqtiff.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqwbmp.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/imageformats/libqwebp.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/platforms/libqcocoa.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/platforms/libqminimal.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/platforms/libqoffscreen.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/styles/libqmacstyle.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/tls/libqcertonlybackend.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/tls/libqopensslbackend.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/PySide6/qt-plugins/tls/libqsecuretransportbackend.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/Python",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtCore",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtDBus",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtGui",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtNetwork",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtPdf",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtSvg",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/QtWidgets",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/Simplicitor",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_asyncio.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_blake2.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_bz2.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_cffi_backend.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_codecs_cn.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_codecs_hk.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_codecs_iso2022.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_codecs_jp.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_codecs_kr.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_codecs_tw.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_contextvars.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_csv.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_ctypes.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_datetime.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_decimal.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_elementtree.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_hashlib.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_heapq.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_lzma.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_md5.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_multibytecodec.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_multiprocessing.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_opcode.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_pickle.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_posixshmem.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_posixsubprocess.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_queue.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_random.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_scproxy.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_sha1.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_sha256.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_sha3.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_sha512.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_socket.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_ssl.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_statistics.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_struct.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_typing.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_uuid.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/_zoneinfo.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/array.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/binascii.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/charset_normalizer/cd.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/charset_normalizer/md.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/cryptography/hazmat/bindings/_rust.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/fcntl.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/grp.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libXau.6.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libavif.16.4.2.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libbrotlicommon.1.2.0.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libbrotlidec.1.2.0.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libcrypto.3.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libfreetype.6.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libharfbuzz.0.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libjpeg.62.4.0.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/liblcms2.2.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/liblzma.5.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libopenjp2.2.5.4.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libpng16.16.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libpyside6.abi3.6.11.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "15.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libsharpyuv.0.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libshiboken6.abi3.6.11.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "15.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libssl.3.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libtiff.6.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libwebp.7.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libwebpdemux.2.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libwebpmux.3.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libxcb.1.1.0.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/libz.1.3.1.zlib-ng.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/lxml/_elementpath.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/lxml/builder.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/lxml/etree.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/lxml/objectify.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/lxml/sax.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/math.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/mmap.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/pydantic_core/_pydantic_core.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/pyexpat.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/pypdfium2_raw/libpdfium.dylib",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "13.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/select.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/shiboken6/Shiboken.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "15.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/termios.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/unicodedata.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/yaml/_yaml.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        },
+        {
+          "path": "Contents/MacOS/zlib.so",
+          "architectures": [
+            "arm64"
+          ],
+          "deployment_minima": {
+            "arm64": "11.0"
+          }
+        }
+      ],
+      "mach_o_offenders": [],
+      "signature": "ad-hoc; no Team ID; deep strict verification passed"
+    },
+    "superseded_package_runs": [
+      {
+        "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39203135427",
+        "source_commit": "d11103faa01d80e7301deb50c564158d3a538ef4",
+        "result": "failed: Nuitka PNG conversion required imageio; fixed with native iconutil, no added dependency"
+      },
+      {
+        "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39205837974",
+        "source_commit": "085021d5b7522b54e542fec1e37298a5fb1fe1ac",
+        "result": "build passed; fixed 14.0 deployment check failed without binary diagnostics"
+      },
+      {
+        "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39211919560",
+        "source_commit": "798adbee2285e099fee844e7b03a2860edb1a47a",
+        "result": "build passed; six PySide6/shiboken6 arm64 binaries declared minos 15.0; Alex approved a macOS 15 minimum"
+      }
+    ],
+    "native_trial": "not started; Alex delivers the unchanged pilot ZIP and the colleague performs the must-pass checks"
+  },
+  "recorded_at_utc": "2026-10-19T07:56:20.741128+00:00",
+  "windows_pr_source": {
+    "head_sha": "ede01832d848eba5701b4fe20244582c57b9d88d",
+    "run_url": "https://github.com/alexnosx/Simplicitor/actions/runs/39157728160",
+    "conclusion": "success",
+    "passed": 1406,
+    "failed": 0,
+    "errors": 0,
+    "elapsed_seconds": 409.43,
+    "build_job": "skipped",
+    "checkout_mode": "Existing Windows workflow uses the default pull-request merge ref; unchanged."
+  },
+  "protected_files_sha256": {
+    "build.py": "cc9a26fcfe1b4c270bdb56c7888515ed16c02bdb12b4221dc7aedcaf137d497a",
+    ".github/workflows/build.yml": "52b8fba83e76db8c0f6ba13e84762f2c0bed292e18ed86f06ce154ee9abe21cf",
+    "LICENSE": "bdd3333e9ee765c67d20960b934085d8b351afb6527cc9d71c46890f6af27780",
+    "simplicitor/app/version.py": "1795b200000dafd3e695417da181dc9f914842a2f48947a5916affa97d6b4545"
+  },
+  "evidence_commit_note": "Task 0 baseline and Tasks 2-3 source validation are preserved. package_validation identifies immutable built source 6c26e09; this documentation record is committed afterwards. Its synchronize event runs source checks only, even with mac-package retained."
+}

@@ -1,9 +1,7 @@
 # simplicitor/app/widgets/settings_dialog.py
-import subprocess
-import sys
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QLineEdit, QComboBox, QPushButton, QDialogButtonBox, QFileDialog,
+    QLabel, QLineEdit, QComboBox, QPushButton, QDialogButtonBox, QFileDialog, QMessageBox,
 )
 from PySide6.QtGui import QFont
 
@@ -13,6 +11,7 @@ from app.config.defaults import (
 )
 from app.config.styles import workspace_styles
 from app.config.settings import Settings
+from app.utils.desktop import open_local_path
 from app.version import __version__
 
 
@@ -148,13 +147,11 @@ class SettingsDialog(QDialog):
             edit.setText(chosen)
 
     def _open_logs_folder(self) -> None:
-        """Open the logs directory in Windows Explorer."""
-        logs_dir = self._logs_edit.text()
-        if sys.platform == "win32":
-            try:
-                subprocess.Popen(["explorer", logs_dir])
-            except OSError:
-                pass  # explorer not available (e.g. in CI)
+        """Request the local logs folder, with a visible failure when refused."""
+        if not open_local_path(self._logs_edit.text()):
+            QMessageBox.warning(
+                self, "Open logs",
+                "Could not open the logs folder. Open it from the path shown in Settings.")
 
     def _reset_to_defaults(self) -> None:
         self._settings.reset_to_defaults()

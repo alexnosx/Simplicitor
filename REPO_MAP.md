@@ -60,6 +60,7 @@ for known defects; passing old tests does not negate reproduced behavior.
 .github/
     workflows/
         build.yml
+        macos-pilot.yml
 assets/
     icons/
         simplicitor.ico
@@ -90,6 +91,7 @@ docs/
         2026-10-11-task0-baseline.json
         2026-10-12-c2-test-followup.json
         2026-10-12-c2-ui-followup.json
+        macos-arm64-pilot-ci.json
     design/
         azure-desktop-acceptance.md
         azure-desktop.html
@@ -176,8 +178,11 @@ docs/
     Simplicitor_UI_Fixes_Round2.md
     Simplicitor_UI_Polish_and_Icon.md
     code-signing.md
+    macos-pilot.md
     screenshot.png
 packaging/
+    macos/
+        MAC-PILOT-README.txt
     simplicitor.wxs
 resources/
     third_party/
@@ -474,6 +479,7 @@ scripts/
     gen_repo_map.py
     inspect_template.py
     make_edit_fixtures.ps1
+    qualify_macos_pilot.py
     qualify_windows_installer.ps1
 simplicitor/
     app/
@@ -499,6 +505,7 @@ simplicitor/
             ollama_client.py
         utils/
             __init__.py
+            desktop.py
             file_utils.py
             logging_setup.py
         widgets/
@@ -709,6 +716,7 @@ tests/
     test_create_progress.py
     test_create_routes.py
     test_create_screen.py
+    test_desktop.py
     test_edit_screen.py
     test_edit_worker.py
     test_extraction_worker.py
@@ -722,6 +730,10 @@ tests/
     test_generators.py
     test_legacy_edit_disabled.py
     test_llm_response_parser.py
+    test_macos_build.py
+    test_macos_compatibility.py
+    test_macos_pilot_workflow.py
+    test_macos_qualification.py
     test_main_window_edit.py
     test_main_window_extraction.py
     test_main_window_modes.py
@@ -753,6 +765,7 @@ README.md
 SECURITY.md
 build.bat
 build.py
+build_macos.py
 pytest.ini
 requirements-build.txt
 requirements-dev.txt
@@ -770,6 +783,17 @@ requirements.txt
 - def build_msi(payload: Path, version: str, output: Path) -> None: Compile the per-user MSI from the standalone payload with the pinned WiX tool.
 - def package_payload(payload: Path, artifacts: tuple[Path, ...]) -> None: Validate resources and archive exactly the payload supplied to the MSI.
 - def main() -> int: Compile the standalone payload, build its MSI, then package the same payload.
+
+### build_macos.py
+
+- def nuitka_command(output_dir: Path) -> list[str]: Describe the pinned-tool app build without writing files or running tools.
+- def write_icon() -> Path: Resize the largest original S into an iconset; use native iconutil for ICNS.
+- def _sha256(path: Path) -> str
+- def bundle_inventory(app: Path) -> dict: Hash files and record relative symlinks that stay inside the portable app.
+- def _validate_bundle(app: Path) -> None
+- def _require_host() -> None
+- def build() -> tuple[Path, Path]: Assemble, sign through Nuitka, and archive a pilot; return ZIP and manifest.
+- def main() -> int: Refuse other hosts before any build side effect; report tool failures safely.
 
 ### resources/create_icon.py
 
@@ -799,7 +823,8 @@ requirements.txt
 
 - def _digest(path: Path) -> str
 - def _runtime_distributions(root: Path) -> list: Collect installed non-extra dependencies, conservatively including platform markers.
-- def _copy_licenses(dist, destination: Path) -> list[str]
+- def _copy_licenses(dist, destination: Path, allow_missing: bool=False) -> list[str]
+- def python_license_path() -> Path: Find the installed Python terms, preserving Windows' existing precedence.
 - def build_notices(root: Path, output: Path) -> None: Copy original license bytes for this build without deleting existing files.
 - def validate_notices(bundle: Path) -> None: Fail packaging when license notices are absent, empty, or changed in transit.
 
@@ -854,6 +879,21 @@ requirements.txt
 - def _type_label(ph_type) -> str
 - def inspect(pptx_path: Path) -> None
 - def main() -> None
+
+### scripts/qualify_macos_pilot.py
+
+- def _sha256(path: Path) -> str
+- def _require_host() -> Path
+- def assert_no_ollama() -> None: Refuse an available loopback endpoint; never install or contact a model.
+- def _command(args: list[str]) -> str
+- def _minimum(value: str) -> tuple[int, int, int]
+- def _plist_and_modes(app: Path, version: str) -> None
+- def _resources(app: Path) -> None
+- def _mach_o(app: Path, records: list[dict], offenders: list[dict]) -> None
+- def _signature(app: Path) -> str
+- def _launch(executable: Path, home: Path, cwd: Path) -> None
+- def qualify(bundle: Path, manifest: Path, report: Path) -> None: Check the shipped archive on a guarded runner; write a named-check report on failure.
+- def main() -> int: Parse the three artifact paths; return nonzero without exposing tool output.
 
 ### simplicitor/__init__.py
 
@@ -952,6 +992,10 @@ requirements.txt
 ### simplicitor/app/utils/__init__.py
 
 (no top-level definitions)
+
+### simplicitor/app/utils/desktop.py
+
+- def open_local_path(path: str | Path) -> bool: Return whether the desktop service accepted a readable local target.
 
 ### simplicitor/app/utils/file_utils.py
 
@@ -1776,6 +1820,7 @@ requirements.txt
 - def test_list_library_entry_has_required_keys(tmp_path)
 - def test_get_app_data_dir_uses_appdata_when_set(monkeypatch, tmp_path)
 - def test_get_app_data_dir_falls_back_to_home_when_appdata_unset(monkeypatch)
+- def test_darwin_data_root_is_application_support_not_legacy_home(tmp_path, monkeypatch, appdata)
 
 ### tests/templates_engine/test_llm.py
 
@@ -1990,6 +2035,7 @@ requirements.txt
 
 ### tests/test_cli.py
 
+- def cli_profile(tmp_path, monkeypatch): Isolate both native home conventions before CLI settings are resolved.
 - def test_generate_requires_out_when_not_dry_run(capsys): --out is required when not in dry-run mode; omitting it prints an error and returns 1.
 - def test_templates_root_falls_back_to_documents_default(tmp_path, monkeypatch): No settings.json: the documented default Documents\Simplicitor\Templates.
 - def test_templates_root_reads_persisted_settings(tmp_path, monkeypatch): The CLI resolves the same settings.json the app writes.
@@ -2074,6 +2120,14 @@ requirements.txt
 - def test_prompt_hint_follows_sources_then_file_type(qtbot, isolated_profile, tmp_path)
 - def test_reading_problems_start_with_a_truthful_heading(qtbot, isolated_profile, tmp_path)
 - def test_browse_sits_directly_under_the_source_box(qtbot, isolated_profile)
+
+### tests/test_desktop.py
+
+- def test_open_local_path_round_trips_unicode_and_spaces(tmp_path, monkeypatch, directory)
+- def test_open_local_path_does_not_request_missing_or_unreadable_targets(tmp_path, monkeypatch)
+- def test_open_local_path_reports_desktop_refusal_without_logging_path(tmp_path, monkeypatch, caplog, raises)
+- def test_create_open_action_uses_local_helper_and_retains_visible_failure(qtbot, tmp_path, monkeypatch, accepted)
+- def test_settings_open_logs_uses_local_helper_and_warns_on_refusal(qtbot, tmp_path, monkeypatch, accepted)
 
 ### tests/test_edit_screen.py
 
@@ -2183,6 +2237,7 @@ requirements.txt
 
 ### tests/test_file_utils.py
 
+- def test_mac_app_resources_keep_the_actual_s_from_an_unrelated_directory(tmp_path, monkeypatch)
 - def test_nuitka_resources_resolve_inside_payload_from_unrelated_cwd(tmp_path, monkeypatch, folder)
 - def test_sanitize_removes_special_chars() -> None
 - def test_sanitize_replaces_spaces_with_underscores() -> None
@@ -2248,6 +2303,72 @@ requirements.txt
 - class TestParsePptxResponse
 - class TestConvenienceFunctions
 - class TestThinkingModelOutput: Regression tests for Qwen3/DeepSeek-R1 thinking model output.
+
+### tests/test_macos_build.py
+
+- def mac(tmp_path, monkeypatch)
+- def test_nuitka_command_is_pure_and_uses_existing_data_and_free_signing(mac, tmp_path, monkeypatch)
+- def test_unsupported_host_refuses_before_creating_output_or_tools(mac, monkeypatch, system, arch)
+- def test_icon_is_the_actual_largest_ico_image_without_changing_windows_artwork(mac, monkeypatch)
+- def test_icon_conversion_requires_a_native_icns_result(mac, monkeypatch, result)
+- def simulated_build(mac, monkeypatch)
+- def test_build_stages_data_before_signing_then_archives_without_mutating_bundle(mac, simulated_build)
+- def test_failed_external_step_or_absent_bundle_never_produces_manifest(mac, simulated_build, failure)
+- def test_missing_payload_input_fails_before_archiving(mac, simulated_build, missing)
+- def test_existing_output_is_not_deleted_or_overwritten(mac, simulated_build)
+- def test_inventory_keeps_internal_symlink_targets_and_rejects_escaping_links(mac, tmp_path, outside)
+- def test_inventory_rejects_absolute_symlink_even_if_it_points_inside_the_build(mac, tmp_path, monkeypatch)
+
+### tests/test_macos_compatibility.py
+
+- def test_source_harness_font_override_is_windows_only(tmp_path, monkeypatch, platform, script, boundary)
+- def test_capture_isolates_darwin_home_before_importing_settings(tmp_path, monkeypatch)
+- def test_isolated_profile_sets_home_under_darwin_semantics(tmp_path, monkeypatch, request)
+- def _candidate(tmp_path, route)
+- def _save(candidate, destination, route)
+- def test_filesystem_aliases_cannot_overwrite_originals(tmp_path, record_property, route, kind)
+- def test_unicode_save_and_denied_write_preserve_sources(tmp_path, monkeypatch, route)
+- def test_denied_document_open_has_a_visible_error_and_preserves_bytes(tmp_path, monkeypatch)
+
+### tests/test_macos_pilot_workflow.py
+
+- def workflow(): Read event names literally, including YAML 1.1's special word `on`.
+- def test_only_pilot_pull_request_events_can_start_the_probe(workflow)
+- def test_probe_is_limited_to_the_public_same_repository_pilot_branch(workflow, guard)
+- def test_source_probe_is_bounded_and_uses_standard_arm64_python(workflow)
+- def test_platform_is_asserted_before_installing_existing_requirements(workflow)
+- def test_checkout_and_evidence_use_the_immutable_pull_request_head(workflow)
+- def test_source_suite_has_isolated_profiles_and_freeze_diagnostics(workflow)
+- def test_probe_records_versions_and_python_license_availability(workflow)
+- def test_source_evidence_is_retained_without_an_application_artifact(workflow)
+- def test_mac_source_captures_run_only_after_the_environment_preflight(workflow)
+- def test_mac_evidence_inspects_installed_qt_notices_without_downloading_text(workflow)
+- def test_qt_probe_checks_registered_files_beyond_package_and_dist_info_roots(workflow)
+- def test_source_probe_cannot_package_publish_or_use_secrets(workflow)
+- def test_package_job_is_read_only_bounded_and_pinned_after_source_tests(workflow)
+- def test_only_alex_adding_the_package_label_authorizes_a_package(workflow, action, label, actor, private, repo, branch, allowed)
+- def test_build_has_no_ollama_install_and_qualifies_before_only_four_final_outputs(workflow)
+- def test_qualification_report_upload_survives_failure_without_shipping_app_or_zip(workflow)
+- def test_both_instructions_cover_delivery_trust_folders_and_prior_model_results(relative)
+
+### tests/test_macos_qualification.py
+
+- def pilot(tmp_path, monkeypatch)
+- def run(pilot)
+- def test_host_guard_precedes_any_staging_or_process(pilot, monkeypatch, system, arch, github)
+- def test_success_qualifies_extracted_copy_twice_without_ollama_and_records_limits(pilot)
+- def test_manifest_archive_and_bundle_mismatches_fail_closed(pilot, mutation, check)
+- def test_missing_required_payload_is_rejected_even_if_inventory_matches(pilot, missing)
+- def test_invalid_plist_or_missing_finder_icon_is_rejected(pilot, key, value)
+- def test_every_macho_requires_arm64_and_known_app_compatible_minimum(pilot, setting, value)
+- def test_legacy_macos_deployment_command_is_accepted(pilot)
+- def test_macho_uses_the_plist_minimum_instead_of_a_fixed_limit(pilot, declared, actual, field, passes)
+- def test_macho_failure_reports_every_offending_slice_and_retains_passing_minima(pilot)
+- def test_invalid_or_non_adhoc_signature_blocks_launch(pilot, setting, value)
+- def test_early_exit_and_changes_to_preserved_bytes_fail(pilot, setting, check)
+- def test_existing_ollama_endpoint_blocks_qualification(pilot, monkeypatch)
+- def test_notice_validation_remains_strict(pilot, monkeypatch)
+- def test_runner_temp_must_be_outside_checkout(pilot, monkeypatch)
 
 ### tests/test_main_window_edit.py
 
@@ -2415,6 +2536,8 @@ requirements.txt
 - def test_templates_dir_is_string(tmp_path: Path) -> None
 - def test_reset_restores_templates_dir(tmp_path: Path) -> None
 - def test_old_settings_json_gains_templates_dir(tmp_path: Path) -> None
+- def test_platform_working_defaults_and_saved_custom_paths(tmp_path, monkeypatch, platform, root)
+- def test_platform_font_is_selected_without_a_font_database(monkeypatch, platform, font)
 
 ### tests/test_status_banner.py
 
@@ -2452,6 +2575,13 @@ requirements.txt
 
 ### tests/test_third_party_notices.py
 
+- def missing_installed_license(tmp_path, monkeypatch): Model the Mac wheels: package metadata exists but no installed license file.
+- def test_mac_qt_without_installed_license_references_verified_vendored_texts(tmp_path, missing_installed_license, name)
+- def test_non_qt_without_installed_license_still_fails(tmp_path, missing_installed_license)
+- def test_qt_fallback_cannot_hide_invalid_installed_notice_path(tmp_path, missing_installed_license)
+- def test_qt_fallback_requires_matching_package_version(tmp_path, missing_installed_license)
+- def test_python_license_resolver_uses_nonempty_installed_file(tmp_path, monkeypatch, location)
+- def test_python_license_resolver_rejects_missing_or_empty_files(tmp_path, monkeypatch)
 - def test_build_qt_version_matches_vendored_notice_snapshot()
 - def test_notice_bundle_contains_runtime_versions_and_full_qt_terms(tmp_path)
 - def test_missing_notice_payload_is_rejected_without_writing(tmp_path)
@@ -2574,6 +2704,7 @@ requirements.txt
 - .config/dotnet-tools.json: json, 10 lines
 - .gitattributes: text, 4 lines
 - .github/workflows/build.yml: yml, 106 lines
+- .github/workflows/macos-pilot.yml: yml, 235 lines
 - .gitignore: text, 84 lines
 - AGENTS.md: md, 52 lines
 - BUILD_STORY.md: md, 84 lines
@@ -2594,7 +2725,7 @@ requirements.txt
 - assets/icons/simplicitor_512.png: png (binary)
 - assets/icons/simplicitor_64.png: png (binary)
 - build.bat: bat, 10 lines
-- docs/PROJECT_STATUS.md: md, 159 lines
+- docs/PROJECT_STATUS.md: md, 164 lines
 - docs/Simplicitor_BugFixes_and_Features.md: md, 81 lines
 - docs/Simplicitor_Implementation_Guide.md: md, 347 lines
 - docs/Simplicitor_PRD_v1.2.docx: docx (binary)
@@ -2616,6 +2747,7 @@ requirements.txt
 - docs/builds/2026-10-11-task0-baseline.json: json, 227 lines
 - docs/builds/2026-10-12-c2-test-followup.json: json, 111 lines
 - docs/builds/2026-10-12-c2-ui-followup.json: json, 60 lines
+- docs/builds/macos-arm64-pilot-ci.json: json, 1934 lines
 - docs/code-signing.md: md, 69 lines
 - docs/design/azure-desktop-acceptance.md: md, 152 lines
 - docs/design/azure-desktop.html: html, 281 lines
@@ -2636,6 +2768,7 @@ requirements.txt
 - docs/evaluation/2026-10-09-sectioned-review-policy.md: md, 29 lines
 - docs/evaluation/2026-10-09-sectioned-review-verification.json: json, 39 lines
 - docs/evaluation/2026-10-09-sectioned-verification.json: json, 32 lines
+- docs/macos-pilot.md: md, 142 lines
 - docs/releases/v1.2.1-local.json: json, 15 lines
 - docs/releases/v1.2.1.json: json, 33 lines
 - docs/releases/v2.0.0-notes.md: md, 26 lines
@@ -2690,6 +2823,7 @@ requirements.txt
 - docs/superpowers/specs/2026-10-08-document-architecture-design.md: md, 176 lines
 - docs/superpowers/specs/2026-10-08-document-workspace-ui-design.md: md, 97 lines
 - docs/superpowers/specs/2026-10-13-edit-for-word-design.md: md, 327 lines
+- packaging/macos/MAC-PILOT-README.txt: txt, 118 lines
 - packaging/simplicitor.wxs: wxs, 56 lines
 - pytest.ini: ini, 3 lines
 - requirements-build.txt: txt, 8 lines
