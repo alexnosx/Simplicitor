@@ -30,12 +30,17 @@ own ~/Applications folder.
 FIRST LAUNCH
 
 This app is ad-hoc signed and not notarized. Apple has not verified its publisher.
-Double-click it in Finder and record the actual message. If blocked as unnotarized
+Double-click it in Finder and record the actual message. Expected unnotarized-app
+messages are:
+  macOS 14: "'Simplicitor' cannot be opened because Apple cannot check it for malicious software."
+  macOS 15: "Apple could not verify 'Simplicitor' is free of malware that may harm your Mac or compromise your privacy."
+If blocked as unnotarized
 or unidentified and you choose to trust these bytes: after the attempt, go to
 System Settings > Privacy & Security, scroll to Open Anyway, then confirm Open.
 This is a one-time exception for this app. Apple instructions:
 https://support.apple.com/en-us/102445
-For a malware/damaged-app warning, stop and report. Never disable Gatekeeper
+Stop and report only if macOS says the app "is damaged and can't be opened",
+"will damage your computer" or "contains malware". Never disable Gatekeeper
 globally or remove quarantine. Managed Macs may prevent the exception. Declining
 it means the launch check has not passed. CI cannot prove this first-launch path.
 

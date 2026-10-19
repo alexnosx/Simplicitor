@@ -227,3 +227,12 @@ def test_both_instructions_cover_delivery_trust_folders_and_prior_model_results(
                      "unchecked", "must-pass", "optional", "not checked", "model tag",
                      "before", "after", "feedback", "annoyed", "wished"):
         assert required in text, required
+    for expected in (
+        "\"'Simplicitor' cannot be opened because Apple cannot check it for malicious software.\"",
+        "\"Apple could not verify 'Simplicitor' is free of malware that may harm your Mac "
+        "or compromise your privacy.\"",
+    ):
+        assert expected in text, expected
+    assert ('Stop and report only if macOS says the app "is damaged and can\'t be opened", '
+            '"will damage your computer" or "contains malware".') in text
+    assert "malware/damaged-app warning" not in text

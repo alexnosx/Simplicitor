@@ -48,12 +48,19 @@ with Finder and move `Simplicitor.app` to your own `~/Applications` folder.
 ## First launch
 
 The app is **ad-hoc signed and not notarized**. It has no Apple-verified publisher
-identity. Double-click it in Finder and record the actual message. If it is blocked
+identity. Double-click it in Finder and record the actual message. Expected
+unnotarized-app messages are:
+
+- macOS 14: "'Simplicitor' cannot be opened because Apple cannot check it for malicious software."
+- macOS 15: "Apple could not verify 'Simplicitor' is free of malware that may harm your Mac or compromise your privacy."
+
+If it is blocked
 as unnotarized or unidentified and you choose to trust these bytes, use the
 one-time per-app exception: after trying to open it, open System Settings,
 Privacy & Security, scroll to **Open Anyway**, then confirm **Open** when asked.
-See [Apple's instructions](https://support.apple.com/en-us/102445). Do not override
-a malware/damaged-app warning; stop and report it. Never disable Gatekeeper
+See [Apple's instructions](https://support.apple.com/en-us/102445).
+Stop and report only if macOS says the app "is damaged and can't be opened",
+"will damage your computer" or "contains malware". Never disable Gatekeeper
 globally, remove quarantine or run a scripted bypass. A managed Mac may disallow
 the exception. Declining it is fine, but the launch check has not passed.
 
